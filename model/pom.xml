@@ -1,0 +1,111 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.vw.model.lang</groupId>
+	<artifactId>VWMLProcessor</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>VWMLProcessor</name>
+
+	<properties>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.vw.model.lang</groupId>
+			<artifactId>VWMLCommon</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vw.model.lang</groupId>
+			<artifactId>VWMLSinks</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency>
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr</artifactId>
+			<version>3.4</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+	</repositories>
+
+	<distributionManagement>
+	</distributionManagement>
+
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
+		<finalName>${project.artifactId}</finalName>
+
+		<resources>
+			<resource>
+				<directory>res</directory>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<debug>true</debug>
+					<optimize>true</optimize>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.6</version><!--$NO-MVN-MAN-VER$ -->
+				<executions>
+					<execution>
+						<id>generate-sources</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<target>
+								<property name="compile_classpath" refid="maven.compile.classpath" />
+								<property name="runtime_classpath" refid="maven.runtime.classpath" />
+								<property name="test_classpath" refid="maven.test.classpath" />
+								<property name="plugin_classpath" refid="maven.plugin.classpath" />
+
+								<ant antfile="${basedir}/src/com/vw/lang/grammar/build/build.xml">
+									<target name="grammar" />
+								</ant>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<warSourceDirectory>web</warSourceDirectory>
+					<archive>
+						<manifest>
+							<addClasspath>false</addClasspath>
+							<addDefaultImplementationEntries>false</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
