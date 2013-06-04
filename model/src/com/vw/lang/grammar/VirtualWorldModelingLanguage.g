@@ -35,6 +35,11 @@ tokens {
     OPPROJECTION_7='Projection_7';
     OPPROJECTION_8='Projection_8';
     OPPROJECTION_9='Projection_9';
+    // languages
+    JAVA='__java__';
+    C='__c__';
+    CPP='__cpp__';
+    OBJECTIVEC='__objective_c__';
 }
 
 @header {
@@ -69,8 +74,55 @@ package com.vw.lang.grammar;
 }
 
 
+filedef
+    : props module
+    | module
+    ;	 
+
+
+props
+    : 'options' '{' optionsList '}'
+    ;
+    
+optionsList
+    : lang generatedFileLocation
+    ;
+
+lang
+    : ('language' '=' JAVA) => langJava
+    | otherLanguages
+    ;	
+
+otherLanguages
+    :	
+    ;
+
+langJava
+    : 'language' '=' JAVA '{' javaProps '}'
+    ;
+    
+javaProps
+    : propPackage
+    ;
+    	
+propPackage
+    : 'package' '=' packageName
+    ;
+
+packageName
+    : STRING_LITERAL
+    ;
+
+generatedFileLocation
+    : 'path' '=' path
+    ;	
+
+path
+    : STRING_LITERAL
+    ;
+
+
 module
-@init { /*s_vwmlModelBuilder = VWMLModelBuilder.instance(); setInDebug(true);*/ }
     : 'module' ID body EOF { }
     ;
     
@@ -124,8 +176,12 @@ complex_entity
     ;
 
 ID
-    : ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
+    : LETTER (LETTER|'0'..'9')* // ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
     ;
+
+STRING_LITERAL
+    :  '"' ( ~('"') )* '"'
+    ;    
 
 oplist
     : opclist
@@ -164,6 +220,13 @@ opprojection
     | OPPROJECTION_9
     ;
 
+termLanguages
+    : JAVA
+    | C
+    | CPP
+    | OBJECTIVEC
+    ;
+
     
 COMMA
     : ','
@@ -180,3 +243,10 @@ SEMICOLON
 WS
     : (' '|'\t'|'\n'|'\r') {$channel=HIDDEN;}
     ;
+
+fragment
+LETTER
+	: 'A'..'Z'
+	|  'a'..'z'
+	|  '_'
+	;

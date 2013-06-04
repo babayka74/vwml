@@ -7,7 +7,7 @@ import com.vw.lang.sink.java.link.VWMLLink;
  * @author ogibayev
  *
  */
-public class VWMLObject implements Cloneable {
+public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private Object id;
 	private String readableId;
 	// entity can be linked with another entity or command
@@ -66,11 +66,27 @@ public class VWMLObject implements Cloneable {
 
 	/**
 	 * Links current entity with another VWML object which can be entity or command
-	 * @param type
 	 * @param linked
 	 */
-	public void link(VWMLLink.TYPE type, VWMLObject linked) {
-		link.link(type, linked);
+	public void link(VWMLObject linked) {
+		link.link(linked);
+	}
+	
+	/**
+	 * Unlinks objects: current and given 
+	 * @param obj
+	 */
+	public void unlink(VWMLObject obj) {
+		link.unlinkFrom(obj);
+	}
+	
+	/**
+	 * Returns 'true' in case if objects were linked
+	 * @param obj
+	 * @return
+	 */
+	public boolean isLinked(VWMLObject obj) {
+		return link.isLinked(obj);
 	}
 	
 	/**
@@ -84,5 +100,14 @@ public class VWMLObject implements Cloneable {
 	@Override
 	public String toString() {
 		return "VWMLObject [id=" + id + ", readableId=" + readableId + "]";
+	}
+
+	@Override
+	public int compareTo(VWMLObject o) {
+		int r = 0;
+		if (!equals(o)) {
+			r = getId().toString().compareTo(o.getId().toString());
+		}
+		return r;
 	}
 }

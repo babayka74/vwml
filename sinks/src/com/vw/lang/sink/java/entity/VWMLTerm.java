@@ -9,4 +9,12 @@ package com.vw.lang.sink.java.entity;
  */
 public class VWMLTerm extends VWMLEntity {
 
+	public VWMLTerm() {
+		super();
+	}
+
+	public VWMLTerm(Object id, String readableId) {
+		super(id, readableId);
+	}
+
 }

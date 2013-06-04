@@ -7,4 +7,12 @@ package com.vw.lang.sink.java.entity;
  */
 public class VWMLSimpleEntity extends VWMLEntity {
 
+	public VWMLSimpleEntity() {
+		super();
+	}
+
+	public VWMLSimpleEntity(Object id, String readableId) {
+		super(id, readableId);
+	}
+	
 }
