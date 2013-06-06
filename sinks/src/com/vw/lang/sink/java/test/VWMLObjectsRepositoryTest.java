@@ -41,7 +41,16 @@ public class VWMLObjectsRepositoryTest {
 		assertTrue(vA.isLinked(vG));
 		assertFalse(vBC.isLinked(vA));
 		// end of schema
-		dotPreprocessorDebug.done(schemaName);		
+		dotPreprocessorDebug.done(schemaName);
+		VWMLObject[] objs =  {vA,       vF,       vBC      };
+		String[] schemas  =  {"test_a", "test_f", "test_bc"};
+		int i = 0;
+		for(VWMLObject o : objs) {
+			dotPreprocessorDebug.init(schemas[i], buildPath(schemas[i]));
+			o.iterate(null);
+			dotPreprocessorDebug.done(schemas[i]);
+			i++;
+		}
 	}
 	
 	private String buildPath(String schemaName) {

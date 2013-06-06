@@ -1,8 +1,6 @@
 package com.vw.lang.sink.java.entity;
 
 import com.vw.lang.sink.java.VWMLObject;
-import com.vw.lang.sink.java.link.VWMLLink;
-import com.vw.lang.sink.java.operations.VWMLOperation;
 
 /**
  * VWML's base entity (see language specification)

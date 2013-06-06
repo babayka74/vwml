@@ -52,14 +52,18 @@ import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 package com.vw.lang.grammar;
 }
 
+@lexer::members {
+        private static final int NATIVE_CODE_CHANNEL = 199;
+}
+
 @rulecatch {
     catch (RecognitionException e) {
         throw e;
     }
 }
 
-@members {
 
+@members {
 	//private VWMLModelBuilder s_vwmlModelBuilder = null;
  	private boolean inDebug = false;
 	
@@ -243,6 +247,20 @@ SEMICOLON
 WS
     : (' '|'\t'|'\n'|'\r') {$channel=HIDDEN;}
     ;
+
+
+NATIVE_CODE
+    : '<*' .* '*>' {$channel=NATIVE_CODE_CHANNEL;}
+    ;
+
+COMMENT
+    : '/*' ( options {greedy=false;} : . )* '*/' {$channel=HIDDEN;}
+    ;
+    
+LINE_COMMENT
+    : '//' ~('\n'|'\r')* '\r'? '\n' {$channel=HIDDEN;}
+    ;
+
 
 fragment
 LETTER

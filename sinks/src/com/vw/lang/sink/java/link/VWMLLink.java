@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.link;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.vw.lang.sink.java.VWMLObject;
@@ -74,6 +75,23 @@ public class VWMLLink {
 			if (getLinkOperationVisitor() != null) {
 				getLinkOperationVisitor().unlink(itself, obj);
 			}
+		}
+	}
+	
+	/**
+	 * Shows all dependency of given object
+	 * @param startObj
+	 */
+	public void iterate(VWMLObject startObj, List<VWMLObject> dependencyList) {
+		Set<VWMLObject>  linkedObjects = startObj.getLink().getLinkedObjects();
+		for(VWMLObject obj : linkedObjects) {
+			if (dependencyList != null) {
+				dependencyList.add(obj);
+			}
+			if (startObj.getLink().getLinkOperationVisitor() != null) {
+				startObj.getLink().getLinkOperationVisitor().link(startObj, obj);
+			}
+			iterate(obj, dependencyList);
 		}
 	}
 }

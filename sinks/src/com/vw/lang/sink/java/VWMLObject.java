@@ -1,5 +1,8 @@
 package com.vw.lang.sink.java;
 
+import java.util.List;
+
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.link.VWMLLink;
 
 /**
@@ -87,6 +90,14 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	 */
 	public boolean isLinked(VWMLObject obj) {
 		return link.isLinked(obj);
+	}
+	
+	/**
+	 * Shows all dependency of given object
+	 * @param startObj
+	 */
+	public void iterate(List<VWMLObject> dependencyList) {
+		link.iterate(this, dependencyList);
 	}
 	
 	/**
