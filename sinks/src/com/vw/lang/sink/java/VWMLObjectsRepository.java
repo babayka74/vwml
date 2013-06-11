@@ -34,7 +34,7 @@ public class VWMLObjectsRepository {
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject acquire(VWMLObjectBuilder.TYPE type, Object id, IVWMLLinkVisitor visitor) {
+	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, IVWMLLinkVisitor visitor) {
 		// checks if object has been created before
 		VWMLObject obj = instance().get(id);
 		if (obj == null) { // not found in repository...

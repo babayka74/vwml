@@ -2,7 +2,6 @@ package com.vw.lang.sink.java;
 
 import java.util.List;
 
-import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.link.VWMLLink;
 
 /**

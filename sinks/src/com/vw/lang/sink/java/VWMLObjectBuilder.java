@@ -3,6 +3,7 @@ package com.vw.lang.sink.java;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLSimpleEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
@@ -15,11 +16,37 @@ import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
  */
 public class VWMLObjectBuilder {
 	
-	public static enum TYPE {
-		OBJECT,
-		SIMPLE_ENTITY,
-		COMPLEX_ENTITY,
-		TERM
+	public static enum VWMLObjectType {
+		OBJECT("OBJECT"),
+		SIMPLE_ENTITY("SIMPLE_ENTITY"),
+		COMPLEX_ENTITY("COMPLEX_ENTITY"),
+		TERM("TERM");
+		
+		private final String value;
+		
+		VWMLObjectType(String value) {
+			this.value = value;
+		}
+		
+		public static VWMLObjectType fromValue(String value) {
+			if (value != null) {
+				for(VWMLObjectType m : values()) {
+					if (m.value.equals(value)) {
+						return m;
+					}
+				}
+			}
+			return getDefault();
+		}
+		
+		public String toValue() {
+			return value;
+		}
+		
+		public static VWMLObjectType getDefault() {
+			return OBJECT;
+		}
+		
 	}
 	
 	public static abstract class Builder {
@@ -75,12 +102,12 @@ public class VWMLObjectBuilder {
 	 * Builders' map
 	 */
 	@SuppressWarnings("serial")
-	private static Map<TYPE, Builder> s_builders = new HashMap<TYPE, Builder>() {
+	private static Map<VWMLObjectType, Builder> s_builders = new HashMap<VWMLObjectType, Builder>() {
 		{
-			put(TYPE.OBJECT, new ObjectBuilder());
-			put(TYPE.SIMPLE_ENTITY, new SimpleEntityBuilder());
-			put(TYPE.COMPLEX_ENTITY, new ComplexEntityBuilder());
-			put(TYPE.TERM, new TermBuilder());
+			put(VWMLObjectType.OBJECT, new ObjectBuilder());
+			put(VWMLObjectType.SIMPLE_ENTITY, new SimpleEntityBuilder());
+			put(VWMLObjectType.COMPLEX_ENTITY, new ComplexEntityBuilder());
+			put(VWMLObjectType.TERM, new TermBuilder());
 		}
 	};
 	
@@ -92,7 +119,7 @@ public class VWMLObjectBuilder {
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject build(VWMLObjectBuilder.TYPE builderType, Object id, IVWMLLinkVisitor visitor) {
+	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object id, IVWMLLinkVisitor visitor) {
 		return s_builders.get(builderType).objectBuilder(id, visitor);
 	}
 }

@@ -1,4 +1,4 @@
-package com.vw.lang.sink.java.code;
+package com.vw.lang.sink.java.module;
 
 import com.vw.lang.sink.AbstractSink;
 
