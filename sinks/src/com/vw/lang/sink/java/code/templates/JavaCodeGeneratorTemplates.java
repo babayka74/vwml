@@ -21,31 +21,52 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tpublic Object getLinkedId() {\r\n" +
 	"\t\t\treturn linkedId;\r\n" +
 	"\t\t}\r\n" +
-	"\t}\r\n";
+	"\t}\r\n\r\n";
 
 	public static String s_VWMLLinkageCodeTemplate = "" +
 	"\tpublic void link() throws Exception {\r\n" +
 		"\t\tfor(VWMLLinkWrap obj : linkedObjectPairs) {\r\n" +
-			"\t\tVWMLObject entity = getEntityById(obj.getId());\r\n" +
-			"\t\tVWMLObject linkedEntity = getEntityById(obj.getLinkedId());\r\n" +
-			"\t\tentity.link(linkedEntity);\r\n" +
+			"\t\t\tVWMLObject entity = getEntityById(obj.getId());\r\n" +
+			"\t\t\tVWMLObject linkedEntity = getEntityById(obj.getLinkedId());\r\n" +
+			"\t\t\tentity.link(linkedEntity);\r\n" +
 		"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n";
 	
 	public static String s_VWMLInterpretingCodeTemplate = "" +
 	"\tpublic void interpret() throws Exception {\r\n" +
 		"\t\tfor(VWMLLinkWrap obj : interpretedObjectPairs) {\r\n" +
-			"\t\tVWMLEntity entity = (VWMLEntity)getEntityById(obj.getId());\r\n" +
-			"\t\tVWMLEntity linkedEntity = (VWMLEntity)getEntityById(obj.getLinkedId());\r\n" +
-			"\t\tentity.interpret(linkedEntity);\r\n" +
+			"\t\t\tVWMLEntity entity = (VWMLEntity)getEntityById(obj.getId());\r\n" +
+			"\t\t\tVWMLEntity linkedEntity = (VWMLEntity)getEntityById(obj.getLinkedId());\r\n" +
+			"\t\t\tentity.setInterpreting(linkedEntity);\r\n" +
 		"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n";
 	
 	public static String s_VWMLLinkageAuxCodeTemplate = "" +
-	"\tprivate VWMLObject getEntityById(Object id) {\r\n" +
+	"\tprivate VWMLObject getEntityById(Object id) throws Exception {\r\n" +
 	"\t\tVWMLObject entity = VWMLObjectsRepository.instance().get(id);\r\n" +
 	"\t\tif (entity == null) {\r\n" +
-		"\t\t\tthrow new Exception(\"unrecognized entity '\" + id + \"'\")\r\n" +
+		"\t\t\tthrow new Exception(\"unrecognized entity '\" + id + \"'\");\r\n" +
 	"\t\t}\r\n" +
+	"\t\treturn entity;\r\n" +
+	"\t}\r\n\r\n";
+	
+	public static String s_VWMLModuleDebugMethods = "" +
+	"\t/**\r\n" +
+	"\t* Used in debug purposes when need to know name of rule which is going to be processed\r\n" +
+	"\t* @param to\r\n" +
+	"\t*/\r\n" +
+	"\tpublic void debugEnter(Object to) {\r\n" +
+	"\t}\r\n\r\n" +
+	"\t/**\r\n" +
+	"\t* Used in debug purposes when need to know name of rule which has been processed\r\n" +
+	"\t* @param from\r\n" +
+	"\t*/\r\n" +
+	"\tpublic void debugExit(Object from) {\r\n" +
+	"\t}\r\n\r\n" +
+	"\t/**\r\n" +
+	"\t* Traces independent string\r\n" +
+	"\t* @param trace\r\n" +
+	"\t*/\r\n" +
+	"\tpublic void trace(String trace) {\r\n" +
 	"\t}\r\n\r\n";
 }

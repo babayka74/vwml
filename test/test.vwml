@@ -1,0 +1,18 @@
+options {
+language=__java__ {
+  package="com.aaa.ddd"
+}
+path="c:\sss\ddd/eee"
+}
+
+module sxa {
+     v ias ();
+    (e x~) Exe;
+
+    (a x) ias ( b ias c;
+            d ias (a~ (f))Join;
+            e~
+          );
+    e ias o;
+
+}

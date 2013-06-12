@@ -3,16 +3,17 @@ package com.vw.lang.sink.java.code;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.vw.lang.sink.CodeGenerator;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.code.templates.JavaCodeGeneratorTemplates;
+import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.module.VWMLModule;
 
 /**
  * Used by VWMLProcessor for code generation
@@ -22,9 +23,10 @@ import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 public class JavaCodeGenerator extends CodeGenerator {
 	
 	public static class JavaModuleStartProps extends StartModuleProps {
+		private String srcPath;
+		private String commonPackage;
 		private String moduleName;
 		private String modulePackage;
-		private String modulePath;
 		private String author;
 		private String description;
 		private String date;
@@ -34,43 +36,52 @@ public class JavaCodeGenerator extends CodeGenerator {
 			super();
 		}
 
-		public JavaModuleStartProps(String moduleName, String modulePackage,
-				String modulePath, String author, String description,
-				String date, IVWMLLinkVisitor visitor) {
+		public JavaModuleStartProps(String srcPath, String commonPackage,
+				String moduleName, String modulePackage, String author,
+				String description, String date, IVWMLLinkVisitor visitor) {
 			super();
+			this.srcPath = srcPath;
+			this.commonPackage = commonPackage;
 			this.moduleName = moduleName;
 			this.modulePackage = modulePackage;
-			this.modulePath = modulePath;
 			this.author = author;
 			this.description = description;
 			this.date = date;
 			this.visitor = visitor;
 		}
 
+		public String getSrcPath() {
+			return srcPath;
+		}
+
+		public void setSrcPath(String srcPath) {
+			this.srcPath = srcPath;
+		}
+
+		public String getCommonPackage() {
+			return commonPackage;
+		}
+
+		public void setCommonPackage(String commonPackage) {
+			this.commonPackage = commonPackage;
+		}
+
 		public String getModuleName() {
 			return moduleName;
 		}
-		
+
 		public void setModuleName(String moduleName) {
 			this.moduleName = moduleName;
 		}
-		
+
 		public String getModulePackage() {
 			return modulePackage;
 		}
-		
+
 		public void setModulePackage(String modulePackage) {
 			this.modulePackage = modulePackage;
 		}
-		
-		public String getModulePath() {
-			return modulePath;
-		}
-		
-		public void setModulePath(String modulePath) {
-			this.modulePath = modulePath;
-		}
-		
+
 		public String getAuthor() {
 			return author;
 		}
@@ -105,16 +116,16 @@ public class JavaCodeGenerator extends CodeGenerator {
 
 		@Override
 		public String toString() {
-			return "JavaModuleStartProps [moduleName=" + moduleName
-					+ ", modulePackage=" + modulePackage + ", modulePath="
-					+ modulePath + ", author=" + author + ", description="
-					+ description + ", date=" + date + ", visitor=" + visitor
-					+ "]";
+			return "JavaModuleStartProps [srcPath=" + srcPath
+					+ ", commonPackage=" + commonPackage + ", moduleName="
+					+ moduleName + ", modulePackage=" + modulePackage
+					+ ", author=" + author + ", description=" + description
+					+ ", date=" + date + ", visitor=" + visitor + "]";
 		}		
 	}
 	
 	public static enum ModuleFiles {
-		MODULE(""),
+		MODULE("Module"),
 		REPOSITORY("Repository"),
 		LINKAGE("Linkage");
 		
@@ -175,15 +186,21 @@ public class JavaCodeGenerator extends CodeGenerator {
 	 *
 	 */
 	protected static class VWMLObjWrap {
+		private VWMLObjectBuilder.VWMLObjectType type;
 		private Object objId;
 
-		public VWMLObjWrap(Object objId) {
+		public VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType type, Object objId) {
 			super();
+			this.type = type;
 			this.objId = objId;
 		}
 
 		public Object getObjId() {
 			return objId;
+		}
+
+		public VWMLObjectBuilder.VWMLObjectType getType() {
+			return type;
 		}
 	}
 	
@@ -210,17 +227,21 @@ public class JavaCodeGenerator extends CodeGenerator {
 	private FileWriter fws[] = new FileWriter[ModuleFiles.numValues()];
 	// used for debug purposes in order to visualize objects' linkage
 	private IVWMLLinkVisitor visitor = null;
-	// declared VWML objects (simple entity, complex entity and terms
-	private Map<VWMLObjectBuilder.VWMLObjectType, VWMLObjWrap> declaredObjects = new HashMap<VWMLObjectBuilder.VWMLObjectType, VWMLObjWrap>();
+	// declared VWML objects (simple entity, complex entity and terms)
+	private List<VWMLObjWrap> declaredObjects = new ArrayList<VWMLObjWrap>();
 	// defines objects' linkage
 	private List<VWMLLinkWrap> linkage = new ArrayList<VWMLLinkWrap>();
 	// defines objects' interpretation linkage (special type of linkage, one object is interpreted as second)
 	private List<VWMLLinkWrap> interpret = new ArrayList<VWMLLinkWrap>();
 	
 	private static String s_caption = "/** \r\n*  This code was generated by VWML processor \r\n*  Description: %s \r\n*  Author: %s \r\n*  Date  : %s \r\n*/";
-	private static String s_classStartDef = "public class %s extends VWMLModule {";
+	private static String s_classStartDef = "public class %s {";
 	private static String s_classEndDef = "}";
 
+	public static JavaCodeGenerator instance() {
+		return new JavaCodeGenerator();
+	}
+	
 	/**
 	 * Returns module's caption constructed from module's properties
 	 * @param props
@@ -241,30 +262,43 @@ public class JavaCodeGenerator extends CodeGenerator {
 			// 1. caption
 			prepareCaption(modProps) + "\r\n\r\n",
 			// 2. package
-			"package " + modProps.getModulePackage() + "\r\n",
+			"package " + modProps.getModulePackage() + ";\r\n\r\n",
 			// 3. imports
-			prepareImports() + "\r\n"
+			prepareImports()
 		};
+		String moduleFileName = JavaCodeGeneratorUtils.capitalizeFirstLetter(modProps.getModuleName());
 		// files related to module => 
 		// {module itself, repository (where objects are created), linkage (where objects are linked)}
 		String[] modFiles = {
-			generateClassName(ModuleFiles.MODULE + modProps.getModuleName()) + ".java",
-			generateClassName(ModuleFiles.REPOSITORY +  modProps.getModuleName()) + ".java",
-			generateClassName(ModuleFiles.LINKAGE + modProps.getModuleName()) + ".java",
+			generateClassName(ModuleFiles.MODULE.toValue() + moduleFileName) + ".java",
+			generateClassName(ModuleFiles.REPOSITORY.toValue() +  moduleFileName) + ".java",
+			generateClassName(ModuleFiles.LINKAGE.toValue() + moduleFileName) + ".java",
 		};
-		File f = new File(modProps.getModulePath());
+		String moduleFullPath = modProps.getSrcPath() + "/" + modProps.getModulePackage().replaceAll("\\.", "/");
+		File f = new File(moduleFullPath);
 		if (!f.exists() && !f.mkdirs()) {
-			throw new Exception("Couldn't create path '" + modProps.getModulePath() + "'");
+			throw new Exception("Couldn't create path '" + moduleFullPath + "'");
 		}
 		// creates files and adds caption, package name and imports
 		for(int i = 0; i < fws.length; i++) {
-			fws[i] = new FileWriter(modProps.getModulePath() + "/" + modFiles[i]);
+			fws[i] = new FileWriter(moduleFullPath + "/" + modFiles[i]);
 			for(String line : startLines) {
 				fws[i].write(line);
 			}
 		}
 	}
 
+	/**
+	 * Actually generates module's code
+	 * @param modProps
+	 */
+	public void generate(StartModuleProps props) throws Exception {
+		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
+		buildModuleBody(modProps);
+		buildModuleRepositoryPart(modProps);
+		buildModuleLinkagePart(modProps);
+	}
+	
 	/**
 	 * Finishes generation of module
 	 * @param props
@@ -290,7 +324,7 @@ public class JavaCodeGenerator extends CodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareSimpleEntity(Object id) throws Exception {
-		declaredObjects.put(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, new VWMLObjWrap(id));
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id));
 	}
 	
 	/**
@@ -299,7 +333,7 @@ public class JavaCodeGenerator extends CodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareComplexEntity(Object id) throws Exception {
-		declaredObjects.put(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, new VWMLObjWrap(id));		
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id));		
 	}
 	
 	/**
@@ -308,7 +342,7 @@ public class JavaCodeGenerator extends CodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareTerm(Object id) throws Exception {
-		declaredObjects.put(VWMLObjectBuilder.VWMLObjectType.TERM, new VWMLObjWrap(id));
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id));
 	}
 	
 	/**
@@ -339,6 +373,23 @@ public class JavaCodeGenerator extends CodeGenerator {
 	}
 
 	/**
+	 * Builds module's body
+	 * @param modProps
+	 * @throws Exception
+	 */
+	protected void buildModuleBody(JavaModuleStartProps modProps) throws Exception {
+		FileWriter fw = fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())];
+		fw.write("import " + VWMLModule.class.getName() + ";\r\n");
+		// starts class definition
+		fw.write("\r\n" + generateClassDef(ModuleFiles.MODULE.toValue(), " extends VWMLModule", modProps));
+		String repositoryClassName = generateClassName(ModuleFiles.REPOSITORY.toValue() + JavaCodeGeneratorUtils.capitalizeFirstLetter(modProps.getModuleName()));
+		String linkageClassName = generateClassName(ModuleFiles.LINKAGE.toValue() + JavaCodeGeneratorUtils.capitalizeFirstLetter(modProps.getModuleName()));
+		fw.write("\tprivate " + repositoryClassName + " repository = new " + repositoryClassName + "();\r\n");
+		fw.write("\tprivate " + linkageClassName + " linkage = new " + linkageClassName + "();\r\n\r\n");
+		fw.write(JavaCodeGeneratorTemplates.s_VWMLModuleDebugMethods);
+	}
+	
+	/**
 	 * Builds repository part - defines method 'build' which adds entities
 	 * listed in VWML's code
 	 * @param modProps
@@ -347,15 +398,16 @@ public class JavaCodeGenerator extends CodeGenerator {
 	protected void buildModuleRepositoryPart(JavaModuleStartProps modProps) throws Exception {
 		// caption and common imports are added before (see startModule) method
 		FileWriter fw = fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())];
+		fw.write("import " + VWMLObjectBuilder.VWMLObjectType.class.getCanonicalName() + ";\r\n");		
 		// adds visitor's interface in any case
-		fw.write("import " + IVWMLLinkVisitor.class.getPackage().getName() + ";\r\n");
+		fw.write("import " + IVWMLLinkVisitor.class.getName() + ";\r\n");
 		// adds visitor's import, if it exists
 		if (getVisitor() != null) {
-			String visitorImport = "import " + getVisitor().getClass().getPackage().getName() + ";\r\n\r\n";
+			String visitorImport = "import " + getVisitor().getClass().getName() + ";\r\n";
 			fw.write(visitorImport);
 		}
 		// starts class definition
-		fw.write(generateClassDef(ModuleFiles.REPOSITORY.toValue(), modProps));
+		fw.write("\r\n" + generateClassDef(ModuleFiles.REPOSITORY.toValue(), "", modProps));
 		// instantiates visitor
 		if (getVisitor() != null) {
 			fw.write("\tprivate IVWMLLinkVisitor preprocessorStructureVisualizer = " + getVisitor().getClass().getSimpleName() + ".instance();\r\n\r\n");
@@ -365,10 +417,9 @@ public class JavaCodeGenerator extends CodeGenerator {
 		}
 		// adds method's 'build' definition
 		fw.write("\tpublic void build() throws Exception {\r\n");
-		for(VWMLObjectBuilder.VWMLObjectType type : declaredObjects.keySet()) {
-			VWMLObjWrap obj = declaredObjects.get(type);
-			fw.write("\t\t// constructs entity '" + obj.getObjId() + "'");
-			fw.write("\t\tVWMLObjectsRepository.acquire(" + type.toValue() + ", " + obj.getObjId() + ", preprocessorStructureVisualizer);\r\n");
+		for(VWMLObjWrap obj : declaredObjects) {
+			fw.write("\t\t// constructs entity '" + obj.getObjId() + "'\r\n");
+			fw.write("\t\tVWMLObjectsRepository.acquire(" + obj.getType().getClass().getSimpleName()+ "." + obj.getType().toValue() + ", \"" + obj.getObjId() + "\", preprocessorStructureVisualizer);\r\n");
 		}
 		// closes 'build' method
 		fw.write("\t}\r\n");
@@ -384,14 +435,15 @@ public class JavaCodeGenerator extends CodeGenerator {
 	protected void buildModuleLinkagePart(JavaModuleStartProps modProps) throws Exception {
 		// caption and common imports are added before (see startModule) method
 		FileWriter fw = fws[ModuleFiles.index(ModuleFiles.LINKAGE.toValue())];
+		fw.write("import " + VWMLEntity.class.getName() + ";\r\n");
 		// starts class definition
-		fw.write(generateClassDef(ModuleFiles.LINKAGE.toValue(), modProps));
+		fw.write("\r\n" + generateClassDef(ModuleFiles.LINKAGE.toValue(), "", modProps));
 		// wrapper for linked objects
-		fw.write(JavaCodeGeneratorTemplates.s_VWMLLinkWrapTemplate);
+		fw.write("\r\n" + JavaCodeGeneratorTemplates.s_VWMLLinkWrapTemplate);
 		// generates list of wrapped objects prepared for linkage operation
-		String listOfLinkedObjects = generateLinkedObjectsDefinition("linkedObjectPairs");
+		String listOfLinkedObjects = generateLinkedObjectsDefinition("linkedObjectPairs", linkage);
 		fw.write(listOfLinkedObjects);
-		String listOfInterpretedObjects = generateLinkedObjectsDefinition("interpretedObjectPairs");
+		String listOfInterpretedObjects = generateLinkedObjectsDefinition("interpretedObjectPairs", interpret);
 		fw.write(listOfInterpretedObjects);
 		// link and aux. methods
 		String[] methodsDef =  {
@@ -406,29 +458,29 @@ public class JavaCodeGenerator extends CodeGenerator {
 		fw.write("}\r\n");
 	}
 
-	private String generateLinkedObjectsDefinition(String objName) {
+	private String generateLinkedObjectsDefinition(String objName, List<VWMLLinkWrap> store) {
 		boolean ft = true;
 		String list = "\tprivate VWMLLinkWrap[] " + objName + " = {";
-		for(VWMLLinkWrap obj : linkage) {
+		for(VWMLLinkWrap obj : store) {
 			if (!ft) {
-				list += ", \r\n";
+				list += ",";
 			}
-			list += "\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\")";
+			list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\")";
 			ft = false;
 		}
 		list += "\r\n\t};\r\n\r\n";
 		return list;
 	}
 	
-	private String generateClassDef(String prefix, JavaModuleStartProps modProps) {
-		return String.format(s_classStartDef, prefix + generateClassName(modProps.getModuleName()) + "\r\n");
+	private String generateClassDef(String prefix, String suffix, JavaModuleStartProps modProps) {
+		return String.format(s_classStartDef, generateClassName(prefix + JavaCodeGeneratorUtils.capitalizeFirstLetter(modProps.getModuleName())) + suffix) + "\r\n";
 	}
 	
 	private String prepareImports() {
 		Class<?> importedClasses[] = {VWMLObjectsRepository.class, VWMLObject.class};
 		String imports = new String();
 		for(Class<?> ic : importedClasses) {
-			imports += "import " + ic.getPackage().getName() + ";\r\n";
+			imports += "import " + ic.getName() + ";\r\n";
 		}
 		return imports;
 	}
