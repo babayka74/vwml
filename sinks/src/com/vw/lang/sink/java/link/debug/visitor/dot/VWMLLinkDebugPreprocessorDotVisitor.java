@@ -14,14 +14,13 @@ import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 public class VWMLLinkDebugPreprocessorDotVisitor implements IVWMLLinkVisitor {
 
 	private FileWriter fw = null;
-	private static VWMLLinkDebugPreprocessorDotVisitor s_instance = new VWMLLinkDebugPreprocessorDotVisitor();
 	
 	private VWMLLinkDebugPreprocessorDotVisitor() {
 		
 	}
 	
 	public static IVWMLLinkVisitor instance() {
-		return s_instance;
+		return new VWMLLinkDebugPreprocessorDotVisitor();
 	}
 	
 	@Override

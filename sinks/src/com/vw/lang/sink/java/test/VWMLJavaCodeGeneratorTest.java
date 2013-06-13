@@ -22,6 +22,7 @@ public class VWMLJavaCodeGeneratorTest {
 		props.setModuleName("testSourceGeneration");
 		props.setSrcPath("src");
 		props.setModulePackage("com.vw.lang.sink.java.test.generated.srcs.test");
+		props.setVisitorDataPath("src/com/vw/lang/sink/java/test/generated/data/" + props.getModuleName() + ".dot");
 		try {
 			g.startModule(props);
 			g.declareSimpleEntity("a");
@@ -39,17 +40,30 @@ public class VWMLJavaCodeGeneratorTest {
 			g.linkObjects("a", "x");
 			g.linkObjects("(f)", "x");
 			g.linkObjects("(f)", "(b c d)");
-			g.linkObjects("a", "f");
+			g.linkObjects("a", "(f)");
 			
 			g.interpretObjects("a", "(a1 a2 a3)");
 			g.interpretObjects("x", "(x1 x2 x3)");
 			g.interpretObjects("(a1 a2 a3)", "true");
 			g.interpretObjects("(x1 x2 x3)", "false");
 			
+			g.associateOperation("a", "~");
+			g.associateOperation("a", "Join");
+			g.associateOperation("(f)", "~");
+			g.associateOperation("(f)", "First");
+			
 			g.generate(props);
 			g.finishModule(props);
+			
 		} catch (Exception e) {
 			Assert.assertFalse(true);
 		}
 	}
+/*	
+	@Test
+	public void testGeneratedCode() throws Exception {
+		com.vw.lang.sink.java.test.generated.srcs.test.VWMLModuleTestSourceGeneration module = new com.vw.lang.sink.java.test.generated.srcs.test.VWMLModuleTestSourceGeneration();
+		module.build();
+	}
+	*/
 }
