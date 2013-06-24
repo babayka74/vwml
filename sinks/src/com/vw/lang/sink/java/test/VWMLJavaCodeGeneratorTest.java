@@ -9,7 +9,7 @@ import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor;
 
 public class VWMLJavaCodeGeneratorTest {
-
+/*
 	@Test
 	public void testSourceGenerationProcess() {
 		IVWMLLinkVisitor dotPreprocessorDebug = VWMLLinkDebugPreprocessorDotVisitor.instance();
@@ -59,11 +59,12 @@ public class VWMLJavaCodeGeneratorTest {
 			Assert.assertFalse(true);
 		}
 	}
-/*	
+	
+*/	
 	@Test
 	public void testGeneratedCode() throws Exception {
 		com.vw.lang.sink.java.test.generated.srcs.test.VWMLModuleTestSourceGeneration module = new com.vw.lang.sink.java.test.generated.srcs.test.VWMLModuleTestSourceGeneration();
 		module.build();
 	}
-	*/
+
 }

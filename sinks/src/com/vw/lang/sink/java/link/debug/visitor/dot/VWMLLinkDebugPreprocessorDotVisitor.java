@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.operations.VWMLOperation;
 
 /**
  * DOT language generator; used in order to visualize objects during preprocessor's stage
@@ -60,5 +61,28 @@ public class VWMLLinkDebugPreprocessorDotVisitor implements IVWMLLinkVisitor {
 
 	@Override
 	public void unlink(VWMLObject obj, VWMLObject objUnlinked) {
+	}
+
+	@Override
+	public void interpretObjectAs(VWMLObject obj, VWMLObject interpreting) {
+		try {
+			fw.write("\"" + obj.getId() + "\" -- \"" + interpreting.getId() + "\"[style=dotted];\r\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void associateOperation(VWMLObject obj, VWMLOperation op) {
+		try {
+			fw.write("\"" + obj.getId() + "::" + op.getOpCode().toValue() + "\" [shape=box];");
+			fw.write("\"" + obj.getId() + "\" -- \"" + obj.getId() + "::" + op.getOpCode().toValue() + "\"[style=dotted];\r\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void removeOperationFromAssociation(VWMLObject obj, VWMLOperation op) {
 	}
 }

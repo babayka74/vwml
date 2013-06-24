@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.link;
 
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.operations.VWMLOperation;
 
 /**
  * Used in debug purposes in order to visualize structure of objects' relations
@@ -34,4 +35,25 @@ public interface IVWMLLinkVisitor {
 	 * @param objUnlinked
 	 */
 	public void unlink(VWMLObject obj, VWMLObject objUnlinked);
+	
+	/**
+	 * Called when interpreting linkage is established between objects
+	 * @param obj
+	 * @param objUnlinked
+	 */
+	public void interpretObjectAs(VWMLObject obj, VWMLObject interpreting);
+	
+	/**
+	 * Builds association between object and operation
+	 * @param obj
+	 * @param op
+	 */
+	public void associateOperation(VWMLObject obj, VWMLOperation op);
+	
+	/**
+	 * Removes operation from object's association
+	 * @param obj
+	 * @param op
+	 */
+	public void removeOperationFromAssociation(VWMLObject obj, VWMLOperation op);
 }

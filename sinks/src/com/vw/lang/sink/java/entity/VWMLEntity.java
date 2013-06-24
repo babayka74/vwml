@@ -29,6 +29,9 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setInterpreting(VWMLEntity interpreting) {
 		this.interpreting = interpreting;
+		if (this.getLink().getLinkOperationVisitor() != null) {
+			this.getLink().getLinkOperationVisitor().interpretObjectAs(this, interpreting);
+		}
 	}
 	
 	/**
@@ -37,6 +40,9 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public void addOperation(VWMLOperation op) {
 		associatedOperations.addOperation(op);
+		if (this.getLink().getLinkOperationVisitor() != null) {
+			this.getLink().getLinkOperationVisitor().associateOperation(this, op);
+		}
 	}
 	
 	/**
@@ -45,6 +51,9 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public void removeOperation(VWMLOperation op) {
 		associatedOperations.removeOperation(op);
+		if (this.getLink().getLinkOperationVisitor() != null) {
+			this.getLink().getLinkOperationVisitor().removeOperationFromAssociation(this, op);
+		}
 	}
 	
 	/**
