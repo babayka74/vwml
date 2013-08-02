@@ -1,7 +1,12 @@
 package com.vw.lang.processor.model.builder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import com.vw.common.Debuggable;
+import com.vw.lang.sink.ICodeGenerator;
+import com.vw.lang.sink.java.code.JavaCodeGenerator;
 
 
 /**
@@ -28,7 +33,14 @@ public class VWMLModelBuilder extends Debuggable {
 	// builder is implemented as singleton
 	private static volatile VWMLModelBuilder s_builder = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
-
+	// association between sink type and code generator
+	private static Map<SINK_TYPE, ICodeGenerator> s_codeGenerators = new HashMap<SINK_TYPE, ICodeGenerator>() {
+		{ put(SINK_TYPE.JAVA,        JavaCodeGenerator.instance());}
+		{ put(SINK_TYPE.CPP,         null);                        }
+		{ put(SINK_TYPE.C,           null);                        }
+		{ put(SINK_TYPE.OBJECTIVE_C, null);                        }
+	};
+	
 	private VWMLModelBuilder() {
 		
 	}
@@ -55,6 +67,27 @@ public class VWMLModelBuilder extends Debuggable {
 			}
 		}
 		return s_builder;
+	}
+	
+	/**
+	 * Changes/adds sink's association
+	 * @param sink
+	 * @param codeGenerator
+	 */
+	public void changeSink(SINK_TYPE sink, ICodeGenerator codeGenerator) {
+		s_codeGenerators.put(sink, codeGenerator);
+		if (logger.isDebugEnabled()) {
+			logger.debug("The sink '" + sink + "' associated with code generator '" + codeGenerator + "'");
+		}
+	}
+	
+	/**
+	 * Returns code generator associated with given sink
+	 * @param sink
+	 * @return
+	 */
+	public ICodeGenerator getCodeGenerator(SINK_TYPE sink) {
+		return s_codeGenerators.get(sink);
 	}
 	
 	/**

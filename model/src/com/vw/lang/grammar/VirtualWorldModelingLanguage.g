@@ -46,6 +46,15 @@ tokens {
 package com.vw.lang.grammar;
 
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
+import com.vw.lang.sink.ICodeGenerator;
+import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
+import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
+import com.vw.lang.sink.utils.EntityWalker;
+import com.vw.lang.sink.utils.GeneralUtils;
+
+import com.vw.lang.sink.java.code.JavaCodeGenerator;
+import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
+
 }
 
 @lexer::header { 
@@ -64,16 +73,52 @@ package com.vw.lang.grammar;
 
 
 @members {
-	//private VWMLModelBuilder s_vwmlModelBuilder = null;
+	private VWMLModelBuilder vwmlModelBuilder = VWMLModelBuilder.instance();
+	private ICodeGenerator codeGenerator = null;
+	private StartModuleProps modProps = null;
+	private ComplexEntityNameBuilder complexEntityNameBuilder = ComplexEntityNameBuilder.instance();
+	private EntityWalker entityWalker = EntityWalker.instance();
+	private String modName = null;
  	private boolean inDebug = false;
 	
 	protected void setInDebug(boolean inDebug) {
 		this.inDebug = inDebug;
-		// s_vwmlModelBuilder.setDebug(inDebug);		
+		vwmlModelBuilder.setDebug(inDebug);		
 	}
 	
 	protected boolean isInDebug() {
 		return this.inDebug;
+	}
+	
+	protected void buildIASAssociation(Object id) throws RecognitionException {
+    		Object objLinkingId = entityWalker.getEntityMarkedAsIAS();
+    		Object objLinkedId = id;
+    		// creates 'IAS' association
+    		entityWalker.resetFutureEntityAsIAS();
+    		try {
+    			codeGenerator.interpretObjects(objLinkingId, objLinkedId);
+   			System.out.println("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
+    		}
+    		catch(Exception e) {
+    			rethrowVWMLExceptionAsRecognitionException(e);
+    		}	
+	}
+	
+	protected void buildLinkingAssociation(Object linkedObj) throws RecognitionException {
+  		Object linkingObjId = entityWalker.peek();
+    		if (linkingObjId != null) {
+    			try {
+    				codeGenerator.linkObjects(linkingObjId, linkedObj);
+    				System.out.println("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
+    			}
+    			catch(Exception e) {
+    				rethrowVWMLExceptionAsRecognitionException(e);
+    			}
+    		}
+	}
+	
+	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
+		throw new RecognitionException(new ANTLRStringStream(e.getMessage()));
 	}
 }
 
@@ -89,7 +134,7 @@ props
     ;
     
 optionsList
-    : lang generatedFileLocation
+    : lang
     ;
 
 lang
@@ -102,15 +147,27 @@ otherLanguages
     ;
 
 langJava
+    @init {
+       codeGenerator = vwmlModelBuilder.getCodeGenerator(VWMLModelBuilder.SINK_TYPE.JAVA);
+       System.out.println("Code generator '" + codeGenerator + "'");
+    }
     : 'language' '=' JAVA '{' javaProps '}'
     ;
-    
+
 javaProps
-    : propPackage
+    @init {
+	// instantiating module's properties which will be filled later
+	modProps = (codeGenerator != null) ? codeGenerator.buildProps() : null;
+    }
+    : propPackage generatedFileLocation optionalProps
     ;
     	
 propPackage
-    : 'package' '=' packageName
+    : 'package' '=' packageName {
+	    			  if (modProps != null) {
+	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModulePackage(GeneralUtils.trimQuotes($packageName.text));
+	    			  }
+    			        }
     ;
 
 packageName
@@ -118,8 +175,32 @@ packageName
     ;
 
 generatedFileLocation
-    : 'path' '=' path
+    : 'path' '=' path {
+    			if (modProps != null) {
+    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setSrcPath(GeneralUtils.trimQuotes($path.text));
+    			}
+    		      }
     ;	
+
+optionalProps
+    : author? description?
+    ;
+
+author
+    : 'author' '=' string {
+	    			if (modProps != null) {
+	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setAuthor(GeneralUtils.trimQuotes($string.text));
+	    			}
+    			  }
+    ;
+    
+description
+    : 'description' '=' string { 
+    				if (modProps != null) {
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setDescription(GeneralUtils.trimQuotes($string.text));
+    				}
+    			       }
+    ;
 
 path
     : STRING_LITERAL
@@ -127,7 +208,20 @@ path
 
 
 module
-    : 'module' ID body EOF { }
+    : 'module' ID { 
+    			modName = $ID.getText(); 
+    			if (modProps != null) {
+    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
+	    			try {
+	    				codeGenerator.startModule(modProps);
+	    			}
+	    			catch(Exception e) {
+	    				System.out.println("Caught exception '" + e + "'");
+	    				rethrowVWMLExceptionAsRecognitionException(e);
+	    			}
+    			}
+    			// starts module's definition
+                  } body EOF { }
     ;
     
 body
@@ -141,23 +235,53 @@ expression
     ;
 
 entity_def
-    : entity_decl IAS term (SEMICOLON)?
+    : entity_decl IAS {
+    			System.out.println("e name '" + $entity_decl.id + "'");
+    			entityWalker.markFutureEntityAsIAS($entity_decl.id);
+    		      } term (SEMICOLON)?
     ;
 
 term_def
     : entity (oplist)*
     ;
 
-entity_decl
-    : simple_entity_decl
-    | complex_entity_decl
+entity_decl returns [String id]
+    : simple_entity_decl  {id = $simple_entity_decl.id;}
+    | complex_entity_decl {id = $complex_entity_decl.id;}
     ;
     
-simple_entity_decl
-    : ID {System.out.println("e name '" + $ID.getText() + "'");}
+simple_entity_decl returns [String id]
+    : ID {
+    		id = $ID.getText();
+    		// means that complex entity's name is being built
+    		if (complexEntityNameBuilder.isInProgress()) {
+    			complexEntityNameBuilder.addObjectId(id);
+    		}
+    		else {
+    			try {
+    				codeGenerator.declareSimpleEntity(id);
+    			}
+    			catch(Exception e) {
+    				rethrowVWMLExceptionAsRecognitionException(e);
+    			}
+    		}
+         }
     ;
     
-complex_entity_decl
+complex_entity_decl returns [String id]
+    @init {
+    	complexEntityNameBuilder.startProgress();
+    }
+    @after {
+    	complexEntityNameBuilder.stopProgress();
+    	id = complexEntityNameBuilder.build();
+    	try {
+    		codeGenerator.declareComplexEntity(id);
+    	}
+    	catch(Exception e) {
+    		rethrowVWMLExceptionAsRecognitionException(e);
+    	}
+    }
     : ('(' (simple_entity_decl)+ ')')?
     ;
 
@@ -172,10 +296,40 @@ entity
 
 
 simple_entity
-    : ID
+    : ID {
+    	    	if (entityWalker.getEntityMarkedAsIAS() != null) {
+    			buildIASAssociation($ID.text);
+    		}
+    		else {
+   			buildLinkingAssociation($ID.text);
+    		}
+         }
     ;
 
 complex_entity
+    @init {
+    	// id and name is the same
+    	String ceId = ComplexEntityNameBuilder.generateRandomName();
+    	try {
+    		codeGenerator.declareComplexEntity(ceId);
+    	}
+    	catch(Exception e) {
+    		rethrowVWMLExceptionAsRecognitionException(e);
+    	}
+    	// in case if entity was marked as IAS we have to build IAS association
+    	if (entityWalker.getEntityMarkedAsIAS() != null) {
+    		buildIASAssociation(ceId);
+    	}
+    	else {
+   		buildLinkingAssociation(ceId);
+    	}
+        // the complex enity (name/id is generated) is pushed to stack (here complex entity is part of expression)
+    	entityWalker.push(ceId);
+    }
+    @after {
+        // remove it from stack
+    	entityWalker.pop();    
+    }
     : '(' (term)* ')'
     ;
 
@@ -231,6 +385,9 @@ termLanguages
     | OBJECTIVEC
     ;
 
+string
+    : STRING_LITERAL
+    ;
     
 COMMA
     : ','

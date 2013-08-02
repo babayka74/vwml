@@ -1,8 +1,10 @@
 options {
-language=__java__ {
-  package="com.aaa.ddd"
-}
-path="c:\sss\ddd/eee"
+	language=__java__ {
+  		package="com.aaa.ddd"
+  		path="c:\sss\ddd/eee"
+  		author="XXX XXX"
+  		description="test test"
+	}
 }
 
 module sxa {

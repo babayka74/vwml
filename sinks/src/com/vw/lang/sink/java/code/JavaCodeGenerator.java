@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.vw.lang.sink.CodeGenerator;
+import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
@@ -24,7 +24,7 @@ import com.vw.lang.sink.java.operations.VWMLOperationsCode;
  * @author ogibayev
  *
  */
-public class JavaCodeGenerator extends CodeGenerator {
+public class JavaCodeGenerator implements ICodeGenerator {
 	
 	public static class JavaModuleStartProps extends StartModuleProps {
 		private String srcPath;
@@ -55,6 +55,7 @@ public class JavaCodeGenerator extends CodeGenerator {
 			this.date = date;
 			this.visitor = visitor;
 			this.visitorDataPath = visitorDataPath;
+			
 		}
 
 		public String getSrcPath() {
@@ -261,17 +262,15 @@ public class JavaCodeGenerator extends CodeGenerator {
 	}
 	
 	/**
-	 * Returns module's caption constructed from module's properties
-	 * @param props
+	 * Builds module's properties instance
 	 * @return
 	 */
-	public String prepareCaption(StartModuleProps props) throws Exception {
-		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
-		return String.format(s_caption, modProps.getDescription(), modProps.getAuthor(), modProps.getDate());
+	public StartModuleProps buildProps() {
+		return new JavaModuleStartProps();
 	}
 	
 	/**
-	 * Called by VWMLProcessor when new module is generated
+	 * Called by VWMLProcessor when new software module is generated
 	 * @param props
 	 */
 	public void startModule(StartModuleProps props) throws Exception {
@@ -347,7 +346,7 @@ public class JavaCodeGenerator extends CodeGenerator {
 	}
 	
 	/**
-	 * Declares complex entity
+	 * Declares complex entity; the object id is compound object; consists from set of simple entity ids
 	 * @param id
 	 * @throws Exception
 	 */
@@ -405,6 +404,16 @@ public class JavaCodeGenerator extends CodeGenerator {
 		this.visitor = visitor;
 	}
 
+	/**
+	 * Returns module's caption constructed from module's properties
+	 * @param props
+	 * @return
+	 */
+	protected String prepareCaption(StartModuleProps props) throws Exception {
+		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
+		return String.format(s_caption, modProps.getDescription(), modProps.getAuthor(), modProps.getDate());
+	}
+	
 	/**
 	 * Builds module's body
 	 * @param modProps
