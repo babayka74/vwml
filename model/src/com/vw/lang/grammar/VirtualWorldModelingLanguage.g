@@ -52,6 +52,7 @@ import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 import com.vw.lang.sink.utils.EntityWalker;
 import com.vw.lang.sink.utils.GeneralUtils;
 
+import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
@@ -78,6 +79,7 @@ package com.vw.lang.grammar;
 	private StartModuleProps modProps = null;
 	private ComplexEntityNameBuilder complexEntityNameBuilder = ComplexEntityNameBuilder.instance();
 	private EntityWalker entityWalker = EntityWalker.instance();
+	private String lastProcessedEntityId = null;
 	private String modName = null;
  	private boolean inDebug = false;
 	
@@ -93,8 +95,8 @@ package com.vw.lang.grammar;
 	protected void buildIASAssociation(Object id) throws RecognitionException {
     		Object objLinkingId = entityWalker.getEntityMarkedAsIAS();
     		Object objLinkedId = id;
-    		// creates 'IAS' association
     		entityWalker.resetFutureEntityAsIAS();
+       		// creates 'IAS' association
     		try {
     			codeGenerator.interpretObjects(objLinkingId, objLinkedId);
    			System.out.println("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
@@ -183,7 +185,7 @@ generatedFileLocation
     ;	
 
 optionalProps
-    : author? description?
+    : author? description? visualizer?
     ;
 
 author
@@ -202,10 +204,34 @@ description
     			       }
     ;
 
+visualizer
+    : 'visualizer' '{' visualizer_body '}'	
+    ;
+
+visualizer_body
+    : visualizer_class visualizer_datapath
+    |
+    ;
+
+visualizer_class
+    : 'class' '=' string { 
+    				if (modProps != null) {
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((IVWMLLinkVisitor)GeneralUtils.instantiateClass($string.text));
+    				}
+    			 }
+    ;
+    
+visualizer_datapath
+    : 'data' '=' string { 
+    				if (modProps != null) {
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitorDataPath(GeneralUtils.trimQuotes($string.text));
+    				}
+    			}
+    ;    
+
 path
     : STRING_LITERAL
     ;
-
 
 module
     : 'module' ID { 
@@ -242,7 +268,7 @@ entity_def
     ;
 
 term_def
-    : entity (oplist)*
+    : entity { lastProcessedEntityId = $entity.id; } (oplist)*
     ;
 
 entity_decl returns [String id]
@@ -289,13 +315,13 @@ term
     : expression
     ;  
 
-entity
-    : simple_entity
-    | complex_entity 
+entity returns [String id]
+    : simple_entity   {id = $simple_entity.id; }
+    | complex_entity  {id = $complex_entity.id;}
     ;
 
 
-simple_entity
+simple_entity returns [String id]
     : ID {
     	    	if (entityWalker.getEntityMarkedAsIAS() != null) {
     			buildIASAssociation($ID.text);
@@ -303,10 +329,11 @@ simple_entity
     		else {
    			buildLinkingAssociation($ID.text);
     		}
+    		id = $ID.text;
          }
     ;
 
-complex_entity
+complex_entity returns [String id]
     @init {
     	// id and name is the same
     	String ceId = ComplexEntityNameBuilder.generateRandomName();
@@ -320,7 +347,7 @@ complex_entity
     	if (entityWalker.getEntityMarkedAsIAS() != null) {
     		buildIASAssociation(ceId);
     	}
-    	else {
+    	else { // ... otherwise - linkage
    		buildLinkingAssociation(ceId);
     	}
         // the complex enity (name/id is generated) is pushed to stack (here complex entity is part of expression)
@@ -328,7 +355,7 @@ complex_entity
     }
     @after {
         // remove it from stack
-    	entityWalker.pop();    
+    	id = (String)entityWalker.pop();    
     }
     : '(' (term)* ')'
     ;
@@ -342,8 +369,9 @@ STRING_LITERAL
     ;    
 
 oplist
-    : opclist
-    | opprojection
+    // associates operation with entity
+    : opclist       { if (lastProcessedEntityId != null) { codeGenerator.associateOperation(lastProcessedEntityId, $opclist.text); } }
+    | opprojection  { if (lastProcessedEntityId != null) { codeGenerator.associateOperation(lastProcessedEntityId, $opprojection.text); } }
     ;
 
 opclist
