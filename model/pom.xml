@@ -19,7 +19,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.vw.model.lang</groupId>
-			<artifactId>VWMLSinks</artifactId>
+			<artifactId>VWMLSink-Java</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -103,6 +103,11 @@
           				<descriptorRefs>
             					<descriptorRef>jar-with-dependencies</descriptorRef>
           				</descriptorRefs>
+					<archive>
+            					<manifest>
+              						<mainClass>com.vw.lang.processor.model.main.VWML</mainClass>
+            					</manifest>
+					</archive>
         			</configuration>
         			<executions>
           				<execution>

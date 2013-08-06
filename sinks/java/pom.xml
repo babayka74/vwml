@@ -3,10 +3,10 @@
 >
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.vw.model.lang</groupId>
-	<artifactId>VWMLSinks</artifactId>
+	<artifactId>VWMLSink-Java</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>VWMLSinks</name>
+	<name>VWMLSink Java</name>
 
 	<properties>
 	</properties>
@@ -57,7 +57,13 @@
 					<forceCreation>true</forceCreation>
 					<excludes>
 						<exclude>com/vw/lang/sink/java/test/*</exclude>
+						<exclude>com/vw/lang/sink/java/test/generated/*</exclude>
+						<exclude>com/vw/lang/sink/java/test/generated/data/*</exclude>
+						<exclude>com/vw/lang/sink/java/test/generated/srcs/*</exclude>
+						<exclude>com/vw/lang/sink/java/test/generated/srcs/test/*</exclude>
 						<exclude>com/vw/lang/sink/java/code/*</exclude>
+						<exclude>com/vw/lang/sink/java/code/templates/*</exclude>
+						<exclude>com/vw/lang/sink/java/code/utils/*</exclude>
 					</excludes>
         			</configuration>
 				<executions>

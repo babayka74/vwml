@@ -56,6 +56,8 @@ import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
+import org.apache.log4j.Logger;
+
 }
 
 @lexer::header { 
@@ -82,6 +84,8 @@ package com.vw.lang.grammar;
 	private String lastProcessedEntityId = null;
 	private String modName = null;
  	private boolean inDebug = false;
+ 	
+ 	private Logger logger = Logger.getLogger(this.getClass());
 	
 	protected void setInDebug(boolean inDebug) {
 		this.inDebug = inDebug;
@@ -99,7 +103,9 @@ package com.vw.lang.grammar;
        		// creates 'IAS' association
     		try {
     			codeGenerator.interpretObjects(objLinkingId, objLinkedId);
-   			System.out.println("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
+    			if (logger.isDebugEnabled()) {
+   				logger.debug("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
+   			}
     		}
     		catch(Exception e) {
     			rethrowVWMLExceptionAsRecognitionException(e);
@@ -111,7 +117,9 @@ package com.vw.lang.grammar;
     		if (linkingObjId != null) {
     			try {
     				codeGenerator.linkObjects(linkingObjId, linkedObj);
-    				System.out.println("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
+    				}
     			}
     			catch(Exception e) {
     				rethrowVWMLExceptionAsRecognitionException(e);
@@ -151,7 +159,9 @@ otherLanguages
 langJava
     @init {
        codeGenerator = vwmlModelBuilder.getCodeGenerator(VWMLModelBuilder.SINK_TYPE.JAVA);
-       System.out.println("Code generator '" + codeGenerator + "'");
+       if (logger.isDebugEnabled()) {
+       		logger.debug("Code generator '" + codeGenerator + "'");
+       }
     }
     : 'language' '=' JAVA '{' javaProps '}'
     ;
@@ -242,12 +252,25 @@ module
 	    				codeGenerator.startModule(modProps);
 	    			}
 	    			catch(Exception e) {
-	    				System.out.println("Caught exception '" + e + "'");
+	    				logger.error("Caught exception '" + e + "'");
 	    				rethrowVWMLExceptionAsRecognitionException(e);
 	    			}
     			}
     			// starts module's definition
-                  } body EOF { }
+                  } body EOF {
+                             	if (modProps != null) {
+                             		try {
+                             			// actually generates source code
+                             			codeGenerator.generate(modProps);
+                             			// finalizes source generation phase for this module
+                             			codeGenerator.finishModule(modProps);
+                             		}
+                             		catch(Exception e) {
+		    				logger.error("Caught exception '" + e + "'");
+		    				rethrowVWMLExceptionAsRecognitionException(e);
+                             		}
+                  	     	} 
+                  	     }
     ;
     
 body
@@ -262,7 +285,9 @@ expression
 
 entity_def
     : entity_decl IAS {
-    			System.out.println("e name '" + $entity_decl.id + "'");
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("declared entity '" + $entity_decl.id + "'");
+    			}
     			entityWalker.markFutureEntityAsIAS($entity_decl.id);
     		      } term (SEMICOLON)?
     ;
@@ -330,6 +355,9 @@ simple_entity returns [String id]
    			buildLinkingAssociation($ID.text);
     		}
     		id = $ID.text;
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("processed simple entity '" + id + "'");
+    		}
          }
     ;
 
@@ -355,7 +383,10 @@ complex_entity returns [String id]
     }
     @after {
         // remove it from stack
-    	id = (String)entityWalker.pop();    
+    	id = (String)entityWalker.pop();
+    	if (logger.isDebugEnabled()) {
+    		logger.debug("processed complex entity '" + id + "'");
+    	}    
     }
     : '(' (term)* ')'
     ;

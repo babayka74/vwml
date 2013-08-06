@@ -1,7 +1,7 @@
 options {
 	language=__java__ {
   		package="com.aaa.ddd"
-  		path="c:\sss\ddd/eee"
+  		path="c:\var\vwml/test"
   		author="XXX XXX"
   		description="test test"
 	}

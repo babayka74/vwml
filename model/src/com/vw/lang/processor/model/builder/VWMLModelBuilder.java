@@ -3,8 +3,14 @@ package com.vw.lang.processor.model.builder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.antlr.runtime.ANTLRFileStream;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.RecognitionException;
 import org.apache.log4j.Logger;
+
 import com.vw.common.Debuggable;
+import com.vw.lang.grammar.VirtualWorldModelingLanguageLexer;
+import com.vw.lang.grammar.VirtualWorldModelingLanguageParser;
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 
@@ -133,5 +139,28 @@ public class VWMLModelBuilder extends Debuggable {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Compiles VWML into selected language, defined by sink
+	 * @param vwmlFilePath
+	 * @throws Exception
+	 */
+	public void compile(String vwmlFilePath) throws Exception {
+		if (logger.isInfoEnabled()) {
+			logger.info("compiling '" +  vwmlFilePath + "'; sink is '" + this.getSinkType() + "'");
+		}
+        VirtualWorldModelingLanguageLexer lex = new VirtualWorldModelingLanguageLexer(new ANTLRFileStream(vwmlFilePath, "UTF8"));
+        CommonTokenStream tokens = new CommonTokenStream(lex);
+        VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(tokens);
+        try {
+            g.filedef();
+    		if (logger.isInfoEnabled()) {
+    			logger.info("compiled '" +  vwmlFilePath + "'... OK");
+    		}
+        } catch (RecognitionException e) {
+        	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
+            throw e;
+        }
 	}
 }
