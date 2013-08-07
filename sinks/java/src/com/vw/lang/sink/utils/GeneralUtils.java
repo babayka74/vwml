@@ -1,5 +1,6 @@
 package com.vw.lang.sink.utils;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +37,23 @@ public class GeneralUtils {
 			logger.error("couldn't instantiate class '" + className + "'; the cause is '" + e + "'", e);
 		}
 		return null;
+	}
+	
+	/**
+	 * Instantiates class using its static method instead of calling constructor
+	 * @param className
+	 * @param method
+	 * @return
+	 */
+	public static Object instantiateClassThroughStaticMethod(String className, String method) {
+		Object obj = null;
+		try {
+			Class<?> clazz = Class.forName(className);
+			obj = clazz.getMethod(method).invoke(null);
+		} catch (Exception e) {
+			logger.error("couldn't instantiate class '" + className + "'; the cause is '" + e + "'", e);
+		}
+		return obj;
 	}
 	
 	/**

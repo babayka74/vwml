@@ -25,7 +25,18 @@ public final class VWML {
 			VWMLFILE
 		}
 		
+		public void process(VWMLArgs args) throws Exception {
+			run(args);
+			finalProcedure();
+		}
+		
 		public abstract void run(VWMLArgs args) throws Exception;
+		
+		/**
+		 * Called when upon operation's final step
+		 */
+		protected void finalProcedure() throws Exception {
+		}
 	}
 	
 	/**
@@ -51,13 +62,12 @@ public final class VWML {
 	 * @author ogibayev
 	 *
 	 */
-	public static class TestExe extends Operation {
+	public static class Project extends Operation {
 
-		private Logger logger = Logger.getLogger(TestExe.class);
+		private Logger logger = Logger.getLogger(Project.class);
 		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			
 		}
 		
 	}
@@ -68,7 +78,7 @@ public final class VWML {
 	 *
 	 */
 	public static class VWMLArgs {
-		@Option(name="-m", usage="execution mode {source | test};\r\nsource - generates source code from VWML only;\r\ntest - generates test executable binary; used in order to test VW's (virtual world) start state - effective in case if visualizer is used")
+		@Option(name="-m", usage="execution mode {source | project};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used")
 		private String mode;
 		
 		 // receives other command line parameters than options
@@ -99,7 +109,7 @@ public final class VWML {
 	
 	private static Map<String, Operation> s_opCodes = new HashMap<String, Operation>() {
 		{put("source",  new Compile());}
-		{put("test",    new TestExe());}
+		{put("project", new Project());}
 	};
 	
 	private static Logger logger = Logger.getLogger(VWML.class);
@@ -118,7 +128,7 @@ public final class VWML {
 			}
 			Operation op = s_opCodes.get(vwmlArgs.getMode());
 			if (op != null) {
-				op.run(vwmlArgs);
+				op.process(vwmlArgs);
 			}
 			else {
 				logger.error("invalid mode '" + vwmlArgs.getMode() + "'; valid are 'source | test'");

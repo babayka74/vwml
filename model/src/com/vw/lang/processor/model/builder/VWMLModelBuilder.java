@@ -1,8 +1,14 @@
 package com.vw.lang.processor.model.builder;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
+import org.antlr.codegen.JavaScriptTarget;
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
@@ -11,8 +17,11 @@ import org.apache.log4j.Logger;
 import com.vw.common.Debuggable;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageLexer;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageParser;
+import com.vw.lang.processor.model.builder.specific.VWML2JavaSpecificSteps;
 import com.vw.lang.sink.ICodeGenerator;
+import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
+import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
 
 /**
@@ -31,6 +40,33 @@ public class VWMLModelBuilder extends Debuggable {
 		JAVA, CPP, C, OBJECTIVE_C
 	}
 
+	public static class CodeGeneratorAux {
+		private ICodeGenerator generator;
+		private VWML2TargetSpecificSteps programSteps;
+		
+		public CodeGeneratorAux(ICodeGenerator generator, VWML2TargetSpecificSteps programSteps) {
+			super();
+			this.generator = generator;
+			this.programSteps = programSteps;
+		}
+
+		public ICodeGenerator getGenerator() {
+			return generator;
+		}
+
+		public VWML2TargetSpecificSteps getProgramSteps() {
+			return programSteps;
+		}
+
+		public void setGenerator(ICodeGenerator generator) {
+			this.generator = generator;
+		}
+
+		public void setProgramSteps(VWML2TargetSpecificSteps programSteps) {
+			this.programSteps = programSteps;
+		}
+	}
+	
 	/**
 	 * Default language is JAVA
 	 */
@@ -40,8 +76,8 @@ public class VWMLModelBuilder extends Debuggable {
 	private static volatile VWMLModelBuilder s_builder = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
 	// association between sink type and code generator
-	private static Map<SINK_TYPE, ICodeGenerator> s_codeGenerators = new HashMap<SINK_TYPE, ICodeGenerator>() {
-		{ put(SINK_TYPE.JAVA,        JavaCodeGenerator.instance());}
+	private static Map<SINK_TYPE, CodeGeneratorAux> s_codeGeneratorsAux = new HashMap<SINK_TYPE, CodeGeneratorAux>() {
+		{ put(SINK_TYPE.JAVA,        new CodeGeneratorAux(JavaCodeGenerator.instance(), new VWML2JavaSpecificSteps()));}
 		{ put(SINK_TYPE.CPP,         null);                        }
 		{ put(SINK_TYPE.C,           null);                        }
 		{ put(SINK_TYPE.OBJECTIVE_C, null);                        }
@@ -81,7 +117,11 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @param codeGenerator
 	 */
 	public void changeSink(SINK_TYPE sink, ICodeGenerator codeGenerator) {
-		s_codeGenerators.put(sink, codeGenerator);
+		CodeGeneratorAux caux = s_codeGeneratorsAux.get(sink);
+		if (caux == null) {
+			caux = new CodeGeneratorAux(codeGenerator, null);
+			s_codeGeneratorsAux.put(sink, caux);
+		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("The sink '" + sink + "' associated with code generator '" + codeGenerator + "'");
 		}
@@ -93,7 +133,12 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @return
 	 */
 	public ICodeGenerator getCodeGenerator(SINK_TYPE sink) {
-		return s_codeGenerators.get(sink);
+		ICodeGenerator cg = null;
+		CodeGeneratorAux caux = s_codeGeneratorsAux.get(sink);
+		if (caux != null) {
+			cg = caux.getGenerator();
+		}
+		return cg;
 	}
 	
 	/**
@@ -162,5 +207,18 @@ public class VWMLModelBuilder extends Debuggable {
         	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
             throw e;
         }
+	}
+	
+	/**
+	 * Final step in source generation phase; called by parser when all files compiled
+	 */
+	public void finalProcedure(StartModuleProps props) throws Exception {
+		CodeGeneratorAux caux = s_codeGeneratorsAux.get(getSinkType());
+		if (caux == null) {
+			throw new Exception("invalid sink type '" + getSinkType() + "'");
+		}
+		if (caux.getProgramSteps() != null) {
+			caux.getProgramSteps().setupSinkSources(getCodeGenerator(getSinkType()).getLangAsString(), props);
+		}
 	}
 }

@@ -96,4 +96,10 @@ public interface ICodeGenerator {
 	 * @param visitor
 	 */
 	public void setVisitor(IVWMLLinkVisitor visitor);
+	
+	/**
+	 * Returns language's name as string
+	 * @return
+	 */
+	public String getLangAsString();
 }

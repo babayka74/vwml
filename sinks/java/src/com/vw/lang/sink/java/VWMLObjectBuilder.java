@@ -3,7 +3,6 @@ package com.vw.lang.sink.java;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLSimpleEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;

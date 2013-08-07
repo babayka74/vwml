@@ -87,6 +87,10 @@ package com.vw.lang.grammar;
  	
  	private Logger logger = Logger.getLogger(this.getClass());
 	
+	public StartModuleProps getModuleProps() {
+		return modProps;
+	}
+	
 	protected void setInDebug(boolean inDebug) {
 		this.inDebug = inDebug;
 		vwmlModelBuilder.setDebug(inDebug);		
@@ -226,7 +230,7 @@ visualizer_body
 visualizer_class
     : 'class' '=' string { 
     				if (modProps != null) {
-    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((IVWMLLinkVisitor)GeneralUtils.instantiateClass($string.text));
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((IVWMLLinkVisitor)GeneralUtils.instantiateClassThroughStaticMethod(GeneralUtils.trimQuotes($string.text), "instance"));
     				}
     			 }
     ;
@@ -264,6 +268,8 @@ module
                              			codeGenerator.generate(modProps);
                              			// finalizes source generation phase for this module
                              			codeGenerator.finishModule(modProps);
+                             			// tells to builder about last steps
+                             			vwmlModelBuilder.finalProcedure(modProps);
                              		}
                              		catch(Exception e) {
 		    				logger.error("Caught exception '" + e + "'");
@@ -289,6 +295,8 @@ entity_def
     				logger.debug("declared entity '" + $entity_decl.id + "'");
     			}
     			entityWalker.markFutureEntityAsIAS($entity_decl.id);
+    			// we should link this entity with parent, if exists
+    			 buildLinkingAssociation($entity_decl.id);
     		      } term (SEMICOLON)?
     ;
 
@@ -375,9 +383,10 @@ complex_entity returns [String id]
     	if (entityWalker.getEntityMarkedAsIAS() != null) {
     		buildIASAssociation(ceId);
     	}
-    	else { // ... otherwise - linkage
-   		buildLinkingAssociation(ceId);
-    	}
+    	else {
+    		// ... otherwise linkage
+  		buildLinkingAssociation(ceId);
+  	}
         // the complex enity (name/id is generated) is pushed to stack (here complex entity is part of expression)
     	entityWalker.push(ceId);
     }
