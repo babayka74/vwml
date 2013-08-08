@@ -1,14 +1,8 @@
 package com.vw.lang.processor.model.builder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 
-import org.antlr.codegen.JavaScriptTarget;
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
@@ -17,11 +11,11 @@ import org.apache.log4j.Logger;
 import com.vw.common.Debuggable;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageLexer;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageParser;
+import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps.IStep;
 import com.vw.lang.processor.model.builder.specific.VWML2JavaSpecificSteps;
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
-import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
 
 /**
@@ -38,6 +32,15 @@ public class VWMLModelBuilder extends Debuggable {
 	 */
 	public static enum SINK_TYPE {
 		JAVA, CPP, C, OBJECTIVE_C
+	}
+
+	/**
+	 * Defines possible VWML building steps
+	 * @author ogibayev
+	 *
+	 */
+	public static enum BUILD_STEPS {
+		SOURCE, POM, COMPILE, TEST, ALL
 	}
 
 	public static class CodeGeneratorAux {
@@ -72,6 +75,9 @@ public class VWMLModelBuilder extends Debuggable {
 	 */
 	private SINK_TYPE sinkType = SINK_TYPE.JAVA;
 	
+	// Default build steps
+	private BUILD_STEPS buildSteps = BUILD_STEPS.SOURCE;
+	
 	// builder is implemented as singleton
 	private static volatile VWMLModelBuilder s_builder = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
@@ -81,6 +87,18 @@ public class VWMLModelBuilder extends Debuggable {
 		{ put(SINK_TYPE.CPP,         null);                        }
 		{ put(SINK_TYPE.C,           null);                        }
 		{ put(SINK_TYPE.OBJECTIVE_C, null);                        }
+	};
+	
+	/**
+	 * VWML's build steps
+	 */
+	private static Map<BUILD_STEPS, IStep> s_buildSteps = new HashMap<BUILD_STEPS, IStep>() {
+		{ 
+			put(BUILD_STEPS.SOURCE,  new VWML2JavaSpecificSteps.SourceStep());
+			put(BUILD_STEPS.POM,     new VWML2JavaSpecificSteps.PomStep());
+			put(BUILD_STEPS.COMPILE, new VWML2JavaSpecificSteps.CompileStep());
+			put(BUILD_STEPS.TEST,    new VWML2JavaSpecificSteps.TestStep());
+		}
 	};
 	
 	private VWMLModelBuilder() {
@@ -111,6 +129,14 @@ public class VWMLModelBuilder extends Debuggable {
 		return s_builder;
 	}
 	
+	public BUILD_STEPS getBuildSteps() {
+		return buildSteps;
+	}
+
+	public void setBuildSteps(BUILD_STEPS buildSteps) {
+		this.buildSteps = buildSteps;
+	}
+
 	/**
 	 * Changes/adds sink's association
 	 * @param sink
@@ -210,7 +236,7 @@ public class VWMLModelBuilder extends Debuggable {
 	}
 	
 	/**
-	 * Final step in source generation phase; called by parser when all files compiled
+	 * Final step in source generation phase; called by parser when all files have been compiled
 	 */
 	public void finalProcedure(StartModuleProps props) throws Exception {
 		CodeGeneratorAux caux = s_codeGeneratorsAux.get(getSinkType());
@@ -218,7 +244,11 @@ public class VWMLModelBuilder extends Debuggable {
 			throw new Exception("invalid sink type '" + getSinkType() + "'");
 		}
 		if (caux.getProgramSteps() != null) {
-			caux.getProgramSteps().setupSinkSources(getCodeGenerator(getSinkType()).getLangAsString(), props);
+			IStep step = s_buildSteps.get(this.getBuildSteps());
+			if (step == null) {
+				throw new Exception("invalid or unsupported step '" + this.getBuildSteps() + "'");
+			}
+			step.step(caux.getProgramSteps(), getCodeGenerator(getSinkType()).getLangAsString(), props);
 		}
 	}
 }

@@ -30,7 +30,10 @@ public final class VWML {
 			finalProcedure();
 		}
 		
-		public abstract void run(VWMLArgs args) throws Exception;
+		public void run(VWMLArgs args) throws Exception {
+			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
+			VWMLModelBuilder.instance().compile(filePath);
+		}
 		
 		/**
 		 * Called when upon operation's final step
@@ -44,21 +47,20 @@ public final class VWML {
 	 * @author ogibayev
 	 *
 	 */
-	public static class Compile extends Operation {
+	public static class Sources extends Operation {
 
-		private Logger logger = Logger.getLogger(Compile.class);
+		private Logger logger = Logger.getLogger(Sources.class);
 		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
-			VWMLModelBuilder.instance().compile(filePath);
+			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SOURCE);
+			super.run(args);
 		}
 		
 	}
-	
+
 	/**
-	 * Compiles VWML sources into given language and builds test executable project; resut of running project
-	 * is starting static picture of virtual world which was described by VWML project; for debug purposes only
+	 * Builds project from generated sources
 	 * @author ogibayev
 	 *
 	 */
@@ -68,8 +70,42 @@ public final class VWML {
 		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
+			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.POM);
+			super.run(args);
 		}
+	}
+
+	/**
+	 * Compiles VWML sources into given language and builds test executable project; resut of running project
+	 * is starting static picture of virtual world which was described by VWML project; for debug purposes only
+	 * @author ogibayev
+	 *
+	 */
+	public static class Compile extends Operation {
+
+		private Logger logger = Logger.getLogger(Compile.class);
 		
+		@Override
+		public void run(VWMLArgs args) throws Exception {
+			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.COMPILE);
+			super.run(args);
+		}
+	}
+
+	/**
+	 * Runs compiled project
+	 * @author ogibayev
+	 *
+	 */
+	public static class Test extends Operation {
+
+		private Logger logger = Logger.getLogger(Test.class);
+		
+		@Override
+		public void run(VWMLArgs args) throws Exception {
+			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.TEST);
+			super.run(args);
+		}
 	}
 	
 	/**
@@ -78,7 +114,7 @@ public final class VWML {
 	 *
 	 */
 	public static class VWMLArgs {
-		@Option(name="-m", usage="execution mode {source | project};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used")
+		@Option(name="-m", usage="execution mode {source | project | compile | test};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used;\r\ncompile - compiles project;\r\ntest - runs compiled project")
 		private String mode;
 		
 		 // receives other command line parameters than options
@@ -108,8 +144,10 @@ public final class VWML {
 	}
 	
 	private static Map<String, Operation> s_opCodes = new HashMap<String, Operation>() {
-		{put("source",  new Compile());}
+		{put("source",  new Sources());}
 		{put("project", new Project());}
+		{put("compile", new Compile());}
+		{put("test",    new Test());   }
 	};
 	
 	private static Logger logger = Logger.getLogger(VWML.class);

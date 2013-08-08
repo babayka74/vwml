@@ -458,8 +458,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		// generates build method which calls repository's and link's methods
 		fw.write("\tpublic void build() throws Exception {\r\n");
 		if (getVisitor() != null) {
+			String path = modProps.getVisitorDataPath().replaceAll("\\\\", "/");
+			File f = new File(path);
+			if (!f.exists() && !f.mkdirs()) {
+				logger.warn("Couldn't create path (for visualizer) '" + path + "'");
+			}
+			path += "/" + modProps.getModuleName() + ".dot";
 			fw.write("\t\tIVWMLLinkVisitor preprocessorStructureVisualizer = " + getVisitor().getClass().getSimpleName() + ".instance();\r\n");			
-			fw.write("\t\tpreprocessorStructureVisualizer.init(\"" + modProps.getModuleName() + "\", \"" + modProps.getVisitorDataPath() + "\");\r\n");
+			fw.write("\t\tpreprocessorStructureVisualizer.init(\"" + modProps.getModuleName() + "\", \"" + path + "\");\r\n");
 			fw.write("\t\trepository.setPreprocessorStructureVisualizer(preprocessorStructureVisualizer);\r\n");
 			if (logger.isInfoEnabled()) {
 				logger.info("The visualizer '" + getVisitor().getClass().getSimpleName() + "' for module '" + modProps.getModuleName() + "' installed; output '" + modProps.getVisitorDataPath() + "'");
