@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.ICodeGenerator;
+import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
@@ -272,6 +273,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public StartModuleProps buildProps() {
 		return new JavaModuleStartProps();
 	}
+
+	/**
+	 * Returns source's path
+	 * @param props
+	 * @return
+	 */
+	public String getSourcePath(StartModuleProps props) {
+		JavaModuleStartProps modProps = (JavaModuleStartProps)props;
+		return modProps.getSrcPath() + "/" + modProps.getModulePackage().replaceAll("\\.", "/");
+	}
 	
 	/**
 	 * Called by VWMLProcessor when new software module is generated
@@ -295,7 +306,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			generateClassName(ModuleFiles.REPOSITORY.toValue() +  moduleFileName) + ".java",
 			generateClassName(ModuleFiles.LINKAGE.toValue() + moduleFileName) + ".java",
 		};
-		String moduleFullPath = modProps.getSrcPath() + "/" + modProps.getModulePackage().replaceAll("\\.", "/");
+		String moduleFullPath = getSourcePath(modProps);
 		File f = new File(moduleFullPath);
 		if (!f.exists() && !f.mkdirs()) {
 			throw new Exception("Couldn't create path '" + moduleFullPath + "'");

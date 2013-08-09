@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Enumeration;
@@ -58,6 +59,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	public static class CompileStep implements IStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			new PomStep().step(stepProcessor, codeGeneratorName, props);
+			((VWML2JavaSpecificSteps)stepProcessor).runMaven(codeGeneratorName, props);
 		}
 	}
 
@@ -95,10 +97,41 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		String resourceDestPath = jprops.getSrcPath() + "/pom.orig";
 		copyResourceTo("sinks/pom.xml", resourceDestPath);
 		File f = new File(resourceDestPath);
-		replace("-x-", jprops.getModuleName(), f, new File(jprops.getSrcPath() + "/pom.xml"));
+		replace("-x-", jprops.getModuleName(), f, new File(jprops.getSrcPath() + "/../pom.xml"));
 		f.delete();
 		if (logger.isInfoEnabled()) {
 			logger.info(jprops.getSrcPath() + "/pom.xml processed - OK");
+		}
+	}
+
+	private void runMaven(String codeGeneratorName, StartModuleProps props) throws Exception {
+		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
+		String pomFullPath = jprops.getSrcPath() + "/..";
+		String runMaven = null;
+		if (isWindows()) {
+			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn clean package && exit\"";
+		}
+		else
+		if (isLinux() || isMac()) {
+			runMaven = "bash -c \"cd " + pomFullPath + " && mvn clean package && exit\"";
+		}
+		else {
+			throw new Exception("unsupported os '" + getOsName() + "'");
+		}
+		Process p = Runtime.getRuntime().exec(runMaven);
+		InputStream isErr = p.getErrorStream();
+		if (isErr != null) {
+			String err = inputStreamToString(isErr);
+			if (err != null && err.length() > 0) {
+				logger.error(err);
+			}
+		}
+		InputStream os = p.getInputStream();
+		if (os != null && logger.isInfoEnabled()) {
+			String output = inputStreamToString(os);
+			if (output != null && output.length() > 0) {
+				logger.info(output);
+			}
 		}
 	}
 	
@@ -187,5 +220,34 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			while((len = is.read(buffer)) > 0) {
 			    os.write(buffer, 0, len);   
 			}
+	  }
+	  
+	  private String inputStreamToString(InputStream in) throws Exception {
+		  InputStreamReader is = new InputStreamReader(in);
+		  StringBuilder sb = new StringBuilder();
+		  BufferedReader br = new BufferedReader(is);
+		  String read = br.readLine();
+		  while(read != null) {
+		      sb.append(read);
+		      read = br.readLine();
+		  }
+		  return sb.toString();
+	  }
+	  
+	  private String getOsName() {
+		  return System.getProperty("os.name").toLowerCase();
+	  }
+	  
+	  private boolean isWindows() {
+		  return (getOsName().indexOf("win") >= 0);
+	  }
+	  
+	  private boolean isLinux() {
+		  String os = getOsName();
+		  return (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("aix") > 0);
+	  }
+	  
+	  private boolean isMac() {
+		  return (getOsName().indexOf("mac") >= 0);
 	  }
 }

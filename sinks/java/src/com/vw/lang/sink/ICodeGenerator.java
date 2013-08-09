@@ -15,7 +15,15 @@ public interface ICodeGenerator {
 	 *
 	 */
 	public static class StartModuleProps {
-		
+		private ICodeGenerator codeGenerator = null;
+
+		public ICodeGenerator getCodeGenerator() {
+			return codeGenerator;
+		}
+
+		public void setCodeGenerator(ICodeGenerator codeGenerator) {
+			this.codeGenerator = codeGenerator;
+		}
 	}
 	
 	/**
@@ -23,6 +31,13 @@ public interface ICodeGenerator {
 	 * @return
 	 */
 	public StartModuleProps buildProps();
+	
+	/**
+	 * Returns source's path
+	 * @param props
+	 * @return
+	 */
+	public String getSourcePath(StartModuleProps props);
 	
 	/**
 	 * Called by VWMLProcessor when new software module is generated

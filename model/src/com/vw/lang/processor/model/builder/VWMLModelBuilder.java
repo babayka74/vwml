@@ -1,5 +1,6 @@
 package com.vw.lang.processor.model.builder;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +79,8 @@ public class VWMLModelBuilder extends Debuggable {
 	// Default build steps
 	private BUILD_STEPS buildSteps = BUILD_STEPS.SOURCE;
 	
+	private String projectPath = null;
+	private StartModuleProps modProps = null;
 	// builder is implemented as singleton
 	private static volatile VWMLModelBuilder s_builder = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
@@ -135,6 +138,14 @@ public class VWMLModelBuilder extends Debuggable {
 
 	public void setBuildSteps(BUILD_STEPS buildSteps) {
 		this.buildSteps = buildSteps;
+	}
+
+	public StartModuleProps getModProps() {
+		return modProps;
+	}
+
+	public void setModProps(StartModuleProps modProps) {
+		this.modProps = modProps;
 	}
 
 	/**
@@ -217,13 +228,25 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @param vwmlFilePath
 	 * @throws Exception
 	 */
-	public void compile(String vwmlFilePath) throws Exception {
+	public void compile(String vwmlFilePath, StartModuleProps props) throws Exception {
 		if (logger.isInfoEnabled()) {
 			logger.info("compiling '" +  vwmlFilePath + "'; sink is '" + this.getSinkType() + "'");
+		}
+		if (projectPath == null) {
+			projectPath = new File(vwmlFilePath).getParent();
+		}
+		else {
+			if (!new File(vwmlFilePath).isAbsolute()) {
+				vwmlFilePath = projectPath + "/" + vwmlFilePath;
+			}
 		}
         VirtualWorldModelingLanguageLexer lex = new VirtualWorldModelingLanguageLexer(new ANTLRFileStream(vwmlFilePath, "UTF8"));
         CommonTokenStream tokens = new CommonTokenStream(lex);
         VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(tokens);
+        if (props != null) {
+        	// overrides properties by parent's properties 
+        	g.setModuleProps(props);
+        }
         try {
             g.filedef();
     		if (logger.isInfoEnabled()) {
@@ -236,7 +259,7 @@ public class VWMLModelBuilder extends Debuggable {
 	}
 	
 	/**
-	 * Final step in source generation phase; called by parser when all files have been compiled
+	 * Final step in source generation phase
 	 */
 	public void finalProcedure(StartModuleProps props) throws Exception {
 		CodeGeneratorAux caux = s_codeGeneratorsAux.get(getSinkType());

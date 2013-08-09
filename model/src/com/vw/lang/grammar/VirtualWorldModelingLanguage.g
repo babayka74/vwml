@@ -84,6 +84,7 @@ package com.vw.lang.grammar;
 	private String lastProcessedEntityId = null;
 	private String modName = null;
  	private boolean inDebug = false;
+ 	private boolean moduleInProgress = false;
  	
  	private Logger logger = Logger.getLogger(this.getClass());
 	
@@ -91,6 +92,10 @@ package com.vw.lang.grammar;
 		return modProps;
 	}
 	
+	public void setModuleProps(StartModuleProps modProps) {
+		this.modProps = modProps;
+	}
+		
 	protected void setInDebug(boolean inDebug) {
 		this.inDebug = inDebug;
 		vwmlModelBuilder.setDebug(inDebug);		
@@ -106,7 +111,7 @@ package com.vw.lang.grammar;
     		entityWalker.resetFutureEntityAsIAS();
        		// creates 'IAS' association
     		try {
-    			codeGenerator.interpretObjects(objLinkingId, objLinkedId);
+    			if (codeGenerator != null) codeGenerator.interpretObjects(objLinkingId, objLinkedId);
     			if (logger.isDebugEnabled()) {
    				logger.debug("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
    			}
@@ -120,7 +125,7 @@ package com.vw.lang.grammar;
   		Object linkingObjId = entityWalker.peek();
     		if (linkingObjId != null) {
     			try {
-    				codeGenerator.linkObjects(linkingObjId, linkedObj);
+    				if (codeGenerator != null) codeGenerator.linkObjects(linkingObjId, linkedObj);
     				if (logger.isDebugEnabled()) {
     					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
     				}
@@ -131,17 +136,53 @@ package com.vw.lang.grammar;
     		}
 	}
 	
+	protected void processInclude(String file) throws RecognitionException {
+		try {
+			modProps.setCodeGenerator(codeGenerator);
+			vwmlModelBuilder.compile(file, modProps);
+		}
+		catch(Exception e) {
+			rethrowVWMLExceptionAsRecognitionException(e);
+		}
+	} 
+	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
 		throw new RecognitionException(new ANTLRStringStream(e.getMessage()));
-	}
+	}	
 }
 
 
 filedef
-    : props module
-    | module
+    : props? (include (include)*)? module? EOF {
+                             	if (moduleInProgress && modProps != null) {
+                             		try {
+                             			// actually generates source code
+                             			codeGenerator.generate(modProps);
+                             			// finalizes source generation phase for this module
+                             			codeGenerator.finishModule(modProps);
+                             			// module parsed and finished
+                             			moduleInProgress = false;
+                             		}
+                             		catch(Exception e) {
+		    				logger.error("Caught exception '" + e + "'");
+		    				rethrowVWMLExceptionAsRecognitionException(e);
+                             		}
+                  	     	} 
+                  	     }
     ;	 
 
+include
+    : include_vwml {
+    			if (logger.isInfoEnabled()) {
+    				logger.info("including '" + $include_vwml.id + "'");
+    			}
+    			processInclude(GeneralUtils.trimQuotes($include_vwml.id)); 
+                   }
+    ;
+    
+include_vwml returns [String id]
+    :  'include' STRING_LITERAL {id = $STRING_LITERAL.text;}
+    ;
 
 props
     : 'options' '{' optionsList '}'
@@ -174,6 +215,8 @@ javaProps
     @init {
 	// instantiating module's properties which will be filled later
 	modProps = (codeGenerator != null) ? codeGenerator.buildProps() : null;
+	// tell to builder reference to module's properties
+	vwmlModelBuilder.setModProps(modProps);
     }
     : propPackage generatedFileLocation optionalProps
     ;
@@ -253,7 +296,14 @@ module
     			if (modProps != null) {
     				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
 	    			try {
+	    				if (codeGenerator == null) {
+	    					codeGenerator = modProps.getCodeGenerator();
+	    				}
+	    				if (codeGenerator == null) {
+	    					throw new Exception("Code generator can't be 'null'");
+	    				}
 	    				codeGenerator.startModule(modProps);
+	    				moduleInProgress = true;
 	    			}
 	    			catch(Exception e) {
 	    				logger.error("Caught exception '" + e + "'");
@@ -261,22 +311,7 @@ module
 	    			}
     			}
     			// starts module's definition
-                  } body EOF {
-                             	if (modProps != null) {
-                             		try {
-                             			// actually generates source code
-                             			codeGenerator.generate(modProps);
-                             			// finalizes source generation phase for this module
-                             			codeGenerator.finishModule(modProps);
-                             			// tells to builder about last steps
-                             			vwmlModelBuilder.finalProcedure(modProps);
-                             		}
-                             		catch(Exception e) {
-		    				logger.error("Caught exception '" + e + "'");
-		    				rethrowVWMLExceptionAsRecognitionException(e);
-                             		}
-                  	     	} 
-                  	     }
+                  } body
     ;
     
 body
@@ -318,7 +353,7 @@ simple_entity_decl returns [String id]
     		}
     		else {
     			try {
-    				codeGenerator.declareSimpleEntity(id);
+    				if (codeGenerator != null) codeGenerator.declareSimpleEntity(id);
     			}
     			catch(Exception e) {
     				rethrowVWMLExceptionAsRecognitionException(e);
@@ -335,7 +370,7 @@ complex_entity_decl returns [String id]
     	complexEntityNameBuilder.stopProgress();
     	id = complexEntityNameBuilder.build();
     	try {
-    		codeGenerator.declareComplexEntity(id);
+    		if (codeGenerator != null) codeGenerator.declareComplexEntity(id);
     	}
     	catch(Exception e) {
     		rethrowVWMLExceptionAsRecognitionException(e);
@@ -374,7 +409,7 @@ complex_entity returns [String id]
     	// id and name is the same
     	String ceId = ComplexEntityNameBuilder.generateRandomName();
     	try {
-    		codeGenerator.declareComplexEntity(ceId);
+    		if (codeGenerator != null) codeGenerator.declareComplexEntity(ceId);
     	}
     	catch(Exception e) {
     		rethrowVWMLExceptionAsRecognitionException(e);
@@ -410,8 +445,8 @@ STRING_LITERAL
 
 oplist
     // associates operation with entity
-    : opclist       { if (lastProcessedEntityId != null) { codeGenerator.associateOperation(lastProcessedEntityId, $opclist.text); } }
-    | opprojection  { if (lastProcessedEntityId != null) { codeGenerator.associateOperation(lastProcessedEntityId, $opprojection.text); } }
+    : opclist       { if (lastProcessedEntityId != null) { if (codeGenerator != null) codeGenerator.associateOperation(lastProcessedEntityId, $opclist.text); } }
+    | opprojection  { if (lastProcessedEntityId != null) { if (codeGenerator != null) codeGenerator.associateOperation(lastProcessedEntityId, $opprojection.text); } }
     ;
 
 opclist
