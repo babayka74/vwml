@@ -17,6 +17,11 @@
 			<artifactId>log4j</artifactId>
 			<version>1.2.16</version>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -27,7 +32,7 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
-		<testSourceDirectory>test</testSourceDirectory>
+		<testSourceDirectory>src/test</testSourceDirectory>
 		<finalName>${project.artifactId}</finalName>
 
 		<resources>
@@ -72,6 +77,11 @@
           				</execution>
         			</executions>
       			</plugin>
+			<plugin>
+    				<groupId>org.apache.maven.plugins</groupId>
+    				<artifactId>maven-surefire-plugin</artifactId>
+    				<version>2.15</version>
+  			</plugin>
 		</plugins>
 	</build>
 </project>

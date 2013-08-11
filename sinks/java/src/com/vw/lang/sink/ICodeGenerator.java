@@ -16,6 +16,8 @@ public interface ICodeGenerator {
 	 */
 	public static class StartModuleProps {
 		private ICodeGenerator codeGenerator = null;
+		private String actualModuleName = null;
+		private static String s_sourcesPath = null;
 
 		public ICodeGenerator getCodeGenerator() {
 			return codeGenerator;
@@ -23,6 +25,22 @@ public interface ICodeGenerator {
 
 		public void setCodeGenerator(ICodeGenerator codeGenerator) {
 			this.codeGenerator = codeGenerator;
+		}
+
+		public String getActualModuleName() {
+			return actualModuleName;
+		}
+
+		public void setActualModuleName(String actualModuleName) {
+			this.actualModuleName = actualModuleName;
+		}
+
+		public static String getSourcesPath() {
+			return s_sourcesPath;
+		}
+
+		public static void setSourcesPath(String sourcesPath) {
+			StartModuleProps.s_sourcesPath = sourcesPath;
 		}
 	}
 	
@@ -33,12 +51,20 @@ public interface ICodeGenerator {
 	public StartModuleProps buildProps();
 	
 	/**
+	 * Normalizes properties by setting non-set values by project properties values
+	 * @param props
+	 * @param projectProps
+	 * @return
+	 */
+	public StartModuleProps normalizeProps(StartModuleProps props, StartModuleProps projectProps);
+	
+	/**
 	 * Returns source's path
 	 * @param props
 	 * @return
 	 */
 	public String getSourcePath(StartModuleProps props);
-	
+		
 	/**
 	 * Called by VWMLProcessor when new software module is generated
 	 * @param props

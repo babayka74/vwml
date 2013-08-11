@@ -32,14 +32,14 @@ public final class VWML {
 		
 		public void run(VWMLArgs args) throws Exception {
 			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
-			VWMLModelBuilder.instance().compile(filePath, null);
+			VWMLModelBuilder.instance().compile(filePath);
 		}
 		
 		/**
 		 * Called upon operation's final step
 		 */
 		protected void finalProcedure() throws Exception {
-			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getModProps());
+			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getProjectProps());
 		}
 	}
 	

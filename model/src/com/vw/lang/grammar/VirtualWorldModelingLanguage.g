@@ -45,17 +45,23 @@ tokens {
 @header {
 package com.vw.lang.grammar;
 
+// builder
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
+import com.vw.lang.processor.model.builder.VWMLModuleInfo;
+
+// general code generator
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 import com.vw.lang.sink.utils.EntityWalker;
 import com.vw.lang.sink.utils.GeneralUtils;
 
+// specific code generator
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
+// logger
 import org.apache.log4j.Logger;
 
 }
@@ -138,8 +144,7 @@ package com.vw.lang.grammar;
 	
 	protected void processInclude(String file) throws RecognitionException {
 		try {
-			modProps.setCodeGenerator(codeGenerator);
-			vwmlModelBuilder.compile(file, modProps);
+			vwmlModelBuilder.compile(file);
 		}
 		catch(Exception e) {
 			rethrowVWMLExceptionAsRecognitionException(e);
@@ -216,9 +221,11 @@ javaProps
 	// instantiating module's properties which will be filled later
 	modProps = (codeGenerator != null) ? codeGenerator.buildProps() : null;
 	// tell to builder reference to module's properties
-	vwmlModelBuilder.setModProps(modProps);
+	if (vwmlModelBuilder.getProjectProps() == null) {
+		vwmlModelBuilder.setProjectProps(modProps);
+	}
     }
-    : propPackage generatedFileLocation optionalProps
+    : propPackage generatedFileLocation? optionalProps
     ;
     	
 propPackage
@@ -292,7 +299,12 @@ path
 
 module
     : 'module' ID { 
-    			modName = $ID.getText(); 
+    			modName = $ID.getText();
+    			// normalizes module's properties; if some properties were not set they are filled by project's properties
+    			// ... so it is way to override them 
+    			modProps = vwmlModelBuilder.normalizeProps(modProps);
+    			// associates module's name with module info structure (will be used on last dource generation phase, especially during unit-test generation)
+    			vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null)); 
     			if (modProps != null) {
     				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
 	    			try {

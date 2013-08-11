@@ -3,6 +3,7 @@ package com.vw.lang.processor.model.builder;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -80,7 +81,7 @@ public class VWMLModelBuilder extends Debuggable {
 	private BUILD_STEPS buildSteps = BUILD_STEPS.SOURCE;
 	
 	private String projectPath = null;
-	private StartModuleProps modProps = null;
+	private StartModuleProps projectProps = null;
 	// builder is implemented as singleton
 	private static volatile VWMLModelBuilder s_builder = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
@@ -103,6 +104,9 @@ public class VWMLModelBuilder extends Debuggable {
 			put(BUILD_STEPS.TEST,    new VWML2JavaSpecificSteps.TestStep());
 		}
 	};
+
+	// associates modules' names and their info - this information is needed on final steps of source generation
+	private static Map<String, VWMLModuleInfo> s_modulesInfo = new HashMap<String, VWMLModuleInfo>();
 	
 	private VWMLModelBuilder() {
 		
@@ -131,6 +135,32 @@ public class VWMLModelBuilder extends Debuggable {
 		}
 		return s_builder;
 	}
+
+	/**
+	 * Returns reference to module's information by its name
+	 * @param name
+	 * @return
+	 */
+	public static VWMLModuleInfo getModuleInfo(String name) {
+		return s_modulesInfo.get(name);
+	}
+	
+	/**
+	 * Returns set of VWML processed modules
+	 * @return
+	 */
+	public static Set<String> getProcessedModules() {
+		return s_modulesInfo.keySet();
+	}
+	
+	/**
+	 * Associates module's name and module info structure
+	 * @param name
+	 * @param mi
+	 */
+	public static void addModuleInfo(String name, VWMLModuleInfo mi) {
+		s_modulesInfo.put(name, mi);
+	}
 	
 	public BUILD_STEPS getBuildSteps() {
 		return buildSteps;
@@ -140,12 +170,12 @@ public class VWMLModelBuilder extends Debuggable {
 		this.buildSteps = buildSteps;
 	}
 
-	public StartModuleProps getModProps() {
-		return modProps;
+	public StartModuleProps getProjectProps() {
+		return projectProps;
 	}
 
-	public void setModProps(StartModuleProps modProps) {
-		this.modProps = modProps;
+	public void setProjectProps(StartModuleProps modProps) {
+		this.projectProps = modProps;
 	}
 
 	/**
@@ -177,7 +207,16 @@ public class VWMLModelBuilder extends Debuggable {
 		}
 		return cg;
 	}
-	
+
+	/**
+	 * Normalizes properties by filling non-set values by project properties
+	 * @param props
+	 * @return
+	 */
+	public StartModuleProps normalizeProps(StartModuleProps props) {
+		return getCodeGenerator(getSinkType()).normalizeProps(props, this.getProjectProps());
+	}
+
 	/**
 	 * Runs builder's initialization process
 	 * @throws Exception
@@ -228,7 +267,7 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @param vwmlFilePath
 	 * @throws Exception
 	 */
-	public void compile(String vwmlFilePath, StartModuleProps props) throws Exception {
+	public void compile(String vwmlFilePath) throws Exception {
 		if (logger.isInfoEnabled()) {
 			logger.info("compiling '" +  vwmlFilePath + "'; sink is '" + this.getSinkType() + "'");
 		}
@@ -243,10 +282,6 @@ public class VWMLModelBuilder extends Debuggable {
         VirtualWorldModelingLanguageLexer lex = new VirtualWorldModelingLanguageLexer(new ANTLRFileStream(vwmlFilePath, "UTF8"));
         CommonTokenStream tokens = new CommonTokenStream(lex);
         VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(tokens);
-        if (props != null) {
-        	// overrides properties by parent's properties 
-        	g.setModuleProps(props);
-        }
         try {
             g.filedef();
     		if (logger.isInfoEnabled()) {

@@ -7,5 +7,5 @@ package com.vw.lang.sink.java.module;
  *
  */
 public abstract class VWMLModule {
-
+	public abstract void build() throws Exception;
 }
