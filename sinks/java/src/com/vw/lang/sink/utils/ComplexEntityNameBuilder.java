@@ -1,8 +1,11 @@
 package com.vw.lang.sink.utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+
+import org.apache.log4j.Logger;
 
 /**
  * Helper class which allows to build complex entity name from set of objects' ids
@@ -11,10 +14,61 @@ import java.util.UUID;
  */
 public class ComplexEntityNameBuilder {
 	
-	private final static String s_complexEntityNameFormat = "(%s)";
+	protected static class Entity {
+		private String id;
+
+		public Entity() {
+			super();
+		}
+
+		public Entity(String id) {
+			super();
+			this.id = id;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+	}
 	
-	private List<Object> ids = new ArrayList<Object>();
-	private boolean inProgress = false;
+	protected static class ComplexEntity extends Entity {
+		private List<Entity> entities = new ArrayList<Entity>();
+		
+		public void addEntity(Entity entity) {
+			entities.add(entity);
+		}
+		
+		public List<Entity> getEntities() {
+			return entities;
+		}
+		
+		public String build() {
+			String str = "";
+			for(Entity e : entities) {
+				str += e.getId() + " ";
+			}
+			return str.trim();
+		}
+	}
+	
+	protected static class SimpleEntity extends Entity {
+		public SimpleEntity(String id) {
+			super(id);
+		}
+	}
+	
+	
+	private ComplexEntity currentComplexEntity = null;
+	private ComplexEntity rootComplexEntity = null;
+	private EntityWalker walker = EntityWalker.instance();
+	
+	private static String s_empty_name = "()";
+	
+	private Logger logger = Logger.getLogger(ComplexEntityNameBuilder.class);
 	
 	private ComplexEntityNameBuilder() {
 		
@@ -37,10 +91,20 @@ public class ComplexEntityNameBuilder {
 	}
 	
 	/**
+	 * Generates default root CE for module
+	 * @param modName
+	 * @return
+	 */
+	public static String generateRootId(String modName) {
+		return "CERModule_" + modName;
+	}
+	
+	/**
 	 * Adds object's id to complex entity
 	 */
 	public void addObjectId(Object id) {
-		ids.add(id);
+		ComplexEntity ce = (ComplexEntity)walker.peek();
+		ce.addEntity(new SimpleEntity((String)id));
 	}
 	
 	/**
@@ -48,24 +112,30 @@ public class ComplexEntityNameBuilder {
 	 * @return
 	 */
 	public String build() {
-		String seq = new String();
-		for(Object id : ids) {
-			seq += (id + " ");
+		if (rootComplexEntity == null) {
+			return s_empty_name;
 		}
-		clear();
-		seq = seq.trim();
-		return String.format(s_complexEntityNameFormat, seq);
+		return build(rootComplexEntity, "").trim();
 	}
 	
 	/**
 	 * Set start/stop progress's status
 	 */
 	public void startProgress() {
-		inProgress = true;
+		ComplexEntity e = new ComplexEntity();
+		if (rootComplexEntity == null) {
+			currentComplexEntity = rootComplexEntity = e;
+		}
+		else {
+			currentComplexEntity.addEntity(e);
+			currentComplexEntity = e;
+		}
+		walker.push(currentComplexEntity);
 	}
 	
 	public void stopProgress() {
-		inProgress = false;
+		walker.pop();
+		currentComplexEntity = (ComplexEntity)walker.peek();
 	}
 	
 	/**
@@ -73,14 +143,41 @@ public class ComplexEntityNameBuilder {
 	 * @return
 	 */
 	public boolean isInProgress() {
-		return inProgress;
+		return currentComplexEntity != null;
 	}
 	
 	/**
 	 * Clears name builder's storage
 	 */
 	public void clear() {
-		ids.clear();
+		currentComplexEntity = rootComplexEntity = null;
+		walker.clear();
 	}
+	
+	public String build(ComplexEntity ce, String name) {
+		String str = name + "(";
+		List<Entity> entities = ce.getEntities();
+		for(Entity e : entities) {
+			if (e instanceof ComplexEntity) {
+				str = build((ComplexEntity)e, str);
+			}
+			else {
+				str += e.getId() + " ";
+			}
+		}
+		str = str.trim();
+		str += ") ";
+		return str;
+	}
+	
 }
 
+/*
+('(' {
+	    	complexEntityNameBuilder.startProgress();
+	    	if (logger.isDebugEnabled()) {
+	    		logger.debug("complex entity declaration process - started");
+	    	}
+           } (compound_entity_decl)+ ')')?
+
+*/

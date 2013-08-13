@@ -7,6 +7,7 @@ import org.junit.Test;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor;
+import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 public class VWMLJavaCodeGeneratorTest {
 /*
@@ -60,11 +61,25 @@ public class VWMLJavaCodeGeneratorTest {
 		}
 	}
 	
-*/	
 	@Test
 	public void testGeneratedCode() throws Exception {
 		com.vw.lang.sink.java.test.generated.srcs.test.VWMLModuleTestSourceGeneration module = new com.vw.lang.sink.java.test.generated.srcs.test.VWMLModuleTestSourceGeneration();
 		module.build();
 	}
+*/	
 
+	@Test
+	public void complexEntityNameBuilderTest() {
+		ComplexEntityNameBuilder nb = ComplexEntityNameBuilder.instance();
+		nb.startProgress();
+		nb.addObjectId("a");
+		nb.startProgress();
+		nb.addObjectId("x");
+		nb.addObjectId("y");
+		nb.stopProgress();
+		//nb.addObjectId("e");
+		nb.stopProgress();		
+		String s = nb.build();
+		Assert.assertTrue(s.length() > 2);
+	}
 }

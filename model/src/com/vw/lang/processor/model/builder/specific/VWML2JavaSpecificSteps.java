@@ -73,6 +73,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			new VWML2JavaModulesTestBuilder().build();
 			new CompileStep().step(stepProcessor, codeGeneratorName, props);
+			((VWML2JavaSpecificSteps)stepProcessor).runMavenAsTest(codeGeneratorName, props);
 		}
 	}
 		
@@ -119,7 +120,28 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		else {
 			throw new Exception("unsupported os '" + getOsName() + "'");
 		}
-		Process p = Runtime.getRuntime().exec(runMaven);
+		runMavenCommand(runMaven);
+	}
+
+	private void runMavenAsTest(String codeGeneratorName, StartModuleProps props) throws Exception {
+		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
+		String pomFullPath = jprops.getSrcPath() + "/..";
+		String runMaven = null;
+		if (isWindows()) {
+			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestProject test && exit\"";
+		}
+		else
+		if (isLinux() || isMac()) {
+			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestProject test && exit\"";
+		}
+		else {
+			throw new Exception("unsupported os '" + getOsName() + "'");
+		}
+		runMavenCommand(runMaven);
+	}
+	
+	private void runMavenCommand(String command) throws Exception {
+		Process p = Runtime.getRuntime().exec(command);
 		InputStream isErr = p.getErrorStream();
 		if (isErr != null) {
 			String err = inputStreamToString(isErr);

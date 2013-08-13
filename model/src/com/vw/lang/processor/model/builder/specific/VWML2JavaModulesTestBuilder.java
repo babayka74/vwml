@@ -108,7 +108,7 @@ public class VWML2JavaModulesTestBuilder {
 		body += " };\r\n\r\n";
 		body += "\t\ttry {\r\n";
 		body += "\t\t\tfor(VWMLModule module : modules) {\r\n\t\t\t\tmodule.build();\r\n\t\t\t}\r\n";
-		body += "\t\t}\r\n\t\tcatch(Exception e) {\r\n\t\t\tAssert.assertFalse(true);\r\n\t\t}\r\n";
+		body += "\t\t}\r\n\t\tcatch(Exception e) {\r\n\t\t\tSystem.out.println(e);\r\n\t\t\tAssert.assertFalse(true);\r\n\t\t}\r\n";
 		body += "\t}\r\n";
 		return body;
 	}

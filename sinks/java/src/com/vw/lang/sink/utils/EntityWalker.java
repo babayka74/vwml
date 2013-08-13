@@ -1,6 +1,7 @@
 package com.vw.lang.sink.utils;
 
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -25,11 +26,30 @@ public class EntityWalker {
 	}
 	
 	public Object pop() {
+		if (ids.isEmpty()) {
+			return null;
+		}
 		return ids.pop();
 	}
 	
 	public Object peek() {
 		return ids.peek();
+	}
+	
+	public Iterator<Object> getListIterator() {
+		return ids.descendingIterator();
+	}
+	
+	public Iterator<Object> getQueueIterator() {
+		return ids.iterator();
+	}
+	
+	public void clear() {
+		ids.clear();
+	}
+	
+	public int size() {
+		return ids.size();
 	}
 	
 	/**

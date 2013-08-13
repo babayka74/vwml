@@ -78,6 +78,13 @@ public interface ICodeGenerator {
 	public void generate(StartModuleProps props) throws Exception;
 
 	/**
+	 * Marks entity as term
+	 * @param id
+	 * @throws Exception
+	 */
+	public void markEntityAsTerm(Object id) throws Exception;
+	
+	/**
 	 * Finishes generation of module
 	 * @param props
 	 * @throws Exception

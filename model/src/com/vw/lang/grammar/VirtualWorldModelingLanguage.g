@@ -88,6 +88,7 @@ package com.vw.lang.grammar;
 	private ComplexEntityNameBuilder complexEntityNameBuilder = ComplexEntityNameBuilder.instance();
 	private EntityWalker entityWalker = EntityWalker.instance();
 	private String lastProcessedEntityId = null;
+	private boolean lastProcessedEntityAsTerm = false;
 	private String modName = null;
  	private boolean inDebug = false;
  	private boolean moduleInProgress = false;
@@ -129,6 +130,9 @@ package com.vw.lang.grammar;
 	
 	protected void buildLinkingAssociation(Object linkedObj) throws RecognitionException {
   		Object linkingObjId = entityWalker.peek();
+  		if (linkingObjId == null) {
+  			linkingObjId = ComplexEntityNameBuilder.generateRootId(modName);
+  		}
     		if (linkingObjId != null) {
     			try {
     				if (codeGenerator != null) codeGenerator.linkObjects(linkingObjId, linkedObj);
@@ -338,9 +342,6 @@ expression
 
 entity_def
     : entity_decl IAS {
-    			if (logger.isDebugEnabled()) {
-    				logger.debug("declared entity '" + $entity_decl.id + "'");
-    			}
     			entityWalker.markFutureEntityAsIAS($entity_decl.id);
     			// we should link this entity with parent, if exists
     			 buildLinkingAssociation($entity_decl.id);
@@ -348,12 +349,50 @@ entity_def
     ;
 
 term_def
-    : entity { lastProcessedEntityId = $entity.id; } (oplist)*
+    : entity {
+    		lastProcessedEntityId = $entity.id;
+    		lastProcessedEntityAsTerm = false;
+    	     } (oplist)* 
+  	     {
+  	       if (lastProcessedEntityAsTerm && codeGenerator != null) {
+  	       		try {
+				codeGenerator.markEntityAsTerm(lastProcessedEntityId);
+				if (logger.isDebugEnabled()) {
+					logger.debug("entity '" + lastProcessedEntityId + "' marked as term");
+				}
+			}
+			catch(Exception e) {
+				rethrowVWMLExceptionAsRecognitionException(e);
+			}
+	       } 
+	     }
     ;
 
 entity_decl returns [String id]
     : simple_entity_decl  {id = $simple_entity_decl.id;}
-    | complex_entity_decl {id = $complex_entity_decl.id;}
+    | '(' {
+    	    	complexEntityNameBuilder.startProgress();
+	    	if (logger.isDebugEnabled()) {
+	    		logger.debug("complex entity declaration process - started");
+	    	}
+          }  complex_entity_decl ')' {
+              				id = complexEntityNameBuilder.build();
+              				complexEntityNameBuilder.clear();
+				    	try {
+				    		if (codeGenerator != null) codeGenerator.declareComplexEntity(id);    	
+				    		if (logger.isDebugEnabled()) {
+				    			logger.debug("complex entity '" + id + "' is declared");
+				    			logger.debug("complex entity declaration process - finished");
+				    		}    	
+				    	}
+				    	catch(Exception e) {
+				    		rethrowVWMLExceptionAsRecognitionException(e);
+				    	}              				
+          			     }
+    ;
+
+compound_entity_decl
+    : entity_decl
     ;
     
 simple_entity_decl returns [String id]
@@ -361,10 +400,16 @@ simple_entity_decl returns [String id]
     		id = $ID.getText();
     		// means that complex entity's name is being built
     		if (complexEntityNameBuilder.isInProgress()) {
+    		        if (logger.isDebugEnabled()) {
+    		        	logger.debug("simple entity '" + id + "' is added as part of complex entity");
+    		        }
     			complexEntityNameBuilder.addObjectId(id);
     		}
     		else {
     			try {
+    		        	if (logger.isDebugEnabled()) {
+    		        		logger.debug("simple entity '" + id + "' is declared");
+    		        	}
     				if (codeGenerator != null) codeGenerator.declareSimpleEntity(id);
     			}
     			catch(Exception e) {
@@ -374,21 +419,11 @@ simple_entity_decl returns [String id]
          }
     ;
     
-complex_entity_decl returns [String id]
-    @init {
-    	complexEntityNameBuilder.startProgress();
-    }
+complex_entity_decl
     @after {
     	complexEntityNameBuilder.stopProgress();
-    	id = complexEntityNameBuilder.build();
-    	try {
-    		if (codeGenerator != null) codeGenerator.declareComplexEntity(id);
-    	}
-    	catch(Exception e) {
-    		rethrowVWMLExceptionAsRecognitionException(e);
-    	}
     }
-    : ('(' (simple_entity_decl)+ ')')?
+    : (compound_entity_decl)+
     ;
 
 term
@@ -421,6 +456,9 @@ complex_entity returns [String id]
     	// id and name is the same
     	String ceId = ComplexEntityNameBuilder.generateRandomName();
     	try {
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("complex entity '" + ceId + "' is declared");
+    		}    	
     		if (codeGenerator != null) codeGenerator.declareComplexEntity(ceId);
     	}
     	catch(Exception e) {
@@ -457,8 +495,8 @@ STRING_LITERAL
 
 oplist
     // associates operation with entity
-    : opclist       { if (lastProcessedEntityId != null) { if (codeGenerator != null) codeGenerator.associateOperation(lastProcessedEntityId, $opclist.text); } }
-    | opprojection  { if (lastProcessedEntityId != null) { if (codeGenerator != null) codeGenerator.associateOperation(lastProcessedEntityId, $opprojection.text); } }
+    : opclist       { if (lastProcessedEntityId != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntityId, $opclist.text); } }
+    | opprojection  { if (lastProcessedEntityId != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntityId, $opprojection.text); } }
     ;
 
 opclist

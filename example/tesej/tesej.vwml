@@ -1,0 +1,31 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml"
+  		path = "c:\var\vwml/tesej/src"
+  		author = "Groozman M.Z."
+  		description = "Tesej walk"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/tesej/diagram"
+		}
+	}
+}
+
+module tesej {
+	a ias (a h b);
+	b ias (b a e g);
+	c ias (c e d f);
+	d ias (d c);
+	e ias (e c b g);
+	f ias (f c);
+	g ias (g b e);
+	h ias (h a);
+	Tesej ias a;
+	Step ias (Tesej;
+		  Tesej~~ Random;
+		 )^;
+	TesejLife ias ( Step~ Exe;
+			TesejLife~ Exe;
+		      );
+	TesejLife~ Exe;
+}
