@@ -23,6 +23,8 @@ import com.vw.lang.sink.java.module.VWMLModule;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
+import com.vw.lang.sink.utils.EntityWalker;
+import com.vw.lang.sink.utils.EntityWalker.REL;
 
 /**
  * Used by VWMLProcessor for code generation
@@ -264,6 +266,12 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		public String getUniqId() {
 			return uniqId;
 		}
+
+		@Override
+		public String toString() {
+			return "VWMLLinkWrap [id=" + id + ", linkedId=" + linkedId
+					+ ", asTerm=" + asTerm + ", uniqId=" + uniqId + "]";
+		}
 	}
 	
 	/**
@@ -275,16 +283,18 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private Object entityId;
 		private Object linkId;
 		private List<String> associatedOperations;
+		private EntityWalker.REL rel = EntityWalker.REL.NONE;
 		
 		public VWMLOperationLink() {
 			super();
 		}
 
-		public VWMLOperationLink(Object entityId, Object linkId, List<String> associatedOperations) {
+		public VWMLOperationLink(Object entityId, Object linkId, List<String> associatedOperations, EntityWalker.REL rel) {
 			super();
 			this.entityId = entityId;
 			this.linkId = linkId;
 			this.associatedOperations = associatedOperations;
+			this.rel = rel;
 		}
 
 		public Object getEntityId() {
@@ -297,6 +307,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 
 		public Object getLinkId() {
 			return linkId;
+		}
+
+		public EntityWalker.REL getRel() {
+			return rel;
 		}
 
 		public void setLinkId(Object linkId) {
@@ -327,7 +341,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	// associates object and operations
 	private Map<Object, VWMLOperationLink> operations = new HashMap<Object, VWMLOperationLink>();
 	
-	private VWMLLinkWrap lastLinkWrap = null;
+	private VWMLLinkWrap lastLink = null;
 	
 	private Logger logger = Logger.getLogger(JavaCodeGenerator.class);
 	
@@ -340,6 +354,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		return new JavaCodeGenerator();
 	}
 	
+	public Object getLastLink() {
+		return lastLink;
+	}
+
 	/**
 	 * Builds module's properties instance
 	 * @return
@@ -490,9 +508,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void markEntityAsTerm(Object id) throws Exception {
-		markedAsTerm.add(id);
-		if (lastLinkWrap != null) {
-			lastLinkWrap.setAsTerm(true);
+		EntityWalker.Relation rel = (EntityWalker.Relation)id;
+		markedAsTerm.add(rel.getObj());
+		if (rel.getLastLink() != null) {
+			((VWMLLinkWrap)rel.getLastLink()).setAsTerm(true);
 		}
 	}
 	
@@ -529,8 +548,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param linkedObjId
 	 */
 	public void linkObjects(Object id, Object linkedObjId) {
-		lastLinkWrap = new VWMLLinkWrap(id, linkedObjId);
-		linkage.add(lastLinkWrap);
+		lastLink = new VWMLLinkWrap(id, linkedObjId);
+		linkage.add(lastLink);
 	}
 	
 	/**
@@ -539,14 +558,18 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param op
 	 */
 	public void associateOperation(Object id, String op) {
-		if (lastLinkWrap == null) {
-			logger.error("couldn't associated operation '" + op + "' with entity '" + id + "' since last linkage operation is absent");
+		EntityWalker.Relation rel = (EntityWalker.Relation)id;
+		if (rel == null || rel.getLastLink() == null) {
+			logger.error("couldn't associated operation '" + op + "' since last linkage operation is absent");
 			return;
 		}
-		String uniqId = lastLinkWrap.getUniqId();
+		if (logger.isDebugEnabled()) {
+			logger.debug("Object '" + id + "' -> op '" + op + "'");
+		}
+		String uniqId = ((VWMLLinkWrap)rel.getLastLink()).getUniqId();
 		VWMLOperationLink associatedOps = operations.get(uniqId);
 		if (associatedOps == null) {
-			associatedOps = new VWMLOperationLink(id, uniqId, new ArrayList<String>());
+			associatedOps = new VWMLOperationLink(rel.getObj(), uniqId, new ArrayList<String>(), rel.getRelation());
 			operations.put(uniqId, associatedOps);
 		}
 		associatedOps.getAssociatedOperations().add(op);
@@ -558,7 +581,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param interpretingObjId
 	 */
 	public void interpretObjects(Object id, Object interpretingObjId) {
-		interpret.add(new VWMLLinkWrap(id, interpretingObjId));
+		lastLink = new VWMLLinkWrap(id, interpretingObjId);
+		interpret.add(lastLink);
 	}
 	
 
@@ -764,7 +788,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			if (!ft) {
 				appliedOperations += ",\r\n";
 			}
-			appliedOperations += "\t\t{put(\"" + id + "\", new VWMLOperationLink(\"" + link.getEntityId() + "\", \"" + link.getLinkId() + "\", new String[] {" + opsAsList + "}));}\r\n";
+			String rel = (link.getRel() == REL.LINK) ? "VWMLOperationLink.REL.LINK" : "VWMLOperationLink.REL.ASSOCIATION";
+			appliedOperations += "\t\t{put(\"" + id + "\", new VWMLOperationLink(\"" + link.getEntityId() + "\", \"" + link.getLinkId() + "\", new String[] {" + opsAsList + "}, " + rel + "));}\r\n";
 		}
 		appliedOperations += "\t};\r\n\r\n";
 		return appliedOperations;

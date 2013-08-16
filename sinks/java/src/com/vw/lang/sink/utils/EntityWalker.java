@@ -10,6 +10,57 @@ import java.util.LinkedList;
  *
  */
 public class EntityWalker {
+	
+	/**
+	 * entity - entity relations
+	 * @author ogibayev
+	 *
+	 */
+	public static enum REL {
+		ASSOCIATION,
+		LINK,
+		NONE
+	}
+	
+	/**
+	 * Defines entity relation
+	 * @author ogibayev
+	 *
+	 */
+	public static class Relation {
+		private Object obj;
+		private REL relation;
+		private Object lastLink;
+
+		public static Relation build(Object obj, REL relation, Object lastLink) {
+			return new Relation(obj, relation, lastLink);
+		}
+		
+		private Relation(Object obj, REL relation, Object lastLink) {
+			super();
+			this.obj = obj;
+			this.relation = relation;
+			this.lastLink = lastLink;
+		}
+
+		public Object getObj() {
+			return obj;
+		}
+		
+		public REL getRelation() {
+			return relation;
+		}
+
+		public Object getLastLink() {
+			return lastLink;
+		}
+		
+		@Override
+		public String toString() {
+			return "Relation [obj=" + obj + ", relation=" + relation + ", lastLink=" + lastLink + "]";
+		}
+	}
+	
 	private Deque<Object> ids = new LinkedList<Object>();
 	private Object iasObj = null;
 	

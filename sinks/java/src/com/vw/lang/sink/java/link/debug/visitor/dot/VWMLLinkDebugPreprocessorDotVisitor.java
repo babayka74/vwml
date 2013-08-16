@@ -74,12 +74,13 @@ public class VWMLLinkDebugPreprocessorDotVisitor implements IVWMLLinkVisitor {
 
 	@Override
 	public void associateOperation(VWMLObject obj, VWMLOperation op) {
-		try {
+	/*	try {
 			fw.write("\"" + obj.getId() + "::" + op.getOpCode().toValue() + "\" [shape=box];");
 			fw.write("\"" + obj.getId() + "\" -- \"" + obj.getId() + "::" + op.getOpCode().toValue() + "\"[style=dotted];\r\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	*/	
 	}
 
 	@Override

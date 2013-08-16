@@ -45,6 +45,12 @@ public interface ICodeGenerator {
 	}
 	
 	/**
+	 * Returns last link object
+	 * @return
+	 */
+	public Object getLastLink();
+	
+	/**
 	 * Builds module's properties instance
 	 * @return
 	 */

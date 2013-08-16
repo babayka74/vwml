@@ -87,7 +87,7 @@ package com.vw.lang.grammar;
 	private StartModuleProps modProps = null;
 	private ComplexEntityNameBuilder complexEntityNameBuilder = ComplexEntityNameBuilder.instance();
 	private EntityWalker entityWalker = EntityWalker.instance();
-	private String lastProcessedEntityId = null;
+	private EntityWalker.Relation lastProcessedEntity = null;
 	private boolean lastProcessedEntityAsTerm = false;
 	private String modName = null;
  	private boolean inDebug = false;
@@ -112,7 +112,7 @@ package com.vw.lang.grammar;
 		return this.inDebug;
 	}
 	
-	protected void buildIASAssociation(Object id) throws RecognitionException {
+	protected Object buildIASAssociation(Object id) throws RecognitionException {
     		Object objLinkingId = entityWalker.getEntityMarkedAsIAS();
     		Object objLinkedId = id;
     		entityWalker.resetFutureEntityAsIAS();
@@ -126,15 +126,17 @@ package com.vw.lang.grammar;
     		catch(Exception e) {
     			rethrowVWMLExceptionAsRecognitionException(e);
     		}	
+    		return (codeGenerator != null) ? codeGenerator.getLastLink() : null;
 	}
 	
-	protected void buildLinkingAssociation(Object linkedObj) throws RecognitionException {
-  		Object linkingObjId = entityWalker.peek();
-  		if (linkingObjId == null) {
-  			linkingObjId = ComplexEntityNameBuilder.generateRootId(modName);
+	protected Object buildLinkingAssociation(Object linkedObj) throws RecognitionException {
+  		Object rel = entityWalker.peek();
+  		if (rel == null) {
+  			rel = EntityWalker.Relation.build(ComplexEntityNameBuilder.generateRootId(modName), EntityWalker.REL.NONE, null);
   		}
-    		if (linkingObjId != null) {
+    		if (rel != null) {
     			try {
+    				Object linkingObjId = ((EntityWalker.Relation)rel).getObj();
     				if (codeGenerator != null) codeGenerator.linkObjects(linkingObjId, linkedObj);
     				if (logger.isDebugEnabled()) {
     					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
@@ -144,7 +146,24 @@ package com.vw.lang.grammar;
     				rethrowVWMLExceptionAsRecognitionException(e);
     			}
     		}
+    		return (codeGenerator != null) ? codeGenerator.getLastLink() : null;
 	}
+	
+	protected EntityWalker.Relation buildRelation(Object eId) throws RecognitionException {
+		Object lastLink = null;
+	     	EntityWalker.REL relType = EntityWalker.REL.NONE;
+	    	// in case if entity was marked as IAS we have to build IAS association
+	    	if (entityWalker.getEntityMarkedAsIAS() != null) {
+	    		relType = EntityWalker.REL.ASSOCIATION;
+	    		lastLink = buildIASAssociation(eId);
+	    	}
+	    	else {
+	    		relType = EntityWalker.REL.LINK;
+	    		// ... otherwise linkage
+	  		lastLink = buildLinkingAssociation(eId);
+	  	}
+ 		return EntityWalker.Relation.build(eId, relType, lastLink);
+	}	
 	
 	protected void processInclude(String file) throws RecognitionException {
 		try {
@@ -157,7 +176,8 @@ package com.vw.lang.grammar;
 	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
 		throw new RecognitionException(new ANTLRStringStream(e.getMessage()));
-	}	
+	}
+		
 }
 
 
@@ -350,15 +370,15 @@ entity_def
 
 term_def
     : entity {
-    		lastProcessedEntityId = $entity.id;
+    		lastProcessedEntity = $entity.rel;
     		lastProcessedEntityAsTerm = false;
     	     } (oplist)* 
   	     {
   	       if (lastProcessedEntityAsTerm && codeGenerator != null) {
   	       		try {
-				codeGenerator.markEntityAsTerm(lastProcessedEntityId);
+				codeGenerator.markEntityAsTerm(lastProcessedEntity);
 				if (logger.isDebugEnabled()) {
-					logger.debug("entity '" + lastProcessedEntityId + "' marked as term");
+					logger.debug("entity '" + lastProcessedEntity + "' marked as term");
 				}
 			}
 			catch(Exception e) {
@@ -430,56 +450,43 @@ term
     : expression
     ;  
 
-entity returns [String id]
-    : simple_entity   {id = $simple_entity.id; }
-    | complex_entity  {id = $complex_entity.id;}
+entity returns [EntityWalker.Relation rel]
+    : simple_entity   {rel = $simple_entity.rel; }
+    | complex_entity  {rel = $complex_entity.rel;}
     ;
 
 
-simple_entity returns [String id]
+simple_entity returns [EntityWalker.Relation rel]
     : ID {
-    	    	if (entityWalker.getEntityMarkedAsIAS() != null) {
-    			buildIASAssociation($ID.text);
-    		}
-    		else {
-   			buildLinkingAssociation($ID.text);
-    		}
-    		id = $ID.text;
+   		rel = buildRelation($ID.text);
     		if (logger.isDebugEnabled()) {
-    			logger.debug("processed simple entity '" + id + "'");
+    			logger.debug("processed simple entity '" + rel + "'");
     		}
          }
     ;
 
-complex_entity returns [String id]
+complex_entity returns [EntityWalker.Relation rel]
     @init {
     	// id and name is the same
     	String ceId = ComplexEntityNameBuilder.generateRandomName();
     	try {
-    		if (logger.isDebugEnabled()) {
-    			logger.debug("complex entity '" + ceId + "' is declared");
-    		}    	
     		if (codeGenerator != null) codeGenerator.declareComplexEntity(ceId);
     	}
     	catch(Exception e) {
     		rethrowVWMLExceptionAsRecognitionException(e);
     	}
-    	// in case if entity was marked as IAS we have to build IAS association
-    	if (entityWalker.getEntityMarkedAsIAS() != null) {
-    		buildIASAssociation(ceId);
-    	}
-    	else {
-    		// ... otherwise linkage
-  		buildLinkingAssociation(ceId);
-  	}
         // the complex enity (name/id is generated) is pushed to stack (here complex entity is part of expression)
-    	entityWalker.push(ceId);
+    	rel = buildRelation(ceId);
+    	entityWalker.push(rel);
+   	if (logger.isDebugEnabled()) {
+   		logger.debug("complex entity '" + rel + "' is declared");
+   	}    	
     }
     @after {
         // remove it from stack
-    	id = (String)entityWalker.pop();
+    	rel = (EntityWalker.Relation)entityWalker.pop();
     	if (logger.isDebugEnabled()) {
-    		logger.debug("processed complex entity '" + id + "'");
+    		logger.debug("processed complex entity '" + rel + "'");
     	}    
     }
     : '(' (term)* ')'
@@ -495,8 +502,8 @@ STRING_LITERAL
 
 oplist
     // associates operation with entity
-    : opclist       { if (lastProcessedEntityId != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntityId, $opclist.text); } }
-    | opprojection  { if (lastProcessedEntityId != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntityId, $opprojection.text); } }
+    : opclist       { if (lastProcessedEntity != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntity, $opclist.text); } }
+    | opprojection  { if (lastProcessedEntity != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntity, $opprojection.text); } }
     ;
 
 opclist

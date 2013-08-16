@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java.code.templates;
 
-import java.util.List;
 
 
 /**
@@ -57,17 +56,24 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t}\r\n" +
 	"\t}\r\n\r\n" +
 	"\tprivate static class VWMLOperationLink { \r\n\r\n" +
+	"\t\tpublic static enum REL {  \r\n" +
+	"\t\t\tASSOCIATION,  \r\n" +
+	"\t\t\tLINK,  \r\n" +
+	"\t\t\tNONE  \r\n" +
+	"\t\t}  \r\n\r\n" +	
 	"\t\tprivate Object entityId; \r\n" +
 	"\t\tprivate Object linkId; \r\n" +
+	"\t\tprivate VWMLOperationLink.REL rel; \r\n" +
 	"\t\tprivate String[] associatedOperations; \r\n\r\n" +
 	"\t\tpublic VWMLOperationLink() { \r\n" +
 	"\t\t\tsuper(); \r\n" +
 	"\t\t} \r\n\r\n" +
-	"\t\tpublic VWMLOperationLink(Object entityId, Object linkId, String[] associatedOperations) { \r\n" +
+	"\t\tpublic VWMLOperationLink(Object entityId, Object linkId, String[] associatedOperations, VWMLOperationLink.REL rel) { \r\n" +
 	"\t\t\tsuper(); \r\n" +
 	"\t\t\tthis.entityId = entityId; \r\n" +
 	"\t\t\tthis.linkId = linkId; \r\n" +
 	"\t\t\tthis.associatedOperations = associatedOperations; \r\n" +
+	"\t\t\tthis.rel = rel; \r\n" +
 	"\t\t} \r\n\r\n" +
 	"\t\tpublic Object getEntityId() { \r\n" + 
 	"\t\t\treturn entityId;\r\n" +
@@ -77,6 +83,9 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t}\r\n\r\n" +
 	"\t\tpublic String[] getAssociatedOperations() {\r\n" +
 	"\t\t\treturn associatedOperations;\r\n" +
+	"\t\t}\r\n" +
+	"\t\tpublic VWMLOperationLink.REL getRel() {\r\n" +
+	"\t\t\treturn rel;\r\n" +
 	"\t\t}\r\n" +
 	"\t}\r\n\r\n";
 
@@ -105,11 +114,12 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t\tVWMLOperationLink link = appliedOperations.get(id);\r\n" +
 	"\t\t\tObject linkedUniqId = link.getLinkId();\r\n" +
 	"\t\t\tObject entityId = null;\r\n" +
-	"\t\t\tfor(VWMLLinkWrap obj : linkedObjectPairs) {\r\n" +
+	"\t\t\tVWMLLinkWrap[] linkedPairs = (link.getRel() == VWMLOperationLink.REL.LINK) ? linkedObjectPairs : interpretedObjectPairs;\r\n" +
+	"\t\t\tfor(VWMLLinkWrap obj : linkedPairs) {\r\n" +
 	"\t\t\t\tif (obj.getUniqId().equals(linkedUniqId)) {\r\n" +
 	"\t\t\t\t\tentityId = obj.getLinkedId();\r\n" +
 	"\t\t\t\t\tif (!obj.isMarkedAsTerm()) {\r\n" +
-	"\t\t\t\t\t\tthrow new Exception(\"linkwrap association should be marked as TERM; obj '\" + obj + \"'; entity '\" + entityId + \"'\");\r\n" +
+	"\t\t\t\t\t\tthrow new Exception(\"linking association should be marked as TERM; obj '\" + obj + \"'; entity '\" + entityId + \"'\");\r\n" +
 	"\t\t\t\t\t}\r\n" + 
 	"\t\t\t\t\tbreak;\r\n" +
 	"\t\t\t\t}\r\n" +
