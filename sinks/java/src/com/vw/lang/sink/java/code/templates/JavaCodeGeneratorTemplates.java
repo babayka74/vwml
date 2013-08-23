@@ -24,6 +24,7 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tprivate Object linkedId;\r\n" +
 	"\t\tprivate MARKED marked = MARKED.ENTITY;\r\n" +
 	"\t\tprivate Object uniqId = null;\r\n\r\n" +
+	"\t\tprivate String[] contextPath = null;\r\n\r\n" +
 	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId) {\r\n" +
 	"\t\t\tsuper();\r\n" +
 	"\t\t\tthis.id = id;\r\n" +
@@ -41,6 +42,14 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t\tthis.linkedId = linkedId;\r\n" +
 	"\t\t\tthis.marked = marked;\r\n" +
 	"\t\t\tthis.uniqId = uniqId;\r\n" +
+	"\t\t}\r\n\r\n" +
+	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId, MARKED marked, Object uniqId, String[] contextPath) {\r\n" +
+	"\t\t\tsuper();\r\n" +
+	"\t\t\tthis.id = id;\r\n" +
+	"\t\t\tthis.linkedId = linkedId;\r\n" +
+	"\t\t\tthis.marked = marked;\r\n" +
+	"\t\t\tthis.uniqId = uniqId;\r\n" +
+	"\t\t\tthis.contextPath = contextPath;\r\n" +
 	"\t\t}\r\n\r\n" +	
 	"\t\tpublic Object getId() {\r\n" +
 	"\t\t\treturn id;\r\n" +
@@ -54,6 +63,9 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tpublic boolean isMarkedAsTerm() {\r\n" +
 	"\t\t\treturn (marked == MARKED.TERM);\r\n" +
 	"\t\t}\r\n" +
+	"\t\tpublic String[] getContextPath() {\r\n" +
+	"\t\t\treturn contextPath;\r\n" +
+	"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n" +
 	"\tprivate static class VWMLOperationLink { \r\n\r\n" +
 	"\t\tpublic static enum REL {  \r\n" +

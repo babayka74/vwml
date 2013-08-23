@@ -228,16 +228,23 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 	}
 	
+	/**
+	 * Describes type of association between two entities (the type can be link or association)
+	 * @author ogibayev
+	 *
+	 */
 	protected static class VWMLLinkWrap {
 		private Object id;
 		private Object linkedId;
 		private boolean asTerm = false;
 		private String uniqId = "VWMLLINK_" + UUID.randomUUID().toString();
+		private String[] contextPath = null;
 		
 		public VWMLLinkWrap(Object id, Object linkedId) {
 			super();
 			this.id = id;
 			this.linkedId = linkedId;
+			parseContextPath();
 		}
 
 		public VWMLLinkWrap(Object id, Object linkedId, boolean asTerm) {
@@ -245,6 +252,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.id = id;
 			this.linkedId = linkedId;
 			this.asTerm = asTerm;
+			parseContextPath();
 		}
 		
 		public Object getId() {
@@ -267,10 +275,21 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			return uniqId;
 		}
 
+		public String[] getContextPath() {
+			return contextPath;
+		}
+
 		@Override
 		public String toString() {
 			return "VWMLLinkWrap [id=" + id + ", linkedId=" + linkedId
 					+ ", asTerm=" + asTerm + ", uniqId=" + uniqId + "]";
+		}
+		
+		protected void parseContextPath() {
+			String[] contextPath = ((String)linkedId).split(".");
+			if (contextPath.length > 1) {
+				this.contextPath = contextPath;
+			}
 		}
 	}
 	
@@ -744,11 +763,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			if (!ft) {
 				list += ",";
 			}
+			String s = generateStringStaticArrayAsString(obj.getContextPath());
+			String arrayAsStr = (s == null) ? null : "\"" + s + "\"";
 			if (!obj.isAsTerm()) {
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
 			}
 			else {
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.TERM, \"" + obj.getUniqId() + "\")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.TERM, \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
 			}
 			ft = false;
 		}
@@ -810,5 +831,22 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	private String generateClassName(String suffix) {
 		return "VWML" + suffix;
+	}
+	
+	private String generateStringStaticArrayAsString(String[] array) {
+		boolean firstIteration = true;
+		if (array == null) {
+			return null;
+		}
+		String arrayAsString = "new String[] {";
+		for(String item : array) {
+			if (!firstIteration) {
+				arrayAsString += ", ";
+			}
+			arrayAsString += item;
+			firstIteration = false;
+		}
+		arrayAsString += "};";
+		return arrayAsString;
 	}
 }

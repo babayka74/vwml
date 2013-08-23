@@ -451,10 +451,15 @@ term
     ;  
 
 entity returns [EntityWalker.Relation rel]
-    : simple_entity   {rel = $simple_entity.rel; }
-    | complex_entity  {rel = $complex_entity.rel;}
+    : simple_entity         {rel = $simple_entity.rel; }
+    | complex_entity        {rel = $complex_entity.rel;}
+    | syncronization_entity {rel = $syncronization_entity.rel;}
     ;
 
+
+syncronization_entity returns [EntityWalker.Relation rel]
+    : '[' entity {rel = $entity.rel; } ']' 
+    ;
 
 simple_entity returns [EntityWalker.Relation rel]
     : ID {
