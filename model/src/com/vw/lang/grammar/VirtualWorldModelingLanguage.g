@@ -185,6 +185,9 @@ filedef
     : props? (include (include)*)? module? EOF {
                              	if (moduleInProgress && modProps != null) {
                              		try {
+                             			// sets special interpretation properties
+                             			// these properties are defined by user and passed by VWML tool to VWML builder 
+                             			modProps.setInterpretationProps(vwmlModelBuilder.getInterpretationProps());
                              			// actually generates source code
                              			codeGenerator.generate(modProps);
                              			// finalizes source generation phase for this module

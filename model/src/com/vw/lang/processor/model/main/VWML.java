@@ -11,6 +11,8 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
+import com.vw.lang.sink.InterpretationProps;
+import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 
 /**
  * VWML's processor main class
@@ -32,6 +34,7 @@ public final class VWML {
 		
 		public void run(VWMLArgs args) throws Exception {
 			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
+			VWMLModelBuilder.instance().setInterpretationProps(buildInterpretationProps(args));
 			VWMLModelBuilder.instance().compile(filePath);
 		}
 		
@@ -40,6 +43,12 @@ public final class VWML {
 		 */
 		protected void finalProcedure() throws Exception {
 			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getProjectProps());
+		}
+		
+		private InterpretationProps buildInterpretationProps(VWMLArgs args) {
+			InterpretationProps ip = new InterpretationProps();
+			ip.setInterpretationOfUndefinedEntityStrategyId(InterpretationOfUndefinedEntityStrategyId.fromValue(args.getEntityInterpretationStrategy()));
+			return ip;
 		}
 	}
 	
@@ -117,6 +126,8 @@ public final class VWML {
 	public static class VWMLArgs {
 		@Option(name="-m", usage="execution mode {source | project | compile | test};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used;\r\ncompile - compiles project;\r\ntest - runs compiled project")
 		private String mode;
+		@Option(name="-entity", usage="entity generation/checking options {strict, ue_im1, ue_im2, ue_im3};\r\nstrict - if undefined simple entity found - exception is thrown;\r\nue_im1 - if undefined simple entity found - it is interpreted as empty complex entity ();\r\nue_im2 - if undefined simple entity found - it is interpreted as 'nil' entity\r\nue_im3 - if undefined simple entity found - it is interpreted as is")
+		private String entityInterpretationStrategy = new String(InterpretationOfUndefinedEntityStrategyId.STRICT.toValue());
 		
 		 // receives other command line parameters than options
 	    @Argument
@@ -130,6 +141,14 @@ public final class VWML {
 			this.mode = mode;
 		}
 
+		public String getEntityInterpretationStrategy() {
+			return entityInterpretationStrategy;
+		}
+
+		public void setEntityInterpretationStrategy(String entityInterpretationStrategy) {
+			this.entityInterpretationStrategy = entityInterpretationStrategy;
+		}
+
 		public List<String> getArguments() {
 			return arguments;
 		}
@@ -140,7 +159,9 @@ public final class VWML {
 
 		@Override
 		public String toString() {
-			return "VWMLArgs [mode=" + mode + ", arguments=" + arguments + "]";
+			return "VWMLArgs [mode=" + mode + ", entityInterpretationModes="
+					+ entityInterpretationStrategy + ", arguments=" + arguments
+					+ "]";
 		}
 	}
 	

@@ -71,7 +71,9 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	 */
 	public static class TestStep implements IStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
+			// builds unit-test source files
 			new VWML2JavaModulesTestBuilder().build();
+			// compiles and runs maven as test
 			new CompileStep().step(stepProcessor, codeGeneratorName, props);
 			((VWML2JavaSpecificSteps)stepProcessor).runMavenAsTest(codeGeneratorName, props);
 		}

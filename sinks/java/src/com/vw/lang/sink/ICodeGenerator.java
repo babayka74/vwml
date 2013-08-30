@@ -1,5 +1,6 @@
 package com.vw.lang.sink;
 
+import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 
 /**
@@ -17,6 +18,7 @@ public interface ICodeGenerator {
 	public static class StartModuleProps {
 		private ICodeGenerator codeGenerator = null;
 		private String actualModuleName = null;
+		private InterpretationProps interpretationProps = null;
 		private static String s_sourcesPath = null;
 
 		public ICodeGenerator getCodeGenerator() {
@@ -33,6 +35,14 @@ public interface ICodeGenerator {
 
 		public void setActualModuleName(String actualModuleName) {
 			this.actualModuleName = actualModuleName;
+		}
+
+		public InterpretationProps getInterpretationProps() {
+			return interpretationProps;
+		}
+
+		public void setInterpretationProps(InterpretationProps interpretationProps) {
+			this.interpretationProps = interpretationProps;
 		}
 
 		public static String getSourcesPath() {

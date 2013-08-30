@@ -1,5 +1,11 @@
 package com.vw.lang.sink.java.code.templates;
 
+import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyComplexEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsNilEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityStrictInterpretationStrategy;
+
 
 
 /**
@@ -150,11 +156,28 @@ public final class JavaCodeGeneratorTemplates {
 	"\tprivate VWMLObject getEntityById(Object id) throws Exception {\r\n" +
 	"\t\tVWMLObject entity = VWMLObjectsRepository.instance().get(id);\r\n" +
 	"\t\tif (entity == null) {\r\n" +
-		"\t\t\tthrow new Exception(\"unrecognized entity '\" + id + \"'\");\r\n" +
+		"\t\t\tinterpretUndefinedEntity(id);\r\n" +
 	"\t\t}\r\n" +
 	"\t\treturn entity;\r\n" +
+	"\t}\r\n\r\n" +
+	"\tprivate void interpretUndefinedEntity(Object id) throws Exception {\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.STRICT) {\r\n" +
+	"\t\t\tnew UndefinedEntityStrictInterpretationStrategy().process(id);\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM1) {\r\n" +
+	"\t\t\tnew UndefinedEntityAsEmptyComplexEntityInterpretationStrategy().process(id);\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM2) {\r\n" +
+	"\t\t\tnew UndefinedEntityAsNilEntityInterpretationStrategy().process(id);\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM3) {\r\n" +
+	"\t\t\tnew UndefinedEntityAsEntityInterpretationStrategy().process(id);\r\n" +
+	"\t\t}\r\n" +
 	"\t}\r\n\r\n";
-		
+	
 	public static String s_VWMLModuleDebugMethods = "" +
 	"\t/**\r\n" +
 	"\t* Used in debug purposes when need to know name of rule which is going to be processed\r\n" +

@@ -17,6 +17,7 @@ import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps.IStep;
 import com.vw.lang.processor.model.builder.specific.VWML2JavaSpecificSteps;
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
+import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 
 
@@ -76,11 +77,10 @@ public class VWMLModelBuilder extends Debuggable {
 	 * Default language is JAVA
 	 */
 	private SINK_TYPE sinkType = SINK_TYPE.JAVA;
-	
 	// Default build steps
 	private BUILD_STEPS buildSteps = BUILD_STEPS.SOURCE;
-	
 	private String projectPath = null;
+	private InterpretationProps interpretationProps = null;
 	private StartModuleProps projectProps = null;
 	// builder is implemented as singleton
 	private static volatile VWMLModelBuilder s_builder = null;
@@ -162,6 +162,14 @@ public class VWMLModelBuilder extends Debuggable {
 		s_modulesInfo.put(name, mi);
 	}
 	
+	public InterpretationProps getInterpretationProps() {
+		return interpretationProps;
+	}
+
+	public void setInterpretationProps(InterpretationProps interpretationProps) {
+		this.interpretationProps = interpretationProps;
+	}
+
 	public BUILD_STEPS getBuildSteps() {
 		return buildSteps;
 	}
@@ -204,6 +212,7 @@ public class VWMLModelBuilder extends Debuggable {
 		CodeGeneratorAux caux = s_codeGeneratorsAux.get(sink);
 		if (caux != null) {
 			cg = caux.getGenerator();
+			
 		}
 		return cg;
 	}
