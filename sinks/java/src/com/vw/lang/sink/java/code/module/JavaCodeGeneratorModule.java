@@ -62,6 +62,7 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 			getFw().write("\t\tIVWMLLinkVisitor preprocessorStructureVisualizer = " + visitor.getClass().getSimpleName() + ".instance();\r\n");			
 			getFw().write("\t\tpreprocessorStructureVisualizer.init(\"" + modProps.getModuleName() + "\", \"" + path + "\");\r\n");
 			getFw().write("\t\trepository.setPreprocessorStructureVisualizer(preprocessorStructureVisualizer);\r\n");
+			getFw().write("\t\tlinkage.setPreprocessorStructureVisualizer(preprocessorStructureVisualizer);\r\n");
 			if (logger.isInfoEnabled()) {
 				logger.info("The visualizer '" + visitor.getClass().getSimpleName() + "' for module '" + modProps.getModuleName() + "' installed; output '" + modProps.getVisitorDataPath() + "'");
 			}

@@ -100,9 +100,23 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
 		String resourceDestPath = jprops.getSrcPath() + "/pom.orig";
 		copyResourceTo("sinks/pom.xml", resourceDestPath);
-		File f = new File(resourceDestPath);
-		replace("-x-", jprops.getModuleName(), f, new File(jprops.getSrcPath() + "/../pom.xml"));
-		f.delete();
+		String relatedResources[] = {"/../res", "/../log"};
+		for(String res : relatedResources) {
+			String rPath = jprops.getSrcPath() + res;
+			File f = new File(rPath);
+			if (!f.exists()) {
+				f.mkdir();
+			}
+		}
+		copyResourceTo("sinks/log4j.project", jprops.getSrcPath() + "/../res/log4j.project");
+		File fLog = new File(jprops.getSrcPath() + "/../res/log4j.project");
+		String logFilePath = jprops.getSrcPath() + "/../log/" + jprops.getModuleName() + ".log";
+		logFilePath = logFilePath.replaceAll("\\\\", "/");
+		replace("-x-", logFilePath, fLog, new File(jprops.getSrcPath() + "/../res/log4j.xml"));
+		fLog.delete();		
+		File fPom = new File(resourceDestPath);
+		replace("-x-", jprops.getModuleName(), fPom, new File(jprops.getSrcPath() + "/../pom.xml"));
+		fPom.delete();
 		if (logger.isInfoEnabled()) {
 			logger.info(jprops.getSrcPath() + "/pom.xml processed - OK");
 		}

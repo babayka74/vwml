@@ -11,6 +11,8 @@ import com.vw.lang.sink.java.operations.VWMLOperations;
  */
 public class VWMLEntity extends VWMLObject {
 
+	public static final String s_NilEntityId = "nil";
+	
 	// this entity is interpreted as another entity/term
 	private VWMLEntity interpreting;
 	private VWMLOperations associatedOperations = new VWMLOperations();

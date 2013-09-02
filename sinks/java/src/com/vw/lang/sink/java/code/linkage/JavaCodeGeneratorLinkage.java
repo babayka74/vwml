@@ -19,6 +19,8 @@ import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyCom
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsNilEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityStrictInterpretationStrategy;
+import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
 import com.vw.lang.sink.utils.EntityWalker.REL;
@@ -61,6 +63,8 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 				VWMLEntity.class.getName(),
 				VWMLOperationsCode.class.getName(),
 				VWMLOperation.class.getName(),
+				VWMLLinkage.class.getName(),
+				IVWMLLinkVisitor.class.getName(),
 				InterpretationOfUndefinedEntityStrategyId.class.getName(),
 				UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class.getName(),
 				UndefinedEntityAsEntityInterpretationStrategy.class.getName(),
@@ -71,9 +75,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			getFw().write("import " + linkageImport + ";\r\n");
 		}
 		// starts class definition
-		getFw().write("\r\n" + JavaCodeGeneratorUtils.generateClassDef(ModuleFiles.LINKAGE.toValue(), "", modProps));
-		// defined strategy for undefined entity
-		getFw().write("\r\n" + generateDeclarationsFromInterpretationProps(modProps));
+		getFw().write("\r\n" + JavaCodeGeneratorUtils.generateClassDef(ModuleFiles.LINKAGE.toValue(), " extends VWMLLinkage", modProps));
 		// wrapper for linked objects
 		getFw().write("\r\n" + JavaCodeGeneratorTemplates.s_VWMLLinkWrapTemplate);
 		// generates list of wrapped objects prepared for linkage operation
@@ -85,6 +87,9 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		getFw().write(operation2ObjectsAssociation);
 		String entityMarkedAsTerm = JavaCodeGeneratorUtils.generateObjectsDefinition("entityMarkedAsTerms", markedAsTerm);
 		getFw().write(entityMarkedAsTerm);
+		getFw().write("\tprivate IVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
+		// defined strategy for undefined entity
+		getFw().write(generateDeclarationsFromInterpretationProps(modProps) + "\r\n");
 		// link and aux. methods
 		String[] methodsDef =  {
 								JavaCodeGeneratorTemplates.s_VWMLLinkageCodeTemplate,
@@ -121,12 +126,12 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 	}
 
 	private String generateDeclarationsFromInterpretationProps(JavaModuleStartProps modProps) {
-		String s = "private final InterpretationOfUndefinedEntityStrategyId interpretationOfUndefinedEntityStrategyId = InterpretationOfUndefinedEntityStrategyId.";
+		String s = "\tprivate final InterpretationOfUndefinedEntityStrategyId interpretationOfUndefinedEntityStrategyId = InterpretationOfUndefinedEntityStrategyId.";
 		if (modProps.getInterpretationProps() != null) {
-			s += modProps.getInterpretationProps().getInterpretationOfUndefinedEntityStrategyId().toValue().toUpperCase();
+			s += modProps.getInterpretationProps().getInterpretationOfUndefinedEntityStrategyId().toValue().toUpperCase() + ";\r\n";
 		}
 		else {
-			s += InterpretationOfUndefinedEntityStrategyId.STRICT.toValue().toUpperCase();
+			s += InterpretationOfUndefinedEntityStrategyId.STRICT.toValue().toUpperCase() + ";\r\n";
 		}
 		return s;
 	}

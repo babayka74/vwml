@@ -20,6 +20,7 @@ module tesej {
 	f ias (f c);
 	g ias (g b e);
 	h ias (h a);
+	x ias y;
 	Tesej ias a;
 	Step ias (Tesej;
 		  Tesej~~ Random;

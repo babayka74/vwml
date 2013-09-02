@@ -64,6 +64,9 @@
 						<exclude>com/vw/lang/sink/java/code/*</exclude>
 						<exclude>com/vw/lang/sink/java/code/templates/*</exclude>
 						<exclude>com/vw/lang/sink/java/code/utils/*</exclude>
+						<exclude>com/vw/lang/sink/java/code/linkage/*</exclude>
+						<exclude>com/vw/lang/sink/java/code/module/*</exclude>
+						<exclude>com/vw/lang/sink/java/code/repository/*</exclude>
 					</excludes>
         			</configuration>
 				<executions>

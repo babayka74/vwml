@@ -1,0 +1,14 @@
+options {
+	language=__java__ {
+  		package = "com.aaa.ddd"
+  		path = "c:\var\vwml/test/src"
+  		author = "XXX XXX"
+  		description = "test test"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/test/diagram"
+		}
+	}
+}
+
+include "../test2_1.vwml"

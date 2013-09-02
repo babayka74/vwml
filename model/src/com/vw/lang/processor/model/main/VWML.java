@@ -34,6 +34,7 @@ public final class VWML {
 		
 		public void run(VWMLArgs args) throws Exception {
 			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
+			// the module's props are set during compilation phase (see grammar file, term 'filedef')
 			VWMLModelBuilder.instance().setInterpretationProps(buildInterpretationProps(args));
 			VWMLModelBuilder.instance().compile(filePath);
 		}

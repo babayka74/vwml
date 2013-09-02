@@ -1,0 +1,22 @@
+options {
+	language=__java__ {
+  		package = "com.aaa.ddd.xxx"
+	}
+}
+
+module sxa {
+    v ias ();
+    x ias ();
+    o ias ();
+    f ias ();
+    c ias ();
+    a ias ();
+    (e x~) Exe;
+
+    (a x) ias ( b ias c;
+            d ias (a~ (f))Join;
+            e~
+          );
+    e ias o;
+
+}

@@ -1,0 +1,20 @@
+options {
+	language=__java__ {
+  		package = "com.aaa.ddd"
+  		path = "c:\var\vwml/test/src"
+  		author = "XXX XXX"
+  		description = "test test"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/test/diagram"
+		}
+	}
+}
+
+include "../test5_1.vwml"
+include "../test5_2.vwml"
+
+module lxa {
+    ess ias o;
+
+}
