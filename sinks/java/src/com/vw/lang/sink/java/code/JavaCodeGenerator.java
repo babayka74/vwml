@@ -34,6 +34,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private String moduleName;
 		private String modulePackage;
 		private String author;
+		private String projectName;
 		private String description;
 		private String date;
 		private IVWMLLinkVisitor visitor;
@@ -44,7 +45,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 
 		public JavaModuleStartProps(String srcPath, String commonPackage,
-				String moduleName, String modulePackage, String author,
+				String moduleName, String modulePackage, String author, String projectName,
 				String description, String date, IVWMLLinkVisitor visitor,
 				String visitorDataPath) {
 			super();
@@ -53,11 +54,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.moduleName = moduleName;
 			this.modulePackage = modulePackage;
 			this.author = author;
+			this.projectName = projectName;
 			this.description = description;
 			this.date = date;
 			this.visitor = visitor;
 			this.visitorDataPath = visitorDataPath;
-			
 		}
 
 		public String getSrcPath() {
@@ -132,14 +133,23 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.visitorDataPath = visitorDataPath;
 		}
 
+		public String getProjectName() {
+			return projectName;
+		}
+
+		public void setProjectName(String projectName) {
+			this.projectName = projectName;
+		}
+
 		@Override
 		public String toString() {
 			return "JavaModuleStartProps [srcPath=" + srcPath
 					+ ", commonPackage=" + commonPackage + ", moduleName="
 					+ moduleName + ", modulePackage=" + modulePackage
-					+ ", author=" + author + ", description=" + description
-					+ ", date=" + date + ", visitor=" + visitor
-					+ ", visitorDataPath=" + visitorDataPath + "]";
+					+ ", author=" + author + ", projectName=" + projectName
+					+ ", description=" + description + ", date=" + date
+					+ ", visitor=" + visitor + ", visitorDataPath="
+					+ visitorDataPath + "]";
 		}
 	}
 	
@@ -414,6 +424,12 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			}
 			if (javaModNormalizedProps.getVisitorDataPath() == null) {
 				javaModNormalizedProps.setVisitorDataPath(javaProjProps.getVisitorDataPath());
+			}
+			if (javaModNormalizedProps.getProjectName() == null) {
+				javaModNormalizedProps.setProjectName(javaProjProps.getProjectName());
+			}
+			if (javaModNormalizedProps.getInterpretationProps() == null) {
+				javaModNormalizedProps.setInterpretationProps(javaProjProps.getInterpretationProps());
 			}
 		}
 		return normalizedProps;

@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-09-02 16:23:18
+// $ANTLR 3.4 C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-09-03 16:09:30
  
 package com.vw.lang.grammar;
 
@@ -29,6 +29,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
     public static final int T__61=61;
     public static final int T__62=62;
     public static final int T__63=63;
+    public static final int T__64=64;
     public static final int C=4;
     public static final int COMMA=5;
     public static final int COMMENT=6;
@@ -1162,10 +1163,10 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = T__61;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:56:7: ( 'visualizer' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:56:9: 'visualizer'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:56:7: ( 'project_name' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:56:9: 'project_name'
             {
-            match("visualizer"); 
+            match("project_name"); 
 
 
 
@@ -1185,10 +1186,12 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = T__62;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:57:7: ( '{' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:57:9: '{'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:57:7: ( 'visualizer' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:57:9: 'visualizer'
             {
-            match('{'); 
+            match("visualizer"); 
+
+
 
             }
 
@@ -1206,10 +1209,10 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = T__63;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:58:7: ( '}' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:58:9: '}'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:58:7: ( '{' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:58:9: '{'
             {
-            match('}'); 
+            match('{'); 
 
             }
 
@@ -1222,18 +1225,39 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
     }
     // $ANTLR end "T__63"
 
+    // $ANTLR start "T__64"
+    public final void mT__64() throws RecognitionException {
+        try {
+            int _type = T__64;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:59:7: ( '}' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:59:9: '}'
+            {
+            match('}'); 
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        	// do for sure before leaving
+        }
+    }
+    // $ANTLR end "T__64"
+
     // $ANTLR start "ID"
     public final void mID() throws RecognitionException {
         try {
             int _type = ID;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:504:5: ( LETTER ( LETTER | '0' .. '9' )* )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:504:7: LETTER ( LETTER | '0' .. '9' )*
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:513:5: ( LETTER ( LETTER | '0' .. '9' )* )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:513:7: LETTER ( LETTER | '0' .. '9' )*
             {
             mLETTER(); 
 
 
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:504:14: ( LETTER | '0' .. '9' )*
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:513:14: ( LETTER | '0' .. '9' )*
             loop1:
             do {
                 int alt1=2;
@@ -1283,12 +1307,12 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = STRING_LITERAL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:508:5: ( '\"' (~ ( '\"' ) )* '\"' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:508:8: '\"' (~ ( '\"' ) )* '\"'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:517:5: ( '\"' (~ ( '\"' ) )* '\"' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:517:8: '\"' (~ ( '\"' ) )* '\"'
             {
             match('\"'); 
 
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:508:12: (~ ( '\"' ) )*
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:517:12: (~ ( '\"' ) )*
             loop2:
             do {
                 int alt2=2;
@@ -1340,8 +1364,8 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = COMMA;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:561:5: ( ',' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:561:7: ','
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:570:5: ( ',' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:570:7: ','
             {
             match(','); 
 
@@ -1361,8 +1385,8 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = DQUOTE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:565:5: ( '\"' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:565:7: '\"'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:574:5: ( '\"' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:574:7: '\"'
             {
             match('\"'); 
 
@@ -1382,8 +1406,8 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = SEMICOLON;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:569:5: ( ';' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:569:7: ';'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:578:5: ( ';' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:578:7: ';'
             {
             match(';'); 
 
@@ -1403,8 +1427,8 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:573:5: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:573:7: ( ' ' | '\\t' | '\\n' | '\\r' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:582:5: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:582:7: ( ' ' | '\\t' | '\\n' | '\\r' )
             {
             if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
                 input.consume();
@@ -1434,14 +1458,14 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = NATIVE_CODE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:578:5: ( '<*' ( . )* '*>' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:578:7: '<*' ( . )* '*>'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:587:5: ( '<*' ( . )* '*>' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:587:7: '<*' ( . )* '*>'
             {
             match("<*"); 
 
 
 
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:578:12: ( . )*
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:587:12: ( . )*
             loop3:
             do {
                 int alt3=2;
@@ -1466,7 +1490,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
 
                 switch (alt3) {
             	case 1 :
-            	    // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:578:12: .
+            	    // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:587:12: .
             	    {
             	    matchAny(); 
 
@@ -1501,14 +1525,14 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:582:5: ( '/*' ( options {greedy=false; } : . )* '*/' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:582:7: '/*' ( options {greedy=false; } : . )* '*/'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:591:5: ( '/*' ( options {greedy=false; } : . )* '*/' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:591:7: '/*' ( options {greedy=false; } : . )* '*/'
             {
             match("/*"); 
 
 
 
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:582:12: ( options {greedy=false; } : . )*
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:591:12: ( options {greedy=false; } : . )*
             loop4:
             do {
                 int alt4=2;
@@ -1533,7 +1557,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
 
                 switch (alt4) {
             	case 1 :
-            	    // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:582:40: .
+            	    // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:591:40: .
             	    {
             	    matchAny(); 
 
@@ -1568,14 +1592,14 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = LINE_COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:586:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' )
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:586:7: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:595:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:595:7: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
             {
             match("//"); 
 
 
 
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:586:12: (~ ( '\\n' | '\\r' ) )*
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:595:12: (~ ( '\\n' | '\\r' ) )*
             loop5:
             do {
                 int alt5=2;
@@ -1609,7 +1633,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             } while (true);
 
 
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:586:26: ( '\\r' )?
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:595:26: ( '\\r' )?
             int alt6=2;
             int LA6_0 = input.LA(1);
 
@@ -1618,7 +1642,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             }
             switch (alt6) {
                 case 1 :
-                    // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:586:26: '\\r'
+                    // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:595:26: '\\r'
                     {
                     match('\r'); 
 
@@ -1646,7 +1670,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
     // $ANTLR start "LETTER"
     public final void mLETTER() throws RecognitionException {
         try {
-            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:593:2: ( 'A' .. 'Z' | 'a' .. 'z' | '_' )
+            // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:602:2: ( 'A' .. 'Z' | 'a' .. 'z' | '_' )
             // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:
             {
             if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
@@ -1670,8 +1694,8 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
     // $ANTLR end "LETTER"
 
     public void mTokens() throws RecognitionException {
-        // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:8: ( C | CPP | IAS | JAVA | NIL | OBJECTIVEC | OPBEGIN | OPCARTESIAN | OPCREATEEXPR | OPEQ | OPEXECUTE | OPFIRST | OPIDENT | OPIN | OPINCL | OPINTERPRET | OPINTERSECT | OPJOIN | OPLAST | OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 | OPRANDOM | OPREST | OPSQU | OPSUBSTRUCT | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | ID | STRING_LITERAL | COMMA | DQUOTE | SEMICOLON | WS | NATIVE_CODE | COMMENT | LINE_COMMENT )
-        int alt7=59;
+        // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:8: ( C | CPP | IAS | JAVA | NIL | OBJECTIVEC | OPBEGIN | OPCARTESIAN | OPCREATEEXPR | OPEQ | OPEXECUTE | OPFIRST | OPIDENT | OPIN | OPINCL | OPINTERPRET | OPINTERSECT | OPJOIN | OPLAST | OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 | OPRANDOM | OPREST | OPSQU | OPSUBSTRUCT | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | ID | STRING_LITERAL | COMMA | DQUOTE | SEMICOLON | WS | NATIVE_CODE | COMMENT | LINE_COMMENT )
+        int alt7=60;
         alt7 = dfa7.predict(input);
         switch (alt7) {
             case 1 :
@@ -2075,71 +2099,79 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
                 }
                 break;
             case 51 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:431: ID
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:431: T__64
+                {
+                mT__64(); 
+
+
+                }
+                break;
+            case 52 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:437: ID
                 {
                 mID(); 
 
 
                 }
                 break;
-            case 52 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:434: STRING_LITERAL
+            case 53 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:440: STRING_LITERAL
                 {
                 mSTRING_LITERAL(); 
 
 
                 }
                 break;
-            case 53 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:449: COMMA
+            case 54 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:455: COMMA
                 {
                 mCOMMA(); 
 
 
                 }
                 break;
-            case 54 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:455: DQUOTE
+            case 55 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:461: DQUOTE
                 {
                 mDQUOTE(); 
 
 
                 }
                 break;
-            case 55 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:462: SEMICOLON
+            case 56 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:468: SEMICOLON
                 {
                 mSEMICOLON(); 
 
 
                 }
                 break;
-            case 56 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:472: WS
+            case 57 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:478: WS
                 {
                 mWS(); 
 
 
                 }
                 break;
-            case 57 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:475: NATIVE_CODE
+            case 58 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:481: NATIVE_CODE
                 {
                 mNATIVE_CODE(); 
 
 
                 }
                 break;
-            case 58 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:487: COMMENT
+            case 59 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:493: COMMENT
                 {
                 mCOMMENT(); 
 
 
                 }
                 break;
-            case 59 :
-                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:495: LINE_COMMENT
+            case 60 :
+                // C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:501: LINE_COMMENT
                 {
                 mLINE_COMMENT(); 
 
@@ -2155,78 +2187,80 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
     protected DFA7 dfa7 = new DFA7(this);
     static final String DFA7_eotS =
         "\1\uffff\5\37\1\uffff\3\37\1\uffff\5\37\5\uffff\10\37\3\uffff\1"+
-        "\102\5\uffff\6\37\1\115\3\37\1\123\20\37\4\uffff\3\37\1\151\1\37"+
-        "\1\153\2\37\1\uffff\1\156\4\37\1\uffff\25\37\1\uffff\1\37\1\uffff"+
-        "\2\37\1\uffff\4\37\1\u008f\1\u0090\2\37\1\u0093\4\37\1\u0098\5\37"+
-        "\1\u009e\1\37\1\u00a0\4\37\1\u00a5\1\37\1\u00a7\1\u00a8\2\37\2\uffff"+
-        "\2\37\1\uffff\3\37\1\u00b0\1\uffff\5\37\1\uffff\1\37\1\uffff\4\37"+
-        "\1\uffff\1\37\2\uffff\3\37\1\u00bf\2\37\1\u00c2\1\uffff\2\37\1\u00c5"+
-        "\3\37\1\u00c9\2\37\1\u00cc\1\37\1\u00ce\2\37\1\uffff\1\u00d1\1\37"+
-        "\1\uffff\2\37\1\uffff\1\u00d5\1\u00d6\1\37\1\uffff\1\u00d8\1\37"+
-        "\1\uffff\1\37\1\uffff\2\37\1\uffff\2\37\1\u00df\2\uffff\1\37\1\uffff"+
-        "\1\37\1\u00e2\1\u00e3\1\37\1\u00e5\1\37\1\uffff\2\37\2\uffff\1\37"+
-        "\1\uffff\1\37\1\u00eb\2\37\1\u00f6\1\uffff\1\37\1\u00f8\1\u00f9"+
-        "\1\u00fa\1\u00fb\1\u00fc\1\u00fd\1\u00fe\1\u00ff\1\u0100\1\uffff"+
-        "\1\37\11\uffff\1\37\1\u0103\1\uffff";
+        "\103\5\uffff\6\37\1\116\3\37\1\124\21\37\4\uffff\3\37\1\153\1\37"+
+        "\1\155\2\37\1\uffff\1\160\4\37\1\uffff\26\37\1\uffff\1\37\1\uffff"+
+        "\2\37\1\uffff\4\37\1\u0092\1\u0093\2\37\1\u0096\4\37\1\u009b\5\37"+
+        "\1\u00a1\2\37\1\u00a4\4\37\1\u00a9\1\37\1\u00ab\1\u00ac\2\37\2\uffff"+
+        "\2\37\1\uffff\3\37\1\u00b4\1\uffff\5\37\1\uffff\2\37\1\uffff\4\37"+
+        "\1\uffff\1\37\2\uffff\3\37\1\u00c4\2\37\1\u00c7\1\uffff\2\37\1\u00ca"+
+        "\4\37\1\u00cf\2\37\1\u00d2\1\37\1\u00d4\2\37\1\uffff\1\u00d7\1\37"+
+        "\1\uffff\2\37\1\uffff\1\u00db\1\u00dc\2\37\1\uffff\1\u00df\1\37"+
+        "\1\uffff\1\37\1\uffff\2\37\1\uffff\2\37\1\u00e6\2\uffff\2\37\1\uffff"+
+        "\1\37\1\u00ea\1\u00eb\1\37\1\u00ed\1\37\1\uffff\3\37\2\uffff\1\37"+
+        "\1\uffff\2\37\1\u00f5\2\37\1\u0100\1\37\1\uffff\1\37\1\u0103\1\u0104"+
+        "\1\u0105\1\u0106\1\u0107\1\u0108\1\u0109\1\u010a\1\u010b\1\uffff"+
+        "\1\u010c\1\37\12\uffff\1\37\1\u010f\1\uffff";
     static final String DFA7_eofS =
-        "\u0104\uffff";
+        "\u0110\uffff";
     static final String DFA7_minS =
         "\1\11\1\137\1\141\1\151\1\145\1\141\1\uffff\1\161\1\151\1\144\1"+
         "\uffff\1\157\1\141\1\162\1\141\1\161\5\uffff\1\165\1\154\2\141\1"+
         "\157\1\160\1\141\1\151\3\uffff\1\0\4\uffff\1\52\1\143\1\163\1\143"+
         "\1\154\1\147\1\162\1\60\1\145\1\162\1\145\1\60\1\151\1\163\1\157"+
         "\1\156\1\163\1\165\1\142\1\164\1\141\1\164\1\163\1\156\1\144\1\164"+
-        "\1\143\1\163\4\uffff\1\137\1\141\1\142\1\60\1\154\1\60\1\151\1\164"+
-        "\1\uffff\1\60\1\163\1\156\1\154\1\145\1\uffff\1\156\1\164\1\152"+
-        "\1\144\1\164\1\145\1\163\1\150\1\163\1\141\1\143\1\147\1\165\1\151"+
-        "\1\153\1\150\1\165\1\137\1\160\1\166\1\152\1\uffff\1\165\1\uffff"+
-        "\1\156\1\145\1\uffff\2\164\1\165\1\162\2\60\1\145\1\157\1\60\1\145"+
-        "\1\164\1\157\1\163\1\60\1\162\1\165\1\154\1\157\1\141\1\60\1\141"+
-        "\1\60\1\137\1\141\1\145\1\144\1\60\1\163\2\60\1\144\1\163\2\uffff"+
-        "\1\143\1\155\1\uffff\1\172\2\162\1\60\1\uffff\1\151\1\141\1\145"+
-        "\1\156\1\147\1\uffff\1\154\1\uffff\2\137\1\143\1\145\1\uffff\1\151"+
-        "\2\uffff\2\145\1\164\1\60\1\145\1\165\1\60\1\uffff\1\160\1\147\1"+
-        "\60\1\163\1\145\1\151\1\60\1\137\1\164\1\60\1\141\1\60\1\143\1\151"+
-        "\1\uffff\1\60\1\143\1\uffff\1\164\1\145\1\uffff\2\60\1\172\1\uffff"+
-        "\1\60\1\151\1\uffff\1\156\1\uffff\1\164\1\157\1\uffff\1\164\1\151"+
-        "\1\60\2\uffff\1\145\1\uffff\1\166\2\60\1\156\1\60\1\157\1\uffff"+
-        "\1\162\1\145\2\uffff\1\137\1\uffff\1\156\1\60\1\137\1\61\1\60\1"+
-        "\uffff\1\143\11\60\1\uffff\1\137\11\uffff\1\137\1\60\1\uffff";
+        "\1\143\1\157\1\163\4\uffff\1\137\1\141\1\142\1\60\1\154\1\60\1\151"+
+        "\1\164\1\uffff\1\60\1\163\1\156\1\154\1\145\1\uffff\1\156\1\164"+
+        "\1\152\1\144\1\164\1\145\1\163\1\150\1\163\1\141\1\143\1\147\1\165"+
+        "\1\151\1\153\1\150\1\152\1\165\1\137\1\160\1\166\1\152\1\uffff\1"+
+        "\165\1\uffff\1\156\1\145\1\uffff\2\164\1\165\1\162\2\60\1\145\1"+
+        "\157\1\60\1\145\1\164\1\157\1\163\1\60\1\162\1\165\1\154\1\157\1"+
+        "\141\1\60\1\145\1\141\1\60\1\137\1\141\1\145\1\144\1\60\1\163\2"+
+        "\60\1\144\1\163\2\uffff\1\143\1\155\1\uffff\1\172\2\162\1\60\1\uffff"+
+        "\1\151\1\141\1\145\1\156\1\147\1\uffff\1\143\1\154\1\uffff\2\137"+
+        "\1\143\1\145\1\uffff\1\151\2\uffff\2\145\1\164\1\60\1\145\1\165"+
+        "\1\60\1\uffff\1\160\1\147\1\60\1\163\1\145\1\164\1\151\1\60\1\137"+
+        "\1\164\1\60\1\141\1\60\1\143\1\151\1\uffff\1\60\1\143\1\uffff\1"+
+        "\164\1\145\1\uffff\2\60\1\137\1\172\1\uffff\1\60\1\151\1\uffff\1"+
+        "\156\1\uffff\1\164\1\157\1\uffff\1\164\1\151\1\60\2\uffff\1\156"+
+        "\1\145\1\uffff\1\166\2\60\1\156\1\60\1\157\1\uffff\1\141\1\162\1"+
+        "\145\2\uffff\1\137\1\uffff\1\156\1\155\1\60\1\137\1\61\1\60\1\145"+
+        "\1\uffff\1\143\11\60\1\uffff\1\60\1\137\12\uffff\1\137\1\60\1\uffff";
     static final String DFA7_maxS =
         "\1\176\1\137\1\156\1\151\1\145\1\141\1\uffff\1\170\1\151\1\156\1"+
         "\uffff\1\157\1\141\1\162\1\145\1\165\5\uffff\1\165\1\154\1\145\1"+
-        "\141\1\157\1\160\1\141\1\151\3\uffff\1\uffff\4\uffff\1\57\1\157"+
+        "\141\1\157\1\160\1\162\1\151\3\uffff\1\uffff\4\uffff\1\57\1\157"+
         "\1\163\1\143\1\154\1\147\1\162\1\172\1\145\1\162\1\145\1\172\1\151"+
         "\1\163\1\157\1\156\1\163\1\165\1\142\1\164\1\141\1\164\1\163\1\156"+
-        "\1\144\2\164\1\163\4\uffff\1\160\1\141\1\142\1\172\1\154\1\172\1"+
-        "\151\1\164\1\uffff\1\172\1\163\1\156\1\154\1\145\1\uffff\1\156\1"+
-        "\164\1\152\1\144\1\164\1\145\1\163\1\150\1\163\1\141\1\143\1\147"+
-        "\1\165\1\151\1\153\1\150\1\165\1\137\1\160\1\166\1\152\1\uffff\1"+
-        "\165\1\uffff\1\156\1\145\1\uffff\2\164\1\165\1\162\2\172\1\145\1"+
-        "\157\1\172\1\145\1\164\1\157\1\163\1\172\1\162\1\165\1\154\1\157"+
-        "\1\141\1\172\1\141\1\172\1\137\1\141\1\145\1\144\1\172\1\163\2\172"+
-        "\1\144\1\163\2\uffff\1\143\1\155\1\uffff\1\172\2\162\1\172\1\uffff"+
-        "\1\151\1\141\1\145\1\156\1\147\1\uffff\1\154\1\uffff\2\137\1\143"+
-        "\1\145\1\uffff\1\151\2\uffff\2\145\1\164\1\172\1\145\1\165\1\172"+
-        "\1\uffff\1\160\1\147\1\172\1\163\1\145\1\151\1\172\1\137\1\164\1"+
-        "\172\1\141\1\172\1\143\1\151\1\uffff\1\172\1\143\1\uffff\1\164\1"+
-        "\145\1\uffff\3\172\1\uffff\1\172\1\151\1\uffff\1\156\1\uffff\1\164"+
-        "\1\157\1\uffff\1\164\1\151\1\172\2\uffff\1\145\1\uffff\1\166\2\172"+
-        "\1\156\1\172\1\157\1\uffff\1\162\1\145\2\uffff\1\137\1\uffff\1\156"+
-        "\1\172\1\137\1\71\1\172\1\uffff\1\143\11\172\1\uffff\1\137\11\uffff"+
+        "\1\144\2\164\1\157\1\163\4\uffff\1\160\1\141\1\142\1\172\1\154\1"+
+        "\172\1\151\1\164\1\uffff\1\172\1\163\1\156\1\154\1\145\1\uffff\1"+
+        "\156\1\164\1\152\1\144\1\164\1\145\1\163\1\150\1\163\1\141\1\143"+
+        "\1\147\1\165\1\151\1\153\1\150\1\152\1\165\1\137\1\160\1\166\1\152"+
+        "\1\uffff\1\165\1\uffff\1\156\1\145\1\uffff\2\164\1\165\1\162\2\172"+
+        "\1\145\1\157\1\172\1\145\1\164\1\157\1\163\1\172\1\162\1\165\1\154"+
+        "\1\157\1\141\1\172\1\145\1\141\1\172\1\137\1\141\1\145\1\144\1\172"+
+        "\1\163\2\172\1\144\1\163\2\uffff\1\143\1\155\1\uffff\1\172\2\162"+
+        "\1\172\1\uffff\1\151\1\141\1\145\1\156\1\147\1\uffff\1\143\1\154"+
+        "\1\uffff\2\137\1\143\1\145\1\uffff\1\151\2\uffff\2\145\1\164\1\172"+
+        "\1\145\1\165\1\172\1\uffff\1\160\1\147\1\172\1\163\1\145\1\164\1"+
+        "\151\1\172\1\137\1\164\1\172\1\141\1\172\1\143\1\151\1\uffff\1\172"+
+        "\1\143\1\uffff\1\164\1\145\1\uffff\2\172\1\137\1\172\1\uffff\1\172"+
+        "\1\151\1\uffff\1\156\1\uffff\1\164\1\157\1\uffff\1\164\1\151\1\172"+
+        "\2\uffff\1\156\1\145\1\uffff\1\166\2\172\1\156\1\172\1\157\1\uffff"+
+        "\1\141\1\162\1\145\2\uffff\1\137\1\uffff\1\156\1\155\1\172\1\137"+
+        "\1\71\1\172\1\145\1\uffff\1\143\11\172\1\uffff\1\172\1\137\12\uffff"+
         "\1\137\1\172\1\uffff";
     static final String DFA7_acceptS =
         "\6\uffff\1\11\3\uffff\1\20\5\uffff\1\41\1\42\1\43\1\44\1\45\10\uffff"+
-        "\1\61\1\62\1\63\1\uffff\1\65\1\67\1\70\1\71\34\uffff\1\64\1\66\1"+
-        "\72\1\73\10\uffff\1\12\5\uffff\1\16\25\uffff\1\3\1\uffff\1\5\2\uffff"+
-        "\1\13\40\uffff\1\22\1\23\2\uffff\1\36\4\uffff\1\50\5\uffff\1\57"+
-        "\1\uffff\1\1\4\uffff\1\7\1\uffff\1\14\1\15\7\uffff\1\47\16\uffff"+
-        "\1\35\2\uffff\1\46\2\uffff\1\54\3\uffff\1\2\2\uffff\1\52\1\uffff"+
-        "\1\17\2\uffff\1\37\3\uffff\1\55\1\56\1\uffff\1\4\6\uffff\1\53\2"+
-        "\uffff\1\10\1\21\1\uffff\1\40\5\uffff\1\60\12\uffff\1\51\1\uffff"+
-        "\1\24\1\25\1\26\1\27\1\30\1\31\1\32\1\33\1\34\2\uffff\1\6";
+        "\1\62\1\63\1\64\1\uffff\1\66\1\70\1\71\1\72\35\uffff\1\65\1\67\1"+
+        "\73\1\74\10\uffff\1\12\5\uffff\1\16\26\uffff\1\3\1\uffff\1\5\2\uffff"+
+        "\1\13\41\uffff\1\22\1\23\2\uffff\1\36\4\uffff\1\50\5\uffff\1\57"+
+        "\2\uffff\1\1\4\uffff\1\7\1\uffff\1\14\1\15\7\uffff\1\47\17\uffff"+
+        "\1\35\2\uffff\1\46\2\uffff\1\54\4\uffff\1\2\2\uffff\1\52\1\uffff"+
+        "\1\17\2\uffff\1\37\3\uffff\1\55\1\56\2\uffff\1\4\6\uffff\1\53\3"+
+        "\uffff\1\10\1\21\1\uffff\1\40\7\uffff\1\61\12\uffff\1\51\2\uffff"+
+        "\1\24\1\25\1\26\1\27\1\30\1\31\1\32\1\33\1\34\1\60\2\uffff\1\6";
     static final String DFA7_specialS =
-        "\40\uffff\1\0\u00e3\uffff}>";
+        "\40\uffff\1\0\u00ef\uffff}>";
     static final String[] DFA7_transitionS = {
             "\2\43\2\uffff\1\43\22\uffff\1\43\1\uffff\1\40\5\uffff\1\20\1"+
             "\21\2\uffff\1\41\2\uffff\1\45\13\uffff\1\42\1\44\1\22\3\uffff"+
@@ -2260,30 +2294,29 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             "\1\74",
             "\1\75",
             "\1\76",
-            "\1\77",
-            "\1\100",
+            "\1\77\20\uffff\1\100",
+            "\1\101",
             "",
             "",
             "",
-            "\0\101",
+            "\0\102",
             "",
             "",
             "",
             "",
-            "\1\103\4\uffff\1\104",
-            "\1\105\6\uffff\1\106\4\uffff\1\107",
-            "\1\110",
+            "\1\104\4\uffff\1\105",
+            "\1\106\6\uffff\1\107\4\uffff\1\110",
             "\1\111",
             "\1\112",
             "\1\113",
             "\1\114",
+            "\1\115",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\116",
             "\1\117",
             "\1\120",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\2\37\1\121\20\37"+
-            "\1\122\6\37",
-            "\1\124",
+            "\1\121",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\2\37\1\122\20\37"+
+            "\1\123\6\37",
             "\1\125",
             "\1\126",
             "\1\127",
@@ -2297,29 +2330,29 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             "\1\137",
             "\1\140",
             "\1\141",
-            "\1\142\20\uffff\1\143",
-            "\1\144",
+            "\1\142",
+            "\1\143\20\uffff\1\144",
+            "\1\145",
+            "\1\146",
             "",
             "",
             "",
             "",
-            "\1\145\20\uffff\1\146",
-            "\1\147",
-            "\1\150",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\147\20\uffff\1\150",
+            "\1\151",
             "\1\152",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\154",
-            "\1\155",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\156",
+            "\1\157",
             "",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\157",
-            "\1\160",
             "\1\161",
             "\1\162",
-            "",
             "\1\163",
             "\1\164",
+            "",
             "\1\165",
             "\1\166",
             "\1\167",
@@ -2339,160 +2372,173 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             "\1\u0085",
             "\1\u0086",
             "\1\u0087",
-            "",
             "\1\u0088",
-            "",
             "\1\u0089",
             "\1\u008a",
             "",
             "\1\u008b",
+            "",
             "\1\u008c",
             "\1\u008d",
+            "",
             "\1\u008e",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u008f",
+            "\1\u0090",
             "\1\u0091",
-            "\1\u0092",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u0094",
             "\1\u0095",
-            "\1\u0096",
-            "\1\u0097",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u0097",
+            "\1\u0098",
             "\1\u0099",
             "\1\u009a",
-            "\1\u009b",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u009c",
             "\1\u009d",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u009e",
             "\1\u009f",
+            "\1\u00a0",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00a1",
             "\1\u00a2",
             "\1\u00a3",
-            "\1\u00a4",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00a5",
             "\1\u00a6",
+            "\1\u00a7",
+            "\1\u00a8",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00a9",
             "\1\u00aa",
-            "",
-            "",
-            "\1\u00ab",
-            "\1\u00ac",
-            "",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u00ad",
             "\1\u00ae",
+            "",
+            "",
             "\1\u00af",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00b0",
             "",
             "\1\u00b1",
             "\1\u00b2",
             "\1\u00b3",
-            "\1\u00b4",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "",
             "\1\u00b5",
-            "",
             "\1\u00b6",
-            "",
             "\1\u00b7",
             "\1\u00b8",
             "\1\u00b9",
+            "",
             "\1\u00ba",
-            "",
             "\1\u00bb",
-            "",
             "",
             "\1\u00bc",
             "\1\u00bd",
             "\1\u00be",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00bf",
+            "",
             "\1\u00c0",
+            "",
+            "",
             "\1\u00c1",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "",
+            "\1\u00c2",
             "\1\u00c3",
-            "\1\u00c4",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00c5",
             "\1\u00c6",
-            "\1\u00c7",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "",
             "\1\u00c8",
+            "\1\u00c9",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00ca",
             "\1\u00cb",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00cc",
             "\1\u00cd",
+            "\1\u00ce",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00cf",
             "\1\u00d0",
-            "",
+            "\1\u00d1",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00d2",
-            "",
             "\1\u00d3",
-            "\1\u00d4",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00d5",
+            "\1\u00d6",
             "",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00d7",
+            "\1\u00d8",
             "",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u00d9",
-            "",
             "\1\u00da",
             "",
-            "\1\u00db",
-            "\1\u00dc",
-            "",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u00dd",
             "\1\u00de",
+            "",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "",
-            "",
             "\1\u00e0",
             "",
             "\1\u00e1",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "",
+            "\1\u00e2",
+            "\1\u00e3",
+            "",
             "\1\u00e4",
+            "\1\u00e5",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\1\u00e6",
+            "",
             "",
             "\1\u00e7",
             "\1\u00e8",
             "",
-            "",
             "\1\u00e9",
-            "",
-            "\1\u00ea",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u00ec",
-            "\1\u00ed\1\u00ee\1\u00ef\1\u00f0\1\u00f1\1\u00f2\1\u00f3\1"+
-            "\u00f4\1\u00f5",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00ee",
             "",
-            "\1\u00f7",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
-            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00ef",
+            "\1\u00f0",
+            "\1\u00f1",
             "",
+            "",
+            "\1\u00f2",
+            "",
+            "\1\u00f3",
+            "\1\u00f4",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u00f6",
+            "\1\u00f7\1\u00f8\1\u00f9\1\u00fa\1\u00fb\1\u00fc\1\u00fd\1"+
+            "\u00fe\1\u00ff",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             "\1\u0101",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "\1\u0102",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "",
+            "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
+            "\1\u010d",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "\1\u010e",
             "\12\37\7\uffff\32\37\4\uffff\1\37\1\uffff\32\37",
             ""
     };
@@ -2527,7 +2573,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             this.transition = DFA7_transition;
         }
         public String getDescription() {
-            return "1:1: Tokens : ( C | CPP | IAS | JAVA | NIL | OBJECTIVEC | OPBEGIN | OPCARTESIAN | OPCREATEEXPR | OPEQ | OPEXECUTE | OPFIRST | OPIDENT | OPIN | OPINCL | OPINTERPRET | OPINTERSECT | OPJOIN | OPLAST | OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 | OPRANDOM | OPREST | OPSQU | OPSUBSTRUCT | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | ID | STRING_LITERAL | COMMA | DQUOTE | SEMICOLON | WS | NATIVE_CODE | COMMENT | LINE_COMMENT );";
+            return "1:1: Tokens : ( C | CPP | IAS | JAVA | NIL | OBJECTIVEC | OPBEGIN | OPCARTESIAN | OPCREATEEXPR | OPEQ | OPEXECUTE | OPFIRST | OPIDENT | OPIN | OPINCL | OPINTERPRET | OPINTERSECT | OPJOIN | OPLAST | OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 | OPRANDOM | OPREST | OPSQU | OPSUBSTRUCT | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | ID | STRING_LITERAL | COMMA | DQUOTE | SEMICOLON | WS | NATIVE_CODE | COMMENT | LINE_COMMENT );";
         }
         public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
             IntStream input = _input;
@@ -2537,9 +2583,9 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
                         int LA7_32 = input.LA(1);
 
                         s = -1;
-                        if ( ((LA7_32 >= '\u0000' && LA7_32 <= '\uFFFF')) ) {s = 65;}
+                        if ( ((LA7_32 >= '\u0000' && LA7_32 <= '\uFFFF')) ) {s = 66;}
 
-                        else s = 66;
+                        else s = 67;
 
                         if ( s>=0 ) return s;
                         break;

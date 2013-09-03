@@ -1,8 +1,9 @@
 options {
 	language=__java__ {
-  		package = "com.win.game.tesej.model.vwml"
+  		package = "com.win.game.tesej.model.vwml.tesej"
   		path = "c:\var\vwml/tesej/src"
   		author = "Groozman M.Z."
+		project_name = "tesejProj"
   		description = "Tesej walk"
 		visualizer {
 			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
@@ -22,11 +23,11 @@ module tesej {
 	h ias (h a);
 	x ias y;
 	Tesej ias a;
-	Step ias (Tesej;
-		  Tesej~~ Random;
+	Step ias (Tesej
+		  Tesej~~ Random
 		 )^;
-	TesejLife ias ( Step~ Exe;
-			TesejLife~ Exe;
+	TesejLife ias ( Step~ Exe
+			TesejLife~ Exe
 		      );
-	TesejLife~ Exe;
+	TesejLife~ Exe
 }

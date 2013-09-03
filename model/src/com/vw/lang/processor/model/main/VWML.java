@@ -13,6 +13,7 @@ import org.kohsuke.args4j.Option;
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
+import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * VWML's processor main class
@@ -46,9 +47,22 @@ public final class VWML {
 			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getProjectProps());
 		}
 		
-		private InterpretationProps buildInterpretationProps(VWMLArgs args) {
+		private InterpretationProps buildInterpretationProps(VWMLArgs args) throws Exception {
 			InterpretationProps ip = new InterpretationProps();
 			ip.setInterpretationOfUndefinedEntityStrategyId(InterpretationOfUndefinedEntityStrategyId.fromValue(args.getEntityInterpretationStrategy()));
+			if (args.getInterpreterProps() != null) {
+				VWMLInterprterArgs interpreterArgs = new VWMLInterprterArgs();
+				CmdLineParser cmdParser = new CmdLineParser(interpreterArgs);
+				cmdParser.setUsageWidth(80);
+				cmdParser.parseArgument(GeneralUtils.trimQuotes(args.getInterpreterProps()));
+				if (interpreterArgs.getPkg() != null && interpreterArgs.getSrcPath() != null) {
+					ip.setInterpretersPackage(interpreterArgs.getPkg());
+					ip.setInterpretersSrcPath(interpreterArgs.getSrcPath());
+					if (logger.isInfoEnabled()) {
+						logger.info("Interpreter's properties '" + ip + "'");
+					}
+				}
+			}
 			return ip;
 		}
 	}
@@ -118,6 +132,36 @@ public final class VWML {
 			super.run(args);
 		}
 	}
+
+	/**
+	 * Defines interpretator's properties, it isn't in usage now
+	 * @author ogibayev
+	 *
+	 */
+	public static class VWMLInterprterArgs {
+		@Option(name = "-src", usage="absolute path, where interpreter's sources should be located; usually coincides with module's sources")
+		private String srcPath;
+		@Option(name = "-package", usage="interpreter's java package")
+		private String pkg;
+		
+		public String getSrcPath() {
+			return srcPath;
+		}
+		public void setSrcPath(String srcPath) {
+			this.srcPath = srcPath;
+		}
+		public String getPkg() {
+			return pkg;
+		}
+		public void setPkg(String pkg) {
+			this.pkg = pkg;
+		}
+		@Override
+		public String toString() {
+			return "VWMLInterprterArgs [srcPath=" + srcPath + ", pkg=" + pkg
+					+ "]";
+		}
+	}
 	
 	/**
 	 * Command line arguments
@@ -129,6 +173,8 @@ public final class VWML {
 		private String mode;
 		@Option(name="-entity", usage="entity generation/checking options {strict, ue_im1, ue_im2, ue_im3};\r\nstrict - if undefined simple entity found - exception is thrown;\r\nue_im1 - if undefined simple entity found - it is interpreted as empty complex entity ();\r\nue_im2 - if undefined simple entity found - it is interpreted as 'nil' entity\r\nue_im3 - if undefined simple entity found - it is interpreted as is")
 		private String entityInterpretationStrategy = new String(InterpretationOfUndefinedEntityStrategyId.STRICT.toValue());
+		@Option(name="-interpreter", usage="dquoted interpreter's options (not used now)")
+		private String interpreterProps = null;
 		
 		 // receives other command line parameters than options
 	    @Argument
@@ -140,6 +186,14 @@ public final class VWML {
 
 		public void setMode(String mode) {
 			this.mode = mode;
+		}
+
+		public String getInterpreterProps() {
+			return interpreterProps;
+		}
+
+		public void setInterpreterProps(String interpreterProps) {
+			this.interpreterProps = interpreterProps;
 		}
 
 		public String getEntityInterpretationStrategy() {

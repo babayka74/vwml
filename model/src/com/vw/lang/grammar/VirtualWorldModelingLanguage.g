@@ -276,13 +276,21 @@ generatedFileLocation
     ;	
 
 optionalProps
-    : author? description? visualizer?
+    : author? projname? description? visualizer?
     ;
 
 author
     : 'author' '=' string {
 	    			if (modProps != null) {
 	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setAuthor(GeneralUtils.trimQuotes($string.text));
+	    			}
+    			  }
+    ;
+
+projname
+    : 'project_name' '=' string {
+	    			if (modProps != null) {
+	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setProjectName(GeneralUtils.trimQuotes($string.text));
 	    			}
     			  }
     ;
@@ -294,6 +302,7 @@ description
     				}
     			       }
     ;
+
 
 visualizer
     : 'visualizer' '{' visualizer_body '}'	
@@ -360,7 +369,7 @@ body
  
 expression
     : (entity_decl IAS) => entity_def
-    | term_def (SEMICOLON)?
+    | term_def
     ;
 
 entity_def

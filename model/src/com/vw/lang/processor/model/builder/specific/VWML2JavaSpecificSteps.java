@@ -32,8 +32,8 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	 */
 	public static class SourceStep implements IStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
-			// copies and unpacks sink's jar
-			((VWML2JavaSpecificSteps)stepProcessor).processSinkJar(codeGeneratorName, props);
+			// copies and unpacks sink's jar, generates necessary source code, etc...
+			((VWML2JavaSpecificSteps)stepProcessor).setupSinkSources(codeGeneratorName, props);
 		}
 	}
 
@@ -78,7 +78,16 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			((VWML2JavaSpecificSteps)stepProcessor).runMavenAsTest(codeGeneratorName, props);
 		}
 	}
-		
+
+	private void setupSinkSources(String codeGeneratorName, StartModuleProps props) throws Exception {
+		processSinkJar(codeGeneratorName, props);
+		processInterpreterBridge();
+	}
+	
+	private void processInterpreterBridge() throws Exception {
+		new VWML2JavaSinkInterpreterBridge().build();
+	}
+	
 	private void processSinkJar(String codeGeneratorName, StartModuleProps props) throws Exception {
 		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
 		String fileName = "VWMLSink-" + codeGeneratorName + "-sources.jar";
@@ -110,12 +119,12 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		}
 		copyResourceTo("sinks/log4j.project", jprops.getSrcPath() + "/../res/log4j.project");
 		File fLog = new File(jprops.getSrcPath() + "/../res/log4j.project");
-		String logFilePath = jprops.getSrcPath() + "/../log/" + jprops.getModuleName() + ".log";
+		String logFilePath = jprops.getSrcPath() + "/../log/" + getProjectName(jprops) + ".log";
 		logFilePath = logFilePath.replaceAll("\\\\", "/");
 		replace("-x-", logFilePath, fLog, new File(jprops.getSrcPath() + "/../res/log4j.xml"));
 		fLog.delete();		
 		File fPom = new File(resourceDestPath);
-		replace("-x-", jprops.getModuleName(), fPom, new File(jprops.getSrcPath() + "/../pom.xml"));
+		replace("-x-", getProjectName(jprops), fPom, new File(jprops.getSrcPath() + "/../pom.xml"));
 		fPom.delete();
 		if (logger.isInfoEnabled()) {
 			logger.info(jprops.getSrcPath() + "/pom.xml processed - OK");
@@ -288,5 +297,9 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	  
 	  private boolean isMac() {
 		  return (getOsName().indexOf("mac") >= 0);
+	  }
+	  
+	  private String getProjectName(JavaModuleStartProps jprops) {
+		  return (jprops.getProjectName() == null) ? jprops.getModuleName() : jprops.getProjectName();
 	  }
 }
