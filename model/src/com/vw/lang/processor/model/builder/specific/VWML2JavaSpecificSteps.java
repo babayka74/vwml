@@ -85,7 +85,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	}
 	
 	private void processInterpreterBridge() throws Exception {
-		new VWML2JavaSinkInterpreterBridge().build();
+		new VWML2JavaInterpreterFactoryBuilder().build();
 	}
 	
 	private void processSinkJar(String codeGeneratorName, StartModuleProps props) throws Exception {

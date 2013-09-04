@@ -8,6 +8,7 @@ grammar VirtualWorldModelingLanguage;
  
 tokens {
     IAS='ias';
+    LIFETERM='lifeterm';
     NIL='nil';
     OPJOIN='Join';
     OPINTERSECT='Intersect';
@@ -369,7 +370,7 @@ body
  
 expression
     : (entity_decl IAS) => entity_def
-    | term_def
+    | check_term_def
     ;
 
 entity_def
@@ -378,6 +379,19 @@ entity_def
     			// we should link this entity with parent, if exists
     			 buildLinkingAssociation($entity_decl.id);
     		      } term (SEMICOLON)?
+    ;
+
+check_term_def
+    : LIFETERM '=' lifeterm_def
+    | term_def
+    ;
+    
+lifeterm_def
+    :  term_def {
+    			if (logger.isInfoEnabled()) {
+    				logger.info("Lifeterm '" + lastProcessedEntity + "' found");
+    			}
+    		}
     ;
 
 term_def

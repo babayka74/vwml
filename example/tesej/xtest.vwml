@@ -13,21 +13,6 @@ options {
 }
 
 module tesej {
-	a ias (a h b);
-	b ias (b a e g);
-	c ias (c e d f);
-	d ias (d c);
-	e ias (e c b g);
-	f ias (f c);
-	g ias (g b e);
-	h ias (h a);
-	x ias y;
-	Tesej ias a;
-	Step ias (Tesej
-		  Tesej~~ Random
-		 )^;
-	TesejLife ias ( Step~ Exe
-			TesejLife~ Exe
-		      );
+	TesejLifie ias ();
 	lifeterm = TesejLife~ Exe
 }
