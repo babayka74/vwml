@@ -12,6 +12,8 @@ import com.vw.lang.sink.java.link.VWMLLink;
 public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private Object id;
 	private String readableId;
+	// context path consists from set of entity ids
+	private String[] contextPath;
 	// entity can be linked with another entity or command
 	private VWMLLink link = new VWMLLink(this);
 	
@@ -107,6 +109,14 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		return link;
 	}
 	
+	public String[] getContextPath() {
+		return contextPath;
+	}
+
+	public void setContextPath(String[] contextPath) {
+		this.contextPath = contextPath;
+	}
+
 	@Override
 	public String toString() {
 		return "VWMLObject [id=" + id + ", readableId=" + readableId + "]";

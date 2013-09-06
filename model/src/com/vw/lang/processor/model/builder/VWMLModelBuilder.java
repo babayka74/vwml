@@ -296,7 +296,12 @@ public class VWMLModelBuilder extends Debuggable {
     		if (logger.isInfoEnabled()) {
     			logger.info("compiled '" +  vwmlFilePath + "'... OK");
     		}
-        } catch (RecognitionException e) {
+        }
+        catch (VirtualWorldModelingLanguageParser.VWMLCodeGeneratorRecognitionException e) {
+        	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getCause().getMessage() + "'");
+            throw e;
+        }
+        catch (RecognitionException e) {
         	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
             throw e;
         }

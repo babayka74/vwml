@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.code;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -242,6 +243,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private Object id;
 		private Object linkedId;
 		private boolean asTerm = false;
+		private boolean asLifeTerm = false;
 		private String uniqId = "VWMLLINK_" + UUID.randomUUID().toString();
 		private String[] contextPath = null;
 		
@@ -257,6 +259,15 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.id = id;
 			this.linkedId = linkedId;
 			this.asTerm = asTerm;
+			parseContextPath();
+		}
+
+		public VWMLLinkWrap(Object id, Object linkedId, boolean asTerm, boolean asLifeTerm) {
+			super();
+			this.id = id;
+			this.linkedId = linkedId;
+			this.asTerm = asTerm;
+			this.asLifeTerm = asLifeTerm;
 			parseContextPath();
 		}
 		
@@ -276,6 +287,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.asTerm = asTerm;
 		}
 
+		public boolean isAsLifeTerm() {
+			return asLifeTerm;
+		}
+
+		public void setAsLifeTerm(boolean asLifeTerm) {
+			this.asLifeTerm = asLifeTerm;
+		}
+
 		public String getUniqId() {
 			return uniqId;
 		}
@@ -287,7 +306,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		@Override
 		public String toString() {
 			return "VWMLLinkWrap [id=" + id + ", linkedId=" + linkedId
-					+ ", asTerm=" + asTerm + ", uniqId=" + uniqId + "]";
+					+ ", asTerm=" + asTerm + ", asLifeTerm=" + asLifeTerm
+					+ ", uniqId=" + uniqId + ", contextPath="
+					+ Arrays.toString(contextPath) + "]";
 		}
 		
 		protected void parseContextPath() {
@@ -529,7 +550,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	/**
 	 * Marks entity as term
-	 * @param id
+	 * @param id (REL)
 	 * @throws Exception
 	 */
 	public void markEntityAsTerm(Object id) throws Exception {
@@ -539,10 +560,36 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			((VWMLLinkWrap)rel.getLastLink()).setAsTerm(true);
 		}
 	}
+
+	/**
+	 * Marks entity as lifeterm; the entity had to added and marked as term before this method is called
+	 * @param id (REL)
+	 * @throws Exception
+	 */
+	public void markEntityAsLifeTerm(Object id) throws Exception {
+		boolean found = false;
+		EntityWalker.Relation rel = (EntityWalker.Relation)id;
+		// looking for the term which was added before
+		for(Object objId : markedAsTerm) {
+			if (objId == rel.getObj()) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			throw new Exception("The term identified by '" + id + "' should be added and marked as term before markEntityAsLifeTerm is called");
+		}
+		if (rel.getLastLink() != null && ((VWMLLinkWrap)rel.getLastLink()).isAsTerm()) {
+			((VWMLLinkWrap)rel.getLastLink()).setAsLifeTerm(true);
+		}
+		else {
+			throw new Exception("Inconsistency found; object identified by '" + id + "' found in markedAsTerm collection but it is not marked as term");
+		}
+	}
 	
 	/**
 	 * Declares simple entity
-	 * @param id
+	 * @param id (ID)
 	 * @throws Exception
 	 */
 	public void declareSimpleEntity(Object id) throws Exception {
@@ -551,7 +598,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	/**
 	 * Declares complex entity; the object id is compound object; consists from set of simple entity ids
-	 * @param id
+	 * @param id (ID)
 	 * @throws Exception
 	 */
 	public void declareComplexEntity(Object id) throws Exception {
@@ -560,7 +607,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	/**
 	 * Declares term
-	 * @param id
+	 * @param id (ID)
 	 * @throws Exception
 	 */
 	public void declareTerm(Object id) throws Exception {
@@ -569,7 +616,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	/**
 	 * Links objects using their ids
-	 * @param id
+	 * @param id (ID)
 	 * @param linkedObjId
 	 */
 	public void linkObjects(Object id, Object linkedObjId) {
@@ -579,7 +626,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	/**
 	 * Builds association between object and operation
-	 * @param id
+	 * @param id (REL)
 	 * @param op
 	 */
 	public void associateOperation(Object id, String op) {
@@ -602,7 +649,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	
 	/**
 	 * Set interpreting link between objects
-	 * @param id
+	 * @param id (ID)
 	 * @param interpretingObjId
 	 */
 	public void interpretObjects(Object id, Object interpretingObjId) {

@@ -111,13 +111,17 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			if (!ft) {
 				list += ",";
 			}
-			String s = JavaCodeGeneratorUtils.generateStringStaticArrayAsString(obj.getContextPath());
+			String s = JavaCodeGeneratorUtils.convertStringStaticArrayToString(obj.getContextPath());
 			String arrayAsStr = (s == null) ? null : "\"" + s + "\"";
 			if (!obj.isAsTerm()) {
 				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
 			}
 			else {
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.TERM, \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
+				String mark = "VWMLLinkWrap.MARKED.TERM";
+				if (obj.isAsLifeTerm()) {
+					mark = "VWMLLinkWrap.MARKED.LIFETERM";
+				}
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
 			}
 			ft = false;
 		}

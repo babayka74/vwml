@@ -46,6 +46,9 @@ tokens {
 @header {
 package com.vw.lang.grammar;
 
+// Exceptions
+import java.lang.Throwable;
+
 // builder
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.processor.model.builder.VWMLModuleInfo;
@@ -83,6 +86,17 @@ package com.vw.lang.grammar;
 
 
 @members {
+
+	public static class VWMLCodeGeneratorRecognitionException extends RecognitionException {
+		public VWMLCodeGeneratorRecognitionException() {
+			super();
+		}
+		
+		public VWMLCodeGeneratorRecognitionException(String message) {
+			initCause(new Throwable(message));
+		}
+	}
+
 	private VWMLModelBuilder vwmlModelBuilder = VWMLModelBuilder.instance();
 	private ICodeGenerator codeGenerator = null;
 	private StartModuleProps modProps = null;
@@ -176,7 +190,7 @@ package com.vw.lang.grammar;
 	} 
 	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
-		throw new RecognitionException(new ANTLRStringStream(e.getMessage()));
+		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
 	}
 		
 }
@@ -391,6 +405,17 @@ lifeterm_def
     			if (logger.isInfoEnabled()) {
     				logger.info("Lifeterm '" + lastProcessedEntity + "' found");
     			}
+    			if (codeGenerator != null) {
+  	       			try {
+					codeGenerator.markEntityAsLifeTerm(lastProcessedEntity);
+					if (logger.isDebugEnabled()) {
+						logger.debug("entity '" + lastProcessedEntity + "' marked as lifeterm");
+					}
+				}
+				catch(Exception e) {
+					rethrowVWMLExceptionAsRecognitionException(e);
+				}
+	       		} 
     		}
     ;
 

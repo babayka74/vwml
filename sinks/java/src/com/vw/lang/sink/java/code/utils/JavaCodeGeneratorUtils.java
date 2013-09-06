@@ -41,7 +41,7 @@ public class JavaCodeGeneratorUtils {
 		return s_classEndDef;
 	}
 	
-	public static String generateStringStaticArrayAsString(String[] array) {
+	public static String convertStringStaticArrayToString(String[] array) {
 		boolean firstIteration = true;
 		if (array == null) {
 			return null;

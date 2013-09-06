@@ -11,7 +11,9 @@ import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.templates.JavaCodeGeneratorTemplates;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.module.VWMLModule;
+import com.vw.lang.sink.java.repository.VWMLRepository;
 
 /**
  * Generates code for module's phase
@@ -38,6 +40,8 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 	 */
 	public void buildModuleBody(JavaModuleStartProps modProps, IVWMLLinkVisitor visitor) throws Exception {
 		getFw().write("import " + VWMLModule.class.getName() + ";\r\n");
+		getFw().write("import " + VWMLRepository.class.getName() + ";\r\n");
+		getFw().write("import " + VWMLLinkage.class.getName() + ";\r\n");
 		if (visitor != null) {
 			// adds visitor's interface in any case
 			getFw().write("import " + IVWMLLinkVisitor.class.getName() + ";\r\n");
@@ -73,7 +77,7 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 			getFw().write("\t\tpreprocessorStructureVisualizer.done(\"" + modProps.getModuleName() + "\");\r\n");
 		}		
 		getFw().write("\t}\r\n\r\n");
-		getFw().write(JavaCodeGeneratorTemplates.s_VWMLModuleDebugMethods);
+		getFw().write(JavaCodeGeneratorTemplates.s_VWMLModuleMethods);
 		if (logger.isInfoEnabled()) {
 			logger.info("Module '" + modProps.getModuleName() + "'; body - OK");
 		}

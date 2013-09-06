@@ -7,4 +7,9 @@ package com.vw.lang.sink.java;
  */
 public interface IVWMLInterpreter {
 
+	/**
+	 * Actually starts interpretation process
+	 * @throws Exception
+	 */
+	public void start() throws Exception;
 }

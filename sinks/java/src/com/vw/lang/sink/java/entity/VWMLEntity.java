@@ -16,6 +16,7 @@ public class VWMLEntity extends VWMLObject {
 	// this entity is interpreted as another entity/term
 	private VWMLEntity interpreting;
 	private VWMLOperations associatedOperations = new VWMLOperations();
+	private boolean isLifeTerm = false;
 	
 	public VWMLEntity() {
 		super();
@@ -64,6 +65,14 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public VWMLOperation getOperation() {
 		return associatedOperations.peekOperation();
+	}
+	
+	public boolean isLifeTerm() {
+		return isLifeTerm;
+	}
+
+	public void setLifeTerm(boolean isLifeTerm) {
+		this.isLifeTerm = isLifeTerm;
 	}
 
 	@Override

@@ -14,6 +14,7 @@ import com.vw.lang.sink.java.code.JavaCodeGeneratorComponent;
 import com.vw.lang.sink.java.code.templates.JavaCodeGeneratorTemplates;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.repository.VWMLRepository;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
@@ -44,11 +45,12 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 			                              List<VWMLObjWrap> declaredObjects) throws Exception {
 		declaredObjects.add(new VWMLObjWrap(VWMLObjectType.COMPLEX_ENTITY, ComplexEntityNameBuilder.generateRootId(modProps.getModuleName())));
 		// caption and common imports are added before (see startModule) method
+		getFw().write("import " + VWMLRepository.class.getCanonicalName() + ";\r\n");
 		getFw().write("import " + VWMLObjectBuilder.VWMLObjectType.class.getCanonicalName() + ";\r\n");		
 		// adds visitor's interface in any case
 		getFw().write("import " + IVWMLLinkVisitor.class.getName() + ";\r\n");
 		// starts class definition
-		getFw().write("\r\n" + JavaCodeGeneratorUtils.generateClassDef(ModuleFiles.REPOSITORY.toValue(), "", modProps));
+		getFw().write("\r\n" + JavaCodeGeneratorUtils.generateClassDef(ModuleFiles.REPOSITORY.toValue(), " extends VWMLRepository ", modProps));
 		getFw().write("\tprivate IVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
 		getFw().write(JavaCodeGeneratorTemplates.s_VWMLRepositoryCodeTemplate);
 		// adds method's 'build' definition

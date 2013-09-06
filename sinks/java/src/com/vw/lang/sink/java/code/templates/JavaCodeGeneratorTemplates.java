@@ -1,8 +1,6 @@
 package com.vw.lang.sink.java.code.templates;
 
 
-
-
 /**
  * Parts of code needed to java code generator
  * @author ogibayev
@@ -22,7 +20,8 @@ public final class JavaCodeGeneratorTemplates {
 	"\tprivate static class VWMLLinkWrap { \r\n\r\n" +
 	"\t\tpublic static enum MARKED { \r\n" +
 	"\t\t\tENTITY,\r\n" +
-	"\t\t\tTERM\r\n" +
+	"\t\t\tTERM,\r\n" +
+	"\t\t\tLIFETERM\r\n" +
 	"\t\t} ;\r\n\r\n" + 
 	"\t\tprivate Object id; \r\n" +
 	"\t\tprivate Object linkedId;\r\n" +
@@ -65,8 +64,11 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t\treturn uniqId;\r\n" +
 	"\t\t}\r\n\r\n" +
 	"\t\tpublic boolean isMarkedAsTerm() {\r\n" +
-	"\t\t\treturn (marked == MARKED.TERM);\r\n" +
-	"\t\t}\r\n" +
+	"\t\t\treturn (marked == MARKED.TERM) || isMarkedAsLifeTerm();\r\n" +
+	"\t\t}\r\n\r\n" +
+	"\t\tpublic boolean isMarkedAsLifeTerm() {\r\n" +
+	"\t\t\treturn (marked == MARKED.LIFETERM);\r\n" +
+	"\t\t}\r\n\r\n" +	
 	"\t\tpublic String[] getContextPath() {\r\n" +
 	"\t\t\treturn contextPath;\r\n" +
 	"\t\t}\r\n\r\n" +
@@ -121,6 +123,12 @@ public final class JavaCodeGeneratorTemplates {
 		"\t\tfor(VWMLLinkWrap obj : linkedObjectPairs) {\r\n" +
 			"\t\t\tVWMLObject entity = getEntityById(obj.getId());\r\n" +
 			"\t\t\tVWMLObject linkedEntity = getEntityById(obj.getLinkedId());\r\n" +
+			"\t\t\tif (obj.isMarkedAsLifeTerm()) {\r\n" +
+			"\t\t\t\t((VWMLEntity)linkedEntity).setLifeTerm(true);\r\n" +
+			"\t\t\t}\r\n" +
+			"\t\t\tif (obj.getContextPath() != null) {\r\n" +
+			"\t\t\t\tlinkedEntity.setContextPath(obj.getContextPath());\r\n" +
+			"\t\t\t}\r\n" +
 			"\t\t\tentity.link(linkedEntity);\r\n" +
 		"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n" +
@@ -186,7 +194,13 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\treturn null;\r\n" +
 	"\t}\r\n\r\n";
 	
-	public static String s_VWMLModuleDebugMethods = "" +
+	public static String s_VWMLModuleMethods = "" +
+	"\tpublic VWMLRepository getRepository() {\r\n" +
+	"\t\treturn repository;\r\n" +
+	"\t}\r\n\r\n" +
+	"\tpublic VWMLLinkage getLinkage() {\r\n" +
+	"\t\treturn linkage;\r\n" +
+	"\t}\r\n\r\n" +
 	"\t/**\r\n" +
 	"\t* Used in debug purposes when need to know name of rule which is going to be processed\r\n" +
 	"\t* @param to\r\n" +

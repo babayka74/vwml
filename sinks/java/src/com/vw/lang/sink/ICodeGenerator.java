@@ -101,6 +101,13 @@ public interface ICodeGenerator {
 	public void markEntityAsTerm(Object id) throws Exception;
 	
 	/**
+	 * Marks entity as lifeterm; the entity had to added and marked as term before this method is called
+	 * @param id
+	 * @throws Exception
+	 */
+	public void markEntityAsLifeTerm(Object id) throws Exception;	
+	
+	/**
 	 * Finishes generation of module
 	 * @param props
 	 * @throws Exception
