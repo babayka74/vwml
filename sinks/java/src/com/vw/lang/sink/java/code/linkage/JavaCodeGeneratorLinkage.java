@@ -111,7 +111,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			if (!ft) {
 				list += ",";
 			}
-			String s = JavaCodeGeneratorUtils.convertStringStaticArrayToString(obj.getContextPath());
+			String s = JavaCodeGeneratorUtils.convertStaticStringArrayToString(obj.getContextPath());
 			String arrayAsStr = (s == null) ? null : "\"" + s + "\"";
 			if (!obj.isAsTerm()) {
 				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";

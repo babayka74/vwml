@@ -1,8 +1,9 @@
 package com.vw.lang.sink.java.interpreter;
 
+import java.util.List;
+
 import com.vw.lang.sink.java.IVWMLInterpreter;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.module.VWMLModule;
 
 /**
@@ -62,8 +63,7 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 		}
 	}
 	
-	protected VWMLEntity getModuleLifeTerm(VWMLModule module) {
-		VWMLLinkage modLinkage = module.getLinkage();
-		return null;
+	protected List<VWMLEntity> getModuleLifeTerm(VWMLModule module) {
+		return module.getLinkage().getModLifeTerms();
 	}
 }

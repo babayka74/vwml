@@ -1,9 +1,8 @@
 package com.vw.lang.sink.java.link;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.vw.lang.sink.java.VWMLObject;
 
@@ -14,10 +13,10 @@ import com.vw.lang.sink.java.VWMLObject;
  *
  */
 public class VWMLLink {
-		
+	
 	private VWMLObject itself;
 	private IVWMLLinkVisitor linkOperationVisitor = null;
-	private Set<VWMLObject> linkedObjects = Collections.synchronizedSet(new HashSet<VWMLObject>());
+	private List<VWMLObject> linkedObjects = Collections.synchronizedList(new ArrayList<VWMLObject>());
 	
 	public VWMLLink(VWMLObject itself) {
 		super();
@@ -32,7 +31,7 @@ public class VWMLLink {
 		this.itself = itself;
 	}
 
-	public Set<VWMLObject> getLinkedObjects() {
+	public List<VWMLObject> getLinkedObjects() {
 		return linkedObjects;
 	}
 	
@@ -83,7 +82,7 @@ public class VWMLLink {
 	 * @param startObj
 	 */
 	public void iterate(VWMLObject startObj, List<VWMLObject> dependencyList) {
-		Set<VWMLObject>  linkedObjects = startObj.getLink().getLinkedObjects();
+		List<VWMLObject>  linkedObjects = startObj.getLink().getLinkedObjects();
 		for(VWMLObject obj : linkedObjects) {
 			if (dependencyList != null) {
 				dependencyList.add(obj);
@@ -93,5 +92,27 @@ public class VWMLLink {
 			}
 			iterate(obj, dependencyList);
 		}
+	}
+	
+	/**
+	 * Returns instance of iterator of container of linked objects
+	 * @return
+	 */
+	public VWMLLinkIncrementalIterator acquireLinkedObjectsIterator() {
+		return new VWMLLinkIncrementalIterator(getLinkedObjects().size());
+	}
+	
+	/**
+	 * Peeks next VWML object from the linked objects container
+	 * @param it
+	 * @return
+	 */
+	public VWMLObject peek(VWMLLinkIncrementalIterator it) {
+		VWMLObject obj = null;
+		if (it.isCorrect()) {
+			obj = getLinkedObjects().get(it.getIt());
+			it.next();
+		}
+		return obj;
 	}
 }

@@ -1,5 +1,8 @@
 package com.vw.lang.sink.java.link;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 
@@ -9,6 +12,20 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
  *
  */
 public class VWMLLinkage {
+
+	private List<VWMLEntity> modLifeTerms = new ArrayList<VWMLEntity>();
+	
+	/**
+	 * Adds life term
+	 * @param entityAsTerm
+	 */
+	public void addLifeTerm(VWMLEntity entityAsTerm) {
+		modLifeTerms.add(entityAsTerm);
+	}
+	
+	public List<VWMLEntity> getModLifeTerms() {
+		return modLifeTerms;
+	}
 
 	/**
 	 * Interprets object identified by id as object identified by interpretingId

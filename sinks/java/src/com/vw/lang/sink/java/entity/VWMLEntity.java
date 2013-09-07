@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.entity;
 
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperations;
 
@@ -63,8 +64,8 @@ public class VWMLEntity extends VWMLObject {
 	 * Returns operation and moves pointer to next operation if such exists
 	 * @return
 	 */
-	public VWMLOperation getOperation() {
-		return associatedOperations.peekOperation();
+	public VWMLOperation getOperation(VWMLLinkIncrementalIterator it) {
+		return associatedOperations.peekOperation(it);
 	}
 	
 	public boolean isLifeTerm() {
@@ -73,6 +74,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setLifeTerm(boolean isLifeTerm) {
 		this.isLifeTerm = isLifeTerm;
+	}
+	
+	/**
+	 * Returns true in case if entity can be considered as 'term'
+	 * @return
+	 */
+	public boolean isTerm() {
+		return (associatedOperations.operations() != 0) ? true : false;
 	}
 
 	@Override

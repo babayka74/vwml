@@ -14,6 +14,8 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private String readableId;
 	// context path consists from set of entity ids
 	private String[] contextPath;
+	// VWML object which takes responsibility of superviser of any changes on given object
+	private VWMLObject superviser = null;
 	// entity can be linked with another entity or command
 	private VWMLLink link = new VWMLLink(this);
 	
@@ -66,6 +68,14 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	
 	public void setReadableId(String readableId) {
 		this.readableId = readableId;
+	}
+
+	public VWMLObject getSuperviser() {
+		return superviser;
+	}
+
+	public void setSuperviser(VWMLObject superviser) {
+		this.superviser = superviser;
 	}
 
 	/**

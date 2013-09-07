@@ -3,9 +3,9 @@ package com.vw.lang.sink.java.operations;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
  * Encapsulates operations with VWML's operations on storage
@@ -13,7 +13,6 @@ import com.vw.lang.sink.java.VWMLObject;
  *
  */
 public class VWMLOperations extends VWMLObject {
-	private AtomicInteger currOp = new AtomicInteger(0);
 	private List<VWMLOperation> operations = Collections.synchronizedList(new ArrayList<VWMLOperation>());
 
 	/**
@@ -33,38 +32,39 @@ public class VWMLOperations extends VWMLObject {
 	}
 
 	/**
-	 * Returns current operation and moves pointer to next operation
+	 * Returns number of active operations
 	 * @return
 	 */
-	public VWMLOperation peekOperation() {
+	public int operations() {
+		return operations.size();
+	}
+	
+	/**
+	 * Returns current operation and moves pointer to next operation
+	 * @param it - iterator
+	 * @return
+	 */
+	public VWMLOperation peekOperation(VWMLLinkIncrementalIterator it) {
 		VWMLOperation op = null;
-		if (hasNextOperation()) {
-			op = operations.get(currOp.get());
-			currOp.getAndIncrement();
+		if (it.isCorrect()) {
+			op = operations.get(it.getIt());
+			it.next();
 		}
 		return op;
 	}
-	
-	/**
-	 * Returns true in case if operation's pointer points to right place in operations storage
-	 * @return
-	 */
-	public boolean hasNextOperation() {
-		return (currOp.get() >= operations.size()) ? false : true;
-	}
-	
-	/**
-	 * Resets pointer of operations storage (moves it to beginning)
-	 */
-	public void reset() {
-		currOp.set(0);
-	}
-	
+
 	/**
 	 * Clears operations storage
 	 */
 	public void clear() {
-		reset();
 		operations.clear();
+	}
+	
+	/**
+	 * Returns instance of iterator of container of operations
+	 * @return
+	 */
+	public VWMLLinkIncrementalIterator acquireLinkedObjectsIterator() {
+		return new VWMLLinkIncrementalIterator(operations.size());
 	}
 }
