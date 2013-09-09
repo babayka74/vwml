@@ -21,10 +21,7 @@ public class UndefinedEntityAsEmptyComplexEntityInterpretationStrategy extends U
 	@Override
 	public VWMLObject process(Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		// generating 'fake' complex entity
-		ComplexEntityNameBuilder cenb = ComplexEntityNameBuilder.instance();
-		cenb.startProgress();
-		cenb.stopProgress();
-		String ceName = cenb.build();
+		String ceName = ComplexEntityNameBuilder.generateEmptyComplexEntity();
 		// adds undefined entity to repository 
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, visitor);
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, ceName, visitor);

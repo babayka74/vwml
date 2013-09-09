@@ -1,5 +1,7 @@
 package com.vw.lang.sink.java.code.templates;
 
+import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
+
 
 /**
  * Parts of code needed to java code generator
@@ -114,11 +116,32 @@ public final class JavaCodeGeneratorTemplates {
 	"\tpublic IVWMLLinkVisitor getPreprocessorStructureVisualizer() {\r\n" +
 	"\t\treturn this.preprocessorStructureVisualizer;\r\n" +
 	"\t}\r\n\r\n" +
+	"\tpublic InterpretationOfUndefinedEntityStrategyId getUndefinedEntityInterpretationStrategyId() {\r\n" +
+	"\t\treturn interpretationOfUndefinedEntityStrategyId;\r\n" +
+	"\t}\r\n\r\n" +
 	"\tpublic void linkEntities() throws Exception {\r\n" +
 	"\t\tbuildLinkingAssociation();\r\n" +
 	"\t\tbuildInterpretingAssociation();\r\n" +
 	"\t\tbuildOperationsAssociation();\r\n" +	
 	"\t}\r\n\r\n" +
+	"\tpublic VWMLObject interpretUndefinedEntity(Object id) throws Exception {\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.STRICT) {\r\n" +
+	"\t\t\treturn new UndefinedEntityStrictInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM1) {\r\n" +
+	"\t\t\treturn new UndefinedEntityAsEmptyComplexEntityInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM2) {\r\n" +
+	"\t\t\treturn new UndefinedEntityAsNilEntityInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse\r\n" +
+	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM3) {\r\n" +
+	"\t\t\treturn new UndefinedEntityAsEntityInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
+	"\t\t}\r\n" +
+	"\t\treturn null;\r\n" +
+	"\t}\r\n\r\n" +	
 	"\tprotected void buildLinkingAssociation() throws Exception {\r\n" +
 		"\t\tfor(VWMLLinkWrap obj : linkedObjectPairs) {\r\n" +
 			"\t\t\tVWMLObject entity = getEntityById(obj.getId());\r\n" +
@@ -175,24 +198,6 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t\t}\r\n" +	
 	"\t\t}\r\n" +
 	"\t\treturn entity;\r\n" +
-	"\t}\r\n\r\n" +
-	"\tprivate VWMLObject interpretUndefinedEntity(Object id) throws Exception {\r\n" +
-	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.STRICT) {\r\n" +
-	"\t\t\treturn new UndefinedEntityStrictInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
-	"\t\t}\r\n" +
-	"\t\telse\r\n" +
-	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM1) {\r\n" +
-	"\t\t\treturn new UndefinedEntityAsEmptyComplexEntityInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
-	"\t\t}\r\n" +
-	"\t\telse\r\n" +
-	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM2) {\r\n" +
-	"\t\t\treturn new UndefinedEntityAsNilEntityInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
-	"\t\t}\r\n" +
-	"\t\telse\r\n" +
-	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM3) {\r\n" +
-	"\t\t\treturn new UndefinedEntityAsEntityInterpretationStrategy().process(id, getPreprocessorStructureVisualizer(), this);\r\n" +
-	"\t\t}\r\n" +
-	"\t\treturn null;\r\n" +
 	"\t}\r\n\r\n";
 	
 	public static String s_VWMLModuleMethods = "" +

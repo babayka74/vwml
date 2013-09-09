@@ -13,6 +13,7 @@ public class VWMLComplexEntity extends VWMLEntity {
 
 	public VWMLComplexEntity(Object id, String readableId) {
 		super(id, readableId);
+		setMarkedAsComplexEntity(true);
 	}
 
 }

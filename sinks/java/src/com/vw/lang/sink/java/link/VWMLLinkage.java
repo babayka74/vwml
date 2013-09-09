@@ -3,6 +3,8 @@ package com.vw.lang.sink.java.link;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
+import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 
@@ -27,6 +29,17 @@ public class VWMLLinkage {
 		return modLifeTerms;
 	}
 
+	/**
+	 * Overridden by module's linkage
+	 * @return
+	 */
+	public InterpretationOfUndefinedEntityStrategyId getUndefinedEntityInterpretationStrategyId() {
+		return InterpretationOfUndefinedEntityStrategyId.STRICT;
+	}
+	
+	public VWMLObject interpretUndefinedEntity(Object id) throws Exception {
+		throw new Exception("must be implemented by module's linkage");
+	}
 	/**
 	 * Interprets object identified by id as object identified by interpretingId
 	 * @param id

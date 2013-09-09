@@ -13,7 +13,6 @@ options {
 }
 
 module tesej {
-	walking ias (
 	a ias (a h b);
 	b ias (b a e g);
 	c ias (c e d f);
@@ -30,5 +29,4 @@ module tesej {
 			TesejLife~ Exe
 		      );
 	lifeterm = TesejLife~ Exe
-	);
 }

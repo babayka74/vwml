@@ -3,7 +3,9 @@ package com.vw.lang.sink.java.interpreter.slft;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.Stack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
+import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
+import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
 
 /**
  * Interprets single thread life term only
@@ -12,19 +14,24 @@ import com.vw.lang.sink.java.operations.VWMLOperation;
  */
 public class VWMLSingleThreadTermInterpreter {
 	
+	private VWMLLinkage linkage = null;
 	// lifeterm to be interpreted
 	private VWMLEntity term = null; 
+	// internal worker thread
 	private Stack stack = Stack.instance();
+	// operating processor
+	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
 
 	private VWMLSingleThreadTermInterpreter() {
 	}
 	
-	private VWMLSingleThreadTermInterpreter(VWMLEntity term) {
+	private VWMLSingleThreadTermInterpreter(VWMLLinkage linkage, VWMLEntity term) {
 		setTerm(term);
+		setLinkage(linkage);
 	}
 	
-	public static VWMLSingleThreadTermInterpreter instance(VWMLEntity term) {
-		return new VWMLSingleThreadTermInterpreter(term);
+	public static VWMLSingleThreadTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term) {
+		return new VWMLSingleThreadTermInterpreter(linkage, term);
 	}
 
 	public VWMLEntity getTerm() {
@@ -35,6 +42,14 @@ public class VWMLSingleThreadTermInterpreter {
 		this.term = term;
 	}
 	
+	public VWMLLinkage getLinkage() {
+		return linkage;
+	}
+
+	public void setLinkage(VWMLLinkage linkage) {
+		this.linkage = linkage;
+	}
+
 	/**
 	 * Starts interpretation logic
 	 * @throws Exception
@@ -57,8 +72,10 @@ public class VWMLSingleThreadTermInterpreter {
 			if (le.isTerm()) { // means that entity has operations which should be executed on top of stack
 				// executes operations and serves stack
 				VWMLLinkIncrementalIterator itOps = entity.getLink().acquireLinkedObjectsIterator();
+				// executes set of operations on stack; all operations are performed on top of stack
 				for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
-					handleOperation(stack, op);
+					// actually calls handle to process operation
+					handleOperation(linkage, stack, op);
 				}
 			}
 		}
@@ -66,11 +83,13 @@ public class VWMLSingleThreadTermInterpreter {
 	
 	/**
 	 * Executes operatoion on top of stack and serves stack
+	 * @param linkage
 	 * @param stack
 	 * @param op
 	 * @throws Exception
 	 */
-	protected void handleOperation(Stack stack, VWMLOperation op) throws Exception {
-		
+	protected void handleOperation(VWMLLinkage linkage, Stack stack, VWMLOperation op) throws Exception {
+		// processor de-multiplexes this call
+		processor.processOperation(linkage, stack, op);
 	}
 }

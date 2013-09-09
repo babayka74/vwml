@@ -73,6 +73,19 @@ public class GeneralUtils {
 	}
 	
 	/**
+	 * Returns int value inside range defined by [lr, rr)
+	 * @param lr
+	 * @param rr
+	 * @return
+	 */
+	public static int getIntInRange(int lr, int rr) {
+		if (lr == rr) {
+			return lr;
+		}
+		return 0;
+	}
+	
+	/**
 	 * Returns reference to objects' container
 	 * @return
 	 */

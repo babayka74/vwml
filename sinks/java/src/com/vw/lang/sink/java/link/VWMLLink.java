@@ -115,4 +115,24 @@ public class VWMLLink {
 		}
 		return obj;
 	}
+	
+	/**
+	 * Returns number of linked objects on given VWMLObject 
+	 * @return
+	 */
+	public int getLinkedObjectsOnThisTime() {
+		return linkedObjects.size();
+	}
+	
+	/**
+	 * Returns concrete entity by its number
+	 * @param number
+	 * @return
+	 */
+	public VWMLObject getConcreteLinkedEntity(int number) {
+		if (number >= getLinkedObjectsOnThisTime()) {
+			return null;
+		}
+		return linkedObjects.get(number);
+	}
 }

@@ -18,6 +18,7 @@ public class VWMLEntity extends VWMLObject {
 	private VWMLEntity interpreting;
 	private VWMLOperations associatedOperations = new VWMLOperations();
 	private boolean isLifeTerm = false;
+	private boolean isMarkedAsComplexEntity = false;
 	
 	public VWMLEntity() {
 		super();
@@ -82,6 +83,14 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public boolean isTerm() {
 		return (associatedOperations.operations() != 0) ? true : false;
+	}
+
+	public boolean isMarkedAsComplexEntity() {
+		return isMarkedAsComplexEntity;
+	}
+
+	public void setMarkedAsComplexEntity(boolean isMarkedAsComplexEntity) {
+		this.isMarkedAsComplexEntity = isMarkedAsComplexEntity;
 	}
 
 	@Override

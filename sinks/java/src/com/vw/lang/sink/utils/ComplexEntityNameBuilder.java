@@ -100,6 +100,17 @@ public class ComplexEntityNameBuilder {
 	}
 	
 	/**
+	 * Generates empty complex entity
+	 * @return
+	 */
+	public static String generateEmptyComplexEntity() {
+		ComplexEntityNameBuilder cenb = ComplexEntityNameBuilder.instance();
+		cenb.startProgress();
+		cenb.stopProgress();
+		return cenb.build();
+	}
+	
+	/**
 	 * Adds object's id to complex entity
 	 */
 	public void addObjectId(Object id) {
