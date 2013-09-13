@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.ICodeGenerator;
+import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
@@ -37,6 +38,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private String author;
 		private String projectName;
 		private String description;
+		private String entityHistorySize;
 		private String date;
 		private IVWMLLinkVisitor visitor;
 		private String visitorDataPath;
@@ -47,7 +49,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 
 		public JavaModuleStartProps(String srcPath, String commonPackage,
 				String moduleName, String modulePackage, String author, String projectName,
-				String description, String date, IVWMLLinkVisitor visitor,
+				String description, String entityHistorySize, String date, IVWMLLinkVisitor visitor,
 				String visitorDataPath) {
 			super();
 			this.srcPath = srcPath;
@@ -57,6 +59,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.author = author;
 			this.projectName = projectName;
 			this.description = description;
+			this.entityHistorySize = entityHistorySize;
 			this.date = date;
 			this.visitor = visitor;
 			this.visitorDataPath = visitorDataPath;
@@ -142,15 +145,23 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.projectName = projectName;
 		}
 
+		public String getEntityHistorySize() {
+			return entityHistorySize;
+		}
+
+		public void setEntityHistorySize(String entityHistorySize) {
+			this.entityHistorySize = entityHistorySize;
+		}
+
 		@Override
 		public String toString() {
 			return "JavaModuleStartProps [srcPath=" + srcPath
 					+ ", commonPackage=" + commonPackage + ", moduleName="
 					+ moduleName + ", modulePackage=" + modulePackage
 					+ ", author=" + author + ", projectName=" + projectName
-					+ ", description=" + description + ", date=" + date
-					+ ", visitor=" + visitor + ", visitorDataPath="
-					+ visitorDataPath + "]";
+					+ ", description=" + description + ", entityHistorySize="
+					+ entityHistorySize + ", date=" + date + ", visitor="
+					+ visitor + ", visitorDataPath=" + visitorDataPath + "]";
 		}
 	}
 	
@@ -218,11 +229,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public static class VWMLObjWrap {
 		private VWMLObjectBuilder.VWMLObjectType type;
 		private Object objId;
+		private String context;
 
-		public VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType type, Object objId) {
+		public VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType type, Object objId, String context) {
 			super();
 			this.type = type;
 			this.objId = objId;
+			this.context = context;
 		}
 
 		public Object getObjId() {
@@ -231,6 +244,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 
 		public VWMLObjectBuilder.VWMLObjectType getType() {
 			return type;
+		}
+
+		public String getContext() {
+			return context;
 		}
 	}
 	
@@ -245,7 +262,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private boolean asTerm = false;
 		private boolean asLifeTerm = false;
 		private String uniqId = "VWMLLINK_" + UUID.randomUUID().toString();
-		private String[] contextPath = null;
+		private String[] contextPath = null; // associates with linkedId (its concrete context)
+		private String activeContext = null; // active context - CE's context
 		
 		public VWMLLinkWrap(Object id, Object linkedId) {
 			super();
@@ -302,18 +320,27 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		public String[] getContextPath() {
 			return contextPath;
 		}
+		
+		public String getActiveContext() {
+			return activeContext;
+		}
+
+		public void setActiveContext(String activeContext) {
+			this.activeContext = activeContext;
+		}
 
 		@Override
 		public String toString() {
 			return "VWMLLinkWrap [id=" + id + ", linkedId=" + linkedId
 					+ ", asTerm=" + asTerm + ", asLifeTerm=" + asLifeTerm
 					+ ", uniqId=" + uniqId + ", contextPath="
-					+ Arrays.toString(contextPath) + "]";
+					+ Arrays.toString(contextPath) + ", activeContext="
+					+ activeContext + "]";
 		}
 		
 		protected void parseContextPath() {
-			String[] contextPath = ((String)linkedId).split(".");
-			if (contextPath.length > 1) {
+			String[] contextPath =  VWMLJavaExportUtils.parseContext((String)linkedId);
+			if (contextPath != null && contextPath.length > 1) {
 				this.contextPath = contextPath;
 			}
 		}
@@ -451,6 +478,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			}
 			if (javaModNormalizedProps.getInterpretationProps() == null) {
 				javaModNormalizedProps.setInterpretationProps(javaProjProps.getInterpretationProps());
+			}
+			if (javaModNormalizedProps.getEntityHistorySize() == null) {
+				javaModNormalizedProps.setEntityHistorySize(javaProjProps.getEntityHistorySize());
 			}
 		}
 		return normalizedProps;
@@ -590,37 +620,42 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	/**
 	 * Declares simple entity
 	 * @param id (ID)
+	 * @param context
 	 * @throws Exception
 	 */
-	public void declareSimpleEntity(Object id) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id));
+	public void declareSimpleEntity(Object id, String context) throws Exception {
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, context));
 	}
 	
 	/**
 	 * Declares complex entity; the object id is compound object; consists from set of simple entity ids
 	 * @param id (ID)
+	 * @param context
 	 * @throws Exception
 	 */
-	public void declareComplexEntity(Object id) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id));		
+	public void declareComplexEntity(Object id, String context) throws Exception {
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, context));		
 	}
 	
 	/**
 	 * Declares term
 	 * @param id (ID)
+	 * @param context
 	 * @throws Exception
 	 */
-	public void declareTerm(Object id) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id));
+	public void declareTerm(Object id, String context) throws Exception {
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id, context));
 	}
 	
 	/**
 	 * Links objects using their ids
 	 * @param id (ID)
 	 * @param linkedObjId
+	 * @param activeContext
 	 */
-	public void linkObjects(Object id, Object linkedObjId) {
+	public void linkObjects(Object id, Object linkedObjId, String activeContext) {
 		lastLink = new VWMLLinkWrap(id, linkedObjId);
+		lastLink.setActiveContext(activeContext);
 		linkage.add(lastLink);
 	}
 	
@@ -628,8 +663,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * Builds association between object and operation
 	 * @param id (REL)
 	 * @param op
+	 * @param activeContext
 	 */
-	public void associateOperation(Object id, String op) {
+	public void associateOperation(Object id, String op, String activeContext) {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
 		if (rel == null || rel.getLastLink() == null) {
 			logger.error("couldn't associated operation '" + op + "' since last linkage operation is absent");
@@ -651,9 +687,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * Set interpreting link between objects
 	 * @param id (ID)
 	 * @param interpretingObjId
+	 * @param activeContext
 	 */
-	public void interpretObjects(Object id, Object interpretingObjId) {
+	public void interpretObjects(Object id, Object interpretingObjId, String activeContext) {
 		lastLink = new VWMLLinkWrap(id, interpretingObjId);
+		lastLink.setActiveContext(activeContext);
 		interpret.add(lastLink);
 	}
 	

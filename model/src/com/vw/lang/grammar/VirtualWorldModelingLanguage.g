@@ -52,6 +52,7 @@ import java.lang.Throwable;
 // builder
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.processor.model.builder.VWMLModuleInfo;
+import com.vw.lang.processor.context.builder.VWMLContextBuilder;
 
 // general code generator
 import com.vw.lang.sink.ICodeGenerator;
@@ -98,6 +99,7 @@ package com.vw.lang.grammar;
 	}
 
 	private VWMLModelBuilder vwmlModelBuilder = VWMLModelBuilder.instance();
+	private VWMLContextBuilder vwmlContextBuilder = VWMLContextBuilder.instance();
 	private ICodeGenerator codeGenerator = null;
 	private StartModuleProps modProps = null;
 	private ComplexEntityNameBuilder complexEntityNameBuilder = ComplexEntityNameBuilder.instance();
@@ -133,7 +135,11 @@ package com.vw.lang.grammar;
     		entityWalker.resetFutureEntityAsIAS();
        		// creates 'IAS' association
     		try {
-    			if (codeGenerator != null) codeGenerator.interpretObjects(objLinkingId, objLinkedId);
+    			// asking for current/active context
+    			String context = vwmlContextBuilder.buildContext();
+    			if (codeGenerator != null) {
+    				codeGenerator.interpretObjects(objLinkingId, objLinkedId, context);
+    			}
     			if (logger.isDebugEnabled()) {
    				logger.debug("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
    			}
@@ -151,8 +157,12 @@ package com.vw.lang.grammar;
   		}
     		if (rel != null) {
     			try {
+    				// asking for current/active context
+    				String context = vwmlContextBuilder.buildContext();
     				Object linkingObjId = ((EntityWalker.Relation)rel).getObj();
-    				if (codeGenerator != null) codeGenerator.linkObjects(linkingObjId, linkedObj);
+    				if (codeGenerator != null) {
+    					codeGenerator.linkObjects(linkingObjId, linkedObj, context);
+    				}
     				if (logger.isDebugEnabled()) {
     					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
     				}
@@ -291,7 +301,7 @@ generatedFileLocation
     ;	
 
 optionalProps
-    : author? projname? description? visualizer?
+    : author? projname? description? entity_history_size? visualizer?
     ;
 
 author
@@ -318,6 +328,13 @@ description
     			       }
     ;
 
+entity_history_size
+    : 'entity_history_size' '=' string { 
+    				if (modProps != null) {
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setEntityHistorySize(GeneralUtils.trimQuotes($string.text));
+    				}
+    			       }
+    ;
 
 visualizer
     : 'visualizer' '{' visualizer_body '}'	
@@ -389,10 +406,17 @@ expression
 
 entity_def
     : entity_decl IAS {
+    			// adds entity id to context stack
+    			vwmlContextBuilder.push($entity_decl.id);
     			entityWalker.markFutureEntityAsIAS($entity_decl.id);
     			// we should link this entity with parent, if exists
     			 buildLinkingAssociation($entity_decl.id);
-    		      } term (SEMICOLON)?
+    		      } term 
+    		      {
+    		      	// removes top entity from stack
+    		      	vwmlContextBuilder.pop();
+    		      }
+    		      (SEMICOLON)?
     ;
 
 check_term_def
@@ -450,9 +474,12 @@ entity_decl returns [String id]
               				id = complexEntityNameBuilder.build();
               				complexEntityNameBuilder.clear();
 				    	try {
-				    		if (codeGenerator != null) codeGenerator.declareComplexEntity(id);    	
+				    		String context = vwmlContextBuilder.buildContext();
+				    		if (codeGenerator != null) {
+				    			codeGenerator.declareComplexEntity(id, context);
+				    		}    	
 				    		if (logger.isDebugEnabled()) {
-				    			logger.debug("complex entity '" + id + "' is declared");
+				    			logger.debug("complex entity '" + id + "' is declared; context '" + context + "'");
 				    			logger.debug("complex entity declaration process - finished");
 				    		}    	
 				    	}
@@ -478,10 +505,13 @@ simple_entity_decl returns [String id]
     		}
     		else {
     			try {
+    				String context = vwmlContextBuilder.buildContext();
     		        	if (logger.isDebugEnabled()) {
-    		        		logger.debug("simple entity '" + id + "' is declared");
+    		        		logger.debug("simple entity '" + id + "' is declared; context '" + context + "'");
     		        	}
-    				if (codeGenerator != null) codeGenerator.declareSimpleEntity(id);
+    				if (codeGenerator != null) {
+    					codeGenerator.declareSimpleEntity(id, context);
+    				}
     			}
     			catch(Exception e) {
     				rethrowVWMLExceptionAsRecognitionException(e);
@@ -526,7 +556,10 @@ complex_entity returns [EntityWalker.Relation rel]
     	// id and name is the same
     	String ceId = ComplexEntityNameBuilder.generateRandomName();
     	try {
-    		if (codeGenerator != null) codeGenerator.declareComplexEntity(ceId);
+    		if (codeGenerator != null) {
+    			// no need context to be generated for dynamic complex entities since they have already have uniq name
+    			codeGenerator.declareComplexEntity(ceId, "");
+    		}
     	}
     	catch(Exception e) {
     		rethrowVWMLExceptionAsRecognitionException(e);
@@ -558,8 +591,18 @@ STRING_LITERAL
 
 oplist
     // associates operation with entity
-    : opclist       { if (lastProcessedEntity != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntity, $opclist.text); } }
-    | opprojection  { if (lastProcessedEntity != null && codeGenerator != null) { lastProcessedEntityAsTerm = true; codeGenerator.associateOperation(lastProcessedEntity, $opprojection.text); } }
+    : opclist       {
+    			if (lastProcessedEntity != null && codeGenerator != null) { 
+    				lastProcessedEntityAsTerm = true;
+    				codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, vwmlContextBuilder.buildContext());
+    			} 
+    		    }
+    | opprojection  {
+    			if (lastProcessedEntity != null && codeGenerator != null) {
+    				lastProcessedEntityAsTerm = true;
+    				codeGenerator.associateOperation(lastProcessedEntity, $opprojection.text, vwmlContextBuilder.buildContext());
+    			}
+    		    }
     ;
 
 opclist

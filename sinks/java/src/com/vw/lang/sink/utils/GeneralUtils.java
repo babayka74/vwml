@@ -86,10 +86,18 @@ public class GeneralUtils {
 	}
 	
 	/**
+	 * Returns UTC time measured in ms
+	 * @return
+	 */
+	public static long getTimeAsLong() {
+		return System.currentTimeMillis();
+	}
+	
+	/**
 	 * Returns reference to objects' container
 	 * @return
 	 */
 	public List<Object> getObjContainer() {
 		return s_objContainer;
-	}
+	}	
 }

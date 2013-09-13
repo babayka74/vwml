@@ -19,12 +19,12 @@ public class VWMLObjectsRepositoryTest {
 	@Test
 	public void repositoryAndSchemaPreprocessorTest() {
 		// generates objects
-		VWMLObject vA = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "a", dotPreprocessorDebug);
-		VWMLObject vBC = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, "(b c)", dotPreprocessorDebug);
-		vBC = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, "(b c)", dotPreprocessorDebug);
-		VWMLObject vE = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "e", dotPreprocessorDebug);
-		VWMLObject vF = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "f", dotPreprocessorDebug);
-		VWMLObject vG = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "g", dotPreprocessorDebug);		
+		VWMLObject vA = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "a", null, 2, dotPreprocessorDebug);
+		VWMLObject vBC = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, "(b c)", null, 2, dotPreprocessorDebug);
+		vBC = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, "(b c)", null, 2, dotPreprocessorDebug);
+		VWMLObject vE = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "e", null, 2, dotPreprocessorDebug);
+		VWMLObject vF = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "f", null, 2, dotPreprocessorDebug);
+		VWMLObject vG = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "g", null, 2, dotPreprocessorDebug);		
 		// start new schema
 		String schemaName = "test_1"; 
 		dotPreprocessorDebug.init(schemaName, buildPath(schemaName));

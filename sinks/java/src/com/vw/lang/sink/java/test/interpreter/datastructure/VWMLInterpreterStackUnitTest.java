@@ -5,7 +5,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import com.vw.lang.sink.java.VWMLObject;
-import com.vw.lang.sink.java.interpreter.datastructure.Stack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 
 /**
  * Interpreter's stack simple test
@@ -14,17 +14,18 @@ import com.vw.lang.sink.java.interpreter.datastructure.Stack;
  */
 public class VWMLInterpreterStackUnitTest {
 
-	public static class StackInspectorTest extends Stack.Inspector {
-		public void inspected(VWMLObject obj) {
+	public static class StackInspectorTest extends VWMLStack.VWMLStackInspector {
+		public void inspected(Object obj) {
+			VWMLObject o = (VWMLObject)obj;
 			Assert.assertNotNull(obj);
-			System.out.println("inspected object '" + obj + "'");
+			System.out.println("inspected object '" + o + "'");
 		}
 	}
 	
 	@Test
 	public void testBasicFunctionality() {
 		VWMLObject obj = null;
-		Stack s = Stack.instance();
+		VWMLStack s = VWMLStack.instance();
 		obj = s.pop();
 		Assert.assertNull(obj);
 		obj = s.pop();
@@ -46,7 +47,7 @@ public class VWMLInterpreterStackUnitTest {
 	@Test
 	public void testInspectorFunctionality() {
 		VWMLObject obj = null;
-		Stack s = Stack.instance();
+		VWMLStack s = VWMLStack.instance();
 		for(int i = 0; i < 7; i++) {
 			obj = new VWMLObject(i, Integer.toString(i));
 			s.push(obj);

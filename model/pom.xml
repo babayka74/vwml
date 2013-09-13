@@ -114,6 +114,9 @@
                 						<resource>
                   							<directory>../sinks/java/sources/java</directory>
                 						</resource>
+                						<resource>
+                  							<directory>../common/sources/java</directory>
+                						</resource>
               						</resources>              
             					</configuration>            
           				</execution>

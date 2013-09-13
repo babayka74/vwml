@@ -14,8 +14,9 @@ public abstract class UndefinedEntityInterpretationStrategy {
 	
 	/**
 	 * Defines concrete logic how to process undefined entity
+	 * @param context
 	 * @param id
 	 * @param visitor
 	 */
-	public abstract VWMLObject process(Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception;
+	public abstract VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception;
 }

@@ -43,7 +43,9 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 	*/
 	public void buildModuleRepositoryPart(JavaModuleStartProps modProps,
 			                              List<VWMLObjWrap> declaredObjects) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectType.COMPLEX_ENTITY, ComplexEntityNameBuilder.generateRootId(modProps.getModuleName())));
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectType.COMPLEX_ENTITY,
+				                            ComplexEntityNameBuilder.generateRootId(modProps.getModuleName()),
+				                            ""));
 		// caption and common imports are added before (see startModule) method
 		getFw().write("import " + VWMLRepository.class.getCanonicalName() + ";\r\n");
 		getFw().write("import " + VWMLObjectBuilder.VWMLObjectType.class.getCanonicalName() + ";\r\n");		
@@ -55,9 +57,24 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 		getFw().write(JavaCodeGeneratorTemplates.s_VWMLRepositoryCodeTemplate);
 		// adds method's 'build' definition
 		getFw().write("\tpublic void acquireEntities() throws Exception {\r\n");
+		String sHistorySize = modProps.getEntityHistorySize();
+		int entityHistorySize = 0;
+		if (sHistorySize != null) {
+			try {
+				entityHistorySize = Integer.valueOf(sHistorySize).intValue();
+			}
+			catch(NumberFormatException e) {
+				// simple swallow it...
+			}
+		}
 		for(VWMLObjWrap obj : declaredObjects) {
 			getFw().write("\t\t// constructs entity '" + obj.getObjId() + "'\r\n");
-			getFw().write("\t\tVWMLObjectsRepository.acquire(" + obj.getType().getClass().getSimpleName()+ "." + obj.getType().toValue() + ", \"" + obj.getObjId() + "\", preprocessorStructureVisualizer);\r\n");
+			getFw().write("\t\tVWMLObjectsRepository.acquire(" + obj.getType().getClass().getSimpleName()+ "." +
+					                                         obj.getType().toValue() +
+					                                         ", \"" + obj.getObjId() +
+					                                         "\", \"" + obj.getContext() + "\", " +
+					                                         entityHistorySize +
+					                                         ", preprocessorStructureVisualizer);\r\n");
 		}
 		// closes 'build' method
 		getFw().write("\t}\r\n");

@@ -3,7 +3,7 @@ package com.vw.lang.sink.java.operations.processor;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.vw.lang.sink.java.interpreter.datastructure.Stack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
@@ -53,7 +53,7 @@ public class VWMLOperationProcessor {
 	 * @param operation
 	 * @throws Exception
 	 */
-	public void processOperation(VWMLLinkage linkage, Stack stack, VWMLOperation operation) throws Exception {
+	public void processOperation(VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
 		VWMLOperationHandler handler = s_processorMap.get(operation);
 		if (handler == null) {
 			handler = unknownOperationHandler;

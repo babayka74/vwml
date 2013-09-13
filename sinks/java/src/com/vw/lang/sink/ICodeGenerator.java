@@ -1,6 +1,5 @@
 package com.vw.lang.sink;
 
-import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 
 /**
@@ -117,44 +116,50 @@ public interface ICodeGenerator {
 	/**
 	 * Declares simple entity
 	 * @param id
+	 * @param context
 	 * @throws Exception
 	 */
-	public void declareSimpleEntity(Object id) throws Exception;
+	public void declareSimpleEntity(Object id, String context) throws Exception;
 	
 	/**
 	 * Declares complex entity
 	 * @param id
+	 * @param context
 	 * @throws Exception
 	 */
-	public void declareComplexEntity(Object id) throws Exception;
+	public void declareComplexEntity(Object id, String context) throws Exception;
 	
 	/**
 	 * Declares term
 	 * @param id
+	 * @param context
 	 * @throws Exception
 	 */
-	public void declareTerm(Object id) throws Exception;
+	public void declareTerm(Object id, String context) throws Exception;
 	
 	/**
 	 * Links objects using their ids
 	 * @param id
 	 * @param linkedObjId
+	 * @param activeContext
 	 */
-	public void linkObjects(Object id, Object linkedObjId);
+	public void linkObjects(Object id, Object linkedObjId, String activeContext);
 	
 	/**
 	 * Builds association between object and operation
 	 * @param id
 	 * @param op
+	 * @param activeContext
 	 */
-	public void associateOperation(Object id, String op);
+	public void associateOperation(Object id, String op, String activeContext);
 	
 	/**
 	 * Set interpreting link between objects
 	 * @param id
 	 * @param interpretingObjId
+	 * @param activeContext
 	 */
-	public void interpretObjects(Object id, Object interpretingObjId);
+	public void interpretObjects(Object id, Object interpretingObjId, String activeContext);
 	
 	/**
 	 * Returns associated visitor; see {@link setVisitor}

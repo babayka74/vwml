@@ -1,9 +1,11 @@
 package com.vw.lang.processor.model.main;
 
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.Argument;
@@ -13,7 +15,6 @@ import org.kohsuke.args4j.Option;
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
-import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * VWML's processor main class
@@ -51,16 +52,11 @@ public final class VWML {
 			InterpretationProps ip = new InterpretationProps();
 			ip.setInterpretationOfUndefinedEntityStrategyId(InterpretationOfUndefinedEntityStrategyId.fromValue(args.getEntityInterpretationStrategy()));
 			if (args.getInterpreterProps() != null) {
-				VWMLInterprterArgs interpreterArgs = new VWMLInterprterArgs();
-				CmdLineParser cmdParser = new CmdLineParser(interpreterArgs);
-				cmdParser.setUsageWidth(80);
-				cmdParser.parseArgument(GeneralUtils.trimQuotes(args.getInterpreterProps()));
-				if (interpreterArgs.getPkg() != null && interpreterArgs.getSrcPath() != null) {
-					ip.setInterpretersPackage(interpreterArgs.getPkg());
-					ip.setInterpretersSrcPath(interpreterArgs.getSrcPath());
-					if (logger.isInfoEnabled()) {
-						logger.info("Interpreter's properties '" + ip + "'");
-					}
+				Properties props = new Properties();
+				props.load(new FileInputStream(args.getInterpreterProps()));
+				ip.setDynamicProps(props);
+				if (logger.isInfoEnabled()) {
+					logger.info("Interpreter's properties '" + ip + "'");
 				}
 			}
 			return ip;
@@ -173,7 +169,7 @@ public final class VWML {
 		private String mode;
 		@Option(name="-entity", usage="entity generation/checking options {strict, ue_im1, ue_im2, ue_im3};\r\nstrict - if undefined simple entity found - exception is thrown;\r\nue_im1 - if undefined simple entity found - it is interpreted as empty complex entity ();\r\nue_im2 - if undefined simple entity found - it is interpreted as 'nil' entity\r\nue_im3 - if undefined simple entity found - it is interpreted as is")
 		private String entityInterpretationStrategy = new String(InterpretationOfUndefinedEntityStrategyId.STRICT.toValue());
-		@Option(name="-interpreter", usage="dquoted interpreter's options (not used now)")
+		@Option(name="-interpreter", usage="path to property file")
 		private String interpreterProps = null;
 		
 		 // receives other command line parameters than options

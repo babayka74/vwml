@@ -19,17 +19,19 @@ public class UndefinedEntityAsEmptyComplexEntityInterpretationStrategy extends U
 	private Logger logger = Logger.getLogger(UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class);
 	
 	@Override
-	public VWMLObject process(Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
+	public VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		// generating 'fake' complex entity
 		String ceName = ComplexEntityNameBuilder.generateEmptyComplexEntity();
 		// adds undefined entity to repository 
-		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, visitor);
-		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, ceName, visitor);
+		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY,
+									  id, context, linkage.getEntityHistorySize(), visitor);
+		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY,
+									  ceName, context, linkage.getEntityHistorySize(), visitor);
 		// builds interpreting association
-		linkage.interpretAs(id, ceName);
+		linkage.interpretAs(id, ceName, context);
 		if (logger.isDebugEnabled()) {
 			logger.debug("undefined entity '" + id + "' is interpreted as complex entity '" + ceName + "'");
 		}
-		return VWMLObjectsRepository.instance().get(id);
+		return VWMLObjectsRepository.instance().get(id, context);
 	}
 }

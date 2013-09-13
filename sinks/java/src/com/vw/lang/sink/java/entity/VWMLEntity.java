@@ -16,9 +16,11 @@ public class VWMLEntity extends VWMLObject {
 	
 	// this entity is interpreted as another entity/term
 	private VWMLEntity interpreting;
+	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations();
 	private boolean isLifeTerm = false;
 	private boolean isMarkedAsComplexEntity = false;
+	private int interpretationHistorySize;
 	
 	public VWMLEntity() {
 		super();
@@ -32,7 +34,19 @@ public class VWMLEntity extends VWMLObject {
 		return interpreting;
 	}
 
+	public int getInterpretationHistorySize() {
+		return interpretationHistorySize;
+	}
+
+	public void setInterpretationHistorySize(int interpretationHistorySize) {
+		this.interpretationHistorySize = interpretationHistorySize;
+		interpretationHistory.setMaxHistorySize(this.interpretationHistorySize);
+	}
+
 	public void setInterpreting(VWMLEntity interpreting) {
+		if (interpreting != null) {
+			interpretationHistory.store(interpreting);
+		}
 		this.interpreting = interpreting;
 		if (this.getLink().getLinkOperationVisitor() != null) {
 			this.getLink().getLinkOperationVisitor().interpretObjectAs(this, interpreting);

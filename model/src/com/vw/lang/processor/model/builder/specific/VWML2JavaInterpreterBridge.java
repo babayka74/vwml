@@ -2,14 +2,17 @@ package com.vw.lang.processor.model.builder.specific;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Properties;
 import java.util.Set;
 
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.processor.model.builder.VWMLModuleInfo;
+import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.java.IVWMLInterpreter;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreter;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.module.VWMLModule;
 
 /**
@@ -38,7 +41,7 @@ public class VWML2JavaInterpreterBridge {
 				// 2. package
 				null,
 				null,				
-				"public class " + s_className + " {\r\n",
+				"public class " + s_className + " {\r\n\r\n",
 				null,
 				"};\r\n"
 		};
@@ -62,7 +65,7 @@ public class VWML2JavaInterpreterBridge {
 		// generates import section
 		code[IMPORT_INDEX] = prepareImports(vwmlModules);
 		// generates body section
-		code[BODY_INDEX] = prepareBody(vwmlModules);
+		code[BODY_INDEX] = prepareBody(vwmlModules, projProps);
 		File f = new File(fullSourcePath);
 		if (!f.exists() && !f.mkdirs()) {
 			throw new Exception("couldn't create directory; directory is '" + fullSourcePath + "'");
@@ -89,6 +92,7 @@ public class VWML2JavaInterpreterBridge {
 		imports += "import " + VWMLModule.class.getName() + ";\r\n";
 		imports += "import " + IVWMLInterpreter.class.getName() + ";\r\n";
 		imports += "import " + VWMLInterpreter.class.getName() + ";\r\n";
+		imports += "import " + VWMLPair.class.getName() + ";\r\n";
 		for(String name : vwmlModules) {
 			VWMLModuleInfo mi = VWMLModelBuilder.getModuleInfo(name);
 			JavaModuleStartProps props = (JavaModuleStartProps)mi.getProps();
@@ -98,8 +102,8 @@ public class VWML2JavaInterpreterBridge {
 		return imports;
 	}
 	
-	private String prepareBody(Set<String> vwmlModules) {
-		String body = prepareDeclarations(vwmlModules);
+	private String prepareBody(Set<String> vwmlModules, JavaModuleStartProps projProps) {
+		String body = prepareDeclarations(vwmlModules, projProps);
 		body += "\tprivate static " + s_className + " s_instance = new " + s_className + "();\r\n\r\n\tprivate " + s_className + "() {\r\n\t}\r\n\r\n";
 		body += "\tpublic static " + s_className + " instance() {\r\n\t\treturn s_instance;\r\n\t}\r\n\r\n";
 		body += "\tpublic VWMLModule[] getModules() {\r\n\t\treturn modules;\r\n\t}\r\n\r\n";
@@ -107,28 +111,51 @@ public class VWML2JavaInterpreterBridge {
 		return body;
 	}
 	
-	private String prepareDeclarations(Set<String> vwmlModules) {
-		String declarations = prepareModulesDeclaration(vwmlModules);
-		declarations += "\tprivate IVWMLInterpreter vwmlInterpreter = VWMLInterpreter.instance(modules);\r\n\r\n";
+	private String prepareDeclarations(Set<String> vwmlModules, JavaModuleStartProps projProps) {
+		String declarations = prepareModulesDeclaration(vwmlModules) + "\r\n";
+		declarations += prepareInterpretersProperties(projProps.getInterpretationProps());
+		declarations += "\tprivate IVWMLInterpreter vwmlInterpreter = VWMLInterpreter.instance(modules, propPairs);\r\n\r\n";
 		return declarations;
 	}
 	
 	private String prepareModulesDeclaration(Set<String> vwmlModules) {
-		boolean firstIteration = true;
+		boolean firstIt = true;
 		String modulesDeclaration = "";
-		modulesDeclaration += "\tprivate VWMLModule modules[] = { ";
+		modulesDeclaration += "\tprivate VWMLModule modules[] = {\r\n";
 		for(String name : vwmlModules) {
-			if (!firstIteration) {
-				modulesDeclaration += ", ";
+			if (!firstIt) {
+				modulesDeclaration += ",\r\n";
 			} 
-			else {
-				firstIteration = false;
-			}
+			firstIt = false;
 			VWMLModuleInfo mi = VWMLModelBuilder.getModuleInfo(name);
 			JavaModuleStartProps props = (JavaModuleStartProps)mi.getProps();
-			modulesDeclaration += "new " + props.getActualModuleName() + "()";
+			modulesDeclaration += "\t\tnew " + props.getActualModuleName() + "()";
 		}
-		modulesDeclaration += " };\r\n";
+		modulesDeclaration += "\r\n\t};\r\n";
 		return modulesDeclaration;
 	}
+	
+	private String prepareInterpretersProperties(InterpretationProps props) {
+		final String emptyProps = "\tprivate VWMLPair[] propPairs = null;\r\n\r\n";
+		if (props == null) {
+			return emptyProps;
+		}
+		Properties p = props.getDynamicProps();
+		if (p == null) {
+			return emptyProps;
+		}
+		boolean firstIt = true;
+		Set<String> keys = p.stringPropertyNames();
+		String sprops = "\tprivate VWMLPair[] propPairs = {\r\n";
+		for(String key : keys) {
+			if (!firstIt) {
+				sprops += ",\r\n";
+			}
+			sprops += "\t\tnew VWMLPair(\"" + key + "\", \"" + p.getProperty(key) + "\")";
+			firstIt = false;
+		}
+		sprops += "\r\n\t};\r\n\r\n";
+		return sprops;
+	}
 }
+ 

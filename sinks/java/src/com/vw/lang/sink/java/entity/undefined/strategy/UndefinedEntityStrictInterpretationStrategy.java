@@ -12,7 +12,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 public class UndefinedEntityStrictInterpretationStrategy extends UndefinedEntityInterpretationStrategy {
 
 	@Override
-	public VWMLObject process(Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
-		throw new Exception("undefined entity '" + id + "'");
+	public VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
+		throw new Exception("undefined entity '" + id + "' on effective context '" + context + "'");
 	}
 }

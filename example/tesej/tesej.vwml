@@ -25,7 +25,7 @@ module tesej {
 	Step ias (Tesej
 		  Tesej~~ Random
 		 )^;
-	TesejLife ias ( Step~ Exe
+	TesejLife ias (	Step~ Exe
 			TesejLife~ Exe
 		      );
 	lifeterm = TesejLife~ Exe

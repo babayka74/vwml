@@ -1,7 +1,8 @@
 package com.vw.lang.sink.java.interpreter.slft;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.datastructure.Stack;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -16,9 +17,11 @@ public class VWMLSingleTermInterpreter {
 	
 	private VWMLLinkage linkage = null;
 	// lifeterm to be interpreted
-	private VWMLEntity term = null; 
+	private VWMLEntity term = null;
+	// interpreter's configuration
+	private VWMLInterpreterConfiguration config = null;
 	// internal worker thread
-	private Stack stack = Stack.instance();
+	private VWMLStack stack = VWMLStack.instance();
 	// operating processor
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
 
@@ -30,7 +33,7 @@ public class VWMLSingleTermInterpreter {
 		setLinkage(linkage);
 	}
 
-	private VWMLSingleTermInterpreter(VWMLLinkage linkage, VWMLEntity term, Stack stack) {
+	private VWMLSingleTermInterpreter(VWMLLinkage linkage, VWMLEntity term, VWMLStack stack) {
 		setTerm(term);
 		setLinkage(linkage);
 		setStack(stack);
@@ -40,7 +43,7 @@ public class VWMLSingleTermInterpreter {
 		return new VWMLSingleTermInterpreter(linkage, term);
 	}
 
-	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term, Stack stack) {
+	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term, VWMLStack stack) {
 		return new VWMLSingleTermInterpreter(linkage, term, stack);
 	}
 	
@@ -60,15 +63,27 @@ public class VWMLSingleTermInterpreter {
 		this.linkage = linkage;
 	}
 
-	public Stack getStack() {
+	public VWMLStack getStack() {
 		return stack;
 	}
 	
+	public VWMLInterpreterConfiguration getConfig() {
+		return config;
+	}
+
+	public void setConfig(VWMLInterpreterConfiguration config) {
+		this.config = config;
+	}
+
 	/**
 	 * Starts interpretation logic
 	 * @throws Exception
 	 */
 	public void start() throws Exception {
+		if (config == null) {
+			// default configuration is used
+			config = VWMLInterpreterConfiguration.instance();
+		}
 		if (getTerm() == null) {
 			throw new Exception("term should be set before method is called");
 		}
@@ -81,7 +96,7 @@ public class VWMLSingleTermInterpreter {
 	 * @param stack
 	 * @throws Exception
 	 */
-	public void startOnExistedStack(VWMLLinkage linkage, Stack stack, VWMLEntity entity) throws Exception {
+	public void startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
 		VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
 		// iterate through linked object
 		for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
@@ -111,14 +126,12 @@ public class VWMLSingleTermInterpreter {
 	 * @param op
 	 * @throws Exception
 	 */
-	protected void handleOperation(VWMLLinkage linkage, Stack stack, VWMLOperation op) throws Exception {
+	protected void handleOperation(VWMLLinkage linkage, VWMLStack stack, VWMLOperation op) throws Exception {
 		// processor de-multiplexes this call
 		processor.processOperation(linkage, stack, op);
 	}
 
-	protected void setStack(Stack stack) {
+	protected void setStack(VWMLStack stack) {
 		this.stack = stack;
 	}
-	
-	
 }

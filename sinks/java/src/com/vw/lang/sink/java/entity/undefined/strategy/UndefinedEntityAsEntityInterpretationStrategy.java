@@ -18,13 +18,14 @@ public class UndefinedEntityAsEntityInterpretationStrategy extends UndefinedEnti
 	private Logger logger = Logger.getLogger(UndefinedEntityAsEntityInterpretationStrategy.class);
 	
 	@Override
-	public VWMLObject process(Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
+	public VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		// adds undefined entity to repository 
-		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, visitor);
-		linkage.interpretAs(id, id);
+		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
+									  context, linkage.getEntityHistorySize(), visitor);
+		linkage.interpretAs(id, id, context);
 		if (logger.isDebugEnabled()) {
-			logger.debug("undefined entity '" + id + "' is interpreted as simple entity '" + id + "'; cyclic interpretation");
+			logger.debug("undefined entity '" + id + "' is interpreted as simple entity '" + id + "'; cyclic interpretation on effective context '" + context + "'");
 		}
-		return VWMLObjectsRepository.instance().get(id);
+		return VWMLObjectsRepository.instance().get(id, context);
 	}
 }

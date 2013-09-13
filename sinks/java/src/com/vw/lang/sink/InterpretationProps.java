@@ -1,5 +1,7 @@
 package com.vw.lang.sink;
 
+import java.util.Properties;
+
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 
 /**
@@ -11,7 +13,8 @@ public class InterpretationProps {
 	private String interpretersSrcPath;
 	private String interpretersPackage;
 	private InterpretationOfUndefinedEntityStrategyId interpretationOfUndefinedEntityStrategyId = InterpretationOfUndefinedEntityStrategyId.STRICT;
-
+	private Properties dynamicProps = null;
+	
 	public InterpretationOfUndefinedEntityStrategyId getInterpretationOfUndefinedEntityStrategyId() {
 		return interpretationOfUndefinedEntityStrategyId;
 	}
@@ -37,12 +40,26 @@ public class InterpretationProps {
 		this.interpretersSrcPath = interpretersSrcPath;
 	}
 
+	
+	public void setDynamicProps(Properties dynamicProps) {
+		this.dynamicProps = dynamicProps;
+	}
+
+	public String getDynamicPropsByName(String name) {
+		return (dynamicProps != null) ? dynamicProps.getProperty(name) : null;
+	}
+	
+	public Properties getDynamicProps() {
+		return dynamicProps;
+	}
+	
 	@Override
 	public String toString() {
 		return "InterpretationProps [interpretersSrcPath="
 				+ interpretersSrcPath + ", interpretersPackage="
 				+ interpretersPackage
 				+ ", interpretationOfUndefinedEntityStrategyId="
-				+ interpretationOfUndefinedEntityStrategyId + "]";
+				+ interpretationOfUndefinedEntityStrategyId + ", dynamicProps="
+				+ dynamicProps + "]";
 	}
 }

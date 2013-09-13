@@ -37,18 +37,34 @@ public class VWMLLinkage {
 		return InterpretationOfUndefinedEntityStrategyId.STRICT;
 	}
 	
+	/**
+	 * Overridden by module's linkage
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
 	public VWMLObject interpretUndefinedEntity(Object id) throws Exception {
 		throw new Exception("must be implemented by module's linkage");
 	}
+	
+	/**
+	 * Overridden by module's linkage
+	 * @return
+	 */
+	public int getEntityHistorySize() {
+		return 0;
+	}
+	
 	/**
 	 * Interprets object identified by id as object identified by interpretingId
 	 * @param id
 	 * @param interpretingId
+	 * @param context
 	 * @throws Exception
 	 */
-	public void interpretAs(Object id, Object interpretingId) throws Exception {
-		VWMLEntity obj = (VWMLEntity)VWMLObjectsRepository.instance().get(id);
-		VWMLEntity interpretingObj = (VWMLEntity)VWMLObjectsRepository.instance().get(interpretingId);
+	public void interpretAs(Object id, Object interpretingId, String context) throws Exception {
+		VWMLEntity obj = (VWMLEntity)VWMLObjectsRepository.instance().get(id, context);
+		VWMLEntity interpretingObj = (VWMLEntity)VWMLObjectsRepository.instance().get(interpretingId, context);
 		obj.setInterpreting(interpretingObj);
 	}
 }

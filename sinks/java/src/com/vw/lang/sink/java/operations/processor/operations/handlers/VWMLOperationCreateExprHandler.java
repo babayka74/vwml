@@ -3,7 +3,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.datastructure.Stack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -21,7 +21,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 	private static int s_min_objects_for_complex_interpretation = 2;
 	
 	protected static abstract class VWMLOperationCreateExprStrategy {
-		public abstract void run(VWMLLinkage linkage, Stack stack, VWMLEntity entity) throws Exception;
+		public abstract void run(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception;
 	}
 
 	/**
@@ -32,9 +32,8 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 	protected static class VWMLOperationCreateExprStrategy1EntityInLink extends VWMLOperationCreateExprStrategy {
 
 		@Override
-		public void run(VWMLLinkage linkage, Stack stack, VWMLEntity entity) throws Exception {
+		public void run(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
 			linkage.interpretUndefinedEntity(entity.getId());
-			stack.push(entity);
 		}
 		
 	}
@@ -47,13 +46,12 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 	protected static class VWMLOperationCreateExprStrategy2EntitiesInLink extends VWMLOperationCreateExprStrategy {
 
 		@Override
-		public void run(VWMLLinkage linkage, Stack stack, VWMLEntity entity) throws Exception {
+		public void run(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
 			VWMLEntity e = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
 			if (e == null) {
 				throw new Exception("inconsistence detected; expected at least 2 linked entities but found only '" + entity.getLink().getLinkedObjectsOnThisTime() + "'");
 			}
 			entity.setInterpreting(e);
-			stack.push(entity);
 		}
 		
 	}
@@ -66,10 +64,14 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 	protected static class VWMLOperationCreateExprStrategyForManyEntitiesInLink extends VWMLOperationCreateExprStrategy {
 
 		@Override
-		public void run(VWMLLinkage linkage, Stack stack, VWMLEntity entity) throws Exception {
+		public void run(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
 			// create complex entity
 			String cen = ComplexEntityNameBuilder.generateRandomName();
-			VWMLEntity newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY, cen, entity.getLink().getLinkOperationVisitor());
+			VWMLEntity newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
+																					cen,
+																					entity.getOriginalContext(),
+																					entity.getInterpretationHistorySize(),
+																					entity.getLink().getLinkOperationVisitor());
 			// go through the list in order to create interpreting expression
 			VWMLEntity e = null;
 			VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
@@ -81,7 +83,6 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 				newComplexEntity.link(le);
 			}
 			e.setInterpreting(newComplexEntity);
-			stack.push(e);
 		}
 	}
 	
@@ -93,7 +94,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 	private VWMLOperationCreateExprStrategyForManyEntitiesInLink createExprStrategyForManyEntitiesInLink = new VWMLOperationCreateExprStrategyForManyEntitiesInLink();
 	
 	@Override
-	public void handle(VWMLLinkage linkage, Stack stack, VWMLOperation operation) throws Exception {
+	public void handle(VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
 		VWMLEntity entity = (VWMLEntity)stack.peek();
 		if (entity == null) {
 			throw new Exception("trying to execute 'CREATEEXPR' operation on empty stack");

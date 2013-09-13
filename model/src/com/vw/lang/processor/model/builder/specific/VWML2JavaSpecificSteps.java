@@ -80,7 +80,13 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	}
 
 	private void setupSinkSources(String codeGeneratorName, StartModuleProps props) throws Exception {
-		processSinkJar(codeGeneratorName, props);
+		String jars[] = {
+				"VWMLSink-" + codeGeneratorName + "-sources.jar",
+				"VWMLCommon-sources.jar"
+				};
+		for(String jar : jars) {
+			processSinkJar(jar, props);
+		}
 		processInterpreterBridge();
 	}
 	
@@ -88,11 +94,10 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		new VWML2JavaInterpreterBridge().build();
 	}
 	
-	private void processSinkJar(String codeGeneratorName, StartModuleProps props) throws Exception {
+	private void processSinkJar(String jarName, StartModuleProps props) throws Exception {
 		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
-		String fileName = "VWMLSink-" + codeGeneratorName + "-sources.jar";
-		String resourceName = "sinks/" + fileName;
-		String resourceDestPath = jprops.getSrcPath() + "/" + fileName;
+		String resourceName = "sinks/" + jarName;
+		String resourceDestPath = jprops.getSrcPath() + "/" + jarName;
 		copyResourceTo(resourceName, resourceDestPath);
 		if (logger.isInfoEnabled()) {
 			logger.info("resource '" + resourceName + "'; unpacking...");

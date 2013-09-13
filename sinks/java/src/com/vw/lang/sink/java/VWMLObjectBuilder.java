@@ -50,8 +50,10 @@ public class VWMLObjectBuilder {
 	
 	public static abstract class Builder {
 		
-		public VWMLObject objectBuilder(Object id, IVWMLLinkVisitor visitor) {
+		public VWMLObject objectBuilder(Object id, String context, Integer entityHistorySize, IVWMLLinkVisitor visitor) {
 			VWMLObject obj = build(id);
+			obj.setContextPath(context);
+			setInterpretationHistorySize(obj, entityHistorySize);
 			if (visitor != null) {			
 				addVisitor(obj, visitor);
 			}
@@ -59,6 +61,7 @@ public class VWMLObjectBuilder {
 		}
 		
 		protected abstract VWMLObject build(Object id);
+		protected abstract void setInterpretationHistorySize(VWMLObject o, int size);
 		
 		protected void addVisitor(VWMLObject obj, IVWMLLinkVisitor visitor) {
 			obj.getLink().setLinkOperationVisitor(visitor);
@@ -70,7 +73,11 @@ public class VWMLObjectBuilder {
 		@Override
 		public VWMLObject build(Object id) {
 			return new VWMLObject(id, null);
-		}	
+		}
+
+		@Override
+		protected void setInterpretationHistorySize(VWMLObject o, int size) {
+		}
 	}
 	
 	public static class SimpleEntityBuilder extends Builder {
@@ -78,6 +85,11 @@ public class VWMLObjectBuilder {
 		@Override
 		public VWMLObject build(Object id) {
 			return new VWMLSimpleEntity(id, null);
+		}
+
+		@Override
+		protected void setInterpretationHistorySize(VWMLObject o, int size) {
+			((VWMLSimpleEntity)o).setInterpretationHistorySize(size);
 		}
 	}
 	
@@ -87,6 +99,11 @@ public class VWMLObjectBuilder {
 		public VWMLObject build(Object id) {
 			return new VWMLComplexEntity(id, null);
 		}
+		
+		@Override
+		protected void setInterpretationHistorySize(VWMLObject o, int size) {
+			((VWMLComplexEntity)o).setInterpretationHistorySize(size);
+		}
 	}
 
 	public static class TermBuilder extends Builder {
@@ -94,6 +111,11 @@ public class VWMLObjectBuilder {
 		@Override
 		public VWMLObject build(Object id) {
 			return new VWMLTerm(id, null);
+		}
+		
+		@Override
+		protected void setInterpretationHistorySize(VWMLObject o, int size) {
+			((VWMLTerm)o).setInterpretationHistorySize(size);
 		}
 	}
 	
@@ -115,10 +137,12 @@ public class VWMLObjectBuilder {
 	 * we need to visualize object's structure
 	 * @param builderType
 	 * @param id
+	 * @param context
+	 * @param historyEntitySize
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object id, IVWMLLinkVisitor visitor) {
-		return s_builders.get(builderType).objectBuilder(id, visitor);
+	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object id, String context, Integer entityHistorySize, IVWMLLinkVisitor visitor) {
+		return s_builders.get(builderType).objectBuilder(id, context, entityHistorySize, visitor);
 	}
 }

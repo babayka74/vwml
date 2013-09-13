@@ -90,6 +90,8 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		getFw().write("\tprivate IVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
 		// defined strategy for undefined entity
 		getFw().write(generateDeclarationsFromInterpretationProps(modProps) + "\r\n");
+		// and entity's history size
+		getFw().write(generateEntitySpecificDeclaration(modProps) + "\r\n");
 		// link and aux. methods
 		String[] methodsDef =  {
 								JavaCodeGeneratorTemplates.s_VWMLLinkageCodeTemplate,
@@ -114,14 +116,14 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			String s = JavaCodeGeneratorUtils.convertStaticStringArrayToString(obj.getContextPath());
 			String arrayAsStr = (s == null) ? null : "\"" + s + "\"";
 			if (!obj.isAsTerm()) {
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", \"" + "\", " + arrayAsStr + ")";
 			}
 			else {
 				String mark = "VWMLLinkWrap.MARKED.TERM";
 				if (obj.isAsLifeTerm()) {
 					mark = "VWMLLinkWrap.MARKED.LIFETERM";
 				}
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", " + arrayAsStr + ")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", \"" + "\", " + arrayAsStr + ")";
 			}
 			ft = false;
 		}
@@ -136,6 +138,17 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		}
 		else {
 			s += InterpretationOfUndefinedEntityStrategyId.STRICT.toValue().toUpperCase() + ";\r\n";
+		}
+		return s;
+	}
+
+	private String generateEntitySpecificDeclaration(JavaModuleStartProps modProps) {
+		String s = "\tprivate final int entityHistorySize = ";
+		if (modProps.getEntityHistorySize() != null) {
+			s += modProps.getEntityHistorySize() + ";\r\n";
+		}
+		else {
+			s += "0;\r\n";
 		}
 		return s;
 	}

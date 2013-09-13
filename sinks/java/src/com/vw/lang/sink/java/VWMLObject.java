@@ -3,6 +3,7 @@ package com.vw.lang.sink.java;
 import java.util.List;
 
 import com.vw.lang.sink.java.link.VWMLLink;
+import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * Root object for all VWML's items; used as class marker at this time
@@ -14,6 +15,7 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private String readableId;
 	// context path consists from set of entity ids
 	private String[] contextPath;
+	private String originalContext;
 	// VWML object which takes responsibility of superviser of any changes on given object
 	private VWMLObject superviser = null;
 	// entity can be linked with another entity or command
@@ -123,8 +125,13 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		return contextPath;
 	}
 
-	public void setContextPath(String[] contextPath) {
-		this.contextPath = contextPath;
+	public void setContextPath(String context) {
+		this.contextPath = VWMLJavaExportUtils.parseContext(context);
+		this.originalContext = context;
+	}
+
+	public String getOriginalContext() {
+		return originalContext;
 	}
 
 	@Override
@@ -139,5 +146,5 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 			r = getId().toString().compareTo(o.getId().toString());
 		}
 		return r;
-	}
+	}	
 }

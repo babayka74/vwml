@@ -1,9 +1,8 @@
-package com.vw.lang.sink.java.interpreter.datastructure;
+package com.vw.lang.utils;
 
-import com.vw.lang.sink.java.VWMLObject;
 
 /**
- * Stack; interpreter's data structure
+ * Stack
  * @author ogibayev
  *
  */
@@ -15,30 +14,30 @@ public class Stack {
 	 *
 	 */
 	public static class Inspector {
-		public void inspected(VWMLObject obj) {
+		public void inspected(Object obj) {
 			
 		}
 	}
 	
 	protected static class Node {
-		private VWMLObject data;
+		private Object data;
 		private Node next;
 		
 		public Node() {
 			super();
 		}
 
-		public Node(VWMLObject data, Node next) {
+		public Node(Object data, Node next) {
 			super();
 			this.data = data;
 			this.next = next;
 		}
 
-		public VWMLObject getData() {
+		public Object getData() {
 			return data;
 		}
 
-		public void setData(VWMLObject data) {
+		public void setData(Object data) {
 			this.data = data;
 		}
 
@@ -69,7 +68,7 @@ public class Stack {
 	 * Pushes data to stack
 	 * @param data
 	 */
-	public void push(VWMLObject data) {
+	public void push(Object data) {
 		Node n = new Node(data, top);
 		top = n;
 	}
@@ -78,8 +77,8 @@ public class Stack {
 	 * Pops data from stack
 	 * @return
 	 */
-	public VWMLObject pop() {
-		VWMLObject data = top.getData();
+	public Object pop() {
+		Object data = top.getData();
 		Node n = top.getNext();
 		if (n != null) {
 			top = n;
@@ -91,7 +90,7 @@ public class Stack {
 	 * Peeks data from top of stack
 	 * @return
 	 */
-	public VWMLObject peek() {
+	public Object peek() {
 		return top.getData();
 	}
 	

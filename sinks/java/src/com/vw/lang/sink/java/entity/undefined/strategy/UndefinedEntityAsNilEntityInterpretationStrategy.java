@@ -15,12 +15,14 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 public class UndefinedEntityAsNilEntityInterpretationStrategy extends UndefinedEntityInterpretationStrategy {
 
 	@Override
-	public VWMLObject process(Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
+	public VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		// adds undefined entity to repository 
-		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, visitor);
-		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, visitor);
-		linkage.interpretAs(id, VWMLEntity.s_NilEntityId);
-		return VWMLObjectsRepository.instance().get(id);
+		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
+									  context, linkage.getEntityHistorySize(), visitor);
+		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId,
+									  context, linkage.getEntityHistorySize(), visitor);
+		linkage.interpretAs(id, VWMLEntity.s_NilEntityId, context);
+		return VWMLObjectsRepository.instance().get(id, context);
 	}
 
 }
