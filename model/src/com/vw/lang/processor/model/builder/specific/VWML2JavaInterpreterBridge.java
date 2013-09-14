@@ -48,7 +48,7 @@ public class VWML2JavaInterpreterBridge {
 		
 		Set<String> vwmlModules = VWMLModelBuilder.getProcessedModules();
 		if (vwmlModules == null) {
-			throw new Exception("there are no any processed modules; test cases can't be created");
+			throw new Exception("there are no any processed modules; bridge can't be created");
 		}
 		// usually first module defines project's properties
 		String bridgePackage = null;

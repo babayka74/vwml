@@ -1,0 +1,76 @@
+package com.vw.lang.sink.java.interpreter;
+
+import java.util.List;
+
+import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.link.VWMLLinkage;
+import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
+
+/**
+ * Internal interpreter's functionality
+ * @author ogibayev
+ *
+ */
+public abstract class VWMLIterpreterImpl {
+
+	// list of terms to be interpreted
+	private List<VWMLEntity> terms;
+	// linkage (usually linkage module of the main module)
+	private VWMLLinkage linkage;
+	// interpreter's configuration
+	private VWMLInterpreterConfiguration config = null;
+	// internal worker thread
+	private VWMLStack stack = VWMLStack.instance();
+	// operating processor
+	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
+	
+	public List<VWMLEntity> getTerms() {
+		return terms;
+	}
+
+	public void setTerms(List<VWMLEntity> terms) {
+		this.terms = terms;
+	}
+
+	public VWMLLinkage getLinkage() {
+		return linkage;
+	}
+
+	public void setLinkage(VWMLLinkage linkage) {
+		this.linkage = linkage;
+	}
+
+	public VWMLInterpreterConfiguration getConfig() {
+		return config;
+	}
+
+	public void setConfig(VWMLInterpreterConfiguration config) {
+		this.config = config;
+	}
+
+	public VWMLStack getStack() {
+		return stack;
+	}
+
+	public VWMLOperationProcessor getProcessor() {
+		return processor;
+	}
+
+	/**
+	 * Starts interpretation logic
+	 * @throws Exception
+	 */
+	public abstract void start() throws Exception;
+
+	/**
+	 * Starts interpretation on existed stack
+	 * @param stack
+	 * @throws Exception
+	 */
+	public abstract void startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception;
+
+	protected void setStack(VWMLStack stack) {
+		this.stack = stack;
+	}
+}

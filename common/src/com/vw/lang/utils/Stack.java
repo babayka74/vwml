@@ -51,6 +51,7 @@ public class Stack {
 	}
 	
 	private Node top = new Node();
+	private IStackVisualizer stackVisualizer = null;
 	
 	private Stack() {
 		
@@ -71,6 +72,9 @@ public class Stack {
 	public void push(Object data) {
 		Node n = new Node(data, top);
 		top = n;
+		if (stackVisualizer != null) {
+			stackVisualizer.objectPushed(data);
+		}
 	}
 	
 	/**
@@ -82,6 +86,9 @@ public class Stack {
 		Node n = top.getNext();
 		if (n != null) {
 			top = n;
+		}
+		if (stackVisualizer != null) {
+			stackVisualizer.objectPopped(data);
 		}
 		return data;
 	}
@@ -104,5 +111,13 @@ public class Stack {
 			inspector.inspected(t.getData());
 			t = t.getNext();
 		}
+	}
+
+	public IStackVisualizer getStackVisualizer() {
+		return stackVisualizer;
+	}
+
+	public void setStackVisualizer(IStackVisualizer stackVisualizer) {
+		this.stackVisualizer = stackVisualizer;
 	}
 }
