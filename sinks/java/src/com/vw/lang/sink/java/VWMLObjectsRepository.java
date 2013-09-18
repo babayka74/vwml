@@ -3,6 +3,8 @@ package com.vw.lang.sink.java;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 
 
@@ -12,15 +14,17 @@ import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
  *
  */
 public class VWMLObjectsRepository {
-	
-	
+
+	// defines static types of unchanged entities
 	private VWMLObjectsRepository() {
-		
+		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_EmptyEntityId, "", 0, null));
+		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, "", 0, null));
 	}
-	
+
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
 	
+	private static volatile boolean s_initialized = false;
 	private static final VWMLObjectsRepository s_repo = new VWMLObjectsRepository();
 	
 	public static VWMLObjectsRepository instance() {
@@ -65,6 +69,29 @@ public class VWMLObjectsRepository {
 			effectiveContext = null;
 		}
 		return repo.get(buildAssociationKey(effectiveContext, ids));
+	}
+
+	/**
+	 * Adds created entity to storage
+	 * @param entity
+	 * @param context
+	 * @return
+	 */
+	public VWMLEntity addConcrete(VWMLEntity entity, String context) {
+		VWMLEntity existedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(), context);
+		if (existedEntity == null) {
+			VWMLObjectsRepository.instance().add(entity);
+			existedEntity = entity;
+		}
+		return existedEntity;
+	}
+
+	/**
+	 * Returns pre-created default 'empty' entity
+	 * @return
+	 */
+	public VWMLEntity getEmptyEntity() {
+		return (VWMLEntity)get(VWMLEntity.s_EmptyEntityId, "");
 	}
 	
 	protected String buildAssociationKey(String prefix, String id) {

@@ -229,6 +229,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public static class VWMLObjWrap {
 		private VWMLObjectBuilder.VWMLObjectType type;
 		private Object objId;
+		private Object readableId;
 		private String context;
 
 		public VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType type, Object objId, String context) {
@@ -238,12 +239,32 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.context = context;
 		}
 
+		public VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType type, Object objId, Object readableId, String context) {
+			super();
+			this.type = type;
+			this.objId = objId;
+			this.readableId = readableId;
+			this.context = context;
+		}
+	
 		public Object getObjId() {
 			return objId;
 		}
 
+		public void setObjId(Object objId) {
+			this.objId = objId;
+		}
+	
 		public VWMLObjectBuilder.VWMLObjectType getType() {
 			return type;
+		}
+
+		public void setReadableId(Object readableId) {
+			this.readableId = readableId;
+		}
+
+		public Object getReadableId() {
+			return readableId;
 		}
 
 		public String getContext() {
@@ -293,8 +314,20 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			return id;
 		}
 
+		public void setId(Object id) {
+			this.id = id;
+		}
+
 		public Object getLinkedId() {
 			return linkedId;
+		}
+		
+		public void setLinkedId(Object linkedId) {
+			this.linkedId = linkedId;
+		}
+
+		public void setUniqId(String uniqId) {
+			this.uniqId = uniqId;
 		}
 
 		public boolean isAsTerm() {
@@ -412,6 +445,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	private List<VWMLLinkWrap> interpret = new ArrayList<VWMLLinkWrap>();
 	// associates object and operations
 	private Map<Object, VWMLOperationLink> operations = new HashMap<Object, VWMLOperationLink>();
+	// objects Id translation
+	private Map<Object, Object> idTranslationMap = new HashMap<Object, Object>();
 	
 	private VWMLLinkWrap lastLink = null;
 	
@@ -548,6 +583,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param modProps
 	 */
 	public void generate(StartModuleProps props) throws Exception {
+		normalizeCode();
 		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
 		new JavaCodeGeneratorModule(fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())]).buildModuleBody(modProps, getVisitor());
 		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects);
@@ -573,6 +609,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		linkage.clear();
 		interpret.clear();
 		markedAsTerm.clear();
+		idTranslationMap.clear();
 		if (logger.isInfoEnabled()) {
 			logger.info("The module '" + ((JavaModuleStartProps)props).getModuleName() + "' was built");
 		}
@@ -630,11 +667,12 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	/**
 	 * Declares complex entity; the object id is compound object; consists from set of simple entity ids
 	 * @param id (ID)
+	 * @param readableId (ID)
 	 * @param context
 	 * @throws Exception
 	 */
-	public void declareComplexEntity(Object id, String context) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, context));		
+	public void declareComplexEntity(Object id, Object readableId, String context) throws Exception {
+		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, readableId, context));		
 	}
 	
 	/**
@@ -645,6 +683,15 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public void declareTerm(Object id, String context) throws Exception {
 		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id, context));
+	}
+	
+	/**
+	 * Changes object's id from 'id' to 'idTo'
+	 * @param id
+	 * @param idTo
+	 */
+	public void changeObjectIdTo(Object id, Object idTo) {
+		idTranslationMap.put(id, idTo);
 	}
 	
 	/**
@@ -711,6 +758,19 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public String getLangAsString() {
 		return "Java";
 	}	
+
+	protected void normalizeCode() {
+		for(Object id : idTranslationMap.keySet()) {
+			Object idTo = idTranslationMap.get(id);
+			for(VWMLObjWrap o : declaredObjects) {
+				if (o.getObjId().equals(id)) {
+					o.setObjId(idTo);
+				}
+			}
+			changeObjectIdToIn(id, idTo, linkage);
+			changeObjectIdToIn(id, idTo, interpret);
+		}
+	}
 	
 	private String prepareImports() {
 		Class<?> importedClasses[] = {VWMLObjectsRepository.class, VWMLObject.class};
@@ -720,4 +780,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 		return imports;
 	}
+	
+	private void changeObjectIdToIn(Object id, Object idTo, List<VWMLLinkWrap> link) {
+		for(VWMLLinkWrap w : link) {
+			if (w.getId().equals(id)) {
+				w.setId(idTo);
+			}
+			if (w.getLinkedId().equals(id)) {
+				w.setLinkedId(idTo);
+			}
+		}
+	}
+	
 }

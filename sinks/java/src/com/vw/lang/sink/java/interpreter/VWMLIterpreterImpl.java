@@ -68,8 +68,15 @@ public abstract class VWMLIterpreterImpl {
 	 * @param stack
 	 * @throws Exception
 	 */
-	public abstract void startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception;
+	public abstract VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception;
 
+	public void termInterpretation(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+		throw new Exception("not implemented");
+	}
+	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+		throw new Exception("not implemented");
+	}
+	
 	protected void setStack(VWMLStack stack) {
 		this.stack = stack;
 	}

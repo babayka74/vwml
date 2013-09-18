@@ -14,8 +14,8 @@ public class Stack {
 	 *
 	 */
 	public static class Inspector {
-		public void inspected(Object obj) {
-			
+		public boolean inspected(Object obj) {
+			return true;
 		}
 	}
 	
@@ -108,7 +108,9 @@ public class Stack {
 	public void inspect(Stack.Inspector inspector) {
 		Node t = top;
 		while (t.getNext() != null) {
-			inspector.inspected(t.getData());
+			if (!inspector.inspected(t.getData())) {
+				break;
+			}
 			t = t.getNext();
 		}
 	}

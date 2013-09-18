@@ -1,0 +1,23 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.example3"
+  		path = "c:\var\vwml/example3/src"
+  		author = "Groozman M.Z."
+		project_name = "example3Proj"
+  		description = "Example3"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/example3/diagram"
+		}
+	}
+}
+
+module example3 {
+	a ias ();
+	b ias ();
+	d ias ();
+
+	c ias ((a b)^ (d a)Exe)^;
+
+	lifeterm = c~ Exe
+}

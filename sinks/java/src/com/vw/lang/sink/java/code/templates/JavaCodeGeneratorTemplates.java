@@ -1,7 +1,6 @@
 package com.vw.lang.sink.java.code.templates;
 
 
-
 /**
  * Parts of code needed to java code generator
  * @author ogibayev
@@ -129,7 +128,6 @@ public final class JavaCodeGeneratorTemplates {
 	"\tpublic void linkEntities() throws Exception {\r\n" +
 	"\t\tbuildLinkingAssociation();\r\n" +
 	"\t\tbuildInterpretingAssociation();\r\n" +
-	"\t\tbuildOperationsAssociation();\r\n" +	
 	"\t}\r\n\r\n" +
 	"\tpublic VWMLObject interpretUndefinedEntity(Object id, String context) throws Exception {\r\n" +
 	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.STRICT) {\r\n" +
@@ -152,7 +150,7 @@ public final class JavaCodeGeneratorTemplates {
 	"\tprotected void buildLinkingAssociation() throws Exception {\r\n" +
 		"\t\tfor(VWMLLinkWrap obj : linkedObjectPairs) {\r\n" +
 			"\t\t\tVWMLObject entity = getEntityById(obj.getId(), obj.getContext());\r\n" +
-			"\t\t\tVWMLObject linkedEntity = getEntityById(obj.getLinkedId(), obj.getContext());\r\n" +
+			"\t\t\tVWMLObject linkedEntity = processLinkedEntity(obj);\r\n" +
 			"\t\t\tif (obj.isMarkedAsLifeTerm()) {\r\n" +
 			"\t\t\t\t((VWMLEntity)linkedEntity).setLifeTerm(true);\r\n" +
 			"\t\t\t\taddLifeTerm((VWMLEntity)linkedEntity);\r\n" +
@@ -163,29 +161,15 @@ public final class JavaCodeGeneratorTemplates {
 	"\tprotected void buildInterpretingAssociation() throws Exception {\r\n" +
 		"\t\tfor(VWMLLinkWrap obj : interpretedObjectPairs) {\r\n" +
 			"\t\t\tVWMLEntity entity = (VWMLEntity)getEntityById(obj.getId(), obj.getContext());\r\n" +
-			"\t\t\tVWMLEntity linkedEntity = (VWMLEntity)getEntityById(obj.getLinkedId(), obj.getContext());\r\n" +
+			"\t\t\tVWMLEntity linkedEntity = (VWMLEntity)processLinkedEntity(obj);\r\n" +
 			"\t\t\tentity.setInterpreting(linkedEntity);\r\n" +
 		"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n" +
-	"\tprotected void buildOperationsAssociation() throws Exception {\r\n" +
-	"\t\tfor(Object id : appliedOperations.keySet()) {\r\n" +
-	"\t\t\tVWMLOperationLink link = appliedOperations.get(id);\r\n" +
-	"\t\t\tObject linkedUniqId = link.getLinkId();\r\n" +
-	"\t\t\tObject entityId = null;\r\n" +
-	"\t\t\tString context = null;\r\n" +
-	"\t\t\tVWMLLinkWrap[] linkedPairs = (link.getRel() == VWMLOperationLink.REL.LINK) ? linkedObjectPairs : interpretedObjectPairs;\r\n" +
-	"\t\t\tfor(VWMLLinkWrap obj : linkedPairs) {\r\n" +
-	"\t\t\t\tif (obj.getUniqId().equals(linkedUniqId)) {\r\n" +
-	"\t\t\t\t\tentityId = obj.getLinkedId();\r\n" +
-	"\t\t\t\t\tcontext = obj.getContext();\r\n" +
-	"\t\t\t\t\tif (!obj.isMarkedAsTerm()) {\r\n" +
-	"\t\t\t\t\t\tthrow new Exception(\"linking association should be marked as TERM; obj '\" + obj + \"'; entity '\" + entityId + \"'\");\r\n" +
-	"\t\t\t\t\t}\r\n" + 
-	"\t\t\t\t\tbreak;\r\n" +
-	"\t\t\t\t}\r\n" +
-	"\t\t\t}\r\n" +
+	"\tprotected void buildOperationsAssociationFor(VWMLEntity entity, Object uniqId, String context) throws Exception {\r\n" +
+	"\t\tVWMLOperationLink link = appliedOperations.get(uniqId);\r\n" +
+	"\t\tif (link != null) {\r\n" +
+	"\t\t\tentity = (VWMLEntity)VWMLObjectsRepository.instance().get(uniqId, \"\");\r\n" +
 	"\t\t\tString[] ops = link.getAssociatedOperations();\r\n" +
-	"\t\t\tVWMLEntity entity = (VWMLEntity)getEntityById(entityId, context);\r\n" +
 	"\t\t\tfor(String op : ops) {\r\n" +
 	"\t\t\t\tVWMLOperationsCode opCode = VWMLOperationsCode.fromValue(op);\r\n" +
 	"\t\t\t\tif (opCode == VWMLOperationsCode.OPNOP) {\r\n" +
@@ -204,6 +188,23 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t\t}\r\n" +	
 	"\t\t}\r\n" +
 	"\t\treturn entity;\r\n" +
+	"\t}\r\n\r\n" +
+	"\tprivate VWMLObject getTermById(Object id, Object termId, String context) throws Exception {\r\n" +
+	"\t\tVWMLEntity e = (VWMLEntity)getEntityById(id, context);\r\n" +
+	"\t\tVWMLTerm term = (VWMLTerm)VWMLObjectsRepository.acquire(VWMLObjectType.TERM, termId, context, e.getInterpretationHistorySize(), e.getLink().getLinkOperationVisitor());\r\n" +
+	"\t\tterm.setAssociatedEntity(e);\r\n" +
+	"\t\treturn term;\r\n" +
+	"\t}\r\n\r\n" +
+	"\tprivate VWMLObject processLinkedEntity(VWMLLinkWrap obj) throws Exception {\r\n" +
+	"\t\tVWMLObject linkedEntity = null;\r\n" +
+	"\t\tif (obj.isMarkedAsTerm()) {\r\n" +
+	"\t\t\tlinkedEntity = getTermById(obj.getLinkedId(), obj.getUniqId(), obj.getContext());\r\n" +
+	"\t\t\tbuildOperationsAssociationFor((VWMLEntity)linkedEntity, obj.getUniqId(), obj.getContext());\r\n" +
+	"\t\t}\r\n" +
+	"\t\telse {\r\n" +
+	"\t\t\tlinkedEntity = getEntityById(obj.getLinkedId(), obj.getContext());\r\n" +
+	"\t\t}\r\n" +
+	"\t\treturn linkedEntity;\r\n" +
 	"\t}\r\n\r\n";
 	
 	public static String s_VWMLModuleMethods = "" +

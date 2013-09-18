@@ -1,8 +1,9 @@
-package com.vw.lang.sink.java.operations.processor.operations.handlers;
+package com.vw.lang.sink.java.operations.processor.operations.handlers.random;
 
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -19,8 +20,8 @@ import com.vw.lang.sink.utils.GeneralUtils;
 public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 
 	@Override
-	public void handle(VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
-		VWMLEntity parentEntity = (VWMLEntity)stack.peek();
+	public VWMLEntity handle(VWMLEntity parentEntity, VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
+		parentEntity = (VWMLEntity)stack.pop();
 		if (parentEntity == null) {
 			throw new Exception("trying to execute 'RANDOM' operation on empty stack");
 		}
@@ -28,8 +29,6 @@ public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 			throw new Exception("trying to execute 'RANDOM' on simple entity; execution is possible only on complex entity");
 		}
 		IVWMLLinkVisitor visitor = parentEntity.getLink().getLinkOperationVisitor();
-		// pops current entity from top of stack
-		stack.pop();
 		// 'RANDOM' operation should return entity's number which is going to be extracted from complex entity
 		int linkedObjs = parentEntity.getLink().getLinkedObjectsOnThisTime();
 		// this entity is extracted and pushed to stack
@@ -45,7 +44,7 @@ public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 															   parentEntity.getInterpretationHistorySize(),
 															   visitor);
 		}
-		// push result entity to stack - finishing 'RANDOM' operation
 		stack.push(entity);
+		return entity;
 	}
 }

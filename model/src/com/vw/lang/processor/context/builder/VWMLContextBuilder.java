@@ -7,9 +7,10 @@ public class VWMLContextBuilder {
 
 		private String context = "";
 		
-		public void inspected(Object obj) {
+		public boolean inspected(Object obj) {
 			String s = "." + obj + context;
 			context = s;
+			return true;
 		}
 
 		public String getContext() {

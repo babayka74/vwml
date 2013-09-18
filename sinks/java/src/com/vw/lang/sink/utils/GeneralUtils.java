@@ -82,7 +82,7 @@ public class GeneralUtils {
 		if (lr == rr) {
 			return lr;
 		}
-		return 0;
+		return lr + (int)(Math.random() * ((rr - lr)));
 	}
 	
 	/**

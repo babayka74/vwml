@@ -75,7 +75,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			// builds {unit, functional}-test source files
 			new VWML2JavaModulesTestInitialStateBuilder().build();
-			new VWML2JavaModulesTestDynamicStateBuilder().build();
+			new VWML2JavaModulesTestDynamicStateBuilder().build((JavaModuleStartProps)props);
 			// compiles and runs maven as test
 			new CompileStep().step(stepProcessor, codeGeneratorName, props);
 			((VWML2JavaSpecificSteps)stepProcessor).runMavenAsTest(codeGeneratorName, props);

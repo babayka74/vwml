@@ -48,11 +48,11 @@ public class VWMLLinkIncrementalIterator {
 	
 	protected void checkPointer() {
 		if (size != 0 && it >= size) {
-			it = -1;
+			it = s_not_correct_mark_value;
 		}
 		else
 		if (size != 0 && it < 0) {
-			it = -1;
+			it = s_not_correct_mark_value;
 		}
 	}
 }

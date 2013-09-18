@@ -13,6 +13,7 @@ import com.vw.lang.sink.java.operations.VWMLOperations;
 public class VWMLEntity extends VWMLObject {
 
 	public static final String s_NilEntityId = "nil";
+	public static final String s_EmptyEntityId = "()";
 	
 	// this entity is interpreted as another entity/term
 	private VWMLEntity interpreting;
@@ -81,6 +82,18 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public VWMLOperation getOperation(VWMLLinkIncrementalIterator it) {
 		return associatedOperations.peekOperation(it);
+	}
+	
+	/**
+	 * Returns instance of iterator of container of operations objects
+	 * @return
+	 */
+	public VWMLLinkIncrementalIterator acquireOperationsIterator() {
+		VWMLLinkIncrementalIterator it = null;
+		if (associatedOperations.operations() != 0) {
+			it = new VWMLLinkIncrementalIterator(associatedOperations.operations());
+		}
+		return it;
 	}
 	
 	public boolean isLifeTerm() {

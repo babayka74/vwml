@@ -102,7 +102,8 @@ package com.vw.lang.grammar;
 	private VWMLContextBuilder vwmlContextBuilder = VWMLContextBuilder.instance();
 	private ICodeGenerator codeGenerator = null;
 	private StartModuleProps modProps = null;
-	private ComplexEntityNameBuilder complexEntityNameBuilder = ComplexEntityNameBuilder.instance();
+	private ComplexEntityNameBuilder complexEntityNameBuilderDecl = ComplexEntityNameBuilder.instance();
+	private ComplexEntityNameBuilder complexEntityNameBuilderDef = ComplexEntityNameBuilder.instance();
 	private EntityWalker entityWalker = EntityWalker.instance();
 	private EntityWalker.Relation lastProcessedEntity = null;
 	private boolean lastProcessedEntityAsTerm = false;
@@ -466,17 +467,17 @@ term_def
 entity_decl returns [String id]
     : simple_entity_decl  {id = $simple_entity_decl.id;}
     | '(' {
-    	    	complexEntityNameBuilder.startProgress();
+    	    	complexEntityNameBuilderDecl.startProgress();
 	    	if (logger.isDebugEnabled()) {
 	    		logger.debug("complex entity declaration process - started");
 	    	}
           }  complex_entity_decl ')' {
-              				id = complexEntityNameBuilder.build();
-              				complexEntityNameBuilder.clear();
+              				id = complexEntityNameBuilderDecl.build();
+              				complexEntityNameBuilderDecl.clear();
 				    	try {
 				    		String context = vwmlContextBuilder.buildContext();
 				    		if (codeGenerator != null) {
-				    			codeGenerator.declareComplexEntity(id, context);
+				    			codeGenerator.declareComplexEntity(id, null, context);
 				    		}    	
 				    		if (logger.isDebugEnabled()) {
 				    			logger.debug("complex entity '" + id + "' is declared; context '" + context + "'");
@@ -497,11 +498,11 @@ simple_entity_decl returns [String id]
     : ID {
     		id = $ID.getText();
     		// means that complex entity's name is being built
-    		if (complexEntityNameBuilder.isInProgress()) {
+    		if (complexEntityNameBuilderDecl.isInProgress()) {
     		        if (logger.isDebugEnabled()) {
     		        	logger.debug("simple entity '" + id + "' is added as part of complex entity");
     		        }
-    			complexEntityNameBuilder.addObjectId(id);
+    			complexEntityNameBuilderDecl.addObjectId(id);
     		}
     		else {
     			try {
@@ -522,7 +523,7 @@ simple_entity_decl returns [String id]
     
 complex_entity_decl
     @after {
-    	complexEntityNameBuilder.stopProgress();
+    	complexEntityNameBuilderDecl.stopProgress();
     }
     : (compound_entity_decl)+
     ;
@@ -544,6 +545,9 @@ syncronization_entity returns [EntityWalker.Relation rel]
 
 simple_entity returns [EntityWalker.Relation rel]
     : ID {
+    		if (complexEntityNameBuilderDef.isInProgress()) {
+    			complexEntityNameBuilderDef.addObjectId($ID.text);
+    		}
    		rel = buildRelation($ID.text);
     		if (logger.isDebugEnabled()) {
     			logger.debug("processed simple entity '" + rel + "'");
@@ -554,11 +558,12 @@ simple_entity returns [EntityWalker.Relation rel]
 complex_entity returns [EntityWalker.Relation rel]
     @init {
     	// id and name is the same
-    	String ceId = ComplexEntityNameBuilder.generateRandomName();
+    	complexEntityNameBuilderDef.startProgress();
+    	String ceId = complexEntityNameBuilderDecl.generateRandomName();
     	try {
     		if (codeGenerator != null) {
     			// no need context to be generated for dynamic complex entities since they have already have uniq name
-    			codeGenerator.declareComplexEntity(ceId, "");
+    			codeGenerator.declareComplexEntity(ceId, null, "");
     		}
     	}
     	catch(Exception e) {
@@ -572,6 +577,10 @@ complex_entity returns [EntityWalker.Relation rel]
    	}    	
     }
     @after {
+    	// builds complex entity readable name instead of generated
+    	complexEntityNameBuilderDef.stopProgress();
+        ceId = complexEntityNameBuilderDef.build();
+        complexEntityNameBuilderDef.clear();
         // remove it from stack
     	rel = (EntityWalker.Relation)entityWalker.pop();
     	if (logger.isDebugEnabled()) {

@@ -3,15 +3,17 @@ package com.vw.lang.sink.java.operations.processor;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
-import com.vw.lang.sink.java.operations.processor.operations.handlers.VWMLOperationCreateExprHandler;
-import com.vw.lang.sink.java.operations.processor.operations.handlers.VWMLOperationExeHandler;
-import com.vw.lang.sink.java.operations.processor.operations.handlers.VWMLOperationInterpretHandler;
-import com.vw.lang.sink.java.operations.processor.operations.handlers.VWMLOperationRandomHandler;
-import com.vw.lang.sink.java.operations.processor.operations.handlers.VWMLOperationUnknownOperationHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOperationExeHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.interpret.VWMLOperationInterpretHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
 /**
  * Defines logic of executing operations
@@ -48,16 +50,17 @@ public class VWMLOperationProcessor {
 	
 	/**
 	 * Processes incoming command
+	 * @param interpreter
 	 * @param linkage
 	 * @param stack
 	 * @param operation
 	 * @throws Exception
 	 */
-	public void processOperation(VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
+	public VWMLEntity processOperation(VWMLEntity entity, VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
 		VWMLOperationHandler handler = s_processorMap.get(operation);
 		if (handler == null) {
 			handler = unknownOperationHandler;
 		}
-		handler.handle(linkage, stack, operation);
+		return handler.handle(entity, interpreter, linkage, stack, operation);
 	}
 }

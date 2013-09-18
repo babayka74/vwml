@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
+import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
-import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
 
 /**
  * Interprets single threaded term only
@@ -23,7 +23,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	}
 	
 	private VWMLSingleTermInterpreter(VWMLLinkage linkage, VWMLEntity term) {
-		setTerms(new ArrayList<VWMLEntity>());
+		setTerm(term);
 		setLinkage(linkage);
 	}
 
@@ -60,7 +60,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			throw new Exception("term should be set before method is called");
 		}
 		VWMLEntity entity = getTerms().get(0);
-		startOnExistedStack(getLinkage(), getStack(), entity);
+		activateComplexInterpretationProcess(getLinkage(), getStack(), entity);
 	}
 	
 	/**
@@ -68,27 +68,46 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @param stack
 	 * @throws Exception
 	 */
-	public void startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
+	public VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
 		VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
-		// iterate through linked object
-		for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
-			// check relation type; if it has IAS relation than we don't add it. (IAS relation isn't term - it is interpreting expression)
-			if (le.getInterpreting() != null) {
-				// IAS relation is interpreted by executing operation '~'
-				continue;
-			}
-			// put it to stack
-			stack.push(le);			
-			if (le.isTerm()) { // means that entity has operations which should be executed on top of stack
-				// executes operations and serves stack
-				VWMLLinkIncrementalIterator itOps = entity.getLink().acquireLinkedObjectsIterator();
-				// executes set of operations on stack; all operations are performed on top of stack
-				for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
-					// actually calls handle to process operation
-					handleOperation(linkage, stack, op);
+		// check if entity has at least one term
+		if (!isEntityListOfTerms(entity, it)) {
+			// simple pushes entity to stack, no operations performed
+			activateSimpleInterpretationProcess(entity, linkage, stack);
+			return entity;
+		}
+		// iterate through linked object, if exist
+		if (it != null) { // complex entity is interpreted
+			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
+				if (le.isTerm() && ((VWMLTerm)le).getAssociatedEntity() != null) {
+					activateComplexInterpretationProcess(linkage, getStack(), le);
+				}
+				else {
+					activateSimpleInterpretationProcess(le, linkage, stack);
 				}
 			}
 		}
+		else {
+			activateComplexInterpretationProcess(linkage, stack, entity);
+		}
+		return entity;
+	}
+
+	public void termInterpretation(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+		if (le.isTerm()) { // means that entity has operations which should be executed on top of stack
+			// executes operations and serves stack
+			VWMLLinkIncrementalIterator itOps = le.acquireOperationsIterator();
+			// executes set of operations on stack; all operations are performed on top of stack
+			for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
+				// actually calls handle to process operation
+				handleOperation(null, linkage, stack, op);
+			}
+		}
+	}
+
+	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+		startOnExistedStack(linkage, stack, ((VWMLTerm)le).getAssociatedEntity());
+		termInterpretation(linkage, stack, le);
 	}
 	
 	/**
@@ -98,8 +117,43 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @param op
 	 * @throws Exception
 	 */
-	protected void handleOperation(VWMLLinkage linkage, VWMLStack stack, VWMLOperation op) throws Exception {
+	protected VWMLEntity handleOperation(VWMLEntity entity, VWMLLinkage linkage, VWMLStack stack, VWMLOperation op) throws Exception {
 		// processor de-multiplexes this call
-		getProcessor().processOperation(linkage, stack, op);
+		return getProcessor().processOperation(entity, this, linkage, stack, op);
+	}
+	
+	private void activateSimpleInterpretationProcess(VWMLEntity le, VWMLLinkage linkage, VWMLStack stack) throws Exception {
+		if (le.isTerm() && ((VWMLTerm)le).getAssociatedEntity() != null) {
+			termInterpretation(linkage, stack, le);
+		}
+		else {
+			// adds non-term to stack
+			stack.push(le);
+		}
+	}	
+	
+	private boolean isEntityListOfTerms(VWMLEntity entity, VWMLLinkIncrementalIterator it) {
+		if (entity.isTerm()) {
+			return true;
+		}
+		boolean termFound = false, resetItAfter = false;
+		if (it == null) {
+			it = entity.getLink().acquireLinkedObjectsIterator();
+		}
+		else {
+			resetItAfter = true;
+		}
+		if (it != null) {
+			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
+				if (le.isTerm()) {
+					termFound = true;
+					break;
+				}
+			}
+		}
+		if (resetItAfter) {
+			it.setIt(0);
+		}
+		return termFound;
 	}
 }

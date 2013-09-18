@@ -99,7 +99,11 @@ public class VWMLLink {
 	 * @return
 	 */
 	public VWMLLinkIncrementalIterator acquireLinkedObjectsIterator() {
-		return new VWMLLinkIncrementalIterator(getLinkedObjects().size());
+		VWMLLinkIncrementalIterator it = null;
+		if (getLinkedObjects().size() != 0) {
+			it = new VWMLLinkIncrementalIterator(getLinkedObjects().size());
+		}
+		return it;
 	}
 	
 	/**

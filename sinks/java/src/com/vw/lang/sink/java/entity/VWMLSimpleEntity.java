@@ -15,4 +15,11 @@ public class VWMLSimpleEntity extends VWMLEntity {
 		super(id, readableId);
 	}
 	
+	@Override
+	public String buildReadableId() {
+		if (getReadableId() == null) {
+			setReadableId((String)getId());
+		}
+		return getReadableId();
+	}
 }

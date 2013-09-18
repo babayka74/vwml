@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.VWMLLinkWrap;
@@ -15,6 +16,7 @@ import com.vw.lang.sink.java.code.JavaCodeGeneratorComponent;
 import com.vw.lang.sink.java.code.templates.JavaCodeGeneratorTemplates;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyComplexEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsNilEntityInterpretationStrategy;
@@ -60,7 +62,9 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		String linkageImports[] = {
 				"java.util.HashMap",
 				"java.util.Map",
+				"com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType",
 				VWMLEntity.class.getName(),
+				VWMLTerm.class.getName(),
 				VWMLOperationsCode.class.getName(),
 				VWMLOperation.class.getName(),
 				VWMLLinkage.class.getName(),

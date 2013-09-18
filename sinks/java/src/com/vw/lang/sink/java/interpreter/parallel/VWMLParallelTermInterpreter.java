@@ -44,9 +44,9 @@ public class VWMLParallelTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	@Override
-	public void startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
+	public VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
 		// TODO Auto-generated method stub
-
+		return entity;
 	}
 
 }

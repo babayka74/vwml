@@ -122,13 +122,20 @@ public interface ICodeGenerator {
 	public void declareSimpleEntity(Object id, String context) throws Exception;
 	
 	/**
-	 * Declares complex entity
-	 * @param id
+	 * Declares complex entity; the object id is compound object; consists from set of simple entity ids
+	 * @param id (ID)
+	 * @param readableId (ID)
 	 * @param context
 	 * @throws Exception
 	 */
-	public void declareComplexEntity(Object id, String context) throws Exception;
+	public void declareComplexEntity(Object id, Object readableId, String context) throws Exception;
 	
+	/**
+	 * Changes object's id from 'id' to 'idTo'
+	 * @param id
+	 * @param idTo
+	 */
+	public void changeObjectIdTo(Object id, Object idTo);	
 	/**
 	 * Declares term
 	 * @param id

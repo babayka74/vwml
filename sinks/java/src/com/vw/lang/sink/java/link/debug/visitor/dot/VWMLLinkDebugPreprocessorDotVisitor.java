@@ -53,7 +53,7 @@ public class VWMLLinkDebugPreprocessorDotVisitor implements IVWMLLinkVisitor {
 	@Override
 	public void link(VWMLObject obj, VWMLObject objLinked) {
 		try {
-			fw.write("\"" + obj.getId().toString() + "\"" + " -- " + "\"" + objLinked.getId().toString() + "\"" + ";\r\n");
+			if (fw != null) fw.write("\"" + obj.getId().toString() + "\"" + " -- " + "\"" + objLinked.getId().toString() + "\"" + ";\r\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -66,7 +66,7 @@ public class VWMLLinkDebugPreprocessorDotVisitor implements IVWMLLinkVisitor {
 	@Override
 	public void interpretObjectAs(VWMLObject obj, VWMLObject interpreting) {
 		try {
-			fw.write("\"" + obj.getId() + "\" -- \"" + interpreting.getId() + "\"[style=dotted];\r\n");
+			if (fw != null) fw.write("\"" + obj.getId() + "\" -- \"" + interpreting.getId() + "\"[style=dotted];\r\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

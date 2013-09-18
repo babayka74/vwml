@@ -38,7 +38,7 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 	 * @param modules
 	 * @return
 	 */
-	public static IVWMLInterpreter instance(VWMLModule[] modules, VWMLPair[] propPairs) throws Exception {
+	public static IVWMLInterpreter instance(VWMLModule[] modules, VWMLPair[] propPairs) {
 		VWMLInterpreter in = new VWMLInterpreter();
 		in.setModules(modules);
 		in.setPropPairs(propPairs);
@@ -103,7 +103,7 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 		return module.getLinkage().getModLifeTerms();
 	}
 	
-	protected void prepareConfiguration() throws Exception {
+	protected void prepareConfiguration() {
 		VWMLPair p = null;
 		if (getPropPairs() != null) {
 			p = VWMLPairLookUp.lookByName(propPairs, "interpreter.execution.step.delay");
@@ -118,22 +118,26 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 	}
 
 	protected VWMLIterpreterImpl getConcreteInterpreterAccordingToConfiguration(VWMLLinkage linkage, List<VWMLEntity> terms) {
+		VWMLIterpreterImpl impl = null;
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE) {
-			return VWMLSingleTermInterpreter.instance(linkage, terms.get(0));
+			impl = VWMLSingleTermInterpreter.instance(linkage, terms.get(0));
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE_SEQUENTIAL) {
-			return VWMLSequentialTermInterpreter.instance(linkage, terms);
+			impl = VWMLSequentialTermInterpreter.instance(linkage, terms);
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.REACTIVE) {
-			return VWMLReactiveTermInterpreter.instance(linkage, terms);
+			impl = VWMLReactiveTermInterpreter.instance(linkage, terms);
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
-			return VWMLParallelTermInterpreter.instance(linkage, terms);
+			impl = VWMLParallelTermInterpreter.instance(linkage, terms);
 		}
-		return null;
+		if (impl != null) {
+			impl.setConfig(config);
+		}
+		return impl;
 	}
 	
 	protected VWMLLinkage getMainLinkage() {

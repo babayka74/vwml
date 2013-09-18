@@ -44,9 +44,9 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	@Override
-	public void startOnExistedStack(VWMLLinkage linkage, VWMLStack stack,
+	public VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack,
 			VWMLEntity entity) throws Exception {
 		// TODO Auto-generated method stub
-
+		return entity;
 	}
 }

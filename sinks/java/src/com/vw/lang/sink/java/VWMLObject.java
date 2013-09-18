@@ -133,6 +133,11 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	public String getOriginalContext() {
 		return originalContext;
 	}
+	
+	public String buildReadableId() {
+		setReadableId(null);
+		return getReadableId();
+	}
 
 	@Override
 	public String toString() {
@@ -146,5 +151,5 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 			r = getId().toString().compareTo(o.getId().toString());
 		}
 		return r;
-	}	
+	}
 }

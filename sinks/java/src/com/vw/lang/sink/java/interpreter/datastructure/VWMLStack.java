@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.interpreter.datastructure;
 
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.utils.Stack;
 
 /**
@@ -10,6 +11,8 @@ import com.vw.lang.utils.Stack;
  */
 public class VWMLStack {
 	
+	public static String s_specialMark = "__empty__entity__";
+	
 	/**
 	 * Usually is used by caller in case if stack's content should be inspected
 	 * @author ogibayev
@@ -18,8 +21,8 @@ public class VWMLStack {
 	public static class VWMLStackInspector extends Stack.Inspector {
 		
 		@Override
-		public void inspected(Object obj) {
-			
+		public boolean inspected(Object obj) {
+			return true;
 		}
 	}
 	
@@ -67,5 +70,22 @@ public class VWMLStack {
 	 */
 	public void inspect(VWMLStack.VWMLStackInspector inspector) {
 		stack.inspect(inspector);
+	}
+	
+	public void pushEmptyMark() {
+		stack.push(new VWMLEntity(s_specialMark, null));
+	}
+	
+	public boolean popEmptyMark() {
+		VWMLObject o = pop();
+		return (o != null && o.getId() != s_specialMark);
+	}
+	
+	public void popUntilEmptyMark() {
+		VWMLObject o = peek();
+		while (o != null && o.getId() != s_specialMark) {
+			pop();
+			o = peek();
+		}
 	}
 }

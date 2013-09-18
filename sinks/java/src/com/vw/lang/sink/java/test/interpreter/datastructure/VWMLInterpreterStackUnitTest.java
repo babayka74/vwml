@@ -15,10 +15,11 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 public class VWMLInterpreterStackUnitTest {
 
 	public static class StackInspectorTest extends VWMLStack.VWMLStackInspector {
-		public void inspected(Object obj) {
+		public boolean inspected(Object obj) {
 			VWMLObject o = (VWMLObject)obj;
 			Assert.assertNotNull(obj);
 			System.out.println("inspected object '" + o + "'");
+			return true;
 		}
 	}
 	
