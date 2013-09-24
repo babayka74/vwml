@@ -1,10 +1,9 @@
 package com.vw.lang.sink.java.link.debug.visitor.dot;
 
-import java.io.FileWriter;
-import java.io.IOException;
-
 import com.vw.lang.sink.java.VWMLObject;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.debug.visitor.dot.phase.build.VWMLLinkDebugPreprocessorDotVisitorPhaseBuild;
+import com.vw.lang.sink.java.link.debug.visitor.dot.phase.runtime.VWMLLinkDebugPreprocessorDotVisitorPhaseRuntime;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 
 /**
@@ -12,78 +11,53 @@ import com.vw.lang.sink.java.operations.VWMLOperation;
  * @author ogibayev
  *
  */
-public class VWMLLinkDebugPreprocessorDotVisitor implements IVWMLLinkVisitor {
+public class VWMLLinkDebugPreprocessorDotVisitor extends AbstractVWMLLinkVisitor {
 
-	private FileWriter fw = null;
+	private AbstractVWMLLinkVisitor phases[] = 	{
+													VWMLLinkDebugPreprocessorDotVisitorPhaseBuild.instance(),
+													VWMLLinkDebugPreprocessorDotVisitorPhaseRuntime.instance()
+												};
 	
 	private VWMLLinkDebugPreprocessorDotVisitor() {
 		
 	}
 	
-	public static IVWMLLinkVisitor instance() {
+	public static AbstractVWMLLinkVisitor instance() {
 		return new VWMLLinkDebugPreprocessorDotVisitor();
 	}
 	
 	@Override
 	public void init(String schemaName, String schemaPath) {
-		try {
-			fw = new FileWriter(schemaPath);
-			fw.write("graph " + schemaName + " {\r\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		phases[getPhase()].init(schemaName, schemaPath);
 	}
 
 	@Override
 	public void done(String schemaName) {
-		if (fw != null) {
-			try {
-				fw.write("}\r\n");
-				fw.flush();
-				fw.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			finally {
-				fw = null;
-			}
-		}
+		phases[getPhase()].done(schemaName);
 	}
 
 	@Override
 	public void link(VWMLObject obj, VWMLObject objLinked) {
-		try {
-			if (fw != null) fw.write("\"" + obj.getId().toString() + "\"" + " -- " + "\"" + objLinked.getId().toString() + "\"" + ";\r\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		phases[getPhase()].link(obj, objLinked);	
 	}
 
 	@Override
 	public void unlink(VWMLObject obj, VWMLObject objUnlinked) {
+		phases[getPhase()].unlink(obj, objUnlinked);
 	}
 
 	@Override
 	public void interpretObjectAs(VWMLObject obj, VWMLObject interpreting) {
-		try {
-			if (fw != null) fw.write("\"" + obj.getId() + "\" -- \"" + interpreting.getId() + "\"[style=dotted];\r\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		phases[getPhase()].interpretObjectAs(obj, interpreting);
 	}
 
 	@Override
 	public void associateOperation(VWMLObject obj, VWMLOperation op) {
-	/*	try {
-			fw.write("\"" + obj.getId() + "::" + op.getOpCode().toValue() + "\" [shape=box];");
-			fw.write("\"" + obj.getId() + "\" -- \"" + obj.getId() + "::" + op.getOpCode().toValue() + "\"[style=dotted];\r\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	*/	
+		phases[getPhase()].associateOperation(obj, op);
 	}
 
 	@Override
 	public void removeOperationFromAssociation(VWMLObject obj, VWMLOperation op) {
+		phases[getPhase()].removeOperationFromAssociation(obj, op);
 	}
 }

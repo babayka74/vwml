@@ -62,7 +62,7 @@ import com.vw.lang.sink.utils.EntityWalker;
 import com.vw.lang.sink.utils.GeneralUtils;
 
 // specific code generator
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
@@ -349,7 +349,7 @@ visualizer_body
 visualizer_class
     : 'class' '=' string { 
     				if (modProps != null) {
-    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((IVWMLLinkVisitor)GeneralUtils.instantiateClassThroughStaticMethod(GeneralUtils.trimQuotes($string.text), "instance"));
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((AbstractVWMLLinkVisitor)GeneralUtils.instantiateClassThroughStaticMethod(GeneralUtils.trimQuotes($string.text), "instance"));
     				}
     			 }
     ;

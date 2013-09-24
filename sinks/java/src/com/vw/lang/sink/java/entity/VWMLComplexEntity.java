@@ -41,6 +41,9 @@ public class VWMLComplexEntity extends VWMLEntity {
 			if (le.isMarkedAsComplexEntity()) {
 				assembleReadableId(ce, le);
 			}
+			else {
+				ce.addObjectId(le.getId());
+			}
 		}
 		ce.stopProgress();
 	}

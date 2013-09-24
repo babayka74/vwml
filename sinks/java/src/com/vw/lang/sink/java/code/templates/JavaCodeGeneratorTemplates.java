@@ -9,10 +9,10 @@ package com.vw.lang.sink.java.code.templates;
 public final class JavaCodeGeneratorTemplates {
 	
 	public static String s_VWMLRepositoryCodeTemplate = "" +
-	"\tpublic void setPreprocessorStructureVisualizer(IVWMLLinkVisitor preprocessorStructureVisualizer) {\r\n" +
+	"\tpublic void setPreprocessorStructureVisualizer(AbstractVWMLLinkVisitor preprocessorStructureVisualizer) {\r\n" +
 		"\t\tthis.preprocessorStructureVisualizer = preprocessorStructureVisualizer;\r\n" +
 	"\t}\r\n\r\n" +
-	"\tpublic IVWMLLinkVisitor getPreprocessorStructureVisualizer() {\r\n" +
+	"\tpublic AbstractVWMLLinkVisitor getPreprocessorStructureVisualizer() {\r\n" +
 	"\t\treturn this.preprocessorStructureVisualizer;\r\n" +
 	"\t}\r\n\r\n";
 	
@@ -113,10 +113,10 @@ public final class JavaCodeGeneratorTemplates {
 	"\t}\r\n\r\n";
 
 	public static String s_VWMLLinkageCodeTemplate = "" +
-	"\tpublic void setPreprocessorStructureVisualizer(IVWMLLinkVisitor preprocessorStructureVisualizer) {\r\n" +
+	"\tpublic void setPreprocessorStructureVisualizer(AbstractVWMLLinkVisitor preprocessorStructureVisualizer) {\r\n" +
 	"\t\tthis.preprocessorStructureVisualizer = preprocessorStructureVisualizer;\r\n" +
 	"\t}\r\n\r\n" +
-	"\tpublic IVWMLLinkVisitor getPreprocessorStructureVisualizer() {\r\n" +
+	"\tpublic AbstractVWMLLinkVisitor getPreprocessorStructureVisualizer() {\r\n" +
 	"\t\treturn this.preprocessorStructureVisualizer;\r\n" +
 	"\t}\r\n\r\n" +
 	"\tpublic InterpretationOfUndefinedEntityStrategyId getUndefinedEntityInterpretationStrategyId() {\r\n" +

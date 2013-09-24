@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
 /**
@@ -18,7 +18,7 @@ public class UndefinedEntityAsEntityInterpretationStrategy extends UndefinedEnti
 	private Logger logger = Logger.getLogger(UndefinedEntityAsEntityInterpretationStrategy.class);
 	
 	@Override
-	public VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
+	public VWMLObject process(String context, Object id, AbstractVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		// adds undefined entity to repository 
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
 									  context, linkage.getEntityHistorySize(), visitor);

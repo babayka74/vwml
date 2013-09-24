@@ -41,7 +41,7 @@ public class VWMLLinkage {
 	 * Overridden by module's linkage
 	 * @return
 	 */
-	public IVWMLLinkVisitor getPreprocessorStructureVisualizer() {
+	public AbstractVWMLLinkVisitor getPreprocessorStructureVisualizer() {
 		return null;
 	}
 	

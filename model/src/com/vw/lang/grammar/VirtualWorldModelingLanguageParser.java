@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-09-18 13:56:52
+// $ANTLR 3.4 C:\\Users\\ogibayev\\projects\\vw\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-09-24 09:01:27
 
 package com.vw.lang.grammar;
 
@@ -18,7 +18,7 @@ import com.vw.lang.sink.utils.EntityWalker;
 import com.vw.lang.sink.utils.GeneralUtils;
 
 // specific code generator
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
@@ -1281,7 +1281,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
             if ( state.backtracking==0 ) { 
                 				if (modProps != null) {
-                					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((IVWMLLinkVisitor)GeneralUtils.instantiateClassThroughStaticMethod(GeneralUtils.trimQuotes((string9!=null?input.toString(string9.start,string9.stop):null)), "instance"));
+                					((JavaCodeGenerator.JavaModuleStartProps)modProps).setVisitor((AbstractVWMLLinkVisitor)GeneralUtils.instantiateClassThroughStaticMethod(GeneralUtils.trimQuotes((string9!=null?input.toString(string9.start,string9.stop):null)), "instance"));
                 				}
                 			 }
 

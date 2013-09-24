@@ -1,6 +1,6 @@
 package com.vw.lang.sink;
 
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
  * Root class for all code generators
@@ -172,13 +172,13 @@ public interface ICodeGenerator {
 	 * Returns associated visitor; see {@link setVisitor}
 	 * @return
 	 */
-	public IVWMLLinkVisitor getVisitor();
+	public AbstractVWMLLinkVisitor getVisitor();
 
 	/**
 	 * Associates visitor with code generator
 	 * @param visitor
 	 */
-	public void setVisitor(IVWMLLinkVisitor visitor);
+	public void setVisitor(AbstractVWMLLinkVisitor visitor);
 	
 	/**
 	 * Returns language's name as string

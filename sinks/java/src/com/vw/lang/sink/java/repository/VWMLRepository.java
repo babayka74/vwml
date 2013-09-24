@@ -1,6 +1,6 @@
 package com.vw.lang.sink.java.repository;
 
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
  * Root class for all module's repositories
@@ -13,7 +13,7 @@ public class VWMLRepository {
 	 * Overridden by concrete repository; returns structure visualizer
 	 * @return
 	 */
-	public IVWMLLinkVisitor getPreprocessorStructureVisualizer() {
+	public AbstractVWMLLinkVisitor getPreprocessorStructureVisualizer() {
 		return null;
 	}
 }

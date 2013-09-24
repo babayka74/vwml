@@ -6,7 +6,7 @@ import java.util.Map;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLSimpleEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
  * Simple VWML's object builder
@@ -50,7 +50,7 @@ public class VWMLObjectBuilder {
 	
 	public static abstract class Builder {
 		
-		public VWMLObject objectBuilder(Object id, String context, Integer entityHistorySize, IVWMLLinkVisitor visitor) {
+		public VWMLObject objectBuilder(Object id, String context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
 			VWMLObject obj = build(id);
 			obj.setContextPath(context);
 			setInterpretationHistorySize(obj, entityHistorySize);
@@ -63,7 +63,7 @@ public class VWMLObjectBuilder {
 		protected abstract VWMLObject build(Object id);
 		protected abstract void setInterpretationHistorySize(VWMLObject o, int size);
 		
-		protected void addVisitor(VWMLObject obj, IVWMLLinkVisitor visitor) {
+		protected void addVisitor(VWMLObject obj, AbstractVWMLLinkVisitor visitor) {
 			obj.getLink().setLinkOperationVisitor(visitor);
 		}
 	}
@@ -142,7 +142,7 @@ public class VWMLObjectBuilder {
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object id, String context, Integer entityHistorySize, IVWMLLinkVisitor visitor) {
+	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object id, String context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
 		return s_builders.get(builderType).objectBuilder(id, context, entityHistorySize, visitor);
 	}
 }

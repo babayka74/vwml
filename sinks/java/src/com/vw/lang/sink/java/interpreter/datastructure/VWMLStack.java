@@ -26,7 +26,19 @@ public class VWMLStack {
 		}
 	}
 	
+	public static class VWMLInternalStackInspector extends Stack.Inspector {
+		
+		private Stack stack = Stack.instance();
+		
+		@Override
+		public boolean inspected(Object obj) {
+			stack.push(obj);
+			return true;
+		}
+	}
+	
 	private Stack stack = Stack.instance();
+	private Stack internalStack = Stack.instance();
 	
 	private VWMLStack() {
 		
@@ -79,6 +91,22 @@ public class VWMLStack {
 	public boolean popEmptyMark() {
 		VWMLObject o = pop();
 		return (o != null && o.getId() != s_specialMark);
+	}
+	
+	public void consumeEmptyMark() {
+		VWMLObject o = peek();
+		while (o != null && o.getId() != s_specialMark) {
+			internalStack.push(o);
+			pop();
+			o = peek();
+		}
+		if (o != null && o.getId() == s_specialMark) {
+			popEmptyMark();
+		}
+		while(internalStack.peek() != null) {
+			push((VWMLObject)internalStack.peek());
+			internalStack.pop();
+		}
 	}
 	
 	public void popUntilEmptyMark() {

@@ -15,7 +15,7 @@ import com.vw.lang.sink.java.VWMLObject;
 public class VWMLLink {
 	
 	private VWMLObject itself;
-	private IVWMLLinkVisitor linkOperationVisitor = null;
+	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	private List<VWMLObject> linkedObjects = Collections.synchronizedList(new ArrayList<VWMLObject>());
 	
 	public VWMLLink(VWMLObject itself) {
@@ -35,11 +35,11 @@ public class VWMLLink {
 		return linkedObjects;
 	}
 	
-	public IVWMLLinkVisitor getLinkOperationVisitor() {
+	public AbstractVWMLLinkVisitor getLinkOperationVisitor() {
 		return linkOperationVisitor;
 	}
 
-	public void setLinkOperationVisitor(IVWMLLinkVisitor linkOperationVisitor) {
+	public void setLinkOperationVisitor(AbstractVWMLLinkVisitor linkOperationVisitor) {
 		this.linkOperationVisitor = linkOperationVisitor;
 	}
 

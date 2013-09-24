@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 
 /**
@@ -19,6 +19,8 @@ public class VWMLObjectsRepository {
 	private VWMLObjectsRepository() {
 		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_EmptyEntityId, "", 0, null));
 		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, "", 0, null));
+		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
+		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, "", 0, null));
 	}
 
 	// builds association between object's id and its instance
@@ -40,7 +42,7 @@ public class VWMLObjectsRepository {
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, String context, Integer entityHistorySize, IVWMLLinkVisitor visitor) {
+	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, String context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
 		// checks if object has been created before
 		VWMLObject obj = instance().get(id, context);
 		if (obj == null) { // not found in repository...

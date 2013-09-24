@@ -6,7 +6,7 @@ import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
@@ -16,6 +16,10 @@ import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
  */
 public class VWMLOperationUtils {
 
+	public static boolean s_addIfUnknown = true;
+	public static boolean s_dontAddIfUnknown = false;
+	
+	
 	/**
 	 * Generates complex entity from list by adding entities starting from the end of the list; name is random
 	 * @param entities
@@ -29,17 +33,42 @@ public class VWMLOperationUtils {
 			                                                                int fromPos,
 			                                                                String context,
 			                                                                int interpretationHistorySize,
-			                                                                IVWMLLinkVisitor visitor) {
+			                                                                AbstractVWMLLinkVisitor visitor,
+			                                                                boolean addIfUnknown) {
+		VWMLEntity newComplexEntity = null;
 		String cen = ComplexEntityNameBuilder.generateRandomName();
-		VWMLEntity newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
-				 cen,
-				 context,
-				 interpretationHistorySize,
-				 visitor);
-
-		if (entities.size() > 0) {
+		if (entities.size() == 1) {
+			newComplexEntity = entities.get(0);
+		}
+		else
+		if (entities.size() > 1) {
+			newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
+																		 cen,
+																		 context,
+																		 interpretationHistorySize,
+																		 visitor);
+	
 			for(int i = fromPos; i >= 0; i--) {
 				newComplexEntity.getLink().link(entities.get(i));
+			}
+		}
+		else
+		if (entities.size() == 0) {
+			newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
+																		 cen,
+																		 context,
+																		 interpretationHistorySize,
+																		 visitor);
+		}
+		if (addIfUnknown) {
+			String id = newComplexEntity.buildReadableId();
+			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, "");
+			if (lookedEntity != null) {
+				newComplexEntity = lookedEntity;
+			}
+			else {
+				newComplexEntity.setId(id);
+				VWMLObjectsRepository.instance().addConcrete(newComplexEntity, context);
 			}
 		}
 		return newComplexEntity;
@@ -58,7 +87,7 @@ public class VWMLOperationUtils {
 																	          int fromPos,
 																	          String context,
 																	          int interpretationHistorySize,
-																	          IVWMLLinkVisitor visitor) {
+																	          AbstractVWMLLinkVisitor visitor) {
 
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		String id = "";

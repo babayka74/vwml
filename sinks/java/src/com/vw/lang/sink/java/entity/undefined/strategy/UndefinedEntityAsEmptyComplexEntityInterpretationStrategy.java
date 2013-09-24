@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
@@ -19,7 +19,7 @@ public class UndefinedEntityAsEmptyComplexEntityInterpretationStrategy extends U
 	private Logger logger = Logger.getLogger(UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class);
 	
 	@Override
-	public VWMLObject process(String context, Object id, IVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
+	public VWMLObject process(String context, Object id, AbstractVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		// generating 'fake' complex entity
 		String ceName = ComplexEntityNameBuilder.generateEmptyComplexEntity();
 		// adds undefined entity to repository 

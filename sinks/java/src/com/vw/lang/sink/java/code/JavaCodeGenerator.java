@@ -20,7 +20,7 @@ import com.vw.lang.sink.java.code.linkage.JavaCodeGeneratorLinkage;
 import com.vw.lang.sink.java.code.module.JavaCodeGeneratorModule;
 import com.vw.lang.sink.java.code.repository.JavaCodeGeneratorRepository;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.utils.EntityWalker;
 
 /**
@@ -40,7 +40,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private String description;
 		private String entityHistorySize;
 		private String date;
-		private IVWMLLinkVisitor visitor;
+		private AbstractVWMLLinkVisitor visitor;
 		private String visitorDataPath;
 		
 		public JavaModuleStartProps() {
@@ -49,7 +49,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 
 		public JavaModuleStartProps(String srcPath, String commonPackage,
 				String moduleName, String modulePackage, String author, String projectName,
-				String description, String entityHistorySize, String date, IVWMLLinkVisitor visitor,
+				String description, String entityHistorySize, String date, AbstractVWMLLinkVisitor visitor,
 				String visitorDataPath) {
 			super();
 			this.srcPath = srcPath;
@@ -121,11 +121,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.date = date;
 		}
 
-		public IVWMLLinkVisitor getVisitor() {
+		public AbstractVWMLLinkVisitor getVisitor() {
 			return visitor;
 		}
 
-		public void setVisitor(IVWMLLinkVisitor visitor) {
+		public void setVisitor(AbstractVWMLLinkVisitor visitor) {
 			this.visitor = visitor;
 		}
 
@@ -434,7 +434,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	// set of writers, for each file type
 	private FileWriter fws[] = new FileWriter[ModuleFiles.numValues()];
 	// used for debug purposes in order to visualize objects' linkage
-	private IVWMLLinkVisitor visitor = null;
+	private AbstractVWMLLinkVisitor visitor = null;
 	// declared VWML objects (simple entity, complex entity and terms)
 	private List<VWMLObjWrap> declaredObjects = new ArrayList<VWMLObjWrap>();
 	// contains list of entity ids which were marked as 'term'
@@ -743,11 +743,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}
 	
 
-	public IVWMLLinkVisitor getVisitor() {
+	public AbstractVWMLLinkVisitor getVisitor() {
 		return visitor;
 	}
 
-	public void setVisitor(IVWMLLinkVisitor visitor) {
+	public void setVisitor(AbstractVWMLLinkVisitor visitor) {
 		this.visitor = visitor;
 	}
 

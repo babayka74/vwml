@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -10,6 +9,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
+import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 
 /**
  * Handler of 'OPCREATEEXPR' operation
@@ -17,30 +17,10 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
  *
  */
 public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
-	protected static class VWMLOperationCreateExprStackInspector extends VWMLStack.VWMLStackInspector {
-		private List<VWMLEntity> reversedStack = new ArrayList<VWMLEntity>(); 
-		
-		@Override
-		public boolean inspected(Object obj) {
-			if (((VWMLEntity)obj).getId() == VWMLStack.s_specialMark) {
-				return false;
-			}
-			reversedStack.add((VWMLEntity)obj);
-			return true;
-		}
-		
-		public List<VWMLEntity> getReversedStack() {
-			return reversedStack;
-		}
-		
-		public void clear() {
-			reversedStack.clear();
-		}
-	}
 	
 	@Override
-	public VWMLEntity handle(VWMLEntity e, VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
-		VWMLOperationCreateExprStackInspector inspector = new VWMLOperationCreateExprStackInspector();
+	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) { // specific case where only one entity on stack
@@ -58,13 +38,13 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 																											entities.size() - 2,
 																											entity.getOriginalContext(),
 																											entity.getInterpretationHistorySize(),
-																											entity.getLink().getLinkOperationVisitor());
+																											entity.getLink().getLinkOperationVisitor(),
+																											VWMLOperationUtils.s_dontAddIfUnknown);
 			entity.setInterpreting(newComplexEntity);
 		}
 		// clear stack
 		stack.popUntilEmptyMark();
 		entities.clear();
-		return null;
 	}
 
 }

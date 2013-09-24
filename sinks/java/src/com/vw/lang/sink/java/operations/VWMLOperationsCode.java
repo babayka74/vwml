@@ -32,7 +32,9 @@ public enum VWMLOperationsCode {
     OPPROJECTION_7("Projection_7"),
     OPPROJECTION_8("Projection_8"),
     OPPROJECTION_9("Projection_9"),
-    OPNOP("Nop");    
+    OPNOP("Nop"),
+    // special implicit operations
+    OPIMPLICITASSEMBLE("__assemble__");    
     
 	private final String value;
 	

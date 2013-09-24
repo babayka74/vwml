@@ -70,10 +70,18 @@ public abstract class VWMLIterpreterImpl {
 	 */
 	public abstract VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception;
 
-	public void termInterpretation(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+	/**
+	 * Starts term's interpretation process
+	 * @param linkage
+	 * @param stack
+	 * @param le
+	 * @throws Exception
+	 */
+	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}
-	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+
+	protected void termInterpretation(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}
 	

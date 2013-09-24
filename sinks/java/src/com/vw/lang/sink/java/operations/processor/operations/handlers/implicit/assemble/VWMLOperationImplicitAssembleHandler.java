@@ -1,4 +1,4 @@
-package com.vw.lang.sink.java.operations.processor.operations.handlers.exe;
+package com.vw.lang.sink.java.operations.processor.operations.handlers.implicit.assemble;
 
 import java.util.List;
 
@@ -12,36 +12,25 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 
 /**
- * Handler of 'OPEXECUTE' operation
+ * Special types of operations; used by interpreter for internal purposes only
  * @author ogibayev
  *
  */
-public class VWMLOperationExeHandler extends VWMLOperationHandler {
-	
+public class VWMLOperationImplicitAssembleHandler extends VWMLOperationHandler {
+
 	@Override
 	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
-		VWMLEntity entity = null;
-		if (entities.size() == 1) {
-			entity = entities.get(0);
-		}
-		else {
-			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
-																					   entities.size() - 1,
-																					   "",
-																					   0,
-																					   null,
-																					   VWMLOperationUtils.s_addIfUnknown);
-		}
-		entities.clear();
+		VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
+																							  entities.size() - 1,
+																							  "",
+																							  0,
+																							  null,
+																							  VWMLOperationUtils.s_addIfUnknown);
+		inspector.clear();
 		stack.popUntilEmptyMark();
-		if (entity.isTerm() || entity.isMarkedAsComplexEntity()) {
-			interpreter.activateComplexInterpretationProcess(linkage, stack, entity);
-		}
-		else {
-			interpreter.startOnExistedStack(linkage, stack, entity);
-		}
+		stack.push(entity);
 	}
 }

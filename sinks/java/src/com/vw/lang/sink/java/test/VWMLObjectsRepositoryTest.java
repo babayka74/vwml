@@ -7,12 +7,12 @@ import org.junit.Test;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor;
 
 public class VWMLObjectsRepositoryTest {
 
-	private IVWMLLinkVisitor dotPreprocessorDebug = VWMLLinkDebugPreprocessorDotVisitor.instance();
+	private AbstractVWMLLinkVisitor dotPreprocessorDebug = VWMLLinkDebugPreprocessorDotVisitor.instance();
 
 	private static String s_schemaPath = "./output/debug/model/graph/dot";
 	

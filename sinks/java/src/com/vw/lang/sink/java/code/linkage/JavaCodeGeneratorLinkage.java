@@ -7,7 +7,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
-import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.VWMLLinkWrap;
@@ -21,7 +20,7 @@ import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyCom
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsNilEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityStrictInterpretationStrategy;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
@@ -68,7 +67,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 				VWMLOperationsCode.class.getName(),
 				VWMLOperation.class.getName(),
 				VWMLLinkage.class.getName(),
-				IVWMLLinkVisitor.class.getName(),
+				AbstractVWMLLinkVisitor.class.getName(),
 				InterpretationOfUndefinedEntityStrategyId.class.getName(),
 				UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class.getName(),
 				UndefinedEntityAsEntityInterpretationStrategy.class.getName(),
@@ -91,7 +90,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		getFw().write(operation2ObjectsAssociation);
 		String entityMarkedAsTerm = JavaCodeGeneratorUtils.generateObjectsDefinition("entityMarkedAsTerms", markedAsTerm);
 		getFw().write(entityMarkedAsTerm);
-		getFw().write("\tprivate IVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
+		getFw().write("\tprivate AbstractVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
 		// defined strategy for undefined entity
 		getFw().write(generateDeclarationsFromInterpretationProps(modProps) + "\r\n");
 		// and entity's history size

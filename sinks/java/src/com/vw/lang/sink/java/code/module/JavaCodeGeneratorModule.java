@@ -10,7 +10,7 @@ import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.templates.JavaCodeGeneratorTemplates;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
-import com.vw.lang.sink.java.link.IVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.module.VWMLModule;
 import com.vw.lang.sink.java.repository.VWMLRepository;
@@ -38,13 +38,13 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 	 * @param modProps
 	 * @throws Exception
 	 */
-	public void buildModuleBody(JavaModuleStartProps modProps, IVWMLLinkVisitor visitor) throws Exception {
+	public void buildModuleBody(JavaModuleStartProps modProps, AbstractVWMLLinkVisitor visitor) throws Exception {
 		getFw().write("import " + VWMLModule.class.getName() + ";\r\n");
 		getFw().write("import " + VWMLRepository.class.getName() + ";\r\n");
 		getFw().write("import " + VWMLLinkage.class.getName() + ";\r\n");
 		if (visitor != null) {
 			// adds visitor's interface in any case
-			getFw().write("import " + IVWMLLinkVisitor.class.getName() + ";\r\n");
+			getFw().write("import " + AbstractVWMLLinkVisitor.class.getName() + ";\r\n");
 			String visitorImport = "import " + visitor.getClass().getName() + ";\r\n";
 			getFw().write(visitorImport);
 		}
@@ -63,7 +63,7 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 				logger.warn("Couldn't create path (for visualizer) '" + path + "'");
 			}
 			path += "/" + modProps.getModuleName() + ".dot";
-			getFw().write("\t\tIVWMLLinkVisitor preprocessorStructureVisualizer = " + visitor.getClass().getSimpleName() + ".instance();\r\n");			
+			getFw().write("\t\tAbstractVWMLLinkVisitor preprocessorStructureVisualizer = " + visitor.getClass().getSimpleName() + ".instance();\r\n");			
 			getFw().write("\t\tpreprocessorStructureVisualizer.init(\"" + modProps.getModuleName() + "\", \"" + path + "\");\r\n");
 			getFw().write("\t\trepository.setPreprocessorStructureVisualizer(preprocessorStructureVisualizer);\r\n");
 			getFw().write("\t\tlinkage.setPreprocessorStructureVisualizer(preprocessorStructureVisualizer);\r\n");
