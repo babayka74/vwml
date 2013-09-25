@@ -3,7 +3,6 @@ package com.vw.lang.sink.java;
 import java.util.List;
 
 import com.vw.lang.sink.java.link.VWMLLink;
-import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * Root object for all VWML's items; used as class marker at this time

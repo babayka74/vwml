@@ -17,16 +17,21 @@ public class VWMLObjectsRepository {
 
 	// defines static types of unchanged entities
 	private VWMLObjectsRepository() {
+		// built-in complex entity id
 		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_EmptyEntityId, "", 0, null));
+		// built-in simple entity id
 		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, "", 0, null));
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
 		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, "", 0, null));
+		// built-in logical 'false' entity id
+		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, "", 0, null));
+		// built-in logical 'true' entity id
+		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, "", 0, null));
 	}
 
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
 	
-	private static volatile boolean s_initialized = false;
 	private static final VWMLObjectsRepository s_repo = new VWMLObjectsRepository();
 	
 	public static VWMLObjectsRepository instance() {

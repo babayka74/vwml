@@ -25,9 +25,9 @@ public class VWMLOperationImplicitAssembleHandler extends VWMLOperationHandler {
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																							  entities.size() - 1,
-																							  "",
-																							  0,
-																							  null,
+																							  (String)stack.getContext(),
+																							  stack.getEntityInterpretationHistorySize(),
+																							  stack.getLinkOperationVisitor(),
 																							  VWMLOperationUtils.s_addIfUnknown);
 		inspector.clear();
 		stack.popUntilEmptyMark();

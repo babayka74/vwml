@@ -4,9 +4,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.vw.lang.sink.java.code.JavaCodeGenerator;
-import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
-import com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 public class VWMLJavaCodeGeneratorTest {

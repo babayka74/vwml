@@ -70,8 +70,6 @@ public final class VWML {
 	 */
 	public static class Sources extends Operation {
 
-		private Logger logger = Logger.getLogger(Sources.class);
-		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
 			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SOURCE);
@@ -87,8 +85,6 @@ public final class VWML {
 	 */
 	public static class Project extends Operation {
 
-		private Logger logger = Logger.getLogger(Project.class);
-		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
 			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.POM);
@@ -104,8 +100,6 @@ public final class VWML {
 	 */
 	public static class Compile extends Operation {
 
-		private Logger logger = Logger.getLogger(Compile.class);
-		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
 			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.COMPILE);
@@ -120,8 +114,6 @@ public final class VWML {
 	 */
 	public static class Test extends Operation {
 
-		private Logger logger = Logger.getLogger(Test.class);
-		
 		@Override
 		public void run(VWMLArgs args) throws Exception {
 			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.TEST);
@@ -216,6 +208,7 @@ public final class VWML {
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	private static Map<String, Operation> s_opCodes = new HashMap<String, Operation>() {
 		{put("source",  new Sources());}
 		{put("project", new Project());}

@@ -1,11 +1,10 @@
 package com.vw.lang.sink.utils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 
 /**
  * Helper class which allows to build complex entity name from set of objects' ids
@@ -66,9 +65,7 @@ public class ComplexEntityNameBuilder {
 	private ComplexEntity rootComplexEntity = null;
 	private EntityWalker walker = EntityWalker.instance();
 	
-	private static String s_empty_name = "()";
-	
-	private Logger logger = Logger.getLogger(ComplexEntityNameBuilder.class);
+	private static String s_empty_name = VWMLEntity.s_EmptyEntityId;
 	
 	private ComplexEntityNameBuilder() {
 		

@@ -12,9 +12,11 @@ import com.vw.lang.sink.java.operations.VWMLOperations;
  */
 public class VWMLEntity extends VWMLObject {
 
-	public static final String s_NilEntityId = "nil";
-	public static final String s_EmptyEntityId = "()";
+	public static final String s_NilEntityId       = "nil";
+	public static final String s_EmptyEntityId     = "()";
 	public static final String s_doNothingEntityId = "doNothing";
+	public static final String s_trueEntityId      = "true";
+	public static final String s_falseEntityId     = "false";
 	
 	// this entity is interpreted as another entity/term
 	private VWMLEntity interpreting;

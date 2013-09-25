@@ -31,9 +31,9 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		else {
 			interpretingEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																								   entities.size() - 1,
-																								   "",
-																								   0,
-																								   null,
+																								   (String)stack.getContext(),
+																								   stack.getEntityInterpretationHistorySize(),
+																								   stack.getLinkOperationVisitor(),
 																								   VWMLOperationUtils.s_addIfUnknown);
 		}
 		inspector.clear();

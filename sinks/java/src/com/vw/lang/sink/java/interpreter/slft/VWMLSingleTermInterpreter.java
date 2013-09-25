@@ -61,6 +61,9 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			throw new Exception("term should be set before method is called");
 		}
 		VWMLEntity entity = getTerms().get(0);
+		// associates context of interpreted term with interpretation stack
+		getStack().setContext(entity.getOriginalContext());
+		getStack().setContextPath(entity.getContextPath());
 		activateComplexInterpretationProcess(getLinkage(), getStack(), entity);
 	}
 	
@@ -156,29 +159,4 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		// adds non-term to stack
 		stack.push(le);
 	}	
-	
-	private boolean isEntityListOfTerms(VWMLEntity entity, VWMLLinkIncrementalIterator it) {
-		if (entity.isTerm()) {
-			return true;
-		}
-		boolean termFound = false, resetItAfter = false;
-		if (it == null) {
-			it = entity.getLink().acquireLinkedObjectsIterator();
-		}
-		else {
-			resetItAfter = true;
-		}
-		if (it != null) {
-			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
-				if (le.isTerm()) {
-					termFound = true;
-					break;
-				}
-			}
-		}
-		if (resetItAfter) {
-			it.setIt(0);
-		}
-		return termFound;
-	}
 }

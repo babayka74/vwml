@@ -25,12 +25,13 @@ public class VWMLOperationProcessor {
 	/**
 	 * maps VWML operation to its handler
 	 */
+	@SuppressWarnings("serial")
 	private static Map<VWMLOperation, VWMLOperationHandler> s_processorMap = new HashMap<VWMLOperation, VWMLOperationHandler>() {
 		{
-			put(new VWMLOperation(VWMLOperationsCode.OPINTERPRET), new VWMLOperationInterpretHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPCREATEEXPR), new VWMLOperationCreateExprHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPRANDOM), new VWMLOperationRandomHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPEXECUTE), new VWMLOperationExeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPINTERPRET),        new VWMLOperationInterpretHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCREATEEXPR),       new VWMLOperationCreateExprHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPRANDOM),           new VWMLOperationRandomHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPEXECUTE),          new VWMLOperationExeHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE), new VWMLOperationImplicitAssembleHandler());
 		}
 	};

@@ -87,6 +87,10 @@ public class VWMLModelBuilder extends Debuggable {
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
 	// association between sink type and code generator
 	private static Map<SINK_TYPE, CodeGeneratorAux> s_codeGeneratorsAux = new HashMap<SINK_TYPE, CodeGeneratorAux>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3482720979839331257L;
 		{ put(SINK_TYPE.JAVA,        new CodeGeneratorAux(JavaCodeGenerator.instance(), new VWML2JavaSpecificSteps()));}
 		{ put(SINK_TYPE.CPP,         null);                        }
 		{ put(SINK_TYPE.C,           null);                        }
@@ -97,6 +101,11 @@ public class VWMLModelBuilder extends Debuggable {
 	 * VWML's build steps
 	 */
 	private static Map<BUILD_STEPS, IStep> s_buildSteps = new HashMap<BUILD_STEPS, IStep>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7578582252355104895L;
+
 		{ 
 			put(BUILD_STEPS.SOURCE,  new VWML2JavaSpecificSteps.SourceStep());
 			put(BUILD_STEPS.POM,     new VWML2JavaSpecificSteps.PomStep());

@@ -71,9 +71,9 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 			String cen = ComplexEntityNameBuilder.generateRandomName();
 			VWMLEntity newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
 																					cen,
-																					entity.getOriginalContext(),
-																					entity.getInterpretationHistorySize(),
-																					entity.getLink().getLinkOperationVisitor());
+																					(String)stack.getContext(),
+																					stack.getEntityInterpretationHistorySize(),
+																					stack.getLinkOperationVisitor());
 			// go through the list in order to create interpreting expression
 			VWMLEntity e = null;
 			VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();

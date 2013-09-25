@@ -30,9 +30,9 @@ public class VWMLOperationExeHandler extends VWMLOperationHandler {
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
-																					   "",
-																					   0,
-																					   null,
+																					   (String)stack.getContext(),
+																					   stack.getEntityInterpretationHistorySize(),
+																					   stack.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
 		}
 		entities.clear();
