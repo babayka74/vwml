@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
 /**
@@ -23,18 +23,18 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 		setLinkage(linkage);
 	}
 
-	private VWMLReactiveTermInterpreter(VWMLLinkage linkage, List<VWMLEntity> terms, VWMLStack stack) {
+	private VWMLReactiveTermInterpreter(VWMLLinkage linkage, List<VWMLEntity> terms, VWMLContext context) {
 		setTerms(terms);
 		setLinkage(linkage);
-		setStack(stack);
+		setContext(context);
 	}
 	
 	public static VWMLReactiveTermInterpreter instance(VWMLLinkage linkage, List<VWMLEntity> terms) {
 		return new VWMLReactiveTermInterpreter(linkage, terms);
 	}
 
-	public static VWMLReactiveTermInterpreter instance(VWMLLinkage linkage, List<VWMLEntity> terms, VWMLStack stack) {
-		return new VWMLReactiveTermInterpreter(linkage, terms, stack);
+	public static VWMLReactiveTermInterpreter instance(VWMLLinkage linkage, List<VWMLEntity> terms, VWMLContext context) {
+		return new VWMLReactiveTermInterpreter(linkage, terms, context);
 	}
 	
 	@Override
@@ -44,8 +44,7 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	@Override
-	public VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack,
-			VWMLEntity entity) throws Exception {
+	public VWMLEntity startOnExistedContext(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 		// TODO Auto-generated method stub
 		return entity;
 	}

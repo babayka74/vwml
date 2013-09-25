@@ -5,6 +5,7 @@ import java.util.List;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -20,7 +21,8 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 
 	@Override
-	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
+	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+		VWMLStack stack = context.getStack();
 		VWMLEntity interpretingEntity = null;
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
@@ -31,9 +33,9 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		else {
 			interpretingEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																								   entities.size() - 1,
-																								   (String)stack.getContext(),
-																								   stack.getEntityInterpretationHistorySize(),
-																								   stack.getLinkOperationVisitor(),
+																								   (String)context.getContext(),
+																								   context.getEntityInterpretationHistorySize(),
+																								   context.getLinkOperationVisitor(),
 																								   VWMLOperationUtils.s_addIfUnknown);
 		}
 		inspector.clear();

@@ -4,12 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOperationExeHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.ident.VWMLOperationIdentHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.implicit.assemble.VWMLOperationImplicitAssembleHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.interpret.VWMLOperationInterpretHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
@@ -33,6 +34,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPRANDOM),           new VWMLOperationRandomHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPEXECUTE),          new VWMLOperationExeHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE), new VWMLOperationImplicitAssembleHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPIDENT),            new VWMLOperationIdentHandler());
 		}
 	};
 	// called when unknown/unsupported operation is going to be executed
@@ -58,11 +60,11 @@ public class VWMLOperationProcessor {
 	 * @param operation
 	 * @throws Exception
 	 */
-	public void processOperation(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
+	public void processOperation(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLOperationHandler handler = s_processorMap.get(operation);
 		if (handler == null) {
 			handler = unknownOperationHandler;
 		}
-		handler.handle(interpreter, linkage, stack, operation);
+		handler.handle(interpreter, linkage, context, operation);
 	}
 }

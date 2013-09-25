@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -19,7 +20,8 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 public class VWMLOperationExeHandler extends VWMLOperationHandler {
 	
 	@Override
-	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception {
+	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
@@ -30,18 +32,18 @@ public class VWMLOperationExeHandler extends VWMLOperationHandler {
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
-																					   (String)stack.getContext(),
-																					   stack.getEntityInterpretationHistorySize(),
-																					   stack.getLinkOperationVisitor(),
+																					   (String)context.getContext(),
+																					   context.getEntityInterpretationHistorySize(),
+																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
 		}
 		entities.clear();
 		stack.popUntilEmptyMark();
 		if (entity.isTerm() || entity.isMarkedAsComplexEntity()) {
-			interpreter.activateComplexInterpretationProcess(linkage, stack, entity);
+			interpreter.activateComplexInterpretationProcess(linkage, context, entity);
 		}
 		else {
-			interpreter.startOnExistedStack(linkage, stack, entity);
+			interpreter.startOnExistedContext(linkage, context, entity);
 		}
 	}
 }

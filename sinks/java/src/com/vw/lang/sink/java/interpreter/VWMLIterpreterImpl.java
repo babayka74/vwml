@@ -3,7 +3,7 @@ package com.vw.lang.sink.java.interpreter;
 import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
 
@@ -21,7 +21,7 @@ public abstract class VWMLIterpreterImpl {
 	// interpreter's configuration
 	private VWMLInterpreterConfiguration config = null;
 	// internal worker thread
-	private VWMLStack stack = VWMLStack.instance();
+	private VWMLContext context = VWMLContext.instance();
 	// operating processor
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
 	
@@ -49,8 +49,8 @@ public abstract class VWMLIterpreterImpl {
 		this.config = config;
 	}
 
-	public VWMLStack getStack() {
-		return stack;
+	public VWMLContext getContext() {
+		return context;
 	}
 
 	public VWMLOperationProcessor getProcessor() {
@@ -65,27 +65,27 @@ public abstract class VWMLIterpreterImpl {
 
 	/**
 	 * Starts interpretation on existed stack
-	 * @param stack
+	 * @param context
 	 * @throws Exception
 	 */
-	public abstract VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception;
+	public abstract VWMLEntity startOnExistedContext(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
 
 	/**
 	 * Starts term's interpretation process
 	 * @param linkage
-	 * @param stack
+	 * @param context
 	 * @param le
 	 * @throws Exception
 	 */
-	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}
 
-	protected void termInterpretation(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+	protected void termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}
 	
-	protected void setStack(VWMLStack stack) {
-		this.stack = stack;
+	protected void setContext(VWMLContext context) {
+		this.context = context;
 	}
 }

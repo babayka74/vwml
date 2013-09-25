@@ -7,6 +7,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -28,17 +29,17 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		setLinkage(linkage);
 	}
 
-	private VWMLSingleTermInterpreter(VWMLLinkage linkage, VWMLEntity term, VWMLStack stack) {
+	private VWMLSingleTermInterpreter(VWMLLinkage linkage, VWMLEntity term, VWMLContext context) {
 		setTerm(term);
 		setLinkage(linkage);
-		setStack(stack);
+		setContext(context);
 	}
 	
 	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term) {
 		return new VWMLSingleTermInterpreter(linkage, term);
 	}
 
-	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term, VWMLStack stack) {
+	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term, VWMLContext stack) {
 		return new VWMLSingleTermInterpreter(linkage, term, stack);
 	}
 
@@ -62,9 +63,11 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		}
 		VWMLEntity entity = getTerms().get(0);
 		// associates context of interpreted term with interpretation stack
-		getStack().setContext(entity.getOriginalContext());
-		getStack().setContextPath(entity.getContextPath());
-		activateComplexInterpretationProcess(getLinkage(), getStack(), entity);
+		getContext().setContext(entity.getOriginalContext());
+		getContext().setContextPath(entity.getContextPath());
+		getContext().setEntityInterpretationHistorySize(entity.getInterpretationHistorySize());
+		getContext().setLinkOperationVisitor(entity.getLink().getLinkOperationVisitor());
+		activateComplexInterpretationProcess(getLinkage(), getContext(), entity);
 	}
 	
 	/**
@@ -73,9 +76,9 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @throws Exception
 	 */
 	@Override
-	public VWMLEntity startOnExistedStack(VWMLLinkage linkage, VWMLStack stack, VWMLEntity entity) throws Exception {
+	public VWMLEntity startOnExistedContext(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 		if (!entity.isTerm() && !entity.isMarkedAsComplexEntity()) {
-			activateSimpleInterpretationProcess(entity, linkage, stack);
+			activateSimpleInterpretationProcess(entity, linkage, context);
 			return entity;
 		}
 		VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
@@ -84,26 +87,26 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
 				if (le.isTerm() || le.isMarkedAsComplexEntity()) {
 					// recursive call
-					activateComplexInterpretationProcess(linkage, getStack(), le);
+					activateComplexInterpretationProcess(linkage, getContext(), le);
 				}
 				else {
 					// simple pushes non-term entity to stack
-					activateSimpleInterpretationProcess(le, linkage, stack);
+					activateSimpleInterpretationProcess(le, linkage, context);
 				}
 			}
 		}
 		else {
 			// interprets term associated with simple entity
-			activateComplexInterpretationProcess(linkage, stack, entity);
+			activateComplexInterpretationProcess(linkage, context, entity);
 		}
 		return entity;
 	}
 
 	@Override
-	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		VWMLEntity entity = le;
 		VWMLOperation opImplicitlyAdded = null;
-		stack.pushEmptyMark();
+		context.getStack().pushEmptyMark();
 		if (!le.isTerm() && le.isMarkedAsComplexEntity()) {
 			opImplicitlyAdded = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
 			le.addOperation(opImplicitlyAdded);
@@ -112,8 +115,8 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		if (le.isTerm() && ((VWMLTerm)le).getAssociatedEntity() != null) {
 			entity = ((VWMLTerm)le).getAssociatedEntity();
 		}
-		startOnExistedStack(linkage, stack, entity);
-		termInterpretation(linkage, stack, le);
+		startOnExistedContext(linkage, context, entity);
+		termInterpretation(linkage, context, le);
 		if (opImplicitlyAdded != null) {
 			le.removeOperation(opImplicitlyAdded);
 		}
@@ -126,25 +129,25 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @param op
 	 * @throws Exception
 	 */
-	protected void handleOperation(VWMLLinkage linkage, VWMLStack stack, VWMLOperation op) throws Exception {
+	protected void handleOperation(VWMLLinkage linkage, VWMLContext context, VWMLOperation op) throws Exception {
 		// processor de-multiplexes this call
-		getProcessor().processOperation(this, linkage, stack, op);
+		getProcessor().processOperation(this, linkage, context, op);
 	}
 
 	/**
 	 * Executes term's operations on stack; interpreted entity should be already on top of stack
 	 */
-	protected void termInterpretation(VWMLLinkage linkage, VWMLStack stack, VWMLEntity le) throws Exception {
+	protected void termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		if (le.isTerm()) { // means that entity has operations which should be executed on top of stack
 			// executes operations and serves stack
 			VWMLLinkIncrementalIterator itOps = le.acquireOperationsIterator();
 			// executes set of operations on stack; all operations are performed on top of stack
 			for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
 				// actually calls handle to process operation
-				handleOperation(linkage, stack, op);
+				handleOperation(linkage, context, op);
 			}
 			// removes 'empty mark' by propagating term's result to following term on stack
-			stack.consumeEmptyMark();
+			context.getStack().consumeEmptyMark();
 		}
 	}
 
@@ -155,8 +158,9 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @param stack
 	 * @throws Exception
 	 */
-	private void activateSimpleInterpretationProcess(VWMLEntity le, VWMLLinkage linkage, VWMLStack stack) throws Exception {
+	private void activateSimpleInterpretationProcess(VWMLEntity le, VWMLLinkage linkage, VWMLContext context) throws Exception {
 		// adds non-term to stack
+		VWMLStack stack = context.getStack();
 		stack.push(le);
 	}	
 }

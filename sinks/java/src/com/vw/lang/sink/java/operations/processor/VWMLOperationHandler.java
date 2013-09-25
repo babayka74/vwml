@@ -1,7 +1,7 @@
 package com.vw.lang.sink.java.operations.processor;
 
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 
@@ -16,9 +16,9 @@ public abstract class VWMLOperationHandler {
 	 * Abstract operation handler
 	 * @param interpreter
 	 * @param linkage
-	 * @param stack
+	 * @param context
 	 * @param operation
 	 * @throws Exception
 	 */
-	public abstract void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLStack stack, VWMLOperation operation) throws Exception;
+	public abstract void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception;
 }
