@@ -15,6 +15,7 @@ import com.vw.lang.sink.java.VWMLObject;
 public class VWMLLink {
 	
 	private VWMLObject itself;
+	private VWMLObject parent;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	private List<VWMLObject> linkedObjects = Collections.synchronizedList(new ArrayList<VWMLObject>());
 	
@@ -35,6 +36,14 @@ public class VWMLLink {
 		return linkedObjects;
 	}
 	
+	public VWMLObject getParent() {
+		return parent;
+	}
+
+	public void setParent(VWMLObject parent) {
+		this.parent = parent;
+	}
+
 	public AbstractVWMLLinkVisitor getLinkOperationVisitor() {
 		return linkOperationVisitor;
 	}
@@ -59,6 +68,7 @@ public class VWMLLink {
 	public void link(VWMLObject linked) {
 		// links: itself -> linked
 		itself.getLink().getLinkedObjects().add(linked);
+		linked.getLink().setParent(itself);
 		if (getLinkOperationVisitor() != null) {
 			getLinkOperationVisitor().link(itself, linked);
 		}
@@ -71,6 +81,7 @@ public class VWMLLink {
 	public void unlinkFrom(VWMLObject obj) {
 		if (isLinked(obj)) {
 			itself.getLink().getLinkedObjects().remove(obj);
+			obj.getLink().setParent(itself.getLink().getParent());
 			if (getLinkOperationVisitor() != null) {
 				getLinkOperationVisitor().unlink(itself, obj);
 			}

@@ -2,10 +2,12 @@ package com.vw.lang.sink.java.operations;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
@@ -34,7 +36,7 @@ public class VWMLOperationUtils {
 			                                                                String context,
 			                                                                int interpretationHistorySize,
 			                                                                AbstractVWMLLinkVisitor visitor,
-			                                                                boolean addIfUnknown) {
+			                                                                boolean addIfUnknown) throws Exception {
 		VWMLEntity newComplexEntity = null;
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		if (entities.size() == 1) {
@@ -61,14 +63,18 @@ public class VWMLOperationUtils {
 																		 visitor);
 		}
 		if (addIfUnknown) {
+			VWMLContext ctx = VWMLContextsRepository.instance().get(context);
+			if (ctx == null) {
+				throw new Exception("couldn't find context identified by '" + context + "'");
+			}
 			String id = newComplexEntity.buildReadableId();
-			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, "");
+			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
 			if (lookedEntity != null) {
 				newComplexEntity = lookedEntity;
 			}
 			else {
 				newComplexEntity.setId(id);
-				VWMLObjectsRepository.instance().addConcrete(newComplexEntity, context);
+				VWMLObjectsRepository.instance().addConcrete(newComplexEntity, ctx);
 			}
 		}
 		return newComplexEntity;
@@ -87,17 +93,21 @@ public class VWMLOperationUtils {
 																	          int fromPos,
 																	          String context,
 																	          int interpretationHistorySize,
-																	          AbstractVWMLLinkVisitor visitor) {
+																	          AbstractVWMLLinkVisitor visitor) throws Exception {
 
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		String id = "";
 		VWMLEntity newEntity = null;
+		VWMLContext ctx = VWMLContextsRepository.instance().get(context);
+		if (ctx == null) {
+			throw new Exception("couldn't find context identified by '" + context + "'");
+		}
 		// complex entity
 		if (entities.size() > 1) {
 			// acquire new complex entity with random name
 			newEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
 															cen,
-															context,
+															ctx,
 															interpretationHistorySize,
 															visitor);
 			// filling entity by entities from stack; the name consists from entities names 
@@ -111,7 +121,7 @@ public class VWMLOperationUtils {
 			id = ceb.build();
 			// sets entity's id to generated id
 			newEntity.setId(id);
-			newEntity = VWMLObjectsRepository.instance().addConcrete(newEntity, context);
+			newEntity = VWMLObjectsRepository.instance().addConcrete(newEntity, ctx);
 		}
 		else
 		// simple entity

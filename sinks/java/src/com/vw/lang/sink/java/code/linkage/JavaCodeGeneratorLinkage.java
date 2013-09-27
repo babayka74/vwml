@@ -119,14 +119,14 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			String s = JavaCodeGeneratorUtils.convertStaticStringArrayToString(obj.getContextPath());
 			String arrayAsStr = (s == null) ? null : "\"" + s + "\"";
 			if (!obj.isAsTerm()) {
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", \"" + "\", " + arrayAsStr + ")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\", " + arrayAsStr + ")";
 			}
 			else {
 				String mark = "VWMLLinkWrap.MARKED.TERM";
 				if (obj.isAsLifeTerm()) {
 					mark = "VWMLLinkWrap.MARKED.LIFETERM";
 				}
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", \"" + "\", " + arrayAsStr + ")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\", " + arrayAsStr + ")";
 			}
 			ft = false;
 		}

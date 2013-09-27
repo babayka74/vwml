@@ -17,7 +17,7 @@ public class VWMLObjectsRepositoryTest {
 	private static String s_schemaPath = "./output/debug/model/graph/dot";
 	
 	@Test
-	public void repositoryAndSchemaPreprocessorTest() {
+	public void repositoryAndSchemaPreprocessorTest() throws Exception {
 		// generates objects
 		VWMLObject vA = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, "a", null, 2, dotPreprocessorDebug);
 		VWMLObject vBC = VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, "(b c)", null, 2, dotPreprocessorDebug);

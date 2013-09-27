@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.entity;
 
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperations;
@@ -19,6 +20,7 @@ public class VWMLEntity extends VWMLObject {
 	public static final String s_falseEntityId     = "false";
 	
 	// this entity is interpreted as another entity/term
+	private VWMLContext context;
 	private VWMLEntity interpreting;
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations();
@@ -32,6 +34,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public VWMLEntity(Object id, String readableId) {
 		super(id, readableId);
+	}
+
+	public VWMLContext getContext() {
+		return context;
+	}
+
+	public void setContext(VWMLContext context) {
+		this.context = context;
 	}
 
 	public VWMLEntity getInterpreting() {

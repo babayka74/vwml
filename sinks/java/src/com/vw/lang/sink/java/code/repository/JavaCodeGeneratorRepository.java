@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
@@ -39,15 +40,18 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
     * listed in VWML's code
 	* @param modProps
 	* @param declaredObjects
+	* @param declaredContexts
 	* @throws Exception
 	*/
 	public void buildModuleRepositoryPart(JavaModuleStartProps modProps,
-			                              List<VWMLObjWrap> declaredObjects) throws Exception {
+			                              List<VWMLObjWrap> declaredObjects,
+			                              List<VWMLObjWrap> declaredContexts) throws Exception {
 		declaredObjects.add(new VWMLObjWrap(VWMLObjectType.COMPLEX_ENTITY,
 				                            ComplexEntityNameBuilder.generateRootId(modProps.getModuleName()),
 				                            ""));
 		// caption and common imports are added before (see startModule) method
 		getFw().write("import " + VWMLRepository.class.getCanonicalName() + ";\r\n");
+		getFw().write("import " + VWMLContextsRepository.class.getCanonicalName() + ";\r\n");
 		getFw().write("import " + VWMLObjectBuilder.VWMLObjectType.class.getCanonicalName() + ";\r\n");		
 		// adds visitor's interface in any case
 		getFw().write("import " + AbstractVWMLLinkVisitor.class.getName() + ";\r\n");
@@ -67,6 +71,8 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 				// simple swallow it...
 			}
 		}
+		getFw().write("\t\t// adding contexts\r\n");
+		getFw().write("\t\taddContexts()\r\n\r\n");
 		for(VWMLObjWrap obj : declaredObjects) {
 			getFw().write("\t\t// constructs entity '" + obj.getObjId() + "'\r\n");
 			getFw().write("\t\tVWMLObjectsRepository.acquire(" + obj.getType().getClass().getSimpleName()+ "." +
@@ -77,7 +83,15 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 					                                         ", preprocessorStructureVisualizer);\r\n");
 		}
 		// closes 'build' method
-		getFw().write("\t}\r\n");
+		getFw().write("\t}\r\n\r\n");
+		// starts contexts' registration method
+		getFw().write("\tprotected void addContexts() throws Exception {\r\n");
+		for(VWMLObjWrap link : declaredContexts) {
+			getFw().write("\t\t// add context '" + link.getObjId() + "'\r\n");
+			getFw().write("\t\tVWMLContextsRepository.instance().createContextIfNotExists(\"" + link.getObjId() + "\");\r\n");
+		}
+		// closes contexts' registration method
+		getFw().write("\t}\r\n\r\n");
 		// closes class
 		getFw().write("}\r\n");
 		if (logger.isInfoEnabled()) {

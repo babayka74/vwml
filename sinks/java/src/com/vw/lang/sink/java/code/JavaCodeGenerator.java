@@ -437,6 +437,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	private AbstractVWMLLinkVisitor visitor = null;
 	// declared VWML objects (simple entity, complex entity and terms)
 	private List<VWMLObjWrap> declaredObjects = new ArrayList<VWMLObjWrap>();
+	// declared contexts
+	private List<VWMLObjWrap> declaredContexts = new ArrayList<VWMLObjWrap>();
 	// contains list of entity ids which were marked as 'term'
 	private List<Object> markedAsTerm = new ArrayList<Object>();
 	// defines objects' linkage
@@ -586,7 +588,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		normalizeCode();
 		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
 		new JavaCodeGeneratorModule(fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())]).buildModuleBody(modProps, getVisitor());
-		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects);
+		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects, declaredContexts);
 		new JavaCodeGeneratorLinkage(fws[ModuleFiles.index(ModuleFiles.LINKAGE.toValue())]).buildModuleLinkagePart(modProps, linkage, interpret, markedAsTerm, operations);
 	}
 	
@@ -607,6 +609,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		declaredObjects.clear();
 		operations.clear();
 		linkage.clear();
+		declaredContexts.clear();
 		interpret.clear();
 		markedAsTerm.clear();
 		idTranslationMap.clear();
@@ -683,6 +686,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public void declareTerm(Object id, String context) throws Exception {
 		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id, context));
+	}
+
+	/**
+	 * Declares context; it is used during code generation phase; all entities should be linked with contexts
+	 * @param contextId
+	 */
+	public void declareContext(Object contextId) {
+		declaredContexts.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, contextId, null));
 	}
 	
 	/**

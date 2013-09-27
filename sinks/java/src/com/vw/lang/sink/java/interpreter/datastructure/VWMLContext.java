@@ -1,5 +1,7 @@
 package com.vw.lang.sink.java.interpreter.datastructure;
 
+import com.vw.lang.sink.java.VWMLJavaExportUtils;
+import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
@@ -7,12 +9,12 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  * @author ogibayev
  *
  */
-public class VWMLContext {
+public class VWMLContext extends VWMLObject {
 	
+	private String[] contextPath;
+	private String context;
 	
-	private VWMLStack stack = VWMLStack.instance();
-	private Object context = null;
-	private String[] contextPath = null;
+	private VWMLStack stack = VWMLStack.instance();	
 	private int entityInterpretationHistorySize = 0;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	
@@ -28,37 +30,34 @@ public class VWMLContext {
 		return new VWMLContext();
 	}
 	
-
 	/**
 	 * Returns stack's associated context
 	 * @return
 	 */
-	public Object getContext() {
+	public String getContext() {
 		return context;
 	}
-
+	
 	/**
 	 * Associates current stack with specific context
 	 * @return
 	 */
 	public void setContext(Object context) {
-		this.context = context;
+		super.setId(context);
+		super.setReadableId((String)context);
+		setContextPath(VWMLJavaExportUtils.parseContext((String)context));
 	}
 
+	public void setContextPath(String[] contextPath) {
+		this.contextPath = contextPath;
+	}
+	
 	/**
 	 * Returns stack's context path (parsed context)
 	 * @return
 	 */
 	public String[] getContextPath() {
 		return contextPath;
-	}
-
-	/**
-	 * Sets stack's context path (parsed context)
-	 * @param contextPath
-	 */
-	public void setContextPath(String[] contextPath) {
-		this.contextPath = contextPath;
 	}
 
 	/**

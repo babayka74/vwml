@@ -62,9 +62,8 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			throw new Exception("term should be set before method is called");
 		}
 		VWMLEntity entity = getTerms().get(0);
+		setContext(entity.getContext());
 		// associates context of interpreted term with interpretation stack
-		getContext().setContext(entity.getOriginalContext());
-		getContext().setContextPath(entity.getContextPath());
 		getContext().setEntityInterpretationHistorySize(entity.getInterpretationHistorySize());
 		getContext().setLinkOperationVisitor(entity.getLink().getLinkOperationVisitor());
 		activateComplexInterpretationProcess(getLinkage(), getContext(), entity);

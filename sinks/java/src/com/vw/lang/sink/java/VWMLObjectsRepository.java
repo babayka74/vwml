@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 
@@ -17,16 +18,17 @@ public class VWMLObjectsRepository {
 
 	// defines static types of unchanged entities
 	private VWMLObjectsRepository() {
+		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
 		// built-in complex entity id
-		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_EmptyEntityId, "", 0, null));
+		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null));
 		// built-in simple entity id
-		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, "", 0, null));
+		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, defaultContext, 0, null));
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, "", 0, null));
+		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null));
 		// built-in logical 'false' entity id
-		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, "", 0, null));
+		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, defaultContext, 0, null));
 		// built-in logical 'true' entity id
-		add(VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, "", 0, null));
+		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, defaultContext, 0, null));
 	}
 
 	// builds association between object's id and its instance
@@ -47,35 +49,42 @@ public class VWMLObjectsRepository {
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, String context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
+	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, String context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) throws Exception {
+		VWMLContext c = VWMLContextsRepository.instance().get(context);
+		if (c == null) {
+			throw new Exception("coudln't find context '" + context + "'");
+		}
 		// checks if object has been created before
-		VWMLObject obj = instance().get(id, context);
+		VWMLObject obj = instance().get(id, c);
 		if (obj == null) { // not found in repository...
-			obj = VWMLObjectBuilder.build(type, id, context, entityHistorySize, visitor);
-			instance().add(obj);
+			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
+			instance().add((VWMLEntity)obj);
 		}
 		return obj;
 	}
 	
-	public void add(VWMLObject obj) {
+	public void add(VWMLEntity obj) {
 		String key = buildAssociatingKeyOnContext(obj);
 		if (!repo.containsKey(key)) {
 			repo.put(key, obj);
 		}
 	}
 	
-	public void remove(VWMLObject obj) {
+	public void remove(VWMLEntity obj) {
 		String key = buildAssociatingKeyOnContext(obj);
 		repo.remove(key);
 	}
 	
-	public VWMLObject get(Object id, String context) {
+	public VWMLObject get(Object id, VWMLContext context) throws Exception {
 		String ids = (String)id;
-		String effectiveContext = context;
+		VWMLContext effectiveContext = context;
 		if (ids.contains(".")) {
-			effectiveContext = null;
+			return getByFullSpecifiedPath(id, context);
 		}
-		return repo.get(buildAssociationKey(effectiveContext, ids));
+		if (effectiveContext == null) {
+			effectiveContext = VWMLContextsRepository.instance().getDefaultContext();
+		}
+		return getByEffectiveContext(id, effectiveContext);
 	}
 
 	/**
@@ -84,8 +93,8 @@ public class VWMLObjectsRepository {
 	 * @param context
 	 * @return
 	 */
-	public VWMLEntity addConcrete(VWMLEntity entity, String context) {
-		VWMLEntity existedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(), context);
+	public VWMLEntity addConcrete(VWMLEntity entity, VWMLContext context) throws Exception {
+		VWMLEntity existedEntity = (VWMLEntity)get(entity.getId(), context);
 		if (existedEntity == null) {
 			VWMLObjectsRepository.instance().add(entity);
 			existedEntity = entity;
@@ -97,15 +106,36 @@ public class VWMLObjectsRepository {
 	 * Returns pre-created default 'empty' entity
 	 * @return
 	 */
-	public VWMLEntity getEmptyEntity() {
-		return (VWMLEntity)get(VWMLEntity.s_EmptyEntityId, "");
+	public VWMLEntity getEmptyEntity() throws Exception {
+		return (VWMLEntity)get(VWMLEntity.s_EmptyEntityId, VWMLContextsRepository.instance().getDefaultContext());
 	}
 	
-	protected String buildAssociationKey(String prefix, String id) {
-		return (prefix != null && prefix.length() > 0) ? (prefix + "." + id) : id;
+	protected VWMLObject getByFullSpecifiedPath(Object id, VWMLContext context) throws Exception { 
+		String ids = (String)id;
+		int le = ids.lastIndexOf(".");
+		String contextId = ids.substring(0, le);
+		VWMLContext effectiveContext = VWMLContextsRepository.instance().get(contextId);
+		if (effectiveContext == null) {
+			throw new Exception("couldn't find context identified by '" + contextId + "'");
+		}
+		ids = ids.substring(le);
+		return repo.get(buildAssociationKey(effectiveContext, ids));
+	}
+
+	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context) {
+		VWMLObject o = null;
+		while(context != null || o == null) { 
+			o = repo.get(buildAssociationKey(context, (String)id));
+			context = (VWMLContext)context.getLink().getParent();
+		}
+		return o;
 	}
 	
-	protected String buildAssociatingKeyOnContext(VWMLObject obj) {
-		return buildAssociationKey(obj.getOriginalContext(), (String)obj.getId());
+	protected String buildAssociationKey(VWMLContext ctx, String id) {
+		return ctx.getContext() + "." + id;
+	}
+	
+	protected String buildAssociatingKeyOnContext(VWMLEntity obj) {
+		return buildAssociationKey(obj.getContext(), (String)obj.getId());
 	}
 }

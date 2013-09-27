@@ -153,6 +153,12 @@ public interface ICodeGenerator {
 	public void linkObjects(Object id, Object linkedObjId, String activeContext);
 	
 	/**
+	 * Declares context; it is used during code generation phase; all entities should be linked with contexts
+	 * @param contextId
+	 */
+	public void declareContext(Object contextId);
+	
+	/**
 	 * Builds association between object and operation
 	 * @param id
 	 * @param op

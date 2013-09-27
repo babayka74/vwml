@@ -60,7 +60,7 @@ public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 			String emptyCEName = ComplexEntityNameBuilder.generateEmptyComplexEntity();
 			entity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY,
 															   emptyCEName,
-															   parentEntity.getOriginalContext(),
+															   parentEntity.getContext().getContext(),
 															   parentEntity.getInterpretationHistorySize(),
 															   visitor);
 		}

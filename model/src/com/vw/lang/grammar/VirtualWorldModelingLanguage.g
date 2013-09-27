@@ -562,8 +562,8 @@ complex_entity returns [EntityWalker.Relation rel]
     	String ceId = complexEntityNameBuilderDecl.generateRandomName();
     	try {
     		if (codeGenerator != null) {
-    			// no need context to be generated for dynamic complex entities since they have already have uniq name
-    			codeGenerator.declareComplexEntity(ceId, null, "");
+    			String context = vwmlContextBuilder.buildContext();
+    			codeGenerator.declareComplexEntity(ceId, null, context);
     		}
     	}
     	catch(Exception e) {

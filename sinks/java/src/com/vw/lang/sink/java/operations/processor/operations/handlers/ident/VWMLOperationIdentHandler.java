@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.ident;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -45,8 +46,8 @@ public class VWMLOperationIdentHandler extends VWMLOperationHandler {
 		inspector.clear();
 		stack.popUntilEmptyMark();
 		r = checkEntitiesIdenticProperty(entities.get(0), entities.get(1));
-		VWMLEntity entity = (r) ? (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_trueEntityId, "") : 
-			                      (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, "");
+		VWMLEntity entity = (r) ? (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_trueEntityId, VWMLContextsRepository.instance().getDefaultContext()) : 
+			                      (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
 		stack.push(entity);
 	}
 
