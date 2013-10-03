@@ -116,4 +116,12 @@ public class VWMLStack {
 			o = peek();
 		}
 	}
+	
+	public void unwindTill(VWMLObject obj) {
+		VWMLObject o = peek();
+		while (o != null && obj != o) {
+			pop();
+			o = peek();
+		}
+	}	
 }

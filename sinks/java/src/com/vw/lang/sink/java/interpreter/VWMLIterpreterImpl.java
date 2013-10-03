@@ -64,11 +64,11 @@ public abstract class VWMLIterpreterImpl {
 	public abstract void start() throws Exception;
 
 	/**
-	 * Starts interpretation on existed stack
+	 * Starts interpretation on existed context by decomposing complex entity on simple; uses recursion
 	 * @param context
 	 * @throws Exception
 	 */
-	public abstract VWMLEntity startOnExistedContext(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
+	public abstract VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
 
 	/**
 	 * Starts term's interpretation process
@@ -81,7 +81,7 @@ public abstract class VWMLIterpreterImpl {
 		throw new Exception("not implemented");
 	}
 
-	protected void termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
+	protected VWMLEntity termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}
 	

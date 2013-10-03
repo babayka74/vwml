@@ -693,7 +693,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param contextId
 	 */
 	public void declareContext(Object contextId) {
-		declaredContexts.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, contextId, null));
+		declaredContexts.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CONTEXT, contextId, null));
 	}
 	
 	/**

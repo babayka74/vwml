@@ -70,6 +70,7 @@ public class VWMLOperationUtils {
 			String id = newComplexEntity.buildReadableId();
 			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
 			if (lookedEntity != null) {
+				VWMLObjectsRepository.instance().remove(newComplexEntity);
 				newComplexEntity = lookedEntity;
 			}
 			else {

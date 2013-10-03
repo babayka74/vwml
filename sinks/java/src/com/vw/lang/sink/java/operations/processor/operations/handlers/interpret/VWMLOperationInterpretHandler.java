@@ -26,6 +26,8 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLEntity interpretingEntity = null;
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
+		// since inspector reads until empty mark we should read entity's original context
+		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) {
 			interpretingEntity = interpretSingleEntity(entities.get(0));
@@ -33,7 +35,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		else {
 			interpretingEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																								   entities.size() - 1,
-																								   (String)context.getContext(),
+																								   (String)originalContext.getContext(),
 																								   context.getEntityInterpretationHistorySize(),
 																								   context.getLinkOperationVisitor(),
 																								   VWMLOperationUtils.s_addIfUnknown);

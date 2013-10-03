@@ -51,10 +51,10 @@ public class JavaCodeGeneratorUtils {
 			if (!firstIteration) {
 				arrayAsString += ", ";
 			}
-			arrayAsString += item;
+			arrayAsString += "\"" + item + "\"";
 			firstIteration = false;
 		}
-		arrayAsString += "};";
+		arrayAsString += "}";
 		return arrayAsString;
 	}
 	

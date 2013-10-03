@@ -17,6 +17,8 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private VWMLObject superviser = null;
 	// entity can be linked with another entity or command
 	private VWMLLink link = new VWMLLink(this);
+	// simple ref. counter
+	private int refCounter = 0;
 	
 	public VWMLObject() {
 		super();
@@ -100,6 +102,31 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	 */
 	public boolean isLinked(VWMLObject obj) {
 		return link.isLinked(obj);
+	}
+
+	/**
+	 * Following methods implement object's reference counting mechanism
+	 * Used in case if object should be cached and released in case if counter is 0
+	 * @return
+	 */
+	public int getRefCounter() {
+		return refCounter;
+	}
+
+	public void setRefCounter(int refCounter) {
+		this.refCounter = refCounter;
+	}
+	
+	public int incrementRefCounter() {
+		this.refCounter++;
+		return getRefCounter();
+	}
+	
+	public int decrementRefCounter() {
+		if (refCounter > 0) {
+			refCounter--;
+		}
+		return getRefCounter();
 	}
 	
 	/**

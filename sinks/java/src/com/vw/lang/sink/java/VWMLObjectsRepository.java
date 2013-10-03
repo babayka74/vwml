@@ -55,7 +55,7 @@ public class VWMLObjectsRepository {
 			throw new Exception("coudln't find context '" + context + "'");
 		}
 		// checks if object has been created before
-		VWMLObject obj = instance().get(id, c);
+		VWMLObject obj = instance().getConcrete(id, c);
 		if (obj == null) { // not found in repository...
 			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
 			instance().add((VWMLEntity)obj);
@@ -67,12 +67,15 @@ public class VWMLObjectsRepository {
 		String key = buildAssociatingKeyOnContext(obj);
 		if (!repo.containsKey(key)) {
 			repo.put(key, obj);
+			// associates acquired entity with context
+			obj.getContext().associateEntity((VWMLEntity)obj);
 		}
 	}
 	
 	public void remove(VWMLEntity obj) {
 		String key = buildAssociatingKeyOnContext(obj);
 		repo.remove(key);
+		obj.getContext().unAssociateEntity(obj);
 	}
 	
 	public VWMLObject get(Object id, VWMLContext context) throws Exception {
@@ -84,9 +87,21 @@ public class VWMLObjectsRepository {
 		if (effectiveContext == null) {
 			effectiveContext = VWMLContextsRepository.instance().getDefaultContext();
 		}
-		return getByEffectiveContext(id, effectiveContext);
+		return getByEffectiveContext(id, effectiveContext, false);
 	}
 
+	public VWMLObject getConcrete(Object id, VWMLContext context) throws Exception {
+		String ids = (String)id;
+		VWMLContext effectiveContext = context;
+		if (ids.contains(".")) {
+			return getByFullSpecifiedPath(id, context);
+		}
+		if (effectiveContext == null) {
+			effectiveContext = VWMLContextsRepository.instance().getDefaultContext();
+		}
+		return getByEffectiveContext(id, effectiveContext, true);
+	}
+	
 	/**
 	 * Adds created entity to storage
 	 * @param entity
@@ -118,15 +133,20 @@ public class VWMLObjectsRepository {
 		if (effectiveContext == null) {
 			throw new Exception("couldn't find context identified by '" + contextId + "'");
 		}
-		ids = ids.substring(le);
+		ids = ids.substring(le + 1);
 		return repo.get(buildAssociationKey(effectiveContext, ids));
 	}
 
-	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context) {
+	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context, boolean concreteContext) {
 		VWMLObject o = null;
-		while(context != null || o == null) { 
+		if (concreteContext) {
 			o = repo.get(buildAssociationKey(context, (String)id));
-			context = (VWMLContext)context.getLink().getParent();
+		}
+		else {
+			while(context != null && o == null) { 
+				o = repo.get(buildAssociationKey(context, (String)id));
+				context = (VWMLContext)context.getLink().getParent();
+			}
 		}
 		return o;
 	}

@@ -145,18 +145,18 @@ public interface ICodeGenerator {
 	public void declareTerm(Object id, String context) throws Exception;
 	
 	/**
+	 * Declares context; it is used during code generation phase; all entities should be linked with contexts
+	 * @param contextId
+	 */
+	public void declareContext(Object contextId);
+	
+	/**
 	 * Links objects using their ids
 	 * @param id
 	 * @param linkedObjId
 	 * @param activeContext
 	 */
 	public void linkObjects(Object id, Object linkedObjId, String activeContext);
-	
-	/**
-	 * Declares context; it is used during code generation phase; all entities should be linked with contexts
-	 * @param contextId
-	 */
-	public void declareContext(Object contextId);
 	
 	/**
 	 * Builds association between object and operation

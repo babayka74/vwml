@@ -67,24 +67,22 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 
 		@Override
 		public void run(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
+			VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
+			VWMLEntity le = null;
+			entity = (VWMLEntity)entity.getLink().peek(it);
+			le = (VWMLEntity)entity.getLink().peek(it);
 			// create complex entity
 			String cen = ComplexEntityNameBuilder.generateRandomName();
 			VWMLEntity newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
 																					cen,
-																					(String)context.getContext(),
+																					(String)entity.getContext().getContext(),
 																					context.getEntityInterpretationHistorySize(),
 																					context.getLinkOperationVisitor());
 			// go through the list in order to create interpreting expression
-			VWMLEntity e = null;
-			VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
-			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
-				if (e == null) {
-					e = le;
-					continue;
-				}
+			for(; le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
 				newComplexEntity.link(le);
 			}
-			e.setInterpreting(newComplexEntity);
+			entity.setInterpreting(newComplexEntity);
 		}
 	}
 

@@ -45,9 +45,10 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @return
 	 */
 	public VWMLContext createContextIfNotExists(Object contextId) {
+		contextId = normalizeContext((String)contextId);
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
 		String rootContext = null;
-		if (contextPath == null || contextPath[0].length() == 0) {
+		if (contextPath == null || contextPath.length == 0 || contextPath[0].length() == 0) {
 			rootContext = s_default_context;
 		}
 		else {
@@ -68,9 +69,10 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @return
 	 */
 	public VWMLContext get(Object contextId) {
+		contextId = normalizeContext((String)contextId);
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
 		String rootContext = null;
-		if (contextPath == null || contextPath[0].length() == 0) {
+		if (contextPath == null || contextPath.length == 0 || contextPath[0].length() == 0) {
 			rootContext = s_default_context;
 		}
 		else {
@@ -84,6 +86,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	protected VWMLContext create(VWMLContext parent, String[] contextPath, int pos) {
+		String actualContext = "";
 		for(int i = pos; i < contextPath.length; i++) {
 			VWMLObject next = null;
 			for(VWMLObject o : parent.getLink().getLinkedObjects()) {
@@ -92,9 +95,14 @@ public class VWMLContextsRepository extends VWMLRepository {
 					break;
 				}
 			}
+			if (actualContext.length() > 0) {
+				actualContext += ".";
+			}
+			actualContext += contextPath[i];
 			if (next == null) {
 				next = VWMLContext.instance();
-				((VWMLContext)next).setContext(contextPath[i]);
+				((VWMLContext)next).setContext(actualContext);
+				((VWMLContext)next).setContextName(contextPath[i]);
 				parent.getLink().link(next);
 			}
 			parent = (VWMLContext)next;
@@ -106,8 +114,9 @@ public class VWMLContextsRepository extends VWMLRepository {
 		for(int i = pos; i < contextPath.length; i++) {
 			VWMLObject next = null;
 			for(VWMLObject o : parent.getLink().getLinkedObjects()) {
-				if (o.getId().equals(contextPath[i])) {
+				if (((VWMLContext)o).getContextName().equals(contextPath[i])) {
 					next = o;
+					break;
 				}
 			}
 			if (next == null) {
@@ -117,5 +126,15 @@ public class VWMLContextsRepository extends VWMLRepository {
 			parent = (VWMLContext)next;
 		}
 		return parent;
+	}
+	
+	protected String normalizeContext(String context) {
+		if (context == null || context.length() == 0 || context.equals(s_default_context)) {
+			return s_default_context;
+		}
+		if (context.startsWith(s_default_context)) {
+			return context;
+		}
+		return s_default_context + "." + context; 
 	}
 }

@@ -24,6 +24,8 @@ public class VWMLOperationExeHandler extends VWMLOperationHandler {
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
+		// since inspector reads until empty mark we should read entity's original context
+		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		VWMLEntity entity = null;
 		if (entities.size() == 1) {
@@ -32,18 +34,13 @@ public class VWMLOperationExeHandler extends VWMLOperationHandler {
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
-																					   (String)context.getContext(),
+																					   (String)originalContext.getContext(),
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
 		}
 		entities.clear();
 		stack.popUntilEmptyMark();
-		if (entity.isTerm() || entity.isMarkedAsComplexEntity()) {
-			interpreter.activateComplexInterpretationProcess(linkage, context, entity);
-		}
-		else {
-			interpreter.startOnExistedContext(linkage, context, entity);
-		}
+		stack.push(entity);
 	}
 }

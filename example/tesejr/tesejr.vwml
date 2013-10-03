@@ -1,18 +1,18 @@
 options {
 	language=__java__ {
-  		package = "com.win.game.tesej.model.vwml.tesej"
-  		path = "c:\var\vwml/tesej/src"
+  		package = "com.win.game.tesej.model.vwml.tesejr"
+  		path = "c:\var\vwml/tesejr/src"
   		author = "Groozman M.Z."
-		project_name = "tesejProj"
+		project_name = "tesejRProj"
   		description = "Tesej walk"
 		visualizer {
 			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
-			data = "c:\var\vwml/tesej/diagram"
+			data = "c:\var\vwml/tesejr/diagram"
 		}
 	}
 }
 
-module tesej {
+module tesejr {
 	final ias (
 		    doNothing ias break;
                     break ias ();
@@ -30,7 +30,7 @@ module tesej {
 		  Tesej~~ Random
 		 )^;
 	TesejLife ias (	Step~ Exe
-			(TesejLife TesejLife TesejLife TesejLife final.doNothing)Random~ Exe
+			TesejLife~ Exe
 		      );
 	lifeterm = TesejLife~ Exe
 }

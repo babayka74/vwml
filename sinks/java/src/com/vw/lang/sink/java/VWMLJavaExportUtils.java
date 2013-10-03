@@ -8,6 +8,6 @@ package com.vw.lang.sink.java;
 public class VWMLJavaExportUtils {
 
 	public static String[] parseContext(String context) {
-		return (context != null) ? context.split(".") : null;
+		return (context != null) ? context.split("\\.") : null;
 	}
 }

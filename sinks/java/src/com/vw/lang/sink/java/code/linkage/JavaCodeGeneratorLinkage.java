@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.VWMLLinkWrap;
@@ -20,6 +21,7 @@ import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyCom
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsNilEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityStrictInterpretationStrategy;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -67,6 +69,8 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 				VWMLOperationsCode.class.getName(),
 				VWMLOperation.class.getName(),
 				VWMLLinkage.class.getName(),
+				VWMLContext.class.getName(),
+				VWMLContextsRepository.class.getName(),
 				AbstractVWMLLinkVisitor.class.getName(),
 				InterpretationOfUndefinedEntityStrategyId.class.getName(),
 				UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class.getName(),
@@ -117,7 +121,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 				list += ",";
 			}
 			String s = JavaCodeGeneratorUtils.convertStaticStringArrayToString(obj.getContextPath());
-			String arrayAsStr = (s == null) ? null : "\"" + s + "\"";
+			String arrayAsStr = (s == null) ? null : s;
 			if (!obj.isAsTerm()) {
 				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\", " + arrayAsStr + ")";
 			}

@@ -21,11 +21,14 @@ public class VWMLEntity extends VWMLObject {
 	
 	// this entity is interpreted as another entity/term
 	private VWMLContext context;
+	
 	private VWMLEntity interpreting;
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations();
 	private boolean isLifeTerm = false;
 	private boolean isMarkedAsComplexEntity = false;
+	// set when operation is added to entity, but initially entity wasn't marked as term
+	private boolean isMarkedAsArtificalTerm = false;
 	private int interpretationHistorySize;
 	
 	public VWMLEntity() {
@@ -131,6 +134,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setMarkedAsComplexEntity(boolean isMarkedAsComplexEntity) {
 		this.isMarkedAsComplexEntity = isMarkedAsComplexEntity;
+	}
+
+	public boolean isMarkedAsArtificalTerm() {
+		return isMarkedAsArtificalTerm;
+	}
+
+	public void setMarkedAsArtificalTerm(boolean isMarkedAsArtificalTerm) {
+		this.isMarkedAsArtificalTerm = isMarkedAsArtificalTerm;
 	}
 
 	@Override

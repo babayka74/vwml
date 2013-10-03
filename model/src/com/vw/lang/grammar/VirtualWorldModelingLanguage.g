@@ -9,7 +9,6 @@ grammar VirtualWorldModelingLanguage;
 tokens {
     IAS='ias';
     LIFETERM='lifeterm';
-    NIL='nil';
     OPJOIN='Join';
     OPINTERSECT='Intersect';
     OPSUBSTRUCT='Substruct';
@@ -410,6 +409,9 @@ entity_def
     			// adds entity id to context stack
     			vwmlContextBuilder.push($entity_decl.id);
     			entityWalker.markFutureEntityAsIAS($entity_decl.id);
+    			if (codeGenerator != null) {
+    				codeGenerator.declareContext(vwmlContextBuilder.buildContext());
+    			}
     			// we should link this entity with parent, if exists
     			 buildLinkingAssociation($entity_decl.id);
     		      } term 
@@ -591,7 +593,7 @@ complex_entity returns [EntityWalker.Relation rel]
     ;
 
 ID
-    : LETTER (LETTER|'0'..'9')* // ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
+    : LETTER (LETTER|'0'..'9'|'.')* // ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
     ;
 
 STRING_LITERAL

@@ -8,7 +8,6 @@ import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -20,7 +19,7 @@ import com.vw.lang.sink.java.operations.VWMLOperationsCode;
  *
  */
 public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
-	
+
 	private VWMLSingleTermInterpreter() {
 	}
 	
@@ -63,6 +62,9 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		}
 		VWMLEntity entity = getTerms().get(0);
 		setContext(entity.getContext());
+		// marks context as lifeterm's context. It activates special behavior when entity's context
+		// is pushed into special stack in order to guarantee entity's context after 'assemble' operation
+		getContext().setLifeTermContext(true);
 		// associates context of interpreted term with interpretation stack
 		getContext().setEntityInterpretationHistorySize(entity.getInterpretationHistorySize());
 		getContext().setLinkOperationVisitor(entity.getLink().getLinkOperationVisitor());
@@ -75,7 +77,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @throws Exception
 	 */
 	@Override
-	public VWMLEntity startOnExistedContext(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
+	public VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 		if (!entity.isTerm() && !entity.isMarkedAsComplexEntity()) {
 			activateSimpleInterpretationProcess(entity, linkage, context);
 			return entity;
@@ -86,7 +88,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
 				if (le.isTerm() || le.isMarkedAsComplexEntity()) {
 					// recursive call
-					activateComplexInterpretationProcess(linkage, getContext(), le);
+					activateComplexInterpretationProcess(linkage, context, le);
 				}
 				else {
 					// simple pushes non-term entity to stack
@@ -104,20 +106,66 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	@Override
 	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		VWMLEntity entity = le;
-		VWMLOperation opImplicitlyAdded = null;
-		context.getStack().pushEmptyMark();
-		if (!le.isTerm() && le.isMarkedAsComplexEntity()) {
-			opImplicitlyAdded = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
-			le.addOperation(opImplicitlyAdded);
-		}
-		else
-		if (le.isTerm() && ((VWMLTerm)le).getAssociatedEntity() != null) {
-			entity = ((VWMLTerm)le).getAssociatedEntity();
-		}
-		startOnExistedContext(linkage, context, entity);
-		termInterpretation(linkage, context, le);
-		if (opImplicitlyAdded != null) {
-			le.removeOperation(opImplicitlyAdded);
+		while(entity != null) { // usually entity which is result of 'EXE' operation
+			VWMLOperation opImplicitlyAddedRef = null;
+			// working with lifeterm's context
+			if (entity.getContext() == null) {
+				throw new Exception("entity '" + le + "' doesn't belong to any context !");
+			}
+			// the 'true' means that entity is being processed now and potential recurse detected - as result stack should be unwind
+			// and interpretation process starts from this entity again, but on 'unwinded' stack
+			if (!context.isEntityMarkedAsObservableInsideContext(le)) {
+				if (!entity.isTerm() && entity.isMarkedAsComplexEntity()) {
+					// assemble operation is used if we need to collect result of entity interpretation process
+					opImplicitlyAddedRef = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
+					entity.addOperation(opImplicitlyAddedRef);
+				}
+				else
+				if (entity.isTerm() && ((VWMLTerm)entity).getAssociatedEntity() != null) {
+					entity = ((VWMLTerm)entity).getAssociatedEntity();
+				}
+			}
+			else {
+				// push entity to special stack and unwind current stack until we find place where
+				// entity was marked as 'observable' term
+				context.pushRecurseEntity(le);
+				// context is prepared for unwind operation
+				context.prepareForUnwinding();
+				return;
+			}
+			// marks entity as observable; used in order to detect recurse
+			context.markEntityAsObservableInsideContext(le);
+			context.getStack().pushEmptyMark();
+			context.pushContext(entity.getContext());
+			// entity is decomposed and interpreted
+			decomposeAndInterpret(linkage, context, entity);
+			// the 'defferredEntity' is result of EXE operation
+			VWMLEntity defferredEntity = null;
+			// term is interpreted only in case if unwinding process isn't in progress
+			if (!context.isUnwinding()) {
+				// the 'EXE' operations is specific operation - it starts to interpret term fetched from the stack not in recursing manner
+				// this entity can be considered as 'defferred' since it is interpreted on next iteration
+				defferredEntity = termInterpretation(linkage, context, le);
+			}
+			if (opImplicitlyAddedRef != null) {
+				le.removeOperation(opImplicitlyAddedRef);
+			}
+			if (le == context.peekRecurseEntity()) {
+				// stack recurse detected and stack should be unwind 
+				VWMLEntity unwindTill = context.getTopOfStackWhenEntityWasMarkedAsObservable(le);
+				if (unwindTill != null) {
+					context.unwindStackTill(unwindTill);
+				}
+				// stack unwind process finished - remove entity and starts interpretation again, in loop
+				context.popRecurseEntity();
+				context.finishUnwinding();
+				// stack has been unwind and interpretation is started again
+				defferredEntity = le;
+			}
+			// entity has been interpreted and should be unmarked
+			context.unmarkEntityAsObservableInsideContext(le);
+			// starts iteration of entity - result of 'EXE' operation
+			le = entity = defferredEntity;
 		}
 	}
 	
@@ -136,18 +184,31 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	/**
 	 * Executes term's operations on stack; interpreted entity should be already on top of stack
 	 */
-	protected void termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
+	protected VWMLEntity termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
+		VWMLEntity exeEntity = null;
 		if (le.isTerm()) { // means that entity has operations which should be executed on top of stack
 			// executes operations and serves stack
 			VWMLLinkIncrementalIterator itOps = le.acquireOperationsIterator();
 			// executes set of operations on stack; all operations are performed on top of stack
 			for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
 				// actually calls handle to process operation
-				handleOperation(linkage, context, op);
+				if (exeEntity == null) {
+					handleOperation(linkage, context, op);
+				}
+				else {
+					exeEntity.addOperation(op); // deferred operations
+				}
+				// EXE is a special operation and its implementation lies out of general rules for 
+				// regular operations
+				if (op.getOpCode() == VWMLOperationsCode.OPEXECUTE) {
+					exeEntity = (VWMLEntity)context.getStack().pop();
+				}
 			}
 			// removes 'empty mark' by propagating term's result to following term on stack
 			context.getStack().consumeEmptyMark();
+			context.popContext();
 		}
+		return exeEntity;
 	}
 
 	/**
@@ -159,7 +220,6 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 */
 	private void activateSimpleInterpretationProcess(VWMLEntity le, VWMLLinkage linkage, VWMLContext context) throws Exception {
 		// adds non-term to stack
-		VWMLStack stack = context.getStack();
-		stack.push(le);
+		context.getStack().push(le);
 	}	
 }

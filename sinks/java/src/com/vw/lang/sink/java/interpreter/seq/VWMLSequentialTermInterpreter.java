@@ -44,7 +44,7 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	@Override
-	public VWMLEntity startOnExistedContext(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
+	public VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 		// TODO Auto-generated method stub
 		return entity;
 	}

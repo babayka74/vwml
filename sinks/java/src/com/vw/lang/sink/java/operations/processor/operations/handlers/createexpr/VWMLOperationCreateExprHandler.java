@@ -26,7 +26,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) { // specific case where only one entity on stack
-			new VWMLOperationHandlerCreateExprFromEntity().handle(entities.get(0), linkage, context, operation);
+			new VWMLOperationHandlerCreateExprFromEntity().handle(entities.get(0), linkage, entities.get(0).getContext(), operation);
 		}
 		else
 		if (entities.size() == 2) { // specific case where only 2 entities on stack
@@ -38,7 +38,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 			VWMLEntity entity = entities.get(entities.size() - 1);
 			VWMLEntity newComplexEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																											entities.size() - 2,
-																											(String)context.getContext(),
+																											(String)entity.getContext().getContext(),
 																											context.getEntityInterpretationHistorySize(),
 																											context.getLinkOperationVisitor(),
 																											VWMLOperationUtils.s_dontAddIfUnknown);

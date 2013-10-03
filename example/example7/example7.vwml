@@ -1,0 +1,34 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.example7"
+  		path = "c:\var\vwml/example7/src"
+  		author = "Groozman M.Z."
+		project_name = "example7Proj"
+  		description = "Example7"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/example7/diagram"
+		}
+	}
+}
+
+module example7 {
+	Robby ias (
+		G ias nil;
+		B ias nil;
+		R ias nil;
+		W ias nil;
+		Shelf ias nil;
+		Yes ias (
+			(Shelf (G B R B) Random)^
+			(Shelf nil)^
+			Behavior~ Exe
+		);
+		No ias doNothing;
+		Behavior ias (
+                	(W (Yes Yes Yes Yes Yes No No) Random)^
+			W~~ Exe
+                );
+		lifeterm = Behavior~ Exe
+        );
+}

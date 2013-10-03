@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.code.templates;
 
 
+
 /**
  * Parts of code needed to java code generator
  * @author ogibayev
@@ -168,7 +169,6 @@ public final class JavaCodeGeneratorTemplates {
 	"\tprotected void buildOperationsAssociationFor(VWMLEntity entity, Object uniqId, String context) throws Exception {\r\n" +
 	"\t\tVWMLOperationLink link = appliedOperations.get(uniqId);\r\n" +
 	"\t\tif (link != null) {\r\n" +
-	"\t\t\tentity = (VWMLEntity)VWMLObjectsRepository.instance().get(uniqId, \"\");\r\n" +
 	"\t\t\tString[] ops = link.getAssociatedOperations();\r\n" +
 	"\t\t\tfor(String op : ops) {\r\n" +
 	"\t\t\t\tVWMLOperationsCode opCode = VWMLOperationsCode.fromValue(op);\r\n" +
@@ -180,7 +180,11 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t}\r\n" +
 	"\t}\r\n\r\n" +
 	"\tprivate VWMLObject getEntityById(Object id, String context) throws Exception {\r\n" +
-	"\t\tVWMLObject entity = VWMLObjectsRepository.instance().get(id, context);\r\n" +
+	"\t\tVWMLContext c = VWMLContextsRepository.instance().get(context);\r\n" +
+	"\t\tif (c == null) {\r\n" +
+	"\t\t\tthrow new Exception(\"coudln't find context '\" + context + \"'\");\r\n" +
+	"\t\t}\r\n" +
+	"\t\tVWMLObject entity = VWMLObjectsRepository.instance().get(id, c);\r\n" +
 	"\t\tif (entity == null) {\r\n" +
 	"\t\t\tentity = interpretUndefinedEntity(id, context);\r\n" +
 	"\t\t\tif (entity == null) {\r\n" +

@@ -72,7 +72,7 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 			}
 		}
 		getFw().write("\t\t// adding contexts\r\n");
-		getFw().write("\t\taddContexts()\r\n\r\n");
+		getFw().write("\t\taddContexts();\r\n\r\n");
 		for(VWMLObjWrap obj : declaredObjects) {
 			getFw().write("\t\t// constructs entity '" + obj.getObjId() + "'\r\n");
 			getFw().write("\t\tVWMLObjectsRepository.acquire(" + obj.getType().getClass().getSimpleName()+ "." +
