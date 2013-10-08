@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java.interpreter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.IVWMLInterpreter;
@@ -81,28 +80,13 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 		if (!modulesBuilt) {
 			build();
 		}
-		VWMLIterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), getLifeTerms());
+		VWMLIterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), VWMLLinkage.getLifeTerms());
 		if (impl == null) {
 			throw new Exception("there were not found any interpreter; check interpreter's property file");
 		}
 		impl.start();
 	}
 
-	protected List<VWMLEntity> getLifeTerms() throws Exception {
-		List<VWMLEntity> lifeTerms = new ArrayList<VWMLEntity>();
-		for(VWMLModule module : modules) {
-			lifeTerms.addAll(module.getLinkage().getModLifeTerms());
-		}
-		if (lifeTerms.size() == 0) {
-			throw new Exception("there were not found any lifeterm; please check VWML project; use lifeTerm keyword in order to mark term as lifeterm");
-		}
-		return lifeTerms;
-	}
-	
-	protected List<VWMLEntity> getModuleLifeTerm(VWMLModule module) {
-		return module.getLinkage().getModLifeTerms();
-	}
-	
 	protected void prepareConfiguration() {
 		VWMLPair p = null;
 		if (getPropPairs() != null) {

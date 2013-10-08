@@ -71,6 +71,11 @@ public abstract class VWMLIterpreterImpl {
 	public abstract VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
 
 	/**
+	 * Clones current interpreter
+	 */
+	public abstract VWMLIterpreterImpl clone();
+	
+	/**
 	 * Starts term's interpretation process
 	 * @param linkage
 	 * @param context

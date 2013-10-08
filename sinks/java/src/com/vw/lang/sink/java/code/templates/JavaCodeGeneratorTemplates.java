@@ -154,7 +154,7 @@ public final class JavaCodeGeneratorTemplates {
 			"\t\t\tVWMLObject linkedEntity = processLinkedEntity(obj);\r\n" +
 			"\t\t\tif (obj.isMarkedAsLifeTerm()) {\r\n" +
 			"\t\t\t\t((VWMLEntity)linkedEntity).setLifeTerm(true);\r\n" +
-			"\t\t\t\taddLifeTerm((VWMLEntity)linkedEntity);\r\n" +
+			"\t\t\t\tVWMLLinkage.addLifeTerm((VWMLEntity)linkedEntity);\r\n" +
 			"\t\t\t}\r\n" +
 			"\t\t\tentity.link(linkedEntity);\r\n" +
 		"\t\t}\r\n\r\n" +

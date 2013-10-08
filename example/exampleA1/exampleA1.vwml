@@ -1,0 +1,42 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleA1"
+  		path = "c:\var\vwml/exampleA1/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleA1Proj"
+  		description = "ExampleA1"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleA1/diagram"
+		}
+		beyond {
+			fringe {
+				in is "com.win.game.tesej.consoleConnector"
+				out is "com.win.game.tesej.consoleConnector"
+				math is "com.vw.lang.beyond.fringe.math"
+			}
+		}
+	}
+}
+
+module exampleA1 {
+	S1 ias nil;
+	S2 ias nil;
+	Sum ias nil;
+	getFromAnotherWorld ias in.read;
+	pushToAnotherWorld  ias out.write;
+	Summation ias math.sum;
+	Behavior ias (
+		(S1
+			(getFromAnotherWorld~) do
+		)^
+		(S2
+			(getFromAnotherWorld~) do
+		)^
+		(Sum
+                	((S1~ S2~) Summation~) do
+		)^
+		(Sum~ pushToAnotherWorld~) do
+	);
+	lifeterm = Behavior~ Exe
+}

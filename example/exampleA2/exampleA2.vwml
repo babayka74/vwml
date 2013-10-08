@@ -1,0 +1,26 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleA2"
+  		path = "c:\var\vwml/exampleA2/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleA2Proj"
+  		description = "ExampleA2"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleA2/diagram"
+		}
+	}
+}
+
+module exampleA2 {
+	Logic ias (
+		(not true) ias false;
+		(not false) ias true;
+	);
+
+	Robby ias (
+		c ias nil;
+		a ias (not false)
+		lifeterm = (c (Logic:a~ Logic.(not true)))^
+	);
+}

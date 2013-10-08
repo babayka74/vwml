@@ -55,7 +55,7 @@ public class VWMLObjectsRepository {
 			throw new Exception("coudln't find context '" + context + "'");
 		}
 		// checks if object has been created before
-		VWMLObject obj = instance().getConcrete(id, c);
+		VWMLObject obj = instance().get(id, c);
 		if (obj == null) { // not found in repository...
 			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
 			instance().add((VWMLEntity)obj);
@@ -90,18 +90,6 @@ public class VWMLObjectsRepository {
 		return getByEffectiveContext(id, effectiveContext, false);
 	}
 
-	public VWMLObject getConcrete(Object id, VWMLContext context) throws Exception {
-		String ids = (String)id;
-		VWMLContext effectiveContext = context;
-		if (ids.contains(".")) {
-			return getByFullSpecifiedPath(id, context);
-		}
-		if (effectiveContext == null) {
-			effectiveContext = VWMLContextsRepository.instance().getDefaultContext();
-		}
-		return getByEffectiveContext(id, effectiveContext, true);
-	}
-	
 	/**
 	 * Adds created entity to storage
 	 * @param entity

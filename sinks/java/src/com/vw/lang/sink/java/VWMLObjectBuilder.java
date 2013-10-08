@@ -3,6 +3,7 @@ package com.vw.lang.sink.java;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.beyond.fringe.creature.VWMLCreature;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLSimpleEntity;
@@ -22,7 +23,8 @@ public class VWMLObjectBuilder {
 		SIMPLE_ENTITY("SIMPLE_ENTITY"),
 		COMPLEX_ENTITY("COMPLEX_ENTITY"),
 		TERM("TERM"),
-		CONTEXT("CONTEXT");
+		CONTEXT("CONTEXT"),
+		CREATURE("CREATURE");
 		
 		private final String value;
 		
@@ -121,6 +123,19 @@ public class VWMLObjectBuilder {
 			((VWMLTerm)o).setInterpretationHistorySize(size);
 		}
 	}
+
+	public static class CreatureBuilder extends Builder {
+
+		@Override
+		public VWMLObject build(Object id) {
+			return new VWMLCreature(id, null);
+		}
+		
+		@Override
+		protected void setInterpretationHistorySize(VWMLObject o, int size) {
+			((VWMLCreature)o).setInterpretationHistorySize(size);
+		}
+	}
 	
 	/**
 	 * Builders' map
@@ -132,6 +147,7 @@ public class VWMLObjectBuilder {
 			put(VWMLObjectType.SIMPLE_ENTITY, new SimpleEntityBuilder());
 			put(VWMLObjectType.COMPLEX_ENTITY, new ComplexEntityBuilder());
 			put(VWMLObjectType.TERM, new TermBuilder());
+			put(VWMLObjectType.CREATURE, new CreatureBuilder());			
 		}
 	};
 	

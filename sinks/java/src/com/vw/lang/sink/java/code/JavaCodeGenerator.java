@@ -439,6 +439,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	private List<VWMLObjWrap> declaredObjects = new ArrayList<VWMLObjWrap>();
 	// declared contexts
 	private List<VWMLObjWrap> declaredContexts = new ArrayList<VWMLObjWrap>();
+	// declared creatures
+	private List<VWMLObjWrap> declaredCreatures = new ArrayList<VWMLObjWrap>();
 	// contains list of entity ids which were marked as 'term'
 	private List<Object> markedAsTerm = new ArrayList<Object>();
 	// defines objects' linkage
@@ -610,6 +612,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		operations.clear();
 		linkage.clear();
 		declaredContexts.clear();
+		declaredCreatures.clear();
 		interpret.clear();
 		markedAsTerm.clear();
 		idTranslationMap.clear();
@@ -676,6 +679,17 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public void declareComplexEntity(Object id, Object readableId, String context) throws Exception {
 		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, readableId, context));		
+	}
+
+	/**
+	 * Declares creature; special entity which lives on intersection of worlds
+	 * @param id (ID)
+	 * @param props (STRING)
+	 * @param context
+	 * @throws Exception
+	 */
+	public void declareCreature(Object id, Object props, String context) throws Exception {
+		declaredCreatures.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CREATURE, id, props, null));		
 	}
 	
 	/**

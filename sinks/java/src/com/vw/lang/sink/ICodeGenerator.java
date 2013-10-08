@@ -131,6 +131,15 @@ public interface ICodeGenerator {
 	public void declareComplexEntity(Object id, Object readableId, String context) throws Exception;
 	
 	/**
+	 * Declares creature; special entity which lives on intersection of worlds
+	 * @param id (ID)
+	 * @param props (STRING)
+	 * @param context
+	 * @throws Exception
+	 */
+	public void declareCreature(Object id, Object props, String context) throws Exception;
+	
+	/**
 	 * Changes object's id from 'id' to 'idTo'
 	 * @param id
 	 * @param idTo

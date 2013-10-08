@@ -37,6 +37,7 @@ public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 			entity = getRandomEntityFromSetOfEntities(entities);
 		}
 		inspector.clear();
+		entities.clear();
 		stack.popUntilEmptyMark();
 		stack.push(entity);
 	}

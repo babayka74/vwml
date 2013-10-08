@@ -47,6 +47,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 		// clear stack
 		stack.popUntilEmptyMark();
 		entities.clear();
+		inspector.clear();
 	}
 
 }

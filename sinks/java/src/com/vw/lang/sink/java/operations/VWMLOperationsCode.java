@@ -21,6 +21,7 @@ public enum VWMLOperationsCode {
     OPIDENT("Ident"),
     OPSQU("Squeeze"),
     OPINTERPRET("~"),
+    OPACTIVATECTX(":"),
     OPCREATEEXPR("^"),
     OPEXECUTE("Exe"),
     OPPROJECTION_1("Projection_1"),

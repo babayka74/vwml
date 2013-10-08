@@ -18,10 +18,12 @@ public class VWMLEntity extends VWMLObject {
 	public static final String s_doNothingEntityId = "doNothing";
 	public static final String s_trueEntityId      = "true";
 	public static final String s_falseEntityId     = "false";
+
+	// true means that entity lives on intersection of worlds (see VWMLCreature)
+	protected boolean isCreature = false;
 	
 	// this entity is interpreted as another entity/term
 	private VWMLContext context;
-	
 	private VWMLEntity interpreting;
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations();
@@ -144,6 +146,14 @@ public class VWMLEntity extends VWMLObject {
 		this.isMarkedAsArtificalTerm = isMarkedAsArtificalTerm;
 	}
 
+	/**
+	 * Returns 'true' in case if entity was marked as creature (entity which lives on intersection of worlds)
+	 * @return
+	 */
+	public boolean isCreature() {
+		return isCreature;
+	}
+	
 	@Override
 	public String toString() {
 		return "VWMLEntity [interpreting=" + interpreting + ", getLink()="

@@ -40,14 +40,17 @@ public class VWMLOperationIdentHandler extends VWMLOperationHandler {
 			}
 		}
 		else
-		if (entities.size() != s_arg_numbers) {
+		if (entities.size() == s_arg_numbers) {
+			r = checkEntitiesIdenticProperty(entities.get(0), entities.get(1));
+		}
+		else {
 			errorReport();
 		}
 		inspector.clear();
+		entities.clear();
 		stack.popUntilEmptyMark();
-		r = checkEntitiesIdenticProperty(entities.get(0), entities.get(1));
 		VWMLEntity entity = (r) ? (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_trueEntityId, VWMLContextsRepository.instance().getDefaultContext()) : 
-			                      (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
+            					  (VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
 		stack.push(entity);
 	}
 

@@ -19,6 +19,7 @@ public class VWMLContextBuilder {
 	}
 	
 	private Stack stack = Stack.instance();
+	private String effectiveContext = null;
 	
 	private VWMLContextBuilder() {
 		
@@ -57,4 +58,43 @@ public class VWMLContextBuilder {
 		return context;
 	}
 
+	/**
+	 * Returns 'true' in case if effective context detected; effective context is marked by tailed '.'
+	 * @param context
+	 * @return
+	 */
+	public boolean isEffectiveContext(String context) {
+		boolean r = false;
+		if (context != null) {
+			r = context.endsWith(".");
+		}
+		return r;
+	}
+	
+	/**
+	 * Sets effective context
+	 * @param context
+	 */
+	public void setEffectiveContext(String context) {
+		if (isEffectiveContext(context)) {
+			context = context.substring(0, context.length() - 1);
+		}
+		effectiveContext = context;
+	}
+	
+	public String getEffectiveContext() {
+		return effectiveContext;
+	}
+	
+	public boolean isEffectiveContextUsed() {
+		return (effectiveContext != null) ? true : false;
+	}
+	
+	public void resetEffectiveContext() {
+		effectiveContext = null;
+	}
+	
+	public String createAbsoluteEffectiveContextPath(Object id) {
+		return getEffectiveContext() + "." + id;
+	}
 }

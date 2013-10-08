@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.activatectx.VWMLOperationActivateContextHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOperationExeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.ident.VWMLOperationIdentHandler;
@@ -35,6 +36,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPEXECUTE),          new VWMLOperationExeHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE), new VWMLOperationImplicitAssembleHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPIDENT),            new VWMLOperationIdentHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATECTX),      new VWMLOperationActivateContextHandler());
 		}
 	};
 	// called when unknown/unsupported operation is going to be executed

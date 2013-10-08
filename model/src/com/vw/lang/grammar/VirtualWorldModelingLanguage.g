@@ -26,6 +26,7 @@ tokens {
     OPINTERPRET='~';
     OPCREATEEXPR= '^';
     OPEXECUTE='Exe';
+    OPACTIVATECTX=':';
     OPPROJECTION_1='Projection_1';
     OPPROJECTION_2='Projection_2';
     OPPROJECTION_3='Projection_3';
@@ -105,6 +106,8 @@ package com.vw.lang.grammar;
 	private ComplexEntityNameBuilder complexEntityNameBuilderDef = ComplexEntityNameBuilder.instance();
 	private EntityWalker entityWalker = EntityWalker.instance();
 	private EntityWalker.Relation lastProcessedEntity = null;
+	private String lastDeclaredCreatureId = null;
+	private String lastDeclaredCreatureProps = null;
 	private boolean lastProcessedEntityAsTerm = false;
 	private String modName = null;
  	private boolean inDebug = false;
@@ -127,6 +130,22 @@ package com.vw.lang.grammar;
 	
 	protected boolean isInDebug() {
 		return this.inDebug;
+	}
+	
+	protected void addLastDeclaredCreature(String creatureId) {
+		lastDeclaredCreatureId = creatureId;
+	}
+	
+	protected void addLastDeclaredCreatureProps(String creatureProps) {
+		lastDeclaredCreatureProps = creatureProps;
+	}
+	
+	protected String getLastDeclaredCreature() {
+		return lastDeclaredCreatureId;
+	}
+	
+	protected String getLastDeclaredCreatureProps() {
+		return lastDeclaredCreatureProps;
 	}
 	
 	protected Object buildIASAssociation(Object id) throws RecognitionException {
@@ -301,7 +320,7 @@ generatedFileLocation
     ;	
 
 optionalProps
-    : author? projname? description? entity_history_size? visualizer?
+    : author? projname? description? entity_history_size? visualizer? beyond_the_fringe?
     ;
 
 author
@@ -336,6 +355,7 @@ entity_history_size
     			       }
     ;
 
+// VISUALISER (DEBUGGING)
 visualizer
     : 'visualizer' '{' visualizer_body '}'	
     ;
@@ -363,6 +383,38 @@ visualizer_datapath
 
 path
     : STRING_LITERAL
+    ;
+
+// BEYOND THE FRINGE
+beyond_the_fringe
+    : '{' beyond_the_fringe_body '}'
+    ;
+    
+beyond_the_fringe_body
+    :  'fringe' '{' creatures '}'
+    ;
+
+creatures
+    : (creature)+
+    ;
+
+creature
+    @after {
+	if (codeGenerator != null) {
+		try {
+			codeGenerator.declareCreature(getLastDeclaredCreature(), getLastDeclaredCreatureProps(), null);
+		}
+		catch(Exception e) {
+	    		logger.error("Caught exception '" + e + "'");
+	    		rethrowVWMLExceptionAsRecognitionException(e);
+		}
+	}    
+    }
+    : ID {
+    		addLastDeclaredCreature($ID.getText());
+    	 } 'is' string  {
+    	 			addLastDeclaredCreatureProps(GeneralUtils.trimQuotes($string.text));
+    	 		}
     ;
 
 module
@@ -547,12 +599,23 @@ syncronization_entity returns [EntityWalker.Relation rel]
 
 simple_entity returns [EntityWalker.Relation rel]
     : ID {
-    		if (complexEntityNameBuilderDef.isInProgress()) {
-    			complexEntityNameBuilderDef.addObjectId($ID.text);
+    		// since entity's id may include '.' we should check correctness of name
+    		// if name ends with '.' we can suppouse that this name can be considered as complex entity's effective context
+    		if (!vwmlContextBuilder.isEffectiveContext($ID.text)) {
+    			if (complexEntityNameBuilderDef.isInProgress()) {
+    				complexEntityNameBuilderDef.addObjectId($ID.text);
+    			}
+   			rel = buildRelation($ID.text);
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("processed simple entity '" + rel + "'");
+    			}
     		}
-   		rel = buildRelation($ID.text);
-    		if (logger.isDebugEnabled()) {
-    			logger.debug("processed simple entity '" + rel + "'");
+    		else {
+    			// so entity is considered as effective context
+    			vwmlContextBuilder.setEffectiveContext($ID.text);
+     			if (logger.isDebugEnabled()) {
+    				logger.debug("effective context detected '" + vwmlContextBuilder.getEffectiveContext() + "'");
+    			}   			
     		}
          }
     ;
@@ -564,7 +627,18 @@ complex_entity returns [EntityWalker.Relation rel]
     	String ceId = complexEntityNameBuilderDecl.generateRandomName();
     	try {
     		if (codeGenerator != null) {
-    			String context = vwmlContextBuilder.buildContext();
+    			String context = null;
+    			if (!vwmlContextBuilder.isEffectiveContextUsed()) { 
+    				context = vwmlContextBuilder.buildContext();
+    			}
+    			else {
+    				context = vwmlContextBuilder.getEffectiveContext();
+	    			if (logger.isDebugEnabled()) {
+	    				logger.debug("complex entity '" + ceId + "' belongs to context '" + context + "'");
+	    			}
+	    			ceId = vwmlContextBuilder.createAbsoluteEffectiveContextPath(ceId);
+	    			vwmlContextBuilder.resetEffectiveContext();
+    			}
     			codeGenerator.declareComplexEntity(ceId, null, context);
     		}
     	}

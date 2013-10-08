@@ -38,14 +38,25 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		return new VWMLSingleTermInterpreter(linkage, term);
 	}
 
-	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term, VWMLContext stack) {
-		return new VWMLSingleTermInterpreter(linkage, term, stack);
+	public static VWMLSingleTermInterpreter instance(VWMLLinkage linkage, VWMLEntity term, VWMLContext context) {
+		return new VWMLSingleTermInterpreter(linkage, term, context);
 	}
 
 	public void setTerm(VWMLEntity term) {
-		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
-		tl.add(term);
-		super.setTerms(tl);
+		if (term != null) {
+			List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
+			tl.add(term);
+			super.setTerms(tl);
+		}
+	}
+	
+	/**
+	 * Clones current interpreter
+	 */
+	public VWMLIterpreterImpl clone() {
+		VWMLIterpreterImpl cloned = instance(super.getLinkage(), null, null);
+		cloned.setConfig(this.getConfig());
+		return cloned;
 	}
 	
 	/**

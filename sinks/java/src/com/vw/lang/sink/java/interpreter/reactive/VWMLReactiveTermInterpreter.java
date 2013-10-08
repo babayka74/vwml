@@ -48,4 +48,10 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 		// TODO Auto-generated method stub
 		return entity;
 	}
+
+	@Override
+	public VWMLIterpreterImpl clone() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

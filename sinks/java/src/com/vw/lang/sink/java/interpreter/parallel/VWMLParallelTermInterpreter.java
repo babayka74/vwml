@@ -49,4 +49,10 @@ public class VWMLParallelTermInterpreter extends VWMLIterpreterImpl {
 		return entity;
 	}
 
+	@Override
+	public VWMLIterpreterImpl clone() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

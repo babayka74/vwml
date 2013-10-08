@@ -41,6 +41,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 																								   VWMLOperationUtils.s_addIfUnknown);
 		}
 		inspector.clear();
+		entities.clear();
 		stack.popUntilEmptyMark();
 		stack.push(interpretingEntity);
 	}

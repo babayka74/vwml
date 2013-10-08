@@ -16,17 +16,17 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
  */
 public class VWMLLinkage {
 
-	private List<VWMLEntity> modLifeTerms = new ArrayList<VWMLEntity>();
+	private static List<VWMLEntity> modLifeTerms = new ArrayList<VWMLEntity>();
 	
 	/**
 	 * Adds life term
 	 * @param entityAsTerm
 	 */
-	public void addLifeTerm(VWMLEntity entityAsTerm) {
+	public static void addLifeTerm(VWMLEntity entityAsTerm) {
 		modLifeTerms.add(entityAsTerm);
 	}
 	
-	public List<VWMLEntity> getModLifeTerms() {
+	public static List<VWMLEntity> getLifeTerms() {
 		return modLifeTerms;
 	}
 
