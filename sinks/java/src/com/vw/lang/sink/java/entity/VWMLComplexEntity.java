@@ -37,12 +37,14 @@ public class VWMLComplexEntity extends VWMLEntity {
 	protected void assembleReadableId(ComplexEntityNameBuilder ce, VWMLEntity entity) {
 		ce.startProgress();
 		VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
-		for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
-			if (le.isMarkedAsComplexEntity()) {
-				assembleReadableId(ce, le);
-			}
-			else {
-				ce.addObjectId(le.getId());
+		if (it != null) {
+			for(VWMLEntity le = (VWMLEntity)entity.getLink().peek(it); le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
+				if (le.isMarkedAsComplexEntity()) {
+					assembleReadableId(ce, le);
+				}
+				else {
+					ce.addObjectId(le.getId());
+				}
 			}
 		}
 		ce.stopProgress();

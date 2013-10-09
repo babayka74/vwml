@@ -708,6 +708,7 @@ opclist
     | OPCREATEEXPR
     | OPEXECUTE
     | OPRANDOM
+    | OPACTIVATECTX
     ;
 
 opprojection

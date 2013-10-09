@@ -12,15 +12,25 @@ options {
 	}
 }
 
-module exampleA2 {
-	Logic ias (
-		(not true) ias false;
-		(not false) ias true;
-	);
+include "../general/logicWorld.vwml"
 
+module exampleA2 {
 	Robby ias (
-		c ias nil;
-		a ias (not false)
-		lifeterm = (c (Logic:a~ Logic.(not true)))^
+		onShelf ias nil;
+		cube ias nil;
+		ball ias nil;
+		myRes ias nil;
+		
+		a ias (onShelf cube)Ident;
+		b ias (onShelf ball)Ident;
+		myExpr ias (not (Robby.a~ Exe and Robby.b~ Exe)~)~ 
+		
+		RobbyLife ias (
+				(Logic.Expr myExpr~)^
+				Logic:
+				(myRes Logic.Res~)^
+			      );
+
+		lifeterm = RobbyLife~ Exe
 	);
 }

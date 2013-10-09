@@ -28,6 +28,14 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	/**
+	 * Returns id of default context
+	 * @return
+	 */
+	public static String getDefaultContextId() {
+		return s_default_context;
+	}
+	
+	/**
 	 * Returns default context which can be root if VWML program doesn't contain any contexts
 	 * @return
 	 */
@@ -84,7 +92,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}		
 		return find(root, contextPath, 1);
 	}
-	
+		
 	protected VWMLContext create(VWMLContext parent, String[] contextPath, int pos) {
 		String actualContext = "";
 		for(int i = pos; i < contextPath.length; i++) {

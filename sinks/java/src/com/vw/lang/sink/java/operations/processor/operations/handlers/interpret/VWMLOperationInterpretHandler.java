@@ -22,6 +22,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 
 	@Override
 	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+		VWMLEntity entity = null;
 		VWMLStack stack = context.getStack();
 		VWMLEntity interpretingEntity = null;
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
@@ -33,16 +34,21 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			interpretingEntity = interpretSingleEntity(entities.get(0));
 		}
 		else {
-			interpretingEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
-																								   entities.size() - 1,
-																								   (String)originalContext.getContext(),
-																								   context.getEntityInterpretationHistorySize(),
-																								   context.getLinkOperationVisitor(),
-																								   VWMLOperationUtils.s_addIfUnknown);
+			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
+																					   entities.size() - 1,
+																					   (String)originalContext.getContext(),
+																					   context.getContext(),
+																					   context.getEntityInterpretationHistorySize(),
+																					   context.getLinkOperationVisitor(),
+																					   VWMLOperationUtils.s_addIfUnknown);
+			interpretingEntity = entity.getInterpreting();
 		}
 		inspector.clear();
 		entities.clear();
 		stack.popUntilEmptyMark();
+		if (interpretingEntity == null) {
+			throw new Exception("the interpreting entity can't be 'null'; check VWML's code; entity '" + entity + "'");
+		}
 		stack.push(interpretingEntity);
 	}
 	

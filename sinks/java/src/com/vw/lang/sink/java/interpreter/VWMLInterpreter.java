@@ -72,6 +72,9 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 		for(VWMLModule module : modules) {
 			module.build();
 		}
+		for(VWMLModule module : modules) {
+			module.linkage();
+		}		
 		modulesBuilt = true;
 	}
 	

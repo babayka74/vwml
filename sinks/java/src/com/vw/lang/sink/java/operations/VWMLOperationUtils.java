@@ -27,6 +27,7 @@ public class VWMLOperationUtils {
 	 * @param entities
 	 * @param fromPos
 	 * @param context
+	 * @param effectiveContext
 	 * @param interpretationHistorySize
 	 * @param visitor
 	 * @return
@@ -34,10 +35,16 @@ public class VWMLOperationUtils {
 	public static VWMLEntity generateComplexEntityFromEntitiesReversedStack(List<VWMLEntity> entities,
 			                                                                int fromPos,
 			                                                                String context,
+			                                                                String effectiveContext,
 			                                                                int interpretationHistorySize,
 			                                                                AbstractVWMLLinkVisitor visitor,
 			                                                                boolean addIfUnknown) throws Exception {
 		VWMLEntity newComplexEntity = null;
+		// if effective context (lifeterm's context) isn't parent of entity's context it means that 
+		// actual interpretation is being run on context identified by effectiveContext id
+		if (!VWMLContext.isContextChildOf(effectiveContext, context)) {
+			context = effectiveContext;
+		}
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		if (entities.size() == 1) {
 			newComplexEntity = entities.get(0);
@@ -93,12 +100,18 @@ public class VWMLOperationUtils {
 	public static VWMLEntity generateComplexEntityFromEntitiesReversedStackEx(List<VWMLEntity> entities,
 																	          int fromPos,
 																	          String context,
+																	          String effectiveContext,
 																	          int interpretationHistorySize,
 																	          AbstractVWMLLinkVisitor visitor) throws Exception {
 
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		String id = "";
 		VWMLEntity newEntity = null;
+		// if effective context (lifeterm's context) isn't parent of entity's context it means that 
+		// actual interpretation is being run on context identified by effectiveContext id
+		if (!VWMLContext.isContextChildOf(effectiveContext, context)) {
+			context = effectiveContext;
+		}
 		VWMLContext ctx = VWMLContextsRepository.instance().get(context);
 		if (ctx == null) {
 			throw new Exception("couldn't find context identified by '" + context + "'");

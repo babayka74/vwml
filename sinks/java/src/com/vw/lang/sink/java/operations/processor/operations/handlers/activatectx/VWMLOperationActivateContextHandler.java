@@ -34,9 +34,10 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 			activatedContextId = entity.getId();
 		}
 		else {
-			// entity defines context which will be cloned, aka blows up
+			// entity defines context which is activated
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
+																					   (String)context.getContext(),
 																					   (String)context.getContext(),
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),

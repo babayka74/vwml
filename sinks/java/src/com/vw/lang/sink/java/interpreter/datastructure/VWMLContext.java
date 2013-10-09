@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -48,6 +49,22 @@ public class VWMLContext extends VWMLObject {
 	 */
 	public static VWMLContext instance() {
 		return new VWMLContext();
+	}
+	
+	/**
+	 * Returns 'true' in case if context identified by contextId is child of parent context
+	 * @param parent
+	 * @param contextId
+	 * @return
+	 */
+	public static boolean isContextChildOf(String parent, String contextId) {
+		boolean r = false;
+		if ((contextId.intern() == VWMLContextsRepository.getDefaultContextId() || parent.intern() == VWMLContextsRepository.getDefaultContextId()) ||
+		   (contextId.equals(parent)) || 
+		   (contextId.startsWith(parent + "."))) {
+			r = true;
+		}
+		return r;
 	}
 	
 	/**
@@ -132,7 +149,7 @@ public class VWMLContext extends VWMLObject {
 	public void setLifeTermContext(boolean lifeTermContext) {
 		this.lifeTermContext = lifeTermContext;
 	}
-	
+		
 	/**
 	 * Looks up for context's lifeterm
 	 * @return

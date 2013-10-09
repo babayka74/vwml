@@ -11,10 +11,16 @@ import com.vw.lang.sink.java.repository.VWMLRepository;
  */
 public abstract class VWMLModule {
 	/**
-	 * Builds module, as result - established connections among entities and related operations
+	 * Acquires entities and pushes them into repository
 	 * @throws Exception
 	 */
 	public abstract void build() throws Exception;
+	
+	/**
+	 * Builds module, as result - established connections among entities and related operations
+	 * @throws Exception
+	 */
+	public abstract void linkage() throws Exception;
 	
 	/**
 	 * Returns repository associated with given module; overridden by concrete module

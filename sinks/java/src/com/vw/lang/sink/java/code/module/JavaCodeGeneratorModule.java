@@ -55,7 +55,24 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 		getFw().write("\tprivate " + repositoryClassName + " repository = new " + repositoryClassName + "();\r\n");
 		getFw().write("\tprivate " + linkageClassName + " linkage = new " + linkageClassName + "();\r\n\r\n");
 		// generates build method which calls repository's and link's methods
+		generateBuildMethod(modProps, visitor);
+		generateLinkageMethod(modProps, visitor);
+		getFw().write(JavaCodeGeneratorTemplates.s_VWMLModuleMethods);
+		if (logger.isInfoEnabled()) {
+			logger.info("Module '" + modProps.getModuleName() + "'; body - OK");
+		}
+	}
+
+	protected void generateBuildMethod(JavaModuleStartProps modProps, AbstractVWMLLinkVisitor visitor) throws Exception {
+		// generates linkage method which calls repository's and link's methods
 		getFw().write("\t@Override\r\n\tpublic void build() throws Exception {\r\n");
+		getFw().write("\t\trepository.acquireEntities();\r\n");
+		getFw().write("\t}\r\n\r\n");
+	}
+	
+	protected void generateLinkageMethod(JavaModuleStartProps modProps, AbstractVWMLLinkVisitor visitor) throws Exception {
+		// generates linkage method which calls repository's and link's methods
+		getFw().write("\t@Override\r\n\tpublic void linkage() throws Exception {\r\n");
 		if (visitor != null) {
 			String path = modProps.getVisitorDataPath().replaceAll("\\\\", "/");
 			File f = new File(path);
@@ -71,16 +88,10 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 				logger.info("The visualizer '" + visitor.getClass().getSimpleName() + "' for module '" + modProps.getModuleName() + "' installed; output '" + modProps.getVisitorDataPath() + "'");
 			}
 		}
-		getFw().write("\t\trepository.acquireEntities();\r\n");
 		getFw().write("\t\tlinkage.linkEntities();\r\n");
 		if (visitor != null) {
 			getFw().write("\t\tpreprocessorStructureVisualizer.done(\"" + modProps.getModuleName() + "\");\r\n");
 		}		
 		getFw().write("\t}\r\n\r\n");
-		getFw().write(JavaCodeGeneratorTemplates.s_VWMLModuleMethods);
-		if (logger.isInfoEnabled()) {
-			logger.info("Module '" + modProps.getModuleName() + "'; body - OK");
-		}
 	}
-
 }

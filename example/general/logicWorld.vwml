@@ -1,0 +1,27 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.general.model.vwml.logic"
+	}
+}
+
+module LogicWorld {
+	Logic ias (
+		Expr ias nil;
+		Res ias nil;
+
+		(not true) ias false;
+		(not false) ias true;
+
+		(true and true) ias true;
+		(true and false) ias false;
+		(false and true) ias false;
+		(false and false) ias false;
+
+		(true or true) ias true;
+		(true or false) ias true;
+		(false or true) ias true;
+		(false or false) ias false;
+
+		lifeterm = (Res Expr~ Exe)^
+	);
+}
