@@ -689,7 +689,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareCreature(Object id, Object props, String context) throws Exception {
-		declaredCreatures.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CREATURE, id, props, null));		
+		declaredCreatures.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CREATURE, id, props, context));		
 	}
 	
 	/**

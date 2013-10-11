@@ -27,6 +27,7 @@ tokens {
     OPCREATEEXPR= '^';
     OPEXECUTE='Exe';
     OPACTIVATECTX=':';
+    OPACTIVATEONFRINGE='Do';
     OPPROJECTION_1='Projection_1';
     OPPROJECTION_2='Projection_2';
     OPPROJECTION_3='Projection_3';
@@ -106,6 +107,7 @@ package com.vw.lang.grammar;
 	private ComplexEntityNameBuilder complexEntityNameBuilderDef = ComplexEntityNameBuilder.instance();
 	private EntityWalker entityWalker = EntityWalker.instance();
 	private EntityWalker.Relation lastProcessedEntity = null;
+	private String activeFringe = null;
 	private String lastDeclaredCreatureId = null;
 	private String lastDeclaredCreatureProps = null;
 	private boolean lastProcessedEntityAsTerm = false;
@@ -130,6 +132,14 @@ package com.vw.lang.grammar;
 	
 	protected boolean isInDebug() {
 		return this.inDebug;
+	}
+	
+	protected void setActiveFringe(String activeFringe) {
+		this.activeFringe = activeFringe;
+	}
+	
+	protected String getActiveFringe() {
+		return this.activeFringe;
 	}
 	
 	protected void addLastDeclaredCreature(String creatureId) {
@@ -387,11 +397,22 @@ path
 
 // BEYOND THE FRINGE
 beyond_the_fringe
-    : '{' beyond_the_fringe_body '}'
+    : 'beyond' '{' beyond_the_fringe_body '}'
     ;
     
 beyond_the_fringe_body
-    :  'fringe' '{' creatures '}'
+    :  finges
+    ;
+
+finges
+    :  (fringe)+
+    ;
+
+fringe
+    :  'fringe' ID 'ias' {
+    			setActiveFringe($ID.getText());
+    		   }
+                   '(' creatures ')'
     ;
 
 creatures
@@ -402,7 +423,7 @@ creature
     @after {
 	if (codeGenerator != null) {
 		try {
-			codeGenerator.declareCreature(getLastDeclaredCreature(), getLastDeclaredCreatureProps(), null);
+			codeGenerator.declareCreature(getLastDeclaredCreature(), getLastDeclaredCreatureProps(), getActiveFringe());
 		}
 		catch(Exception e) {
 	    		logger.error("Caught exception '" + e + "'");
@@ -412,7 +433,7 @@ creature
     }
     : ID {
     		addLastDeclaredCreature($ID.getText());
-    	 } 'is' string  {
+    	 } 'ias' string  {
     	 			addLastDeclaredCreatureProps(GeneralUtils.trimQuotes($string.text));
     	 		}
     ;
@@ -709,6 +730,7 @@ opclist
     | OPEXECUTE
     | OPRANDOM
     | OPACTIVATECTX
+    | OPACTIVATEONFRINGE
     ;
 
 opprojection

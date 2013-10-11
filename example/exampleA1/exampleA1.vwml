@@ -10,11 +10,16 @@ options {
 			data = "c:\var\vwml/exampleA1/diagram"
 		}
 		beyond {
-			fringe {
-				in is "com.win.game.tesej.consoleConnector"
-				out is "com.win.game.tesej.consoleConnector"
-				math is "com.vw.lang.beyond.fringe.math"
-			}
+			fringe communication ias (
+				in ias "com.win.game.tesej.ConsoleConnector"
+				out ias "com.win.game.tesej.ConsoleConnector"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.fringe.Math"
+			)
+			fringe observer ias (
+				observer ias "com.vw.lang.beyond.fringe.Observer"
+			)
 		}
 	}
 }
@@ -23,20 +28,20 @@ module exampleA1 {
 	S1 ias nil;
 	S2 ias nil;
 	Sum ias nil;
-	getFromAnotherWorld ias in.read;
-	pushToAnotherWorld  ias out.write;
-	Summation ias math.sum;
+	getFromAnotherWorld ias communication.in.read;
+	pushToAnotherWorld  ias communication.out.write;
+	Summation           ias services.math.sum;
 	Behavior ias (
 		(S1
-			(getFromAnotherWorld~) do
+			(() getFromAnotherWorld~) Do
 		)^
 		(S2
-			(getFromAnotherWorld~) do
+			(() getFromAnotherWorld~) Do
 		)^
 		(Sum
-                	((S1~ S2~) Summation~) do
+                	((S1~ S2~) Summation~) Do
 		)^
-		(Sum~ pushToAnotherWorld~) do
+		(Sum~ pushToAnotherWorld~) Do
 	);
 	lifeterm = Behavior~ Exe
 }
