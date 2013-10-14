@@ -7,11 +7,26 @@ package com.vw.lang.beyond.java.fringe;
  */
 public class EWEntity extends EWObject {
 
+	private String context;
+	protected boolean isMarkedAsComplexEntity = false;
+
 	public EWEntity() {
 		super();
 	}
 
 	public EWEntity(Object id, String readableId) {
 		super(id, readableId);
+	}
+
+	public boolean isMarkedAsComplexEntity() {
+		return isMarkedAsComplexEntity;
+	}
+
+	public String getContext() {
+		return context;
+	}
+
+	public void setContext(String context) {
+		this.context = context;
 	}
 }

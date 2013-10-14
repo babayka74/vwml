@@ -9,9 +9,15 @@ public class EWComplexEntity extends EWEntity {
 
 	public EWComplexEntity() {
 		super();
+		markAsComplexEntity();
 	}
 
 	public EWComplexEntity(Object id, String readableId) {
 		super(id, readableId);
+		markAsComplexEntity();
+	}
+	
+	public void markAsComplexEntity() {
+		this.isMarkedAsComplexEntity = true;
 	}
 }
