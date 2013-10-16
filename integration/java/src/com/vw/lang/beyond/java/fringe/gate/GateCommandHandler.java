@@ -1,6 +1,6 @@
 package com.vw.lang.beyond.java.fringe.gate;
 
-import com.vw.lang.beyond.java.fringe.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 
 /**
  * General command handler which is called when command is executed

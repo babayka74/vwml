@@ -1,8 +1,8 @@
 package com.vw.lang.sink.java.beyond.fringe.creature;
 
-import com.vw.lang.beyond.java.fringe.EWEntity;
-import com.vw.lang.beyond.java.fringe.EWEntityBuilder;
-import com.vw.lang.beyond.java.fringe.EWObject;
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.entity.EWObject;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;

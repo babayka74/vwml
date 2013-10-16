@@ -1,6 +1,6 @@
 package com.vw.lang.beyond.java.fringe.gate;
 
-import com.vw.lang.beyond.java.fringe.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 
 /**
  * VW implements this interface for connectivity with external world

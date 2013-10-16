@@ -1,6 +1,6 @@
 package com.vw.lang.beyond.java.fringe.gate;
 
-import com.vw.lang.beyond.java.fringe.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 
 /**
  * External world (EW) implements this interface for connectivity with Virtual World

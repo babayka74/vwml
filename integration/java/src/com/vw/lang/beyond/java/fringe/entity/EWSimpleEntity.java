@@ -1,4 +1,4 @@
-package com.vw.lang.beyond.java.fringe;
+package com.vw.lang.beyond.java.fringe.entity;
 
 /**
  * EW's simple entity (see language specification)

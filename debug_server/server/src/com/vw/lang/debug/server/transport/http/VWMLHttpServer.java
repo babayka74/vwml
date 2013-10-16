@@ -1,7 +1,12 @@
 package com.vw.lang.debug.server.transport.http;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +15,10 @@ import org.apache.log4j.Logger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.vw.lang.debug.server.VWMLDebugServerCommand;
+import com.vw.lang.debug.commands.test.VWMLDebugCommandTest;
+import com.vw.lang.debug.common.VWMLDebugCommand;
+import com.vw.lang.debug.common.VWMLDebugCommandResult;
+import com.vw.lang.debug.common.VWMLDebugCommandTranscoder;
 
 /**
  * Simple HTTP server based on java HttpServer class
@@ -26,15 +34,15 @@ public class VWMLHttpServer {
 	 */
 	public static class VWMLHttpServerProps {
 		// handlers' map
-		private Map<String, VWMLDebugServerCommand> handlers = new HashMap<String, VWMLDebugServerCommand>();
+		private Map<String, Class<? extends VWMLDebugCommand>> handlers = new HashMap<String, Class<? extends VWMLDebugCommand>>();
 		// server's listening port
 		private int port;
 		
-		public void registerHandler(String context, VWMLDebugServerCommand handler) {
+		public void registerHandler(String context, Class<? extends VWMLDebugCommand> handler) {
 			handlers.put(context, handler);
 		}
 		
-		public VWMLDebugServerCommand getHandlerByContext(String context) {
+		public Class<? extends VWMLDebugCommand> getHandlerByContext(String context) {
 			return handlers.get(context);
 		}
 
@@ -46,7 +54,7 @@ public class VWMLHttpServer {
 			this.port = port;
 		}
 
-		public Map<String, VWMLDebugServerCommand> getHandlers() {
+		public Map<String, Class<? extends VWMLDebugCommand>> getHandlers() {
 			return handlers;
 		}
 	}
@@ -58,28 +66,80 @@ public class VWMLHttpServer {
 	 */
 	public static class VWMLDebugServerCommandHandler implements HttpHandler {
 
-		private VWMLDebugServerCommand command = null;
+		private Class<?> debugCommandClass;
 		
-		public VWMLDebugServerCommandHandler(VWMLDebugServerCommand command) {
+		public VWMLDebugServerCommandHandler(Class<?> debugCommandClass) {
 			super();
-			this.command = command;
-		}
-
-		public VWMLDebugServerCommand getCommand() {
-			return command;
+			this.debugCommandClass = debugCommandClass;
 		}
 
 		@Override
 		public void handle(HttpExchange arg) throws IOException {
-			throw new IOException("invalid command '" + arg + "'");
+			try {
+				String result = null;
+				InputStream is = arg.getRequestBody();
+				if (is == null) {
+					throw new IOException("request body has invalid format; request's class '" + debugCommandClass + "'");
+				}
+				String body = getStringFromInputStream(is);
+				String commandTag = VWMLDebugCommand.getCommandTag() + "=";
+				if (body.startsWith(commandTag)) {
+					body = body.substring(commandTag.length());
+				}
+				else {
+					throw new Exception("Invalid command received; command doesn't contain tag; command '" + body + "'");
+				}
+				VWMLDebugCommand command = (VWMLDebugCommand)VWMLDebugCommandTranscoder.fromJSON(body, debugCommandClass);
+				VWMLDebugCommandResult res = command.handle();
+				if (res != null) {
+					result = VWMLDebugCommandTranscoder.toJSON(res);
+				}
+				else {
+					result = VWMLDebugCommandTranscoder.toJSON(VWMLDebugCommandResult.defaultCommandResult());
+				}
+				arg.sendResponseHeaders(200, result.length());
+				OutputStream os = arg.getResponseBody();
+				os.write(result.getBytes());
+				os.close();
+			}
+			catch(Exception e) {
+				throw new IOException(e);
+			}
+		}
+		
+		private static String getStringFromInputStream(InputStream is) throws Exception {
+			BufferedReader br = null;
+			StringBuilder sb = new StringBuilder();
+	 
+			String line;
+			try {
+	 
+				br = new BufferedReader(new InputStreamReader(is));
+				while ((line = br.readLine()) != null) {
+					sb.append(line);
+				}
+	 
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return URLDecoder.decode(sb.toString(), "UTF-8");
 		}
 	}
 	
 	private HttpServer httpServer = null;	
 	private Logger logger = Logger.getLogger(VWMLHttpServer.class);
 	
-	private static int s_default_port = 8080;
-	private static VWMLHttpServer s_instance = new VWMLHttpServer();
+	private static int s_default_port = 8974;
+	private static int s_attemptsToCreateServer = 5;
+	private static VWMLHttpServer s_instance = null;
 	
 	private VWMLHttpServer() {
 		
@@ -104,7 +164,25 @@ public class VWMLHttpServer {
 	 * @throws Exception
 	 */
 	public void init(VWMLHttpServerProps props) throws Exception {
-		httpServer = HttpServer.create(new InetSocketAddress((props.getPort() == 0) ? s_default_port : props.getPort()), 0);
+		int listeningPort = (props.getPort() == 0) ? s_default_port : props.getPort();
+		httpServer = null;
+		Exception le = null;
+		for(int i = 0; i < s_attemptsToCreateServer; i++) {
+			try {
+				httpServer = HttpServer.create(new InetSocketAddress(listeningPort), 0);
+				break;
+			}
+			catch(Exception e) {
+				listeningPort++;
+				le = e;
+			}
+		}
+		if (httpServer == null) {
+			throw new Exception("couldn't create http server; last exception is '" + le + "'");
+		}
+		// create 'test' command handler
+		httpServer.createContext("/test", new VWMLDebugServerCommandHandler(VWMLDebugCommandTest.class));
+		// installs handlers
 		for(String context : props.getHandlers().keySet()) {
 			httpServer.createContext(context, new VWMLDebugServerCommandHandler(props.getHandlers().get(context)));
 		}

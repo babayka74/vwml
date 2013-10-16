@@ -3,9 +3,9 @@ package com.vw.lang.beyond.java.fringe.gate.math;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.vw.lang.beyond.java.fringe.EWEntity;
-import com.vw.lang.beyond.java.fringe.EWEntityBuilder;
-import com.vw.lang.beyond.java.fringe.EWObject;
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.entity.EWObject;
 import com.vw.lang.beyond.java.fringe.gate.GateCommandHandler;
 import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
 import com.vw.lang.beyond.java.fringe.gate.IVWML2EWGate;

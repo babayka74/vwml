@@ -4,8 +4,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.vw.lang.beyond.java.fringe.EWEntity;
-import com.vw.lang.beyond.java.fringe.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 
 public class EWEntityBuilderTest {
 

@@ -1,4 +1,4 @@
-package com.vw.lang.beyond.java.fringe;
+package com.vw.lang.beyond.java.fringe.entity;
 
 import java.util.ArrayList;
 import java.util.Collections;
