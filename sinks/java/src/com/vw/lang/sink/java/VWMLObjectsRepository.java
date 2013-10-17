@@ -57,8 +57,21 @@ public class VWMLObjectsRepository {
 		// checks if object has been created before
 		VWMLObject obj = instance().get(id, c);
 		if (obj == null) { // not found in repository...
+			boolean contextChanged = false;
+			if (((String)id).contains(".")) {
+				VWMLContext effectiveContext = instance().getEffectiveContextFromEntityId(id);
+				if (effectiveContext != null) {
+					c = effectiveContext;
+					contextChanged = true;
+				}
+			}
 			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
-			instance().add((VWMLEntity)obj);
+			if (!contextChanged) {
+				instance().add((VWMLEntity)obj);
+			}
+			else {
+				instance().addByEntityKey((VWMLEntity)obj, c);
+			}
 		}
 		return obj;
 	}
@@ -113,6 +126,20 @@ public class VWMLObjectsRepository {
 		return (VWMLEntity)get(VWMLEntity.s_EmptyEntityId, VWMLContextsRepository.instance().getDefaultContext());
 	}
 	
+	/**
+	 * Adds created entity by context's key
+	 * @param entity
+	 * @param context
+	 * @return
+	 */
+	public void addByEntityKey(VWMLEntity entity, VWMLContext context) throws Exception {
+		if (!repo.containsKey(entity.getId())) {
+			repo.put(entity.getId(), entity);
+			// associates acquired entity with context
+			context.associateEntity(entity);
+		}
+	}
+	
 	protected VWMLObject getByFullSpecifiedPath(Object id, VWMLContext context) throws Exception { 
 		String ids = (String)id;
 		int le = ids.lastIndexOf(".");
@@ -125,6 +152,13 @@ public class VWMLObjectsRepository {
 		return repo.get(buildAssociationKey(effectiveContext, ids));
 	}
 
+	protected VWMLContext getEffectiveContextFromEntityId(Object id) {
+		String ids = (String)id;
+		int le = ids.lastIndexOf(".");
+		String contextId = ids.substring(0, le);
+		return VWMLContextsRepository.instance().get(contextId);
+	}
+	
 	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context, boolean concreteContext) {
 		VWMLObject o = null;
 		if (concreteContext) {

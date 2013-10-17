@@ -161,11 +161,11 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		String pomFullPath = jprops.getSrcPath() + "/..";
 		String runMaven = null;
 		if (isWindows()) {
-			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaModulesTestInitialStateBuilder test && exit\"";
+			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestDynamicState test && exit\"";
 		}
 		else
 		if (isLinux() || isMac()) {
-			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaModulesTestInitialStateBuilder test && exit\"";
+			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestDynamicState test && exit\"";
 		}
 		else {
 			throw new Exception("unsupported os '" + getOsName() + "'");

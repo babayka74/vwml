@@ -12,4 +12,9 @@ public interface IVWMLInterpreter {
 	 * @throws Exception
 	 */
 	public void start() throws Exception;
+	/**
+	 * Builds modules' initial state
+	 * @throws Exception
+	 */
+	public void build() throws Exception;	
 }

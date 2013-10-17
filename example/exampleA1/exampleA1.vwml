@@ -11,14 +11,11 @@ options {
 		}
 		beyond {
 			fringe communication ias (
-				in ias "com.win.game.tesej.ConsoleConnector"
-				out ias "com.win.game.tesej.ConsoleConnector"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
 			)
 			fringe services ias (
-				math ias "com.vw.lang.beyond.fringe.Math"
-			)
-			fringe observer ias (
-				observer ias "com.vw.lang.beyond.fringe.Observer"
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
 			)
 		}
 	}

@@ -113,7 +113,8 @@ public class VWML2JavaInterpreterBridge {
 		body += "\tprivate static " + s_className + " s_instance = new " + s_className + "();\r\n\r\n\tprivate " + s_className + "() {\r\n\t}\r\n\r\n";
 		body += "\tpublic static " + s_className + " instance() {\r\n\t\treturn s_instance;\r\n\t}\r\n\r\n";
 		body += "\tpublic VWMLModule[] getModules() {\r\n\t\treturn modules;\r\n\t}\r\n\r\n";
-		body += "\tpublic void startInterpretationProcess() throws Exception {\r\n\t\tvwmlInterpreter.start();\r\n\t}\r\n";
+		body += "\tpublic void startInterpretationProcess() throws Exception {\r\n\t\tvwmlInterpreter.start();\r\n\t}\r\n\r\n";
+		body += "\tpublic void buildLinks() throws Exception {\r\n\t\tvwmlInterpreter.build();\r\n\t}\r\n";
 		return body;
 	}
 	

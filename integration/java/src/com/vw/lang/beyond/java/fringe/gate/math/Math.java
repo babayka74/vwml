@@ -7,15 +7,14 @@ import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.entity.EWObject;
 import com.vw.lang.beyond.java.fringe.gate.GateCommandHandler;
-import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
-import com.vw.lang.beyond.java.fringe.gate.IVWML2EWGate;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 
 /**
  * Implements math integration package
  * @author Oleg
  *
  */
-public class Math implements IEW2VWMLGate, IVWML2EWGate {
+public class Math implements IVWMLGate {
 	
 	private static class SumHandler extends GateCommandHandler {
 
@@ -126,6 +125,33 @@ public class Math implements IEW2VWMLGate, IVWML2EWGate {
 			put("dec", new DecHandler());
 		}
 	};
+	
+	private static Math s_math = null;
+	
+	private Math() {
+		
+	}
+	
+	public static synchronized Math instance() {
+		if (s_math != null) {
+			return s_math;
+		}
+		s_math = new Math();
+		try {
+			s_math.init();
+		} catch (Exception e) {
+			s_math = null;
+		}
+		return s_math;
+	}
+	
+	@Override
+	public void init() throws Exception {
+	}
+
+	@Override
+	public void done() throws Exception {
+	}
 	
 	@Override
 	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {

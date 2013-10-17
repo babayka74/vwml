@@ -7,7 +7,7 @@ import com.vw.lang.beyond.java.fringe.entity.EWEntity;
  * @author Oleg
  *
  */
-public interface IEW2VWMLGate {
+public interface IEW2VWMLGate  {
 	/**
 	 * Invokes action on virtual world side
 	 * @param commandId

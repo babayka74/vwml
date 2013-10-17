@@ -590,7 +590,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		normalizeCode();
 		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
 		new JavaCodeGeneratorModule(fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())]).buildModuleBody(modProps, getVisitor());
-		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects, declaredContexts);
+		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects, declaredCreatures, declaredContexts);
 		new JavaCodeGeneratorLinkage(fws[ModuleFiles.index(ModuleFiles.LINKAGE.toValue())]).buildModuleLinkagePart(modProps, linkage, interpret, markedAsTerm, operations);
 	}
 	

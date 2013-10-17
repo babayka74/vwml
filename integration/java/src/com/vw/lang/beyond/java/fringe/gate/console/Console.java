@@ -6,24 +6,46 @@ import java.io.InputStreamReader;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
-import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
-import com.vw.lang.beyond.java.fringe.gate.IVWML2EWGate;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 
 /**
  * Console - used for communication between VWML and EW worlds
  * @author Oleg
  *
  */
-public class Console implements IVWML2EWGate, IEW2VWMLGate {
+public class Console implements IVWMLGate {
 
 	private static String s_exportedInMethod = "read";
 	private static String s_exportedOutMethod = "write";
 	
 	private static String[] s_exportedMethods = {s_exportedInMethod, s_exportedOutMethod};
 	
-	public Console() {
+	private static Console s_instance = null;
+	
+	private Console() {
 		s_exportedOutMethod.intern();
 		s_exportedInMethod.intern();
+	}
+	
+	public static synchronized Console instance() {
+		if (s_instance != null) {
+			return s_instance;
+		}
+		s_instance = new Console();
+		try {
+			s_instance.init();
+		} catch (Exception e) {
+			s_instance = null;
+		}
+		return s_instance;
+	}
+	
+	@Override
+	public void init() throws Exception {
+	}
+
+	@Override
+	public void done() throws Exception {
 	}
 	
 	@Override
