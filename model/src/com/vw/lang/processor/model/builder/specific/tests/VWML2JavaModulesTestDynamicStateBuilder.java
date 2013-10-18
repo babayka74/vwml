@@ -83,7 +83,7 @@ public class VWML2JavaModulesTestDynamicStateBuilder {
 	
 	private String prepareTestBody() {
 		String body = "\r\n\t@Test\r\n\tpublic void testGeneratedCode() throws Exception {\r\n";
-		body += "\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().buildLinks();";
+		body += "\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().startInterpretationProcess();";
 		body += "\r\n\t}\r\n\r\n";
 		return body;
 	}

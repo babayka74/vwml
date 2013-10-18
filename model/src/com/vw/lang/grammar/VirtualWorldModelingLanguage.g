@@ -28,6 +28,7 @@ tokens {
     OPEXECUTE='Exe';
     OPACTIVATECTX=':';
     OPACTIVATEONFRINGE='Do';
+    OPRELAX='Relax';
     OPPROJECTION_1='Projection_1';
     OPPROJECTION_2='Projection_2';
     OPPROJECTION_3='Projection_3';
@@ -688,7 +689,7 @@ complex_entity returns [EntityWalker.Relation rel]
     ;
 
 ID
-    : LETTER (LETTER|'0'..'9'|'.')* // ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
+    : LETTER (LETTER | '.')* // ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
     ;
 
 STRING_LITERAL
@@ -731,6 +732,7 @@ opclist
     | OPRANDOM
     | OPACTIVATECTX
     | OPACTIVATEONFRINGE
+    | OPRELAX
     ;
 
 opprojection
@@ -789,6 +791,9 @@ LINE_COMMENT
 fragment
 LETTER
 	: 'A'..'Z'
-	|  'a'..'z'
-	|  '_'
+	| 'a'..'z'
+	| '0'..'9' 
+	| '_'
+	| '!'
+	| '?'
 	;

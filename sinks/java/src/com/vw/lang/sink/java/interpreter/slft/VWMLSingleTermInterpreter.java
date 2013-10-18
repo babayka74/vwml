@@ -109,7 +109,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		}
 		else {
 			// interprets term associated with simple entity
-			activateComplexInterpretationProcess(linkage, context, entity);
+			activateSimpleInterpretationProcess(entity, linkage, context);
 		}
 		return entity;
 	}

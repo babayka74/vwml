@@ -74,7 +74,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	public static class TestStep implements IStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			// builds {unit, functional}-test source files
-			new VWML2JavaModulesTestInitialStateBuilder().build();
+			new VWML2JavaModulesTestInitialStateBuilder().build((JavaModuleStartProps)props);
 			new VWML2JavaModulesTestDynamicStateBuilder().build((JavaModuleStartProps)props);
 			// compiles and runs maven as test
 			new CompileStep().step(stepProcessor, codeGeneratorName, props);
@@ -161,11 +161,11 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		String pomFullPath = jprops.getSrcPath() + "/..";
 		String runMaven = null;
 		if (isWindows()) {
-			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestDynamicState test && exit\"";
+			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestInitialState test && exit\"";
 		}
 		else
 		if (isLinux() || isMac()) {
-			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestDynamicState test && exit\"";
+			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestInitialState test && exit\"";
 		}
 		else {
 			throw new Exception("unsupported os '" + getOsName() + "'");

@@ -9,28 +9,53 @@ options {
 			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
 			data = "c:\var\vwml/tesej/diagram"
 		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe move ias (
+				toPosition ias "com.vw.lang.beyond.java.fringe.gate.movement.Go"
+			)
+		}
 	}
 }
 
 module tesej {
+	ew ias (
+		tesejMovedToPosition ias move.toPosition.go;
+		sayMessage ias communication.out.write;
+	);
 	final ias (
-		    doNothing ias break;
-                    break ias ();
+		    doNothing ias (((goodbye my darling) ew.sayMessage~) Do);
 		 );
-	a ias (a h b);
-	b ias (b a e g);
+	relaxation ias (
+		time ias 500;
+	);
+	relaxAndSay ias (
+		((relaxing relaxation.time~ miliseconds) ew.sayMessage~) Do
+		relaxation.time~ Relax
+	);
+	a ias (a h b g f h e c);
+	b ias (b a e g f f f);
 	c ias (c e d f);
-	d ias (d c);
+	d ias (d c g g g h h);
 	e ias (e c b g);
-	f ias (f c);
+	f ias (f c a b g);
 	g ias (g b e);
-	h ias (h a);
-	Tesej ias a;
-	Step ias (Tesej
-		  Tesej~~ Random
-		 )^;
+	h ias (h a e e e a);
+	TesejPos ias a;
+	TesejPrevPos ias TesejPos;
+	Step ias (
+			(TesejPrevPos TesejPos~)^
+			(TesejPos TesejPos~~ Random)^
+			((TesejPrevPos~ TesejPos~) ew.tesejMovedToPosition~) Do
+			relaxAndSay~ Exe
+		 );
 	TesejLife ias (	Step~ Exe
-			(TesejLife TesejLife TesejLife TesejLife final.doNothing)Random~ Exe
+			(TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife final.doNothing)Random~ Exe
 		      );
-	lifeterm = TesejLife~ Exe
+	lifeterm = (
+                    ((hello world !) ew.sayMessage~) Do 
+		    TesejLife~ Exe
+                   ) Exe
 }

@@ -1,5 +1,7 @@
 package com.vw.lang.sink.java.beyond.fringe.creature;
 
+import java.util.UUID;
+
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.entity.EWObject;
@@ -80,7 +82,7 @@ public class VWMLCreature extends VWMLEntity {
 		if (parent != null) {
 			parent.getLink().link(e);
 		}
-		return parent;
+		return e;
 	}
 	
 	private static VWMLEntity transformComplexEWEntityToVWML(VWMLEntity parent, EWEntity ewEntity) throws Exception {
@@ -95,10 +97,18 @@ public class VWMLCreature extends VWMLEntity {
 				transformSimpleEWEntityToVWML(e, ewe);
 			}
 			else {
+				if (parent != null) {
+					parent.getLink().link(e);
+				}
 				transformComplexEWEntityToVWML(e, ewe);
 			}
 		}
-		return parent;
+		if (ewEntity.getLink().getLinkedObjects().size() == 0) {
+			if (parent != null) {
+				parent.getLink().link(e);
+			}
+		}
+		return e;
 	}
 	
 	private static EWEntity transformSimpleVWMLEntityToEW(EWEntity parent, VWMLEntity vwmlEntity) throws Exception {
@@ -106,11 +116,11 @@ public class VWMLCreature extends VWMLEntity {
 		if (parent != null) {
 			parent.getLink().link(e);
 		}
-		return parent;
+		return e;
 	}
 	
 	private static EWEntity transformComplexVWMLEntityToEW(EWEntity parent, VWMLEntity vwmlEntity) throws Exception {
-		EWEntity ewe = EWEntityBuilder.buildComplexEntity(vwmlEntity.getId(), vwmlEntity.getContext().getContext());
+		EWEntity ewe = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(), vwmlEntity.getContext().getContext());
 		VWMLLinkIncrementalIterator it = vwmlEntity.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(VWMLObject o = vwmlEntity.getLink().peek(it); o != null; o = vwmlEntity.getLink().peek(it)) {
@@ -119,10 +129,18 @@ public class VWMLCreature extends VWMLEntity {
 					transformSimpleVWMLEntityToEW(ewe, e);
 				}
 				else {
+					if (parent != null) {
+						parent.getLink().link(ewe);
+					}
 					transformComplexVWMLEntityToEW(ewe, e);
 				}
 			}
 		}
-		return parent;
+		else {
+			if (parent != null) {
+				parent.getLink().link(ewe);
+			}
+		}
+		return ewe;
 	}
 }

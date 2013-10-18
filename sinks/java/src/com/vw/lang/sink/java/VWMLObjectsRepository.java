@@ -20,7 +20,7 @@ public class VWMLObjectsRepository {
 	private VWMLObjectsRepository() {
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
 		// built-in complex entity id
-		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null));
+		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null));
 		// built-in simple entity id
 		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, defaultContext, 0, null));
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated

@@ -45,9 +45,11 @@ public class VWMLOperationUtils {
 		if (!VWMLContext.isContextChildOf(effectiveContext, context)) {
 			context = effectiveContext;
 		}
+		boolean remove = true;
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		if (entities.size() == 1) {
 			newComplexEntity = entities.get(0);
+			remove = false;
 		}
 		else
 		if (entities.size() > 1) {
@@ -77,7 +79,9 @@ public class VWMLOperationUtils {
 			String id = newComplexEntity.buildReadableId();
 			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
 			if (lookedEntity != null) {
-				VWMLObjectsRepository.instance().remove(newComplexEntity);
+				if (remove) {
+					VWMLObjectsRepository.instance().remove(newComplexEntity);
+				}
 				newComplexEntity = lookedEntity;
 			}
 			else {

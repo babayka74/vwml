@@ -17,6 +17,8 @@ public class Console implements IVWMLGate {
 
 	private static String s_exportedInMethod = "read";
 	private static String s_exportedOutMethod = "write";
+	private static int READ  = 0x0;
+	private static int WRITE = 0x1;
 	
 	private static String[] s_exportedMethods = {s_exportedInMethod, s_exportedOutMethod};
 	
@@ -56,24 +58,20 @@ public class Console implements IVWMLGate {
 	@Override
 	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
 		EWEntity e = null;
-		for(String method : s_exportedMethods) {
-			if (method.intern() == s_exportedOutMethod) {
-				write(commandArgs.getReadableId());
-				break;
+		if (((String)commandId).intern() == s_exportedMethods[READ]) {
+			String data = null;
+			while (data == null) {
+				data = read();
 			}
-			else
-			if (method.intern() == s_exportedInMethod) {
-				String data = null;
-				while (data == null) {
-					data = read();
-				}
-				try {
-					e = EWEntityBuilder.buildFromString(data);
-				} catch (Exception ex) {
-					System.err.println("Exception caught '" + e + "'");
-				}
-				break;
+			try {
+				e = EWEntityBuilder.buildFromString(data);
+			} catch (Exception ex) {
+				System.err.println("Exception caught '" + e + "'");
 			}
+		}
+		else
+		if (((String)commandId).intern() == s_exportedMethods[WRITE]) {
+			write(commandArgs.getReadableId());
 		}
 		return e;
 	}

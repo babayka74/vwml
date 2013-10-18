@@ -16,6 +16,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.implicit.a
 import com.vw.lang.sink.java.operations.processor.operations.handlers.interpret.VWMLOperationInterpretHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.onfringe.VWMLOperationOnFringeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWMLOperationRelaxHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
 /**
@@ -39,6 +40,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPIDENT),            new VWMLOperationIdentHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATECTX),      new VWMLOperationActivateContextHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPDO),               new VWMLOperationOnFringeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPRELAX),            new VWMLOperationRelaxHandler());
 		}
 	};
 	// called when unknown/unsupported operation is going to be executed
