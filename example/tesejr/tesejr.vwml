@@ -23,13 +23,13 @@ options {
 module tesejr {
 	ew ias (
 		tesejMovedToPosition ias move.toPosition.go;
-		sayMessage ias communication.out.write;
+		say ias communication.out.write;
 	       );
 	relaxation ias (
 		time ias 1000;
 	);
 	relaxAndSay ias (
-		((relaxing relaxation.time~ miliseconds) ew.sayMessage~) Do
+		((relaxing relaxation.time~ miliseconds) ew.say~) Do
 		relaxation.time~ Relax
 	);
 	a ias (a h b g f h e c);
@@ -52,7 +52,7 @@ module tesejr {
 			TesejLife~ Exe
 		      );
 	lifeterm = (
-                    ((hello world !) ew.sayMessage~) Do 
+                    ((hello world !) ew.say~) Do 
 		    TesejLife~ Exe
                    ) Exe
 }

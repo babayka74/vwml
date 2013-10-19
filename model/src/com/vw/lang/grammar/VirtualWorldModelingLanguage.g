@@ -487,7 +487,7 @@ entity_def
     				codeGenerator.declareContext(vwmlContextBuilder.buildContext());
     			}
     			// we should link this entity with parent, if exists
-    			 buildLinkingAssociation($entity_decl.id);
+    			// buildLinkingAssociation($entity_decl.id);
     		      } term 
     		      {
     		      	// removes top entity from stack

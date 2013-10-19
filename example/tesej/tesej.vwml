@@ -23,17 +23,17 @@ options {
 module tesej {
 	ew ias (
 		tesejMovedToPosition ias move.toPosition.go;
-		sayMessage ias communication.out.write;
+		say ias communication.out.write;
 	);
 	final ias (
-		    doNothing ias (((goodbye my darling) ew.sayMessage~) Do);
+		    doNothing ias (((goodbye my darling) ew.say~) Do);
 		 );
-	relaxation ias (
-		time ias 500;
-	);
-	relaxAndSay ias (
-		((relaxing relaxation.time~ miliseconds) ew.sayMessage~) Do
-		relaxation.time~ Relax
+	relax ias (
+		time ias (
+			v ias 500;
+		);
+		((relaxing time.v~ miliseconds) ew.say~) Do
+		time.v~ Relax
 	);
 	a ias (a h b g f h e c);
 	b ias (b a e g f f f);
@@ -49,13 +49,13 @@ module tesej {
 			(TesejPrevPos TesejPos~)^
 			(TesejPos TesejPos~~ Random)^
 			((TesejPrevPos~ TesejPos~) ew.tesejMovedToPosition~) Do
-			relaxAndSay~ Exe
+			relax~ Exe
 		 );
 	TesejLife ias (	Step~ Exe
 			(TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife final.doNothing)Random~ Exe
 		      );
 	lifeterm = (
-                    ((hello world !) ew.sayMessage~) Do 
+                    ((hello world !) ew.say~) Do 
 		    TesejLife~ Exe
                    ) Exe
 }

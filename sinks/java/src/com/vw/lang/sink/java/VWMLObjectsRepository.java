@@ -59,11 +59,11 @@ public class VWMLObjectsRepository {
 		if (obj == null) { // not found in repository...
 			boolean contextChanged = false;
 			if (((String)id).contains(".")) {
-				VWMLContext effectiveContext = instance().getEffectiveContextFromEntityId(id);
-				if (effectiveContext != null) {
-					c = effectiveContext;
-					contextChanged = true;
+				c = instance().getEffectiveContextFromEntityId(id, context);
+				if (c == null) {
+					throw new Exception("couldn't find context for entity '" + id + "'");
 				}
+				contextChanged = true;
 			}
 			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
 			if (!contextChanged) {
@@ -146,17 +146,24 @@ public class VWMLObjectsRepository {
 		String contextId = ids.substring(0, le);
 		VWMLContext effectiveContext = VWMLContextsRepository.instance().get(contextId);
 		if (effectiveContext == null) {
+			effectiveContext = VWMLContextsRepository.instance().get(context.getContext() + "." + contextId);
+		}
+		if (effectiveContext == null) {
 			throw new Exception("couldn't find context identified by '" + contextId + "'");
 		}
 		ids = ids.substring(le + 1);
 		return repo.get(buildAssociationKey(effectiveContext, ids));
 	}
 
-	protected VWMLContext getEffectiveContextFromEntityId(Object id) {
+	protected VWMLContext getEffectiveContextFromEntityId(Object id, String parentContext) {
 		String ids = (String)id;
 		int le = ids.lastIndexOf(".");
 		String contextId = ids.substring(0, le);
-		return VWMLContextsRepository.instance().get(contextId);
+		VWMLContext c = VWMLContextsRepository.instance().get(contextId);
+		if (c == null) {
+			c = VWMLContextsRepository.instance().get(parentContext + "." + contextId);
+		}
+		return c;
 	}
 	
 	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context, boolean concreteContext) {

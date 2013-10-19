@@ -80,10 +80,12 @@ public class VWMLContext extends VWMLObject {
 	 * @return
 	 */
 	public void setContext(Object context) {
-		super.setId(context);
 		super.setReadableId((String)context);
 		this.context = (String)context;
 		setContextPath(VWMLJavaExportUtils.parseContext((String)context));
+		if (getContextPath() != null) {
+			super.setId(getContextPath()[getContextPath().length - 1]);
+		}
 	}
 
 	public String getContextName() {
@@ -259,5 +261,35 @@ public class VWMLContext extends VWMLObject {
 	
 	public void finishUnwinding() {
 		unwinding = false;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((context == null) ? 0 : context.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		VWMLContext other = (VWMLContext) obj;
+		if (context == null) {
+			if (other.context != null) {
+				return false;
+			}
+		} else if (!context.equals(other.context)) {
+			return false;
+		}
+		return true;
 	}
 }

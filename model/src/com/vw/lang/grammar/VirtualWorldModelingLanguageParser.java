@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-10-18 12:10:35
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-10-19 04:32:02
 
 package com.vw.lang.grammar;
 
@@ -1996,7 +1996,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                 				codeGenerator.declareContext(vwmlContextBuilder.buildContext());
                 			}
                 			// we should link this entity with parent, if exists
-                			 buildLinkingAssociation(entity_decl15);
+                			// buildLinkingAssociation(entity_decl15);
                 		      }
 
             pushFollow(FOLLOW_term_in_entity_def1217);
