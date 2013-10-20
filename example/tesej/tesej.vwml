@@ -57,5 +57,6 @@ module tesej {
 	lifeterm = (
                     ((hello world !) ew.say~) Do 
 		    TesejLife~ Exe
+		    7000 Relax
                    ) Exe
 }

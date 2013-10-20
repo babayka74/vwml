@@ -10,13 +10,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.apache.log4j.Logger;
 
 import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps;
+import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.processor.model.builder.specific.tests.VWML2JavaModulesTestDynamicStateBuilder;
 import com.vw.lang.processor.model.builder.specific.tests.VWML2JavaModulesTestInitialStateBuilder;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
@@ -144,7 +147,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		String pomFullPath = jprops.getSrcPath() + "/..";
 		String runMaven = null;
 		if (isWindows()) {
-			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn clean package && exit\"";
+			runMaven = "cmd /c start/wait cmd.exe /K \"cd " + pomFullPath + " && mvn clean package && exit\"";
 		}
 		else
 		if (isLinux() || isMac()) {
@@ -157,37 +160,57 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	}
 
 	private void runMavenAsTest(String codeGeneratorName, StartModuleProps props) throws Exception {
+		List<String> tests = new ArrayList<String>();
 		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
+		String testModeAsStr = props.getProperty(VWMLModelBuilder.s_TestModeProp);
+		VWMLModelBuilder.TEST_MODE testMode = VWMLModelBuilder.TEST_MODE.getDefault();
+		if (testModeAsStr != null) {
+			testMode = VWMLModelBuilder.TEST_MODE.fromValue(testModeAsStr);
+		}
+		if (testMode == VWMLModelBuilder.TEST_MODE.STATIC) {
+			tests.add(buildMavenTestCommand(jprops, "VWML2JavaTestInitialState"));
+		}
+		else
+		if (testMode == VWMLModelBuilder.TEST_MODE.DYNAMIC) {
+			tests.add(buildMavenTestCommand(jprops, "VWML2JavaTestDynamicState"));
+		}
+		else
+		if (testMode == VWMLModelBuilder.TEST_MODE.ALL) {
+			tests.add(buildMavenTestCommand(jprops, "VWML2JavaTestInitialState"));
+			tests.add(buildMavenTestCommand(jprops, "VWML2JavaTestDynamicState"));
+		}
+		for(String testCommand : tests) {
+			runMavenCommand(testCommand);
+		}
+	}
+
+	private String buildMavenTestCommand(JavaModuleStartProps jprops, String testCommand) throws Exception {
 		String pomFullPath = jprops.getSrcPath() + "/..";
 		String runMaven = null;
 		if (isWindows()) {
-			runMaven = "cmd /c start cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestInitialState test && exit\"";
+			runMaven = "cmd /c start/wait cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=" + testCommand + " -DforkCount=0 test && exit\"";
 		}
 		else
 		if (isLinux() || isMac()) {
-			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=VWML2JavaTestInitialState test && exit\"";
+			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=" + testCommand + " test && exit\"";
 		}
 		else {
 			throw new Exception("unsupported os '" + getOsName() + "'");
 		}
-		runMavenCommand(runMaven);
+		if (logger.isInfoEnabled()) {
+			logger.info("test to be run: " + runMaven);
+		}
+		return runMaven;
 	}
 	
 	private void runMavenCommand(String command) throws Exception {
-		Process p = Runtime.getRuntime().exec(command);
-		InputStream isErr = p.getErrorStream();
-		if (isErr != null) {
-			String err = inputStreamToString(isErr);
-			if (err != null && err.length() > 0) {
-				logger.error(err);
-			}
+		if (logger.isInfoEnabled()) {
+			logger.info("Executing: " + command);
 		}
-		InputStream os = p.getInputStream();
-		if (os != null && logger.isInfoEnabled()) {
-			String output = inputStreamToString(os);
-			if (output != null && output.length() > 0) {
-				logger.info(output);
-			}
+		Process p = Runtime.getRuntime().exec(command);
+		p.waitFor();
+		if (logger.isInfoEnabled()) {
+			logger.info("Executed: " + command);
 		}
 	}
 	

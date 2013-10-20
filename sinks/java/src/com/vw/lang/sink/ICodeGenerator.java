@@ -1,5 +1,7 @@
 package com.vw.lang.sink;
 
+import java.util.Properties;
+
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
@@ -18,6 +20,7 @@ public interface ICodeGenerator {
 		private ICodeGenerator codeGenerator = null;
 		private String actualModuleName = null;
 		private InterpretationProps interpretationProps = null;
+		private Properties dynamicProps = new Properties();
 		private static String s_sourcesPath = null;
 
 		public ICodeGenerator getCodeGenerator() {
@@ -44,6 +47,14 @@ public interface ICodeGenerator {
 			this.interpretationProps = interpretationProps;
 		}
 
+		public void addProperty(String name, String value) {
+			dynamicProps.put(name, value);
+		}
+		
+		public String getProperty(String name) {
+			return dynamicProps.getProperty(name);
+		}
+		
 		public static String getSourcesPath() {
 			return s_sourcesPath;
 		}

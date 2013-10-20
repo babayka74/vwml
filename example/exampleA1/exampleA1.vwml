@@ -40,5 +40,7 @@ module exampleA1 {
 		)^
 		(Sum~ pushToAnotherWorld~) Do
 	);
-	lifeterm = Behavior~ Exe
+	lifeterm = (Behavior~ Exe
+		    1000 Relax
+		   )Exe;
 }

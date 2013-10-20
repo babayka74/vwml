@@ -46,6 +46,43 @@ public class VWMLModelBuilder extends Debuggable {
 		SOURCE, POM, COMPILE, TEST, ALL
 	}
 
+	/**
+	 * Defines possible testing modes
+	 * @author Oleg
+	 *
+	 */
+	public static enum TEST_MODE {
+		NONE("none"),
+		STATIC("static"),
+		DYNAMIC("dynamic"),
+		ALL("all");
+		
+		private String value;
+		
+		private TEST_MODE(String value) {
+			this.value = value;
+		}
+		
+		 public static TEST_MODE fromValue(String value) {  
+			if (value != null) {  
+				 for (TEST_MODE tm : values()) {  
+					 if (tm.value.equals(value)) {  
+						 return tm;  
+					 }  
+				 }  
+			}  
+			return getDefault();  
+		 }
+		 
+		 public String toValue() {
+			 return value;
+		 }
+		 
+		 public static TEST_MODE getDefault() {
+			 return TEST_MODE.STATIC;
+		 }
+	}
+	
 	public static class CodeGeneratorAux {
 		private ICodeGenerator generator;
 		private VWML2TargetSpecificSteps programSteps;
@@ -116,6 +153,9 @@ public class VWMLModelBuilder extends Debuggable {
 
 	// associates modules' names and their info - this information is needed on final steps of source generation
 	private static Map<String, VWMLModuleInfo> s_modulesInfo = new HashMap<String, VWMLModuleInfo>();
+	
+	// testing mode property
+	public static final String s_TestModeProp = "testMode";
 	
 	private VWMLModelBuilder() {
 		

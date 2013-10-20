@@ -31,7 +31,7 @@ public final class VWML {
 		
 		public void process(VWMLArgs args) throws Exception {
 			run(args);
-			finalProcedure();
+			finalProcedure(args);
 		}
 		
 		public void run(VWMLArgs args) throws Exception {
@@ -44,7 +44,14 @@ public final class VWML {
 		/**
 		 * Called upon operation's final step
 		 */
-		protected void finalProcedure() throws Exception {
+		protected void finalProcedure(VWMLArgs args) throws Exception {
+			if (VWMLModelBuilder.BUILD_STEPS.TEST == VWMLModelBuilder.instance().getBuildSteps()) {
+				String testMode = VWMLModelBuilder.TEST_MODE.STATIC.toValue();
+				if (args.getTestMode() != null) {
+					testMode = args.getTestMode();
+				}
+				VWMLModelBuilder.instance().getProjectProps().addProperty(VWMLModelBuilder.s_TestModeProp, testMode);
+			}
 			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getProjectProps());
 		}
 		
@@ -159,6 +166,8 @@ public final class VWML {
 	public static class VWMLArgs {
 		@Option(name="-m", usage="execution mode {source | project | compile | test};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used;\r\ncompile - compiles project;\r\ntest - runs compiled project")
 		private String mode;
+		@Option(name="-t", usage="test mode {none | static | dynamic | all};\r\nnone - no tests are run;\r\nstatic test is run only (checks linkages only);\r\ndynamic - executes dynamic tests;\r\nall - static and dynamic tests are run")
+		private String testMode;
 		@Option(name="-entity", usage="entity generation/checking options {strict, ue_im1, ue_im2, ue_im3};\r\nstrict - if undefined simple entity found - exception is thrown;\r\nue_im1 - if undefined simple entity found - it is interpreted as empty complex entity ();\r\nue_im2 - if undefined simple entity found - it is interpreted as 'nil' entity\r\nue_im3 - if undefined simple entity found - it is interpreted as is")
 		private String entityInterpretationStrategy = new String(InterpretationOfUndefinedEntityStrategyId.STRICT.toValue());
 		@Option(name="-interpreter", usage="path to property file")
@@ -174,6 +183,14 @@ public final class VWML {
 
 		public void setMode(String mode) {
 			this.mode = mode;
+		}
+
+		public String getTestMode() {
+			return testMode;
+		}
+
+		public void setTestMode(String testMode) {
+			this.testMode = testMode;
 		}
 
 		public String getInterpreterProps() {

@@ -25,12 +25,12 @@ module tesejr {
 		tesejMovedToPosition ias move.toPosition.go;
 		say ias communication.out.write;
 	       );
-	relaxation ias (
-		time ias 1000;
-	);
-	relaxAndSay ias (
-		((relaxing relaxation.time~ miliseconds) ew.say~) Do
-		relaxation.time~ Relax
+	relax ias (
+		time ias (
+			v ias 500;
+		);
+		((relaxing time.v~ miliseconds) ew.say~) Do
+		time.v~ Relax
 	);
 	a ias (a h b g f h e c);
 	b ias (b a e g f f f);
@@ -46,7 +46,7 @@ module tesejr {
 			(TesejPrevPos TesejPos~)^
 			(TesejPos TesejPos~~ Random)^
 			((TesejPrevPos~ TesejPos~) ew.tesejMovedToPosition~) Do
-			relaxAndSay~ Exe
+			relax~ Exe
 		 );
 	TesejLife ias (	Step~ Exe
 			TesejLife~ Exe
