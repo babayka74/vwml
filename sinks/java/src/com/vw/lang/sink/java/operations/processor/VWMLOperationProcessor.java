@@ -71,6 +71,11 @@ public class VWMLOperationProcessor {
 		if (handler == null) {
 			handler = unknownOperationHandler;
 		}
-		handler.handle(interpreter, linkage, context, operation);
+		try {
+			handler.handle(interpreter, linkage, context, operation);
+		}
+		catch(Exception e) {
+			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'");
+		}
 	}
 }

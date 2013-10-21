@@ -12,6 +12,7 @@ options {
 		beyond {
 			fringe communication ias (
 				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
 			)
 			fringe move ias (
 				toPosition ias "com.vw.lang.beyond.java.fringe.gate.movement.Go"
@@ -24,6 +25,7 @@ module tesej {
 	ew ias (
 		tesejMovedToPosition ias move.toPosition.go;
 		say ias communication.out.write;
+		ask ias communication.in.read;
 	);
 	final ias (
 		    doNothing ias (((goodbye my darling) ew.say~) Do);
@@ -41,7 +43,7 @@ module tesej {
 	d ias (d c g g g h h);
 	e ias (e c b g);
 	f ias (f c a b g);
-	g ias (g b e);
+	g ias (g b e h e c b g);
 	h ias (h a e e e a);
 	TesejPos ias a;
 	TesejPrevPos ias TesejPos;
@@ -55,7 +57,11 @@ module tesej {
 			(TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife final.doNothing)Random~ Exe
 		      );
 	lifeterm = (
-                    ((hello world !) ew.say~) Do 
+                    ((hello world !) ew.say~) Do
+                    ((enter tesej relaxion time) ew.say~) Do  
+		    (relax.time.v
+			(() ew.ask~) Do
+		    )^
 		    TesejLife~ Exe
 		    7000 Relax
                    ) Exe

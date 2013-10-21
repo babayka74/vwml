@@ -79,7 +79,12 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		// associates context of interpreted term with interpretation stack
 		getContext().setEntityInterpretationHistorySize(entity.getInterpretationHistorySize());
 		getContext().setLinkOperationVisitor(entity.getLink().getLinkOperationVisitor());
-		activateComplexInterpretationProcess(getLinkage(), getContext(), entity);
+		try {
+			activateComplexInterpretationProcess(getLinkage(), getContext(), entity);
+		}
+		catch(Exception e) {
+			throw new Exception("Exception caught during interpretation life term on context '" + getContext().getContext() + "'; exception '" + e + "'");
+		}
 	}
 	
 	/**

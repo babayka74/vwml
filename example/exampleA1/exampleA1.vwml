@@ -29,18 +29,21 @@ module exampleA1 {
 	pushToAnotherWorld  ias communication.out.write;
 	Summation           ias services.math.sum;
 	Behavior ias (
+		((Enter first number) pushToAnotherWorld~) Do
 		(S1
 			(() getFromAnotherWorld~) Do
 		)^
+		((Enter second number) pushToAnotherWorld~) Do
 		(S2
 			(() getFromAnotherWorld~) Do
 		)^
+		((Result is) pushToAnotherWorld~) Do
 		(Sum
                 	((S1~ S2~) Summation~) Do
 		)^
 		(Sum~ pushToAnotherWorld~) Do
 	);
 	lifeterm = (Behavior~ Exe
-		    1000 Relax
+		    7000 Relax
 		   )Exe;
 }

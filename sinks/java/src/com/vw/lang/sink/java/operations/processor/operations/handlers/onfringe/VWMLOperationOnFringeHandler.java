@@ -70,6 +70,9 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 				answerFromEW.setContext(resContext);
 			}
 		}
+		else {
+			throw new Exception("couldn't find fringe '" + onFringe.getId() + "'; check VWML code");
+		}
 		return answerFromEW;
 	}
 	
