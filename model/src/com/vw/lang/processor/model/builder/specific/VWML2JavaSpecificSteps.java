@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -299,18 +298,6 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			while((len = is.read(buffer)) > 0) {
 			    os.write(buffer, 0, len);   
 			}
-	  }
-	  
-	  private String inputStreamToString(InputStream in) throws Exception {
-		  InputStreamReader is = new InputStreamReader(in);
-		  StringBuilder sb = new StringBuilder();
-		  BufferedReader br = new BufferedReader(is);
-		  String read = br.readLine();
-		  while(read != null) {
-		      sb.append(read);
-		      read = br.readLine();
-		  }
-		  return sb.toString();
 	  }
 	  
 	  private String getOsName() {
