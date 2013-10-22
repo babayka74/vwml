@@ -10,6 +10,7 @@ import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
  *
  */
 public class InterpretationProps {
+	private boolean activateDebugger;
 	private String interpretersSrcPath;
 	private String interpretersPackage;
 	private InterpretationOfUndefinedEntityStrategyId interpretationOfUndefinedEntityStrategyId = InterpretationOfUndefinedEntityStrategyId.STRICT;
@@ -53,6 +54,14 @@ public class InterpretationProps {
 		return dynamicProps;
 	}
 	
+	public boolean isActivateDebugger() {
+		return activateDebugger;
+	}
+
+	public void setActivateDebugger(boolean activateDebugger) {
+		this.activateDebugger = activateDebugger;
+	}
+
 	@Override
 	public String toString() {
 		return "InterpretationProps [interpretersSrcPath="

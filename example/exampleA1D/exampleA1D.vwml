@@ -1,0 +1,49 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleA1D"
+  		path = "c:\var\vwml/exampleA1D/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleA1DProj"
+  		description = "ExampleA1D"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleA1D/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module exampleA1D {
+	S1 ias nil;
+	S2 ias nil;
+	Sum ias nil;
+	getFromAnotherWorld ias communication.in.read;
+	pushToAnotherWorld  ias communication.out.write;
+	Summation           ias services.math.sum;
+	Behavior ias (
+		((Enter first number) pushToAnotherWorld~) Do
+		(S1
+			(() getFromAnotherWorld~) Do
+		)^
+		((Enter second number) pushToAnotherWorld~) Do
+		(S2
+			(() getFromAnotherWorld~) Do
+		)^
+		((Result is) pushToAnotherWorld~) Do
+		(Sum
+                	((S1~ S2~) Summation~) Do
+		)^
+		(Sum~ pushToAnotherWorld~) Do
+	);
+	lifeterm = (Behavior~ Exe
+		    7000 Relax
+		   )Exe;
+}

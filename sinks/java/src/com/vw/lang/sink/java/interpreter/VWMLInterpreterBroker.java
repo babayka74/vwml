@@ -2,7 +2,8 @@ package com.vw.lang.sink.java.interpreter;
 
 import java.util.List;
 
-import com.vw.lang.sink.java.IVWMLInterpreter;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
@@ -14,11 +15,11 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.module.VWMLModule;
 
 /**
- * Defines logic of interpreter for one VWML's lifterm 
+ * Defines interpretater's broker; creates new interpreter according to properties and starts interpretation process
  * @author ogibayev
  *
  */
-public class VWMLInterpreter implements IVWMLInterpreter {
+public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 	
 	private VWMLModule[] modules = null;
 	private VWMLPair[] propPairs = null;
@@ -28,7 +29,7 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 	/**
 	 * Hides inetrpreter's construction
 	 */
-	private VWMLInterpreter() {
+	private VWMLInterpreterBroker() {
 		
 	}
 	
@@ -37,8 +38,8 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 	 * @param modules
 	 * @return
 	 */
-	public static IVWMLInterpreter instance(VWMLModule[] modules, VWMLPair[] propPairs) {
-		VWMLInterpreter in = new VWMLInterpreter();
+	public static IVWMLInterpreterBroker instance(VWMLModule[] modules, VWMLPair[] propPairs) {
+		VWMLInterpreterBroker in = new VWMLInterpreterBroker();
 		in.setModules(modules);
 		in.setPropPairs(propPairs);
 		in.prepareConfiguration();
@@ -76,6 +77,10 @@ public class VWMLInterpreter implements IVWMLInterpreter {
 			module.linkage();
 		}		
 		modulesBuilt = true;
+	}
+
+	public void setDebuggerGate(IVWMLGate debuggerGate) {
+		config.setDebuggerGate(debuggerGate);
 	}
 	
 	@Override

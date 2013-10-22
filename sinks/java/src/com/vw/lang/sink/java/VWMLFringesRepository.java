@@ -14,8 +14,9 @@ public class VWMLFringesRepository {
 	
 	private Map<String, IVWMLGate> fringeGates = new HashMap<String, IVWMLGate>();
 	
-	private static VWMLFringesRepository s_instance = new VWMLFringesRepository();
+	private static String s_DebugFringeReservedName = "__vwml_debug_fringe__";
 	
+	private static VWMLFringesRepository s_instance = new VWMLFringesRepository();
 	
 	/**
 	 * Registers fringe; associate fringe's name and its gate
@@ -35,6 +36,14 @@ public class VWMLFringesRepository {
 		return s_instance.getFringeGate(fringe);
 	}
 
+	/**
+	 * Returns built-in debugging fringe's name
+	 * @return
+	 */
+	public static String getDebugFringeName() {
+		return s_DebugFringeReservedName;
+	}
+	
 	protected void associateFringe2Gates(String fringe, IVWMLGate gate) {
 		fringeGates.put(fringe, gate);
 	}

@@ -2,7 +2,11 @@ package com.vw.lang.sink.java.operations.processor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import com.vw.lang.beyond.java.fringe.entity.EWComplexEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -26,6 +30,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VW
  */
 public class VWMLOperationProcessor {
 	
+	private IVWMLGate debuggerGate = null;
 	/**
 	 * maps VWML operation to its handler
 	 */
@@ -59,6 +64,13 @@ public class VWMLOperationProcessor {
 	}
 	
 	/**
+	 * Processor's initialization steps
+	 */
+	public void init(VWMLIterpreterImpl interpreter) {
+		debuggerGate = interpreter.getConfig().getDebuggerGate();
+	}
+	
+	/**
 	 * Processes incoming command
 	 * @param interpreter
 	 * @param linkage
@@ -72,10 +84,26 @@ public class VWMLOperationProcessor {
 			handler = unknownOperationHandler;
 		}
 		try {
+			checkDebugAction(context, operation);
 			handler.handle(interpreter, linkage, context, operation);
+			checkDebugAction(context, operation);
 		}
 		catch(Exception e) {
 			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'");
 		}
+	}
+	
+	protected void checkDebugAction(VWMLContext context, VWMLOperation operation) {
+		if (debuggerGate != null) {
+			EWComplexEntity ce = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(), null);
+			ce.link(EWEntityBuilder.buildSimpleEntity(context.getContext(), null));
+			ce.link(EWEntityBuilder.buildSimpleEntity(operation.getId(), null));
+			debuggerGate.invokeEW(debugCheckCommand(), ce);
+			ce = null; // makes all linked objects to be eligible for gc
+		}
+	}
+	
+	private String debugCheckCommand() {
+		return "check";
 	}
 }

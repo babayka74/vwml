@@ -1,5 +1,7 @@
 package com.vw.lang.sink.java.interpreter;
 
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+
 /**
  * Interpreter's configuration; based on properties
  * @author ogibayev
@@ -47,6 +49,7 @@ public class VWMLInterpreterConfiguration {
 	
 	private int executionStepDelay = DEF_EXECUTION_STEP_DELAY;
 	private INTERPRETER_MT_STRATEGY interpretationMtStrategy;
+	private IVWMLGate debuggerGate = null;
 	
 	private VWMLInterpreterConfiguration() {
 		super();
@@ -73,6 +76,14 @@ public class VWMLInterpreterConfiguration {
 		this.interpretationMtStrategy = INTERPRETER_MT_STRATEGY.fromValue(interpretationMtStrategy);
 	}
 	
+	public IVWMLGate getDebuggerGate() {
+		return debuggerGate;
+	}
+
+	public void setDebuggerGate(IVWMLGate debuggerGate) {
+		this.debuggerGate = debuggerGate;
+	}
+
 	@Override
 	public String toString() {
 		return "VWMLInterpreterConfiguration [executionStepDelay="

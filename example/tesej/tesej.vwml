@@ -57,7 +57,7 @@ module tesej {
 			(TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife TesejLife final.doNothing)Random~ Exe
 		      );
 	lifeterm = (
-                    ((hello world !) ew.say~) Do
+                    ((hello Andrew!) ew.say~) Do
                     ((enter tesej relaxion time) ew.say~) Do  
 		    (relax.time.v
 			(() ew.ask~) Do
