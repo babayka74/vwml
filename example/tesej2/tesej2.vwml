@@ -1,0 +1,91 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.tesej2"
+  		path = "c:\var\vwml/tesej2/src"
+  		author = "Groozman M.Z."
+		project_name = "tesej2Proj"
+  		description = "Tesej2 walk"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/tesej2/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe move ias (
+				toPosition ias "com.vw.lang.beyond.java.fringe.gate.movement.Go"
+			)
+		}
+	}
+}
+
+module tesej2 {
+	ew ias (
+		tesejMovedToPosition ias move.toPosition.go;
+		say ias communication.out.write;
+		ask ias communication.in.read;
+	);
+	relax ias (
+		time ias (
+			v ias 500;
+		);
+		((relaxing time.v~ miliseconds) ew.say~) Do
+		time.v~ Relax
+	);
+	true ias metMinotaur.true;
+	false ias metMinotaur.false;
+	metMinotaur ias (
+		true ias fight;
+		false ias life;
+		);
+	life ias (
+			tesejLife~ Exe
+		);
+	fight ias (
+			strategyAfterFight ias won;
+			won ias (
+					((minotaur was killed by tesej) ew.say~) Do
+					(tesejPos tesejPrevPos~)^
+					life~ Exe
+				);
+			lost ias (
+					((tesej was killed by minotaur) ew.say~) Do
+				);
+			battleResult ias (won won won won won lost);
+			((Tesej is fighting with minotaur) ew.say~) Do
+			(strategyAfterFight battleResult~ Random)^
+			strategyAfterFight~~ Exe
+		);
+	minotaur ias ();
+	a ias (a h b g f h e c minotaur);
+	b ias (b a e minotaur g f f f);
+	c ias (minotaur c e d f);
+	d ias (d c g minotaur g g h h minotaur);
+	e ias (e c minotaur b g);
+	f ias (f c minotaur a b g);
+	g ias (g b e h e c b g minotaur);
+	h ias (h a e minotaur e e a);
+	tesejPos ias a;
+	tesejPrevPos ias tesejPos;
+	step ias (
+			(tesejPrevPos tesejPos~)^
+			(tesejPos tesejPos~~ Random)^
+			((tesejPrevPos~ tesejPos~) ew.tesejMovedToPosition~) Do
+			relax~ Exe
+		 );
+	tesejLife ias (	step~ Exe
+			(tesejPos~ minotaur)Ident~~~ Exe
+		      );
+	lifeterm = (
+                    ((hello world !) ew.say~) Do
+                    ((enter tesej relaxion time) ew.say~) Do  
+		    (relax.time.v
+			(() ew.ask~) Do
+		    )^
+		    tesejLife~ Exe
+                    ((waiting 7 seconds before exit) ew.say~) Do  
+		    7000 Relax
+                   ) Exe
+}

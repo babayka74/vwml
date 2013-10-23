@@ -55,7 +55,7 @@ public class VWMLObjectsRepository {
 			throw new Exception("coudln't find context '" + context + "'");
 		}
 		// checks if object has been created before
-		VWMLObject obj = instance().get(id, c);
+		VWMLObject obj = instance().checkObjectOnContext(id, c);
 		if (obj == null) { // not found in repository...
 			boolean contextChanged = false;
 			if (((String)id).contains(".")) {
@@ -92,17 +92,13 @@ public class VWMLObjectsRepository {
 	}
 	
 	public VWMLObject get(Object id, VWMLContext context) throws Exception {
-		String ids = (String)id;
-		VWMLContext effectiveContext = context;
-		if (ids.contains(".")) {
-			return getByFullSpecifiedPath(id, context);
-		}
-		if (effectiveContext == null) {
-			effectiveContext = VWMLContextsRepository.instance().getDefaultContext();
-		}
-		return getByEffectiveContext(id, effectiveContext, false);
+		return getByContext(id, context, false);
 	}
 
+	public VWMLObject checkObjectOnContext(Object id, VWMLContext context) throws Exception {
+		return getByContext(id, context, true);
+	}
+	
 	/**
 	 * Adds created entity to storage
 	 * @param entity
@@ -165,7 +161,19 @@ public class VWMLObjectsRepository {
 		}
 		return c;
 	}
-	
+
+	protected VWMLObject getByContext(Object id, VWMLContext context, boolean concreteContext) throws Exception {
+		String ids = (String)id;
+		VWMLContext effectiveContext = context;
+		if (ids.contains(".")) {
+			return getByFullSpecifiedPath(id, context);
+		}
+		if (effectiveContext == null) {
+			effectiveContext = VWMLContextsRepository.instance().getDefaultContext();
+		}
+		return getByEffectiveContext(id, effectiveContext, concreteContext);
+	}
+		
 	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context, boolean concreteContext) {
 		VWMLObject o = null;
 		if (concreteContext) {

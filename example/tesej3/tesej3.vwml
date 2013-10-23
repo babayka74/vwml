@@ -1,0 +1,103 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.tesej3"
+  		path = "c:\var\vwml/tesej3/src"
+  		author = "Groozman M.Z."
+		project_name = "tesej3Proj"
+  		description = "Tesej3 walk"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/tesej3/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe move ias (
+				toPosition ias "com.vw.lang.beyond.java.fringe.gate.movement.Go"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module tesej3 {
+	ew ias (
+		tesejMovedToPosition ias move.toPosition.go;
+		say ias communication.out.write;
+		ask ias communication.in.read;
+		increaseNumberOfKilledMinotaurs ias services.math.inc;
+	);
+	relax ias (
+		time ias (
+			v ias 500;
+		);
+		((relaxing time.v~ miliseconds) ew.say~) Do
+		time.v~ Relax
+	);
+	killedMinotaurs ias 0;
+	minotaursNeedToBeKilled ias 0;
+	(metMinotaur false) ias (
+			tesejLife~ Exe
+		);
+	(metMinotaur true) ias (
+			strategyAfterFight ias unknown;
+			won ias (
+					(killedAllMinotaurs false) ias (
+							(tesejPos tesejPrevPos~)^
+							tesejLife~ Exe;
+						);
+					(killedAllMinotaurs true) ias (
+							((tesej killed all killedMinotaurs~ minotaurs and wants to rest) ew.say~) Do
+						);
+					(killedMinotaurs ((killedMinotaurs~) ew.increaseNumberOfKilledMinotaurs~) Do)^
+					((minotaur was killed by tesej! Killed killedMinotaurs~ minotaurs) ew.say~) Do
+
+					(killedAllMinotaurs (killedMinotaurs~ minotaursNeedToBeKilled~)Ident)~ Exe
+				);
+			lost ias (
+					((tesej was killed by minotaur) ew.say~) Do
+				);
+			battleResult ias (won won lost won won won won won won lost);
+			((Tesej is fighting with minotaur) ew.say~) Do
+			(strategyAfterFight battleResult~ Random)^
+			strategyAfterFight~~ Exe
+		);
+	minotaur ias ();
+	a ias (a h b g f h e c minotaur);
+	b ias (b a e minotaur g f f f);
+	c ias (minotaur c e d f);
+	d ias (d c g minotaur g g h h minotaur);
+	e ias (e c minotaur b g);
+	f ias (f c minotaur a b g);
+	g ias (g b e h e c b g minotaur);
+	h ias (h a e minotaur e e a);
+	tesejPos ias a;
+	tesejPrevPos ias tesejPos;
+	step ias (
+			(tesejPrevPos tesejPos~)^
+			(tesejPos tesejPos~~ Random)^
+			((tesejPrevPos~ tesejPos~) ew.tesejMovedToPosition~) Do
+			relax~ Exe
+		 );
+	tesejLife ias (	step~ Exe
+			(metMinotaur (tesejPos~ minotaur)Ident)~ Exe
+		      );
+	lifeterm = (
+                    ((hello world !) ew.say~) Do
+                    ((enter tesej relaxion time) ew.say~) Do  
+		    (relax.time.v
+			(() ew.ask~) Do
+		    )^
+                    ((enter number of minotaurs need to be killed) ew.say~) Do  
+		    (minotaursNeedToBeKilled
+			(() ew.ask~) Do
+		    )^
+		    tesejLife~ Exe
+                    ((waiting 7 seconds before exit) ew.say~) Do  
+		    7000 Relax
+                   ) Exe
+}

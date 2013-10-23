@@ -92,7 +92,13 @@ public class Math implements IVWMLGate {
 		@Override
 		public EWEntity handler(EWEntity commandArgs) {
 			int i = 0;
-			EWEntity e = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+			EWEntity e = null;
+			if (commandArgs.isMarkedAsComplexEntity()) {
+				e = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+			}
+			else {
+				e = commandArgs;
+			}
 			if (e != null) {
 				i = Math.convertString2Int((String)e.getId()) + 1;
 			}
@@ -106,7 +112,13 @@ public class Math implements IVWMLGate {
 		@Override
 		public EWEntity handler(EWEntity commandArgs) {
 			int i = 0;
-			EWEntity e = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+			EWEntity e = null;
+			if (commandArgs.isMarkedAsComplexEntity()) {
+				e = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+			}
+			else {
+				e = commandArgs;
+			}
 			if (e != null) {
 				i = Math.convertString2Int((String)e.getId()) - 1;
 			}
