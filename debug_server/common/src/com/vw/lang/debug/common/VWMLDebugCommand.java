@@ -41,5 +41,5 @@ public abstract class VWMLDebugCommand {
 		this.data = data;
 	}
 	
-	public abstract VWMLDebugCommandResult handle();
+	public abstract VWMLDebugCommandResult handle(Object context);
 }

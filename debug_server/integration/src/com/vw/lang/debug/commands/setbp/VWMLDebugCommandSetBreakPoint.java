@@ -1,19 +1,24 @@
-package com.vw.lang.debug.commands.stopon;
+package com.vw.lang.debug.commands.setbp;
 
+import com.vw.lang.beyond.java.fringe.gate.debug.IVWMLDebuggerCommandInterface;
 import com.vw.lang.debug.common.VWMLDebugCommand;
 import com.vw.lang.debug.common.VWMLDebugCommandResult;
 
 /**
- * Stops interpretation process of given lifeterm on given context during executing given command
+ * Stops interpretation process of given lifeterm on given context during executing given command, aka breakpoint
  * @author Oleg
  *
  */
-public class VWMLDebugCommandStopOn extends VWMLDebugCommand {
+public class VWMLDebugCommandSetBreakPoint extends VWMLDebugCommand {
 	private String command;
 	private String context;
 	private Boolean after = true;
 	private Boolean before = true;
 
+	public VWMLDebugCommandSetBreakPoint() {
+		super("setbp", null);
+	}
+	
 	public String getCommand() {
 		return command;
 	}
@@ -47,8 +52,9 @@ public class VWMLDebugCommandStopOn extends VWMLDebugCommand {
 	}
 
 	@Override
-	public VWMLDebugCommandResult handle() {
-		// TODO Auto-generated method stub
-		return null;
+	public VWMLDebugCommandResult handle(Object context) {
+		IVWMLDebuggerCommandInterface vwmlDebugger = (IVWMLDebuggerCommandInterface)context;
+		vwmlDebugger.setBreakPoint(getContext(), getCommand(), getAfter(), getBefore());
+		return VWMLDebugCommandResult.defaultCommandResult();
 	}
 }

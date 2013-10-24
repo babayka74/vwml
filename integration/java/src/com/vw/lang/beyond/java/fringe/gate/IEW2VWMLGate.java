@@ -14,4 +14,10 @@ public interface IEW2VWMLGate  {
 	 * @param commandArgs
 	 */
 	public EWEntity invokeVW(Object commandId, EWEntity commandArgs);
+	
+	/**
+	 * Activates VWML's gate allowing to EW to call VWML world in callback's manner
+	 * @param gate
+	 */
+	public void activateVWCallback(IEW2VWMLGate gate);
 }

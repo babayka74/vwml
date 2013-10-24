@@ -12,8 +12,8 @@ import com.vw.lang.debug.cmdline.VWMLDebugServerCmdLineContext;
  * @author Oleg
  *
  */
-@CLICommand(name="stopOn", description="stops execution on specified command when it is executed on given context")
-public class StopOnVWMLCommand extends Command<VWMLDebugServerCmdLineContext> {
+@CLICommand(name="setbp", description="stops execution on specified command when it is executed on given context")
+public class SetBreakPointVWMLCommand extends Command<VWMLDebugServerCmdLineContext> {
 
 	@Parameter(names={"-c", "--command"}, description="stops on command; in case if command is empty the execution is stopped on every command executed on given context")
 	private String command;

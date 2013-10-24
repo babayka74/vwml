@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.vw.lang.debug.commands.test.VWMLDebugCommandTest;
 import com.vw.lang.debug.common.VWMLDebugCommand;
 import com.vw.lang.debug.common.VWMLDebugCommandResult;
 import com.vw.lang.debug.common.VWMLDebugCommandTranscoder;
@@ -67,9 +66,11 @@ public class VWMLHttpServer {
 	public static class VWMLDebugServerCommandHandler implements HttpHandler {
 
 		private Class<?> debugCommandClass;
+		private Object userContext;
 		
-		public VWMLDebugServerCommandHandler(Class<?> debugCommandClass) {
+		public VWMLDebugServerCommandHandler(Object userContext, Class<?> debugCommandClass) {
 			super();
+			this.userContext = userContext;
 			this.debugCommandClass = debugCommandClass;
 		}
 
@@ -90,7 +91,7 @@ public class VWMLHttpServer {
 					throw new Exception("Invalid command received; command doesn't contain tag; command '" + body + "'");
 				}
 				VWMLDebugCommand command = (VWMLDebugCommand)VWMLDebugCommandTranscoder.fromJSON(body, debugCommandClass);
-				VWMLDebugCommandResult res = command.handle();
+				VWMLDebugCommandResult res = command.handle(userContext);
 				if (res != null) {
 					result = VWMLDebugCommandTranscoder.toJSON(res);
 				}
@@ -134,7 +135,8 @@ public class VWMLHttpServer {
 		}
 	}
 	
-	private HttpServer httpServer = null;	
+	private HttpServer httpServer = null;
+	private Object userContext = null;
 	private Logger logger = Logger.getLogger(VWMLHttpServer.class);
 	
 	private static int s_default_port = 8974;
@@ -180,18 +182,18 @@ public class VWMLHttpServer {
 		if (httpServer == null) {
 			throw new Exception("couldn't create http server; last exception is '" + le + "'");
 		}
-		// create 'test' command handler
-		httpServer.createContext("/test", new VWMLDebugServerCommandHandler(VWMLDebugCommandTest.class));
 		// installs handlers
 		for(String context : props.getHandlers().keySet()) {
-			httpServer.createContext(context, new VWMLDebugServerCommandHandler(props.getHandlers().get(context)));
+			httpServer.createContext("/" + context, new VWMLDebugServerCommandHandler(userContext, props.getHandlers().get(context)));
 		}
 	}
 	
 	/**
 	 * Starts server
+	 * @param context user related context
 	 */
-	public void start() {
+	public void start(Object context) {
+		setUserContext(context);
 		httpServer.setExecutor(null); // creates a default executor
 		httpServer.start();
 		if (logger.isInfoEnabled()) {
@@ -201,5 +203,13 @@ public class VWMLHttpServer {
 	
 	public void stop() {
 		httpServer.stop(0);
+	}
+
+	public Object getUserContext() {
+		return userContext;
+	}
+
+	public void setUserContext(Object userContext) {
+		this.userContext = userContext;
 	}
 }

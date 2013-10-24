@@ -3,9 +3,11 @@ package com.vw.lang.beyond.java.fringe.gate.console;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 
 /**
@@ -48,6 +50,14 @@ public class Console implements IVWMLGate {
 
 	@Override
 	public void done() throws Exception {
+	}
+
+	@Override
+	public void activateVWCallback(IEW2VWMLGate gate) {
+	}
+	
+	@Override
+	public void activateConfiguration(Properties props) throws Exception {
 	}
 	
 	@Override

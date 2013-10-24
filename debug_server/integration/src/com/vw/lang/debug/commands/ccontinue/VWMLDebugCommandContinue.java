@@ -4,13 +4,17 @@ import com.vw.lang.debug.common.VWMLDebugCommand;
 import com.vw.lang.debug.common.VWMLDebugCommandResult;
 
 /**
- * Continues execution of term interpretation which previously was stopped by command 'stopOn'
+ * Continues execution of term interpretation which previously was stopped by command 'setbp'
  * @author Oleg
  *
  */
 public class VWMLDebugCommandContinue extends VWMLDebugCommand {
 	private String context;
 
+	public VWMLDebugCommandContinue() {
+		super("continue", null);
+	}
+	
 	public String getContext() {
 		return context;
 	}
@@ -20,7 +24,7 @@ public class VWMLDebugCommandContinue extends VWMLDebugCommand {
 	}
 
 	@Override
-	public VWMLDebugCommandResult handle() {
+	public VWMLDebugCommandResult handle(Object context) {
 		// TODO Auto-generated method stub
 		return null;
 	}

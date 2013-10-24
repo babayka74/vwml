@@ -14,7 +14,7 @@ public class VWMLDebugCommandTest extends VWMLDebugCommand {
 	}
 
 	@Override
-	public VWMLDebugCommandResult handle() {
+	public VWMLDebugCommandResult handle(Object context) {
 		VWMLDebugCommandResult r = VWMLDebugCommandResult.defaultCommandResult();
 		r.setData("test response data");
 		return r;

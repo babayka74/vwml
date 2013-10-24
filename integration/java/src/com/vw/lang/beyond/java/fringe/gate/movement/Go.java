@@ -1,6 +1,9 @@
 package com.vw.lang.beyond.java.fringe.gate.movement;
 
+import java.util.Properties;
+
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 
 /**
@@ -29,6 +32,14 @@ public class Go implements IVWMLGate {
 			s_go = null;
 		}
 		return s_go;
+	}
+	
+	@Override
+	public void activateVWCallback(IEW2VWMLGate gate) {
+	}
+	
+	@Override
+	public void activateConfiguration(Properties props) throws Exception {
 	}
 	
 	@Override

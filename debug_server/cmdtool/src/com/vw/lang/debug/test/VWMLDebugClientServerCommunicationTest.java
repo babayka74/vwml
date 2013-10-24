@@ -6,6 +6,7 @@ import org.junit.Test;
 import com.vw.lang.debug.client.transport.http.VWMLHttpClient;
 import com.vw.lang.debug.client.transport.http.VWMLHttpClient.VWMLHttpClientProps;
 import com.vw.lang.debug.commands.test.VWMLDebugCommandTest;
+import com.vw.lang.debug.common.VWMLDebugCommand;
 import com.vw.lang.debug.common.VWMLDebugCommandResult;
 import com.vw.lang.debug.server.transport.http.VWMLHttpServer;
 import com.vw.lang.debug.server.transport.http.VWMLHttpServer.VWMLHttpServerProps;
@@ -25,7 +26,7 @@ public class VWMLDebugClientServerCommunicationTest {
 		VWMLHttpServerProps props = new VWMLHttpServerProps();
 		props.setPort(8974);
 		VWMLHttpServer srv = VWMLHttpServer.instance(props);
-		srv.start();
+		srv.start(null);
 		return srv;
 	}
 	

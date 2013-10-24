@@ -2,11 +2,13 @@ package com.vw.lang.beyond.java.fringe.gate.math;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.entity.EWObject;
 import com.vw.lang.beyond.java.fringe.gate.GateCommandHandler;
+import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 
 /**
@@ -163,6 +165,14 @@ public class Math implements IVWMLGate {
 
 	@Override
 	public void done() throws Exception {
+	}
+
+	@Override
+	public void activateVWCallback(IEW2VWMLGate gate) {
+	}
+	
+	@Override
+	public void activateConfiguration(Properties props) throws Exception{
 	}
 	
 	@Override
