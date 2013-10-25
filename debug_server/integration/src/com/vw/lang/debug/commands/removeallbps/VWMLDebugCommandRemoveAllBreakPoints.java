@@ -1,5 +1,6 @@
 package com.vw.lang.debug.commands.removeallbps;
 
+import com.vw.lang.beyond.java.fringe.gate.debug.IVWMLDebuggerCommandInterface;
 import com.vw.lang.debug.common.VWMLDebugCommand;
 import com.vw.lang.debug.common.VWMLDebugCommandResult;
 
@@ -16,8 +17,9 @@ public class VWMLDebugCommandRemoveAllBreakPoints extends VWMLDebugCommand {
 	
 	@Override
 	public VWMLDebugCommandResult handle(Object context) {
-		// TODO Auto-generated method stub
-		return null;
+		IVWMLDebuggerCommandInterface vwmlDebugger = (IVWMLDebuggerCommandInterface)context;
+		vwmlDebugger.removeAllBreakPoints();
+		return VWMLDebugCommandResult.defaultCommandResult();
 	}
 
 }

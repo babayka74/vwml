@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.vw.lang.beyond.java.fringe.entity.EWComplexEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.gate.GateConstants;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -84,26 +85,43 @@ public class VWMLOperationProcessor {
 			handler = unknownOperationHandler;
 		}
 		try {
-			checkDebugAction(context, operation);
+			checkBpAction(context, operation, true);
 			handler.handle(interpreter, linkage, context, operation);
-			checkDebugAction(context, operation);
+			checkBpAction(context, operation, false);
 		}
 		catch(Exception e) {
+			reportException(context, operation, e);
 			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'");
 		}
 	}
 	
-	protected void checkDebugAction(VWMLContext context, VWMLOperation operation) {
+	protected void checkBpAction(VWMLContext context, VWMLOperation operation, boolean beforeOp) {
 		if (debuggerGate != null) {
 			EWComplexEntity ce = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(), null);
 			ce.link(EWEntityBuilder.buildSimpleEntity(context.getContext(), null));
 			ce.link(EWEntityBuilder.buildSimpleEntity(operation.getId(), null));
-			debuggerGate.invokeEW(debugCheckCommand(), ce);
+			ce.link(EWEntityBuilder.buildSimpleEntity(String.valueOf(beforeOp), null));
+			debuggerGate.invokeEW(debugCheckBpCommand(), ce);
+			ce = null; // makes all linked objects to be eligible for gc
+		}
+	}
+
+	protected void reportException(VWMLContext context, VWMLOperation operation, Object exception) {
+		if (debuggerGate != null) {
+			EWComplexEntity ce = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(), null);
+			ce.link(EWEntityBuilder.buildSimpleEntity(context.getContext(), null));
+			ce.link(EWEntityBuilder.buildSimpleEntity(operation.getId(), null));
+			ce.link(EWEntityBuilder.buildSimpleEntity(exception, null));
+			debuggerGate.invokeEW(reportOnCaughtExceptionCommand(), ce);
 			ce = null; // makes all linked objects to be eligible for gc
 		}
 	}
 	
-	private String debugCheckCommand() {
-		return "check";
+	private String debugCheckBpCommand() {
+		return GateConstants.debugCheckBpActionCommand;
+	}
+	
+	private String reportOnCaughtExceptionCommand() {
+		return GateConstants.debugCaughtExceptionOnOperationProcessorActionCommand;
 	}
 }

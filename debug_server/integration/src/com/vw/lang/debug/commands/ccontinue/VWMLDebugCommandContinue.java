@@ -1,5 +1,6 @@
 package com.vw.lang.debug.commands.ccontinue;
 
+import com.vw.lang.beyond.java.fringe.gate.debug.IVWMLDebuggerCommandInterface;
 import com.vw.lang.debug.common.VWMLDebugCommand;
 import com.vw.lang.debug.common.VWMLDebugCommandResult;
 
@@ -25,7 +26,8 @@ public class VWMLDebugCommandContinue extends VWMLDebugCommand {
 
 	@Override
 	public VWMLDebugCommandResult handle(Object context) {
-		// TODO Auto-generated method stub
-		return null;
+		IVWMLDebuggerCommandInterface vwmlDebugger = (IVWMLDebuggerCommandInterface)context;
+		vwmlDebugger.resumeExecutionFlow(getContext());
+		return VWMLDebugCommandResult.defaultCommandResult();
 	}
 }
