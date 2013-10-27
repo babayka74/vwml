@@ -31,6 +31,7 @@ public class EntityWalker {
 		private Object obj;
 		private REL relation;
 		private Object lastLink;
+		private Object data;
 
 		public static Relation build(Object obj, REL relation, Object lastLink) {
 			return new Relation(obj, relation, lastLink);
@@ -55,6 +56,14 @@ public class EntityWalker {
 			return lastLink;
 		}
 		
+		public Object getData() {
+			return data;
+		}
+
+		public void setData(Object data) {
+			this.data = data;
+		}
+
 		@Override
 		public String toString() {
 			return "Relation [obj=" + obj + ", relation=" + relation + ", lastLink=" + lastLink + "]";

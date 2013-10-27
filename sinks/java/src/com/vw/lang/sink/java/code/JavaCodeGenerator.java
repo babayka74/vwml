@@ -453,6 +453,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	private Map<Object, Object> idTranslationMap = new HashMap<Object, Object>();
 	
 	private VWMLLinkWrap lastLink = null;
+	// we need to store the last declared complex entity in order to detect complex context
+	// if complex context is detected then this entity is removed from declaration storage and
+	// becomes context
+	private VWMLObjWrap lastDeclaredComplexEntity = null; 
 	
 	private Logger logger = Logger.getLogger(JavaCodeGenerator.class);
 	
@@ -678,7 +682,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareComplexEntity(Object id, Object readableId, String context) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, readableId, context));		
+		lastDeclaredComplexEntity = new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, readableId, context);
+		declaredObjects.add(lastDeclaredComplexEntity);		
 	}
 
 	/**
@@ -708,6 +713,23 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public void declareContext(Object contextId) {
 		declaredContexts.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CONTEXT, contextId, null));
+	}
+	
+	/**
+	 * Removes last declared complex entity; complex context detected
+	 * @param id (REL)
+	 */
+	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id) {
+		EntityWalker.Relation rel = (EntityWalker.Relation)id;
+		removeFrom(linkage, rel);
+		removeFrom(interpret, rel);
+		for(VWMLObjWrap w : declaredObjects) {
+			if (w.getObjId().equals(rel.getObj())) {
+				declaredObjects.remove(w);
+				break;
+			}
+		}
+		return true;
 	}
 	
 	/**
@@ -817,4 +839,17 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 	}
 	
+	private void removeFrom(List<VWMLLinkWrap> from, EntityWalker.Relation rel) {
+		boolean next = true;
+		while(next) {
+			next = false;
+			for(VWMLLinkWrap lw : from) {
+				if (lw.getId().equals(rel.getObj()) || lw.getLinkedId().equals(rel.getObj())) {
+					from.remove(lw);
+					next = true;
+					break;
+				}
+			}
+		}
+	}
 }

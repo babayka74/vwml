@@ -151,6 +151,12 @@ public interface ICodeGenerator {
 	public void declareCreature(Object id, Object props, String context) throws Exception;
 	
 	/**
+	 * Removes last declared complex entity; complex context detected
+	 * @param id (REL)
+	 */
+	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id);
+	
+	/**
 	 * Changes object's id from 'id' to 'idTo'
 	 * @param id
 	 * @param idTo

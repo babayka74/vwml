@@ -9,6 +9,12 @@ options {
 			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
 			data = "c:\var\vwml/exampleA2/diagram"
 		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
 	}
 }
 
@@ -16,6 +22,11 @@ include "../general/logicWorld.vwml"
 
 module exampleA2 {
 	Robby ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+		);
+
 		onShelf ias nil;
 		cube ias nil;
 		ball ias nil;
@@ -29,6 +40,9 @@ module exampleA2 {
 				(Logic.Expr myExpr~)^
 				Logic:
 				(myRes Logic.Res~)^
+				((Result myRes~) ew.say~) Do
+				((waiting 7 seconds before exit) ew.say~) Do  
+		    		7000 Relax
 			      );
 
 		lifeterm = RobbyLife~ Exe

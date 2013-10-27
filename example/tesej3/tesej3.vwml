@@ -25,6 +25,7 @@ options {
 }
 
 module tesej3 {
+	GameTesej ias (
 	ew ias (
 		tesejMovedToPosition ias move.toPosition.go;
 		say ias communication.out.write;
@@ -48,7 +49,7 @@ module tesej3 {
 			won ias (
 					(killedAllMinotaurs false) ias (
 							(tesejPos tesejPrevPos~)^
-							tesejLife~ Exe;
+							tesejLife~ Exe
 						);
 					(killedAllMinotaurs true) ias (
 							((tesej killed all killedMinotaurs~ minotaurs and wants to rest) ew.say~) Do
@@ -100,4 +101,5 @@ module tesej3 {
                     ((waiting 7 seconds before exit) ew.say~) Do  
 		    7000 Relax
                    ) Exe
+);
 }

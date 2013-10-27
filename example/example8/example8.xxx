@@ -1,0 +1,46 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.example8"
+  		path = "c:\var\vwml/example8/src"
+  		author = "Groozman M.Z."
+		project_name = "example8Proj"
+  		description = "Example8"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/example8/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+	}
+}
+
+module example8 {
+	Robby ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+		);
+
+		c ias (
+				k ias 7;
+			);
+		(a false) ias (
+				c ias 11;
+			);
+		(a true) ias (
+				b ias Robby.(a false).c;
+			     );
+		lifeterm = (
+				((a true).b~ 5)^
+				(c 9)^
+                    		(((a true).b~~) ew.say~) Do
+                    		((c~) ew.say~) Do  
+				7000 Relax 
+			   ) Exe
+
+        );
+}

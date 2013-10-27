@@ -143,6 +143,18 @@ public class VWMLObjectsRepository {
 		VWMLContext effectiveContext = VWMLContextsRepository.instance().get(contextId);
 		if (effectiveContext == null) {
 			effectiveContext = VWMLContextsRepository.instance().get(context.getContext() + "." + contextId);
+			if (effectiveContext == null) {
+				if (context.getContextPath() != null) {
+					context.setContextPath(VWMLJavaExportUtils.parseContext(context.getContext()));
+				}
+				for(String pE : context.getContextPath()) {
+					String partialPath = pE + "." + contextId;
+					effectiveContext = VWMLContextsRepository.instance().get(partialPath);
+					if (effectiveContext != null) {
+						break;
+					}
+				}
+			}
 		}
 		if (effectiveContext == null) {
 			throw new Exception("couldn't find context identified by '" + contextId + "'");
@@ -150,7 +162,7 @@ public class VWMLObjectsRepository {
 		ids = ids.substring(le + 1);
 		return repo.get(buildAssociationKey(effectiveContext, ids));
 	}
-
+	
 	protected VWMLContext getEffectiveContextFromEntityId(Object id, String parentContext) {
 		String ids = (String)id;
 		int le = ids.lastIndexOf(".");

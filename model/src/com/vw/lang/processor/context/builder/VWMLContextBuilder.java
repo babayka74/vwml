@@ -38,6 +38,14 @@ public class VWMLContextBuilder {
 	}
 	
 	/**
+	 * Peeks IAS's entity id
+	 * @return
+	 */
+	public Object peek() {
+		return stack.peek();
+	}
+	
+	/**
 	 * Pops IAS's entity id from stack
 	 */
 	public void pop() {
@@ -75,11 +83,16 @@ public class VWMLContextBuilder {
 	 * Sets effective context
 	 * @param context
 	 */
-	public void setEffectiveContext(String context) {
+	public void addEffectiveContext(String context) {
 		if (isEffectiveContext(context)) {
 			context = context.substring(0, context.length() - 1);
 		}
-		effectiveContext = context;
+		if (effectiveContext != null) {
+			effectiveContext += "." + context;
+		}
+		else {
+			effectiveContext = context;
+		}
 	}
 	
 	public String getEffectiveContext() {
