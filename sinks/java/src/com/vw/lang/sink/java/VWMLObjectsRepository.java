@@ -135,6 +135,35 @@ public class VWMLObjectsRepository {
 			context.associateEntity(entity);
 		}
 	}
+
+	protected VWMLContext findInheritedContext(String contextId, VWMLContext parent) {
+		VWMLContext context = null;
+		if (parent.getContextPath() != null) {
+			parent.setContextPath(VWMLJavaExportUtils.parseContext(parent.getContext()));
+		}
+		boolean immidiateStop = false;
+		for(String pE : parent.getContextPath()) {
+			String partialPath = null;
+			if (contextId.startsWith(pE)) {
+				partialPath = contextId;
+				immidiateStop = true;
+			}
+			else {
+				partialPath = pE + "." + contextId;
+			}
+			context = VWMLContextsRepository.instance().get(partialPath);
+			if (context != null) {
+				break;
+			}
+			if (immidiateStop) {
+				break;
+			}
+		}
+		if (context == null) {
+			context = VWMLContextsRepository.instance().get(parent.getContext() + "." + contextId);
+		}
+		return context;
+	}
 	
 	protected VWMLObject getByFullSpecifiedPath(Object id, VWMLContext context) throws Exception { 
 		String ids = (String)id;
@@ -142,36 +171,29 @@ public class VWMLObjectsRepository {
 		String contextId = ids.substring(0, le);
 		VWMLContext effectiveContext = VWMLContextsRepository.instance().get(contextId);
 		if (effectiveContext == null) {
-			effectiveContext = VWMLContextsRepository.instance().get(context.getContext() + "." + contextId);
-			if (effectiveContext == null) {
-				if (context.getContextPath() != null) {
-					context.setContextPath(VWMLJavaExportUtils.parseContext(context.getContext()));
-				}
-				for(String pE : context.getContextPath()) {
-					String partialPath = pE + "." + contextId;
-					effectiveContext = VWMLContextsRepository.instance().get(partialPath);
-					if (effectiveContext != null) {
-						break;
-					}
-				}
-			}
+			effectiveContext = findInheritedContext(contextId, context);
 		}
 		if (effectiveContext == null) {
 			throw new Exception("couldn't find context identified by '" + contextId + "'");
 		}
 		ids = ids.substring(le + 1);
-		return repo.get(buildAssociationKey(effectiveContext, ids));
+		VWMLObject obj = repo.get(buildAssociationKey(contextId, ids));
+		if (obj == null) {
+			obj = repo.get(buildAssociationKey(effectiveContext.getContext(), ids));
+		}
+		return obj;
 	}
 	
 	protected VWMLContext getEffectiveContextFromEntityId(Object id, String parentContext) {
 		String ids = (String)id;
 		int le = ids.lastIndexOf(".");
 		String contextId = ids.substring(0, le);
-		VWMLContext c = VWMLContextsRepository.instance().get(contextId);
-		if (c == null) {
-			c = VWMLContextsRepository.instance().get(parentContext + "." + contextId);
+		VWMLContext context = VWMLContextsRepository.instance().get(contextId);
+		if (context == null) {
+			VWMLContext parent = VWMLContextsRepository.instance().get(parentContext);
+			context = findInheritedContext(contextId, parent);
 		}
-		return c;
+		return context;
 	}
 
 	protected VWMLObject getByContext(Object id, VWMLContext context, boolean concreteContext) throws Exception {
@@ -189,22 +211,22 @@ public class VWMLObjectsRepository {
 	protected VWMLObject getByEffectiveContext(Object id, VWMLContext context, boolean concreteContext) {
 		VWMLObject o = null;
 		if (concreteContext) {
-			o = repo.get(buildAssociationKey(context, (String)id));
+			o = repo.get(buildAssociationKey(context.getContext(), (String)id));
 		}
 		else {
 			while(context != null && o == null) { 
-				o = repo.get(buildAssociationKey(context, (String)id));
+				o = repo.get(buildAssociationKey(context.getContext(), (String)id));
 				context = (VWMLContext)context.getLink().getParent();
 			}
 		}
 		return o;
 	}
 	
-	protected String buildAssociationKey(VWMLContext ctx, String id) {
-		return ctx.getContext() + "." + id;
+	protected String buildAssociationKey(String ctx, String id) {
+		return ctx + "." + id;
 	}
 	
 	protected String buildAssociatingKeyOnContext(VWMLEntity obj) {
-		return buildAssociationKey(obj.getContext(), (String)obj.getId());
+		return buildAssociationKey(obj.getContext().getContext(), (String)obj.getId());
 	}
 }

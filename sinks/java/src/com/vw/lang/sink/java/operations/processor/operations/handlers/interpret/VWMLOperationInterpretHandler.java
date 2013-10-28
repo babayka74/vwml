@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.interpret
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
@@ -31,7 +32,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) {
-			interpretingEntity = interpretSingleEntity(entities.get(0));
+			interpretingEntity = interpretSingleEntity(entities.get(0), originalContext);
 		}
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
@@ -52,23 +53,28 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		stack.push(interpretingEntity);
 	}
 	
-	protected VWMLEntity interpretSingleEntity(VWMLEntity entity) throws Exception {
+	protected VWMLEntity interpretSingleEntity(VWMLEntity entity, VWMLContext originalContext) throws Exception {
 		if (entity == null) {
 			throw new Exception("trying to execute 'INTERPRET' operation on empty stack");
 		}
 		VWMLEntity interpretingEntity = null;
 		if (entity.isTerm()) {
-			interpretingEntity = ((VWMLTerm)entity).getAssociatedEntity();
-			if (interpretingEntity == null) {
+			entity = ((VWMLTerm)entity).getAssociatedEntity();
+			if (entity == null) {
 				throw new Exception("inconsistency found for term '" + entity + "'; please check initial state initialization");
 			}
-			interpretingEntity = interpretingEntity.getInterpreting();
 		}
-		else {
-			interpretingEntity = entity.getInterpreting();
-		}
+		interpretingEntity = entity.getInterpreting();
 		if (interpretingEntity == null) {
-			throw new Exception("interpreting entity wasn't found for entity '" + entity + "'");
+			String fullEntityId = entity.getContext().getContext() + "." + entity.buildReadableId();
+			entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
+			if (entity == null) {
+				throw new Exception("couldn't find entity '" + fullEntityId + "'");
+			}
+			interpretingEntity = entity.getInterpreting();
+			if (interpretingEntity == null) {
+				throw new Exception("interpreting entity wasn't found for entity '" + entity.getId() + "'");
+			}
 		}
 		return interpretingEntity;
 	}

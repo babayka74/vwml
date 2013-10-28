@@ -740,6 +740,30 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public void changeObjectIdTo(Object id, Object idTo) {
 		idTranslationMap.put(id, idTo);
 	}
+
+	/**
+	 * Changes object's id from 'id' to 'idTo'
+	 * @param id
+	 * @param idTo
+	 */
+	public void changeObjectIdToImmidiatly(Object id, Object idTo) {
+		changeObjectIdToForDeclaredObjectsOnly(id, idTo);
+		changeObjectIdToIn(id, idTo, linkage);
+		changeObjectIdToIn(id, idTo, interpret);
+	}
+	
+	/**
+	 * Changes object's id for declared objects only
+	 * @param id
+	 * @param idTo
+	 */
+	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo) {
+		for(VWMLObjWrap o : declaredObjects) {
+			if (o.getObjId().equals(id)) {
+				o.setObjId(idTo);
+			}
+		}		
+	}
 	
 	/**
 	 * Links objects using their ids
@@ -809,11 +833,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	protected void normalizeCode() {
 		for(Object id : idTranslationMap.keySet()) {
 			Object idTo = idTranslationMap.get(id);
-			for(VWMLObjWrap o : declaredObjects) {
-				if (o.getObjId().equals(id)) {
-					o.setObjId(idTo);
-				}
-			}
+			changeObjectIdToForDeclaredObjectsOnly(id, idTo);
 			changeObjectIdToIn(id, idTo, linkage);
 			changeObjectIdToIn(id, idTo, interpret);
 		}

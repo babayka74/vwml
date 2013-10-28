@@ -62,6 +62,7 @@ import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 import com.vw.lang.sink.utils.EntityWalker;
+import com.vw.lang.sink.utils.EntityWalker.ComplexContextDescriptor;
 import com.vw.lang.sink.utils.GeneralUtils;
 
 // specific code generator
@@ -108,13 +109,13 @@ package com.vw.lang.grammar;
 	private ComplexEntityNameBuilder complexEntityNameBuilderDecl = ComplexEntityNameBuilder.instance();
 	private ComplexEntityNameBuilder complexEntityNameBuilderDef = null;
 	private EntityWalker entityWalker = EntityWalker.instance();
+	private EntityWalker contextWalker = EntityWalker.instance();
 	private EntityWalker.Relation lastProcessedEntity = null;
 	private String activeFringe = null;
 	private String lastDeclaredCreatureId = null;
 	private String lastDeclaredCreatureProps = null;
 	private String lastProcessedComplexEntityId = null;
 	private boolean lastProcessedEntityAsTerm = false;
-	private boolean addressingByComplexContextEncountered = false;
 	private String modName = null;
  	private boolean inDebug = false;
  	private boolean moduleInProgress = false;
@@ -160,14 +161,6 @@ package com.vw.lang.grammar;
 	
 	protected String getLastDeclaredCreatureProps() {
 		return lastDeclaredCreatureProps;
-	}
-
-	protected boolean isAdressingByComplexContextEncountered() {
-		return addressingByComplexContextEncountered;
-	}
-	
-	protected void setAddressingByComplexContextEncountered(boolean addressingByComplexContextEncountered) {
-		this.addressingByComplexContextEncountered = addressingByComplexContextEncountered;
 	}
 
 	protected String simpleEntityDeclaration(String id) throws RecognitionException {
@@ -225,23 +218,105 @@ package com.vw.lang.grammar;
 		return id;            					
 	}
 
-	protected void resetEffectiveContext() {
-		vwmlContextBuilder.resetEffectiveContext();
+	protected void declareAbsoluteContextByIASRelation(String context) throws RecognitionException {
+		// point to check deffered actions on effective context
+		unwindEffectiveContext();
+    		// adds entity id to context stack
+    		vwmlContextBuilder.push(context);
+    		entityWalker.markFutureEntityAsIAS(context);
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("Entity '" + context + "' was marked as IAS - pushed to stack");
+    		}
+    		if (codeGenerator != null) {
+    			codeGenerator.declareContext(vwmlContextBuilder.buildContext());
+    		}
+	}
+
+	protected void handleProcessedAbsoluteContextbyIASRelation(String context) {
+    		if (lastProcessedEntity != null) {
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("Entity '" + context + "' which was marked as IAS - removed from stack");
+    			}    		      	
+    		      	vwmlContextBuilder.pop();
+    		}
+    		else {
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("Entity '" + context + "' which was marked as IAS - stayed at stack");
+    			}
+    		}
+	}
+
+	protected String unwindEffectiveContext() throws RecognitionException {
+		ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
+		Object entityId = null;
+		String c = "";
+		if (contextDescriptor != null && logger.isDebugEnabled()) {
+			logger.debug("Starting unwinding process of defferred effective context");
+		}
+		while(contextDescriptor != null) {
+			if (entityId == null) {
+				entityId = contextDescriptor.getUserData();
+				if (logger.isDebugEnabled()) {
+					logger.debug("creating effective context for entity '" + entityId + "'");
+				}
+			}
+			// building context
+			VWMLContextBuilder effectiveContextBuilder = (VWMLContextBuilder)contextDescriptor.getVwmlEffectiveContextBuilder();
+			if (effectiveContextBuilder == null) {
+				rethrowVWMLExceptionAsRecognitionException(new Exception("'null' effective context builder encountered during effective context building operation"));
+			}
+			c = effectiveContextBuilder.getEffectiveContext() + "." + c;
+			contextWalker.pop();
+			contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
+		}
+		String newEntityId = null;
+		if (entityId != null) {
+			newEntityId = VWMLContextBuilder.buildFullEntityName(c, (String)entityId);
+			if (codeGenerator != null) {
+				codeGenerator.changeObjectIdToImmidiatly(entityId, newEntityId);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Entity '" + entityId + "' changed to '" + newEntityId + "'");
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Finished unwinding process of defferred effective context");
+			}
+		}
+		return newEntityId;
+	}
+
+	protected void addEffectiveContext(Object contextId) {
+  		VWMLContextBuilder effectiveContextBuilder = null;
+      		ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
+      		if (contextDescriptor != null) {
+      			contextDescriptor.setAddressingByComplexContextEncountered(true);
+      			contextDescriptor.setUserData(null);
+      		}
+    		effectiveContextBuilder = VWMLContextBuilder.instance();
+   		// becomes part of 'complex context'
+    		effectiveContextBuilder.addEffectiveContext((String)contextId);
+    		// effective context on simple entity is equal '.' operator for complex entity
+    		contextWalker.push(ComplexContextDescriptor.build(effectiveContextBuilder, false));
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("effective context detected '" + contextId + "'");
+    		}    			
 	}
 
 	protected void processComplexContext(EntityWalker.Relation rel) throws RecognitionException {
 		if (codeGenerator != null) {
-			/*codeGenerator.removeComplexEntityFromDeclarationAndLinkage(rel);
+			// removes entity from declaration and linkage storage; entity is interpreted as 'complex context'
+			codeGenerator.removeComplexEntityFromDeclarationAndLinkage(rel);
 			if (logger.isDebugEnabled()) {
 				logger.debug("entity '" + rel.getObj() + "' removed since it was recognized as complex context");
 			}
+			// throws relation to another entity... the relation is thrown until non-context entity is found
 			if (EntityWalker.REL.ASSOCIATION == rel.getRelation()) {
     				Object fIAS = vwmlContextBuilder.peek();
     				if (logger.isDebugEnabled()) {
     					logger.debug("Object '" + fIAS + "' marked again as IAS");
     				}
     				entityWalker.markFutureEntityAsIAS(fIAS);
-			}*/
+			}
    			// so entity is considered as effective context
    			if (lastProcessedComplexEntityId == null) {
 				rethrowVWMLExceptionAsRecognitionException(new Exception("invalid complex context; single context indicator '.' detected"));
@@ -249,40 +324,46 @@ package com.vw.lang.grammar;
    			if (logger.isDebugEnabled()) {
    				logger.debug("complex context '" + lastProcessedComplexEntityId + "' detected");
    			}
-    			vwmlContextBuilder.addEffectiveContext(lastProcessedComplexEntityId);
-		}	
+   			// adds effective context
+   			addEffectiveContext(lastProcessedComplexEntityId);
+		}
 	}
 
 	protected EntityWalker.Relation simpleEntityAssembling(String id) throws RecognitionException {
 		EntityWalker.Relation rel = null;
-   		// since entity's id may include '.' we should check correctness of name
+		// since entity's id may include '.' we should check correctness of name
     		// if name ends with '.' we can suppouse that this name can be considered as complex entity's effective context
-    		if (!vwmlContextBuilder.isEffectiveContext(id)) {
+    		ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
+    		if (!VWMLContextBuilder.isEffectiveContext(id)) {
     			EntityWalker.Relation relParent = (EntityWalker.Relation)entityWalker.peek();
+    			boolean partOfComplexEntity = false;
     			if (relParent != null) {
     				complexEntityNameBuilderDef = (ComplexEntityNameBuilder)relParent.getData();
 	    			if (complexEntityNameBuilderDef.isInProgress()) {
 	    				complexEntityNameBuilderDef.addObjectId(id);
+	    				partOfComplexEntity = true;
 	    			}
     			}
-    			if (vwmlContextBuilder.isEffectiveContextUsed()) {
-    				id = vwmlContextBuilder.createAbsoluteEffectiveContextPath(id);
-    				if (logger.isDebugEnabled()) {
-    					logger.debug("simple entity belongs to context '" + id + "'");
-    				}
-    				resetEffectiveContext();
-    			}
+    			// standalone simple entity - chance to unwind defferred effective context
+    			if (contextDescriptor != null && (relParent == null || !relParent.isParticipatesInComplexContextBuildingProcess())) {
+    				if (contextDescriptor.getUserData() == null) {
+    					contextDescriptor.setUserData(id);
+					String newEntityId = unwindEffectiveContext();
+					if (newEntityId != null) {
+						id = newEntityId;
+					}
+				}
+    			}    			
    			rel = buildRelation(id);
     			if (logger.isDebugEnabled()) {
     				logger.debug("processed simple entity '" + rel + "'");
     			}
     		}
     		else {
-    			// so entity is considered as effective context
-    			vwmlContextBuilder.addEffectiveContext(id);
-     			if (logger.isDebugEnabled()) {
-    				logger.debug("effective context detected '" + vwmlContextBuilder.getEffectiveContext() + "'");
-    			}   			
+    			// effective context on simple entity is equal '.' operator for complex entity
+   			// adds effective context
+   			addEffectiveContext(id);
+ 			
     		}
 		return rel;	
 	}
@@ -292,19 +373,20 @@ package com.vw.lang.grammar;
     		complexEntityNameBuilderDef = ComplexEntityNameBuilder.instance();
     		complexEntityNameBuilderDef.startProgress();
     		String ceId = complexEntityNameBuilderDecl.generateRandomName();
+    		boolean participatesInComplexContextBuildingProcess = false;
     		try {
     			if (codeGenerator != null) {
-    				String context = null;
-    				if (!vwmlContextBuilder.isEffectiveContextUsed()) { 
-    					context = vwmlContextBuilder.buildContext();
-    				}
-    				else {
-    					context = vwmlContextBuilder.getEffectiveContext();
-	    				if (logger.isDebugEnabled()) {
-	    					logger.debug("complex entity '" + ceId + "' belongs to context '" + context + "'");
-	    				}
-	    				ceId = vwmlContextBuilder.createAbsoluteEffectiveContextPath(ceId);
-	    				resetEffectiveContext();
+    				String context = vwmlContextBuilder.buildContext();
+    				ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
+    				if (contextDescriptor != null) {
+    					if (contextDescriptor.getUserData() == null) {
+    						contextDescriptor.setUserData(ceId);
+    						participatesInComplexContextBuildingProcess = true;
+    					}
+					else {
+						// next complex entity - chance to unwind deffreed effective context
+						unwindEffectiveContext();
+					}
     				}
     				codeGenerator.declareComplexEntity(ceId, null, context);
     			}
@@ -315,6 +397,7 @@ package com.vw.lang.grammar;
         	// the complex enity (name/id is generated) is pushed to stack (here complex entity is part of expression)
     		EntityWalker.Relation rel = buildRelation(ceId);
     		rel.setData(complexEntityNameBuilderDef);
+    		rel.setParticipatesInComplexContextBuildingProcess(participatesInComplexContextBuildingProcess);
     		entityWalker.push(rel);
    		if (logger.isDebugEnabled()) {
    			logger.debug("complex entity '" + rel.getObj() + "' is declared");
@@ -658,31 +741,11 @@ expression
 entity_def
     : entity_decl IAS {
     			// adds entity id to context stack
-    			vwmlContextBuilder.push($entity_decl.id);
-    			entityWalker.markFutureEntityAsIAS($entity_decl.id);
-    			if (logger.isDebugEnabled()) {
-    				logger.debug("Entity '" + $entity_decl.id + "' was marked as IAS - pushed to stack");
-    			}
-    			if (codeGenerator != null) {
-    				codeGenerator.declareContext(vwmlContextBuilder.buildContext());
-    			}
-    			// we should link this entity with parent, if exists
-    			// buildLinkingAssociation($entity_decl.id);
+    			declareAbsoluteContextByIASRelation($entity_decl.id);
     		      } term 
     		      {
     		      	// removes top entity from stack
-    		      	Object e = vwmlContextBuilder.peek();
-    		      	if (lastProcessedEntity != null) {
-    				if (logger.isDebugEnabled()) {
-    					logger.debug("Entity '" + $entity_decl.id + "' which was marked as IAS - removed from stack");
-    				}    		      	
-    		      		vwmlContextBuilder.pop();
-    		      	}
-    		      	else {
-    				if (logger.isDebugEnabled()) {
-    					logger.debug("Entity '" + $entity_decl.id + "' which was marked as IAS - stayed at stack");
-    				}
-    		      	}
+    		      	handleProcessedAbsoluteContextbyIASRelation($entity_decl.id);
     		      }
     		      (SEMICOLON)?
     ;
@@ -716,7 +779,7 @@ term_def
     		lastProcessedEntity = $entity.rel;
     		lastProcessedEntityAsTerm = false;
     		if (lastProcessedEntity != null && logger.isDebugEnabled()) {
-    			logger.debug(">> '" + lastProcessedEntity.getObj() + " '<<");
+    			logger.debug(">> '" + lastProcessedEntity.getObj() + "' <<");
     		}
     	     } (oplist)* 
   	     {
@@ -726,9 +789,6 @@ term_def
 				if (logger.isDebugEnabled()) {
 					logger.debug("entity '" + lastProcessedEntity + "' marked as term");
 				}
-    				// resets effective context if it was constructed using complex context
-    				setAddressingByComplexContextEncountered(false);
-    				resetEffectiveContext();
 			}
 			catch(Exception e) {
 				rethrowVWMLExceptionAsRecognitionException(e);
@@ -765,9 +825,13 @@ entity returns [EntityWalker.Relation rel]
     : simple_entity         { 
     				rel = $simple_entity.rel;
     			    }
+
     | complex_entity        { 
     				rel = $complex_entity.rel;
     			    }
+    | '.'                   {
+                            	processComplexContext(lastProcessedEntity);
+                            }
     ;
 
 
@@ -784,7 +848,14 @@ complex_entity returns [EntityWalker.Relation rel]
     @after {
         rel = complexEntityStopAssembling();
     }
-    : '(' (term)* ')'
+    : '(' (term (SEMICOLON {
+    				logger.info("!!!!!!!!!!!");
+    				Object o = vwmlContextBuilder.peek();
+    				vwmlContextBuilder.pop();
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("Context '" + o + "' removed from context builder stack");
+    				}    				
+    			    })?)* ')'
     ;
     
     

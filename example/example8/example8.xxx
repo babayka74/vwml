@@ -15,6 +15,7 @@ options {
 				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
 			)
 		}
+
 	}
 }
 
@@ -25,20 +26,19 @@ module example8 {
 			ask ias communication.in.read;
 		);
 
-		c ias (
-				k ias 7;
-			);
+		c ias 9;
+
 		(a false) ias (
-				c ias 11;
+				c ias 7;
 			);
 		(a true) ias (
 				b ias Robby.(a false).c;
+				x ias Robby.(a false).c;
 			     );
+
 		lifeterm = (
-				((a true).b~ 5)^
-				(c 9)^
-                    		(((a true).b~~) ew.say~) Do
-                    		((c~) ew.say~) Do  
+				((a true).b~ 10)^
+                    		(((a true).x~~) ew.say~) Do  
 				7000 Relax 
 			   ) Exe
 

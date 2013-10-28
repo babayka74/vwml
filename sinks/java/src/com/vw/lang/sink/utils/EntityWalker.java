@@ -32,6 +32,7 @@ public class EntityWalker {
 		private REL relation;
 		private Object lastLink;
 		private Object data;
+		private boolean participatesInComplexContextBuildingProcess = false;
 
 		public static Relation build(Object obj, REL relation, Object lastLink) {
 			return new Relation(obj, relation, lastLink);
@@ -64,9 +65,57 @@ public class EntityWalker {
 			this.data = data;
 		}
 
+		public boolean isParticipatesInComplexContextBuildingProcess() {
+			return participatesInComplexContextBuildingProcess;
+		}
+
+		public void setParticipatesInComplexContextBuildingProcess(boolean participatesInComplexContextBuildingProcess) {
+			this.participatesInComplexContextBuildingProcess = participatesInComplexContextBuildingProcess;
+		}
+
 		@Override
 		public String toString() {
 			return "Relation [obj=" + obj + ", relation=" + relation + ", lastLink=" + lastLink + "]";
+		}
+	}
+	
+	public static class ComplexContextDescriptor {
+		private Object vwmlEffectiveContextBuilder = null;
+		private Object userData = null;
+		private boolean addressingByComplexContextEncountered = false;
+	
+		public ComplexContextDescriptor(Object vwmlEffectiveContextBuilder, boolean addressingByComplexContextEncountered) {
+			super();
+			this.vwmlEffectiveContextBuilder = vwmlEffectiveContextBuilder;
+			this.addressingByComplexContextEncountered = addressingByComplexContextEncountered;
+		}
+
+		public static ComplexContextDescriptor build(Object vwmlEffectiveContextBuilder, boolean addressingByComplexContextEncountered) {
+			return new ComplexContextDescriptor(vwmlEffectiveContextBuilder, addressingByComplexContextEncountered);
+		}
+		
+		public Object getVwmlEffectiveContextBuilder() {
+			return vwmlEffectiveContextBuilder;
+		}
+
+		public void setVwmlEffectiveContextBuilder(Object vwmlEffectiveContextBuilder) {
+			this.vwmlEffectiveContextBuilder = vwmlEffectiveContextBuilder;
+		}
+
+		public boolean isAdressingByComplexContextEncountered() {
+			return addressingByComplexContextEncountered;
+		}
+		
+		public void setAddressingByComplexContextEncountered(boolean addressingByComplexContextEncountered) {
+			this.addressingByComplexContextEncountered = addressingByComplexContextEncountered;
+		}
+
+		public Object getUserData() {
+			return userData;
+		}
+
+		public void setUserData(Object userData) {
+			this.userData = userData;
 		}
 	}
 	

@@ -161,7 +161,22 @@ public interface ICodeGenerator {
 	 * @param id
 	 * @param idTo
 	 */
-	public void changeObjectIdTo(Object id, Object idTo);	
+	public void changeObjectIdTo(Object id, Object idTo);
+	
+	/**
+	 * Changes object's id from 'id' to 'idTo'
+	 * @param id
+	 * @param idTo
+	 */
+	public void changeObjectIdToImmidiatly(Object id, Object idTo);
+
+	
+	/**
+	 * Changes object's id for declared objects only
+	 * @param id
+	 * @param idTo
+	 */
+	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo);	
 	/**
 	 * Declares term
 	 * @param id

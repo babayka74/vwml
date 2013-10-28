@@ -28,6 +28,41 @@ public class VWMLContextBuilder {
 	public static VWMLContextBuilder instance() {
 		return new VWMLContextBuilder();
 	}
+
+	/**
+	 * Returns 'true' in case if effective context detected; effective context is marked by tailed '.'
+	 * @param context
+	 * @return
+	 */
+	public static boolean isEffectiveContext(String context) {
+		boolean r = false;
+		if (context != null) {
+			r = context.endsWith(".");
+		}
+		return r;
+	}
+
+	/**
+	 * Normalizes context by removing trailed '.' if exists
+	 * @param context
+	 * @return
+	 */
+	public static String normalizeContext(String context) {
+		if (isEffectiveContext(context)) {
+			context = context.substring(0, context.length() - 1);
+		}
+		return context;
+	}
+	
+	/**
+	 * Builds full entity name 
+	 * @param context
+	 * @param entityId
+	 * @return
+	 */
+	public static String buildFullEntityName(String context, String entityId) {
+		return normalizeContext(context) + "." + entityId;
+	}
 	
 	/**
 	 * Pushes IAS's entity id
@@ -64,19 +99,6 @@ public class VWMLContextBuilder {
 			context = context.substring(1); // removes lead '.'
 		}
 		return context;
-	}
-
-	/**
-	 * Returns 'true' in case if effective context detected; effective context is marked by tailed '.'
-	 * @param context
-	 * @return
-	 */
-	public boolean isEffectiveContext(String context) {
-		boolean r = false;
-		if (context != null) {
-			r = context.endsWith(".");
-		}
-		return r;
 	}
 	
 	/**
