@@ -33,8 +33,10 @@ public class VWMLObjectsRepository {
 
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
+	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
 	
 	private static final VWMLObjectsRepository s_repo = new VWMLObjectsRepository();
+
 	
 	public static VWMLObjectsRepository instance() {
 		return s_repo;
@@ -136,6 +138,19 @@ public class VWMLObjectsRepository {
 		}
 	}
 
+	/**
+	 * Adds translated objects; used fro translation between entity readable id and real entity
+	 * @param translationKey
+	 * @param obj
+	 */
+	public void addTranslatedObject(Object translationKey, VWMLObject obj) {
+		translatedObjects.put(translationKey, obj);
+	}
+	
+	public VWMLObject getTranslatedObject(Object translationKey) {
+		return translatedObjects.get(translationKey);
+	}
+	
 	protected VWMLContext findInheritedContext(String contextId, VWMLContext parent) {
 		VWMLContext context = null;
 		if (parent.getContextPath() != null) {

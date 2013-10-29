@@ -66,6 +66,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		}
 		interpretingEntity = entity.getInterpreting();
 		if (interpretingEntity == null) {
+			VWMLEntity initialEntity = entity;
 			String fullEntityId = entity.getContext().getContext() + "." + entity.buildReadableId();
 			entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
 			if (entity == null) {
@@ -75,6 +76,8 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			if (interpretingEntity == null) {
 				throw new Exception("interpreting entity wasn't found for entity '" + entity.getId() + "'");
 			}
+			// cached interpreting entity
+			initialEntity.setInterpreting(interpretingEntity);
 		}
 		return interpretingEntity;
 	}
