@@ -120,6 +120,8 @@ package com.vw.lang.grammar;
  	private boolean inDebug = false;
  	private boolean moduleInProgress = false;
  	
+ 	private String lastProcessedIAS = null;
+ 	
  	private Logger logger = Logger.getLogger(this.getClass());
 	
 	public StartModuleProps getModuleProps() {
@@ -235,13 +237,16 @@ package com.vw.lang.grammar;
 	protected void handleProcessedAbsoluteContextbyIASRelation(String context) {
     		if (lastProcessedEntity != null) {
     			if (logger.isDebugEnabled()) {
-    				logger.debug("Entity '" + context + "' which was marked as IAS - removed from stack");
-    			}    		      	
+    				logger.debug("Entity '" + context + "' which was marked as IAS - removed from context builder stack");
+    			}
     		      	vwmlContextBuilder.pop();
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("!!!!! '" + vwmlContextBuilder.peek() + "'");
+    			}    		      	    		      	
     		}
     		else {
     			if (logger.isDebugEnabled()) {
-    				logger.debug("Entity '" + context + "' which was marked as IAS - stayed at stack");
+    				logger.debug("Entity '" + context + "' which was marked as IAS - stayed at context builder stack");
     			}
     		}
 	}
@@ -430,7 +435,7 @@ package com.vw.lang.grammar;
     				codeGenerator.interpretObjects(objLinkingId, objLinkedId, context);
     			}
     			if (logger.isDebugEnabled()) {
-   				logger.debug("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'");
+   				logger.debug("Interpreting objects '" + objLinkingId + "' -> '" + objLinkedId + "'; on context '" + context + "'");
    			}
     		}
     		catch(Exception e) {
@@ -453,7 +458,7 @@ package com.vw.lang.grammar;
     					codeGenerator.linkObjects(linkingObjId, linkedObj, context);
     				}
     				if (logger.isDebugEnabled()) {
-    					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'");
+    					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'; on context '" + context + "'");
     				}
     			}
     			catch(Exception e) {
@@ -742,12 +747,12 @@ entity_def
     : entity_decl IAS {
     			// adds entity id to context stack
     			declareAbsoluteContextByIASRelation($entity_decl.id);
-    		      } term 
+    		      } (term)* SEMICOLON
     		      {
     		      	// removes top entity from stack
     		      	handleProcessedAbsoluteContextbyIASRelation($entity_decl.id);
     		      }
-    		      (SEMICOLON)?
+    		      
     ;
 
 check_term_def
@@ -848,14 +853,7 @@ complex_entity returns [EntityWalker.Relation rel]
     @after {
         rel = complexEntityStopAssembling();
     }
-    : '(' (term (SEMICOLON {
-    				logger.info("!!!!!!!!!!!");
-    				Object o = vwmlContextBuilder.peek();
-    				vwmlContextBuilder.pop();
-    				if (logger.isDebugEnabled()) {
-    					logger.debug("Context '" + o + "' removed from context builder stack");
-    				}    				
-    			    })?)* ')'
+    : '(' (term)* ')'
     ;
     
     
@@ -968,3 +966,16 @@ LETTER
 	| '!'
 	| '?'
 	;
+
+/*
+
+(SEMICOLON {
+    				logger.info("!!!!!!!!!!!");
+    				Object o = vwmlContextBuilder.peek();
+    				vwmlContextBuilder.pop();
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("Context '" + o + "' removed from context builder stack; next '" + vwmlContextBuilder.peek() + "'");
+    				}   				
+    			    })?
+
+*/

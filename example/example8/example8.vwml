@@ -29,7 +29,8 @@ module example8 {
 		c ias 9;
 
 		(a false) ias (
-				(c true) ias 7;
+				(c false) ias 12;
+				(c true) ias (c false);
 			);
 		(a true) ias (
 				b ias Robby.(a false).(c true);
@@ -38,7 +39,7 @@ module example8 {
 
 		lifeterm = (
 				((a true).b (a false).(c true))^
-				(((a true).b~~) ew.say~) Do
+				(((a true).x~~~) ew.say~) Do
 				7000 Relax
 			   ) Exe
 

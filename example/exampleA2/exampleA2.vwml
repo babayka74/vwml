@@ -34,7 +34,7 @@ module exampleA2 {
 		
 		a ias (onShelf cube)Ident;
 		b ias (onShelf ball)Ident;
-		myExpr ias (not (Robby.a~ Exe and Robby.b~ Exe)~)~ 
+		myExpr ias (not (Robby.a~ Exe and Robby.b~ Exe)~)~; 
 		
 		RobbyLife ias (
 				(Logic.Expr myExpr~)^

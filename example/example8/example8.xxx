@@ -44,3 +44,7 @@ module example8 {
 
         );
 }
+
+
+				(c false) ias 12;
+				(c true) ias (a false).(c false);
