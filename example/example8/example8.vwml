@@ -29,8 +29,10 @@ module example8 {
 		c ias 9;
 
 		(a false) ias (
-				(c false) ias 12;
-				(c true) ias (c false);
+				(o true) ias (
+					(c false) ias 12;
+				);
+				(c true) ias (o true).(c false);
 			);
 		(a true) ias (
 				b ias Robby.(a false).(c true);
