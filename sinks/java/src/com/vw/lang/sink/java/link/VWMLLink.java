@@ -89,6 +89,14 @@ public class VWMLLink {
 	}
 	
 	/**
+	 * Unlinks from all linked entities
+	 */
+	public void unlinkFromAll() {
+		itself.getLink().getLinkedObjects().clear();
+		itself.getLink().setParent(null);
+	}
+	
+	/**
 	 * Shows all dependency of given object
 	 * @param startObj
 	 */

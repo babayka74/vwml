@@ -120,8 +120,26 @@ public class VWMLObjectsRepository {
 	 * Returns pre-created default 'empty' entity
 	 * @return
 	 */
-	public VWMLEntity getEmptyEntity() throws Exception {
-		return (VWMLEntity)get(VWMLEntity.s_EmptyEntityId, VWMLContextsRepository.instance().getDefaultContext());
+	public VWMLEntity getEmptyEntity() {
+		try {
+			return (VWMLEntity)get(VWMLEntity.s_EmptyEntityId, VWMLContextsRepository.instance().getDefaultContext());
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns pre-created default 'nil' entity
+	 * @return
+	 */
+	public VWMLEntity getNilEntity() {
+		try {
+			return (VWMLEntity)get(VWMLEntity.s_NilEntityId, VWMLContextsRepository.instance().getDefaultContext());
+		}
+		catch(Exception e) {
+			return null;
+		}
 	}
 	
 	/**

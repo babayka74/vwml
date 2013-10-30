@@ -52,6 +52,10 @@ public class ComplexEntityNameBuilder {
 			}
 			return str.trim();
 		}
+		
+		public void clear() {
+			entities.clear();
+		}
 	}
 	
 	protected static class SimpleEntity extends Entity {
@@ -173,6 +177,7 @@ public class ComplexEntityNameBuilder {
 				str += e.getId() + " ";
 			}
 		}
+		ce.clear();
 		str = str.trim();
 		str += ") ";
 		return str;

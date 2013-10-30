@@ -30,10 +30,35 @@ public class VWMLComplexEntity extends VWMLEntity {
 			ComplexEntityNameBuilder ce = ComplexEntityNameBuilder.instance();
 			assembleReadableId(ce, this);
 			setReadableId(ce.build());
+			ce.clear();
 		}
 		return getReadableId();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		VWMLEntity e = (VWMLEntity)obj;
+		if (!e.isMarkedAsComplexEntity()) {
+			return false;
+		}
+		int linkedObjsOnCurrent = getLink().getLinkedObjectsOnThisTime();
+		int linkedObjsOnForeign = ((VWMLComplexEntity)e).getLink().getLinkedObjectsOnThisTime();
+		if (linkedObjsOnCurrent != linkedObjsOnForeign) {
+			return false;
+		}
+		for(int i = 0; i < linkedObjsOnCurrent; i++) {
+			VWMLEntity e1 = (VWMLEntity)getLink().getConcreteLinkedEntity(i);
+			VWMLEntity e2 = (VWMLEntity)((VWMLComplexEntity)e).getLink().getConcreteLinkedEntity(i);
+			if (!e1.equals(e2)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	protected void assembleReadableId(ComplexEntityNameBuilder ce, VWMLEntity entity) {
 		ce.startProgress();
 		VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
