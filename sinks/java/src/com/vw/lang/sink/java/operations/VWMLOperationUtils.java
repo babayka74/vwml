@@ -81,6 +81,7 @@ public class VWMLOperationUtils {
 			if (lookedEntity != null) {
 				if (remove) {
 					VWMLObjectsRepository.instance().remove(newComplexEntity);
+					newComplexEntity.getLink().unlinkFromAll();
 				}
 				newComplexEntity = lookedEntity;
 			}

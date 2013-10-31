@@ -24,6 +24,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.join.VWMLO
 import com.vw.lang.sink.java.operations.processor.operations.handlers.onfringe.VWMLOperationOnFringeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWMLOperationRelaxHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.substruct.VWMLOperationSubstructHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
 /**
@@ -51,6 +52,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPRELAX),            new VWMLOperationRelaxHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPJOIN),             new VWMLOperationJoinHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPINTERSECT),        new VWMLOperationIntersectHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPSUBSTRUCT),        new VWMLOperationSubstructHandler());
 		}
 	};
 	// called when unknown/unsupported operation is going to be executed

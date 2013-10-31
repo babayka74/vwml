@@ -141,6 +141,32 @@ public class VWMLObjectsRepository {
 			return null;
 		}
 	}
+
+	/**
+	 * Returns pre-created default 'true' entity
+	 * @return
+	 */
+	public VWMLEntity getTrueEntity() {
+		try {
+			return (VWMLEntity)get(VWMLEntity.s_trueEntityId, VWMLContextsRepository.instance().getDefaultContext());
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns pre-created default 'false' entity
+	 * @return
+	 */
+	public VWMLEntity getFalseEntity() {
+		try {
+			return (VWMLEntity)get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
 	
 	/**
 	 * Adds created entity by context's key

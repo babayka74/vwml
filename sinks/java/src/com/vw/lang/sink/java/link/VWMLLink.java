@@ -93,6 +93,9 @@ public class VWMLLink {
 	 */
 	public void unlinkFromAll() {
 		itself.getLink().getLinkedObjects().clear();
+		if (itself.getLink().getParent() != null) {
+			itself.getLink().getParent().getLink().unlinkFrom(itself);
+		}
 		itself.getLink().setParent(null);
 	}
 	

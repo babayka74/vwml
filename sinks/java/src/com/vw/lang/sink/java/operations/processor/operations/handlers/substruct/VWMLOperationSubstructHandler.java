@@ -1,4 +1,4 @@
-package com.vw.lang.sink.java.operations.processor.operations.handlers.intersect;
+package com.vw.lang.sink.java.operations.processor.operations.handlers.substruct;
 
 import java.util.List;
 
@@ -18,11 +18,11 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
- * Handler of 'OPINTERSECT' operation
+ * Handler of 'OPSUBSTRUCT' operation
  * @author ogibayev
  *
  */
-public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
+public class VWMLOperationSubstructHandler extends VWMLOperationHandler {
 
 	private VWMLEntity nilEntity = (VWMLEntity)VWMLObjectsRepository.instance().getNilEntity();
 	private VWMLEntity emptyEntity = (VWMLEntity)VWMLObjectsRepository.instance().getEmptyEntity();
@@ -35,10 +35,10 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 0) {
-			throw new Exception("operation 'Intersect' requires at least 2 arguments; check code");
+			throw new Exception("operation 'Substruct' requires at least 2 arguments; check code");
 		}
 		if (entities.size() == 1) {
-			result = handleIntersectOnComplexEntity(entities.get(0), context);
+			result = handleSubstructOnComplexEntity(entities.get(0), context);
 		}
 		else {
 			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
@@ -48,7 +48,7 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 					   context.getEntityInterpretationHistorySize(),
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
-			result = handleIntersectOnComplexEntity(entity, context);
+			result = handleSubstructOnComplexEntity(entity, context);
 			entity = null;
 		}
 		inspector.clear();
@@ -56,8 +56,9 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		stack.popUntilEmptyMark();
 		stack.push(result);
 	}
-	
-	protected VWMLEntity handleIntersectOnComplexEntity(VWMLEntity entity, VWMLContext context) throws Exception {
+
+	protected VWMLEntity handleSubstructOnComplexEntity(VWMLEntity entity, VWMLContext context) throws Exception {
+		VWMLEntity result = null;
 		if (!entity.isMarkedAsComplexEntity()) {
 			return nilEntity;
 		}
@@ -72,19 +73,18 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		if (it == null) {
 			return emptyEntity;
 		}
-		VWMLEntity result = null;
 		for(; it.isCorrect(); it.next()) {
 			VWMLEntity e1 = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());
 			if (result == null) {
 				it.next();
 				if (it.isCorrect()) {
 					VWMLEntity e2 = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());
-					result = intersect(e1, e2, entity);
+					result = substruct(e1, e2, entity);
 				}
 			}
 			else {
 				VWMLEntity oldResult = result;
-				result = intersect(result, e1, entity);
+				result = substruct(result, e1, entity);
 				if (oldResult != null) {
 					oldResult.getLink().unlinkFromAll();
 					oldResult = null;
@@ -93,11 +93,11 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 			if (result == nilEntity) {
 				break;
 			}
-		}
+		}	
 		return result;
 	}
 	
-	protected VWMLEntity intersect(VWMLEntity e1, VWMLEntity e2, VWMLEntity ownerEntity) throws Exception {
+	protected VWMLEntity substruct(VWMLEntity e1, VWMLEntity e2, VWMLEntity ownerEntity) throws Exception {
 		if (!e1.isMarkedAsComplexEntity() || !e2.isMarkedAsComplexEntity()) {
 			return nilEntity;
 		}
@@ -108,8 +108,8 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 																	  ownerEntity.getLink().getLinkOperationVisitor());
 		VWMLLinkIncrementalIterator itE1 = ((VWMLComplexEntity)e1).getLink().acquireLinkedObjectsIterator();
 		VWMLLinkIncrementalIterator itE2 = ((VWMLComplexEntity)e2).getLink().acquireLinkedObjectsIterator();
-		if (itE1 == null && itE2 != null) {
-			return e2;
+		if (itE1 == null && itE2 != null || (itE1 == null && itE2 == null)) {
+			return emptyEntity;
 		}
 		else
 		if (itE1 != null && itE2 == null) {
@@ -118,16 +118,20 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		boolean[] visitedOnE2 = new boolean[((VWMLComplexEntity)e2).getLink().getLinkedObjectsOnThisTime()];
 		for(; itE1.isCorrect(); itE1.next()) {
 			VWMLEntity pe1 = (VWMLEntity)((VWMLComplexEntity)e1).getLink().getConcreteLinkedEntity(itE1.getIt());
+			boolean add = false;
 			for(; itE2.isCorrect(); itE2.next()) {
 				VWMLEntity pe2 = (VWMLEntity)((VWMLComplexEntity)e2).getLink().getConcreteLinkedEntity(itE2.getIt());
 				if (pe1.equals(pe2) && !visitedOnE2[itE2.getIt()]) {
-					result.getLink().link(pe1);
 					visitedOnE2[itE2.getIt()] = true;
+					add = true;
 					break;
 				}
+			}
+			if (add) {
+				result.getLink().link(pe1);
 			}
 		}
 		visitedOnE2 = null;
 		return result;
-	}
+	}	
 }
