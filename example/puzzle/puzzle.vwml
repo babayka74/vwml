@@ -1,0 +1,116 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.puzzle.model.vwml.puzzle"
+  		path = "c:\var\vwml/puzzle/src"
+  		author = "Groozman M.Z."
+		project_name = "puzzleProj"
+  		description = "Simple puzzle game"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/puzzle/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module puzzle {
+	Puzzle ias (
+		Ew ias (
+			Communication ias (
+					say ias communication.out.write;
+					ask ias communication.in.read;
+			);
+			Services ias (
+					inc ias services.math.inc;
+			);
+			FreePlaces ias (
+					p1 p2 p3
+					p4 p5 p6
+					p7 p8 p9
+			);
+			RestPuzzles ias (
+					c1 c2 c3
+					c4 c5 c6
+					c7 c8 c9
+			);
+			Correspondence ias (
+					(p1 c1)(p2 c2)(p3 c3)
+					(p4 c4)(p5 c5)(p6 c6)
+					(p7 c7)(p8 c8)(p9 c9)
+			);
+			Errors ias 0;
+			RandomCard ias nil;
+			PlaceChoice ias nil;
+		);
+		Robby ias (
+			Case ias nil;
+			NoFreePlacesExist ias nil;
+			CorrespondenceCase ias nil;
+			CorrectChoice ias nil;
+
+			DoNothing ias (
+				((game finished) Ew.Communication.say~) Do
+			);
+			Play ias (
+				EndGameStudy~ Exe
+				GetCase~ Exe
+				Case~~ Exe
+			);
+			EndGameStudy ias (
+				NoFreePlacesExist 
+				(Ew.FreePlaces~ ()) Ident
+			)^;
+			GetCase ias (
+				Case 
+				(NoFreePlacesExist NoFreePlacesExist~)
+			)^;
+			(NoFreePlacesExist true) ias (
+				DoNothing~ Exe
+			);
+			(NoFreePlacesExist false) ias (
+				((select random card) Ew.Communication.say~) Do
+				(Ew.RandomCard 
+					(() Ew.Communication.ask~) Do
+				)^
+				((select card place) Ew.Communication.say~) Do
+				(Ew.PlaceChoice 
+					(() Ew.Communication.ask~) Do
+				)^
+				CorrespondenceStudy~ Exe
+				GetCorrespondenceCase~ Exe
+				CorrespondenceCase~~ Exe
+			);
+	                CorrespondenceStudy ias (
+				CorrectChoice
+				((Ew.PlaceChoice~ Ew.RandomCard~) Ew.Correspondence~) In
+			)^;
+			GetCorrespondenceCase ias (
+				CorrespondenceCase
+				(CorrectChoice CorrectChoice~)
+			)^;
+			(CorrectChoice false) ias (
+				(Ew.Errors ((Ew.Errors~) Ew.Services.inc~) Do)^
+				(Ew.RandomCard nil)^
+				(Ew.PlaceChoice nil)^
+				Play~ Exe
+			);
+			(CorrectChoice true) ias (
+				(Ew.FreePlaces (Ew.FreePlaces~ (Ew.PlaceChoice~))Substruct)^
+				(Ew.RestPuzzles (Ew.RestPuzzles~ (Ew.RandomCard~))Substruct)^
+				((free places are Ew.FreePlaces~) Ew.Communication.say~) Do
+				(Ew.RandomCard nil)^
+				(Ew.PlaceChoice nil)^
+				Play~ Exe
+			);
+			lifeterm = Play~ Exe
+		);
+	);
+}

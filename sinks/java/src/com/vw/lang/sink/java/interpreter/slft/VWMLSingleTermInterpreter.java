@@ -83,6 +83,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		getProcessor().init(this);
 		try {
 			activateComplexInterpretationProcess(getLinkage(), getContext(), entity);
+			int h = 0;
 		}
 		catch(Exception e) {
 			throw new Exception("Exception caught during interpretation life term on context '" + getContext().getContext() + "'; exception '" + e + "'");
@@ -114,16 +115,13 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 				}
 			}
 		}
-		else {
-			// interprets term associated with simple entity
-			activateSimpleInterpretationProcess(entity, linkage, context);
-		}
 		return entity;
 	}
 
 	@Override
 	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		VWMLEntity entity = le;
+		VWMLEntity exeEntity = null;
 		while(entity != null) { // usually entity which is result of 'EXE' operation
 			VWMLOperation opImplicitlyAddedRef = null;
 			// working with lifeterm's context
@@ -167,6 +165,13 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			}
 			if (opImplicitlyAddedRef != null) {
 				le.removeOperation(opImplicitlyAddedRef);
+				if (le == exeEntity) {
+					// consume ()
+					VWMLEntity eEmptyToBeConsumed = (VWMLEntity)context.getStack().peek();
+					if (eEmptyToBeConsumed != null && eEmptyToBeConsumed.isMarkedAsComplexEntity()) {
+						context.getStack().popUntilEmptyMark();
+					}
+				}
 			}
 			if (le == context.peekRecurseEntity()) {
 				// stack recurse detected and stack should be unwind 
@@ -183,7 +188,7 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 			// entity has been interpreted and should be unmarked
 			context.unmarkEntityAsObservableInsideContext(le);
 			// starts iteration of entity - result of 'EXE' operation
-			le = entity = defferredEntity;
+			exeEntity = le = entity = defferredEntity;
 		}
 	}
 	

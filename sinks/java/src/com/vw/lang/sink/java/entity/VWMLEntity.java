@@ -164,7 +164,6 @@ public class VWMLEntity extends VWMLObject {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((context == null) ? 0 : context.hashCode());
 		result = prime * result + (isMarkedAsComplexEntity ? 1231 : 1237);
 		return result;
 	}
@@ -180,14 +179,7 @@ public class VWMLEntity extends VWMLObject {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		VWMLEntity other = (VWMLEntity) obj;
-		if (context == null) {
-			if (other.context != null) {
-				return false;
-			}
-		} else if (!context.equals(other.context)) {
-			return false;
-		}
+		VWMLEntity other = (VWMLEntity) obj;		
 		if (isMarkedAsComplexEntity != other.isMarkedAsComplexEntity) {
 			return false;
 		}

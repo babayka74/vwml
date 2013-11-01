@@ -99,7 +99,7 @@ public class VWMLOperationProcessor {
 		}
 		catch(Exception e) {
 			reportException(context, operation, e);
-			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'");
+			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'; operation '" + operation + "'");
 		}
 	}
 	

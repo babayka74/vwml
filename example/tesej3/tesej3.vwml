@@ -62,12 +62,12 @@ module tesej3 {
 			lost ias (
 					((tesej was killed by minotaur) ew.say~) Do
 				);
-			battleResult ias (won won lost won won won lost won won won lost won won won won);
+			battleResult ias (won won won won won won won won won won won won won won won);
 			((Tesej is fighting with minotaur) ew.say~) Do
 			(strategyAfterFight battleResult~ Random)^
 			strategyAfterFight~~ Exe
 		);
-	minotaur ias ();
+	minotaur ias (x);
 	a ias (a h b g f h e c minotaur);
 	b ias (b a e minotaur g f f f);
 	c ias (minotaur c e d f);

@@ -47,12 +47,7 @@ public class VWMLOperationUtils {
 		}
 		boolean remove = true;
 		String cen = ComplexEntityNameBuilder.generateRandomName();
-		if (entities.size() == 1) {
-			newComplexEntity = entities.get(0);
-			remove = false;
-		}
-		else
-		if (entities.size() > 1) {
+		if (entities.size() > 0) {
 			newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
 																		 cen,
 																		 context,
@@ -63,13 +58,9 @@ public class VWMLOperationUtils {
 				newComplexEntity.getLink().link(entities.get(i));
 			}
 		}
-		else
-		if (entities.size() == 0) {
-			newComplexEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
-																		 cen,
-																		 context,
-																		 interpretationHistorySize,
-																		 visitor);
+		else {
+			newComplexEntity = (VWMLEntity)VWMLObjectsRepository.instance().getEmptyEntity();
+			remove = false;
 		}
 		if (addIfUnknown) {
 			VWMLContext ctx = VWMLContextsRepository.instance().get(context);
@@ -122,7 +113,7 @@ public class VWMLOperationUtils {
 			throw new Exception("couldn't find context identified by '" + context + "'");
 		}
 		// complex entity
-		if (entities.size() > 1) {
+		if (entities.size() > 0) {
 			// acquire new complex entity with random name
 			newEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
 															cen,
@@ -141,17 +132,6 @@ public class VWMLOperationUtils {
 			// sets entity's id to generated id
 			newEntity.setId(id);
 			newEntity = VWMLObjectsRepository.instance().addConcrete(newEntity, ctx);
-		}
-		else
-		// simple entity
-		if (entities.size() == 1) {
-			id = (String)entities.get(0).getId();
-			// acquire new simple entity with random name
-			newEntity = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.SIMPLE_ENTITY,
-																 id,
-																 context,
-																 interpretationHistorySize,
-																 visitor);
 		}
 		else {
 			// builds empty complex entity name (related to set of default entities)

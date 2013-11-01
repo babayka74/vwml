@@ -55,7 +55,7 @@ public class VWMLOperationIdentHandler extends VWMLOperationHandler {
 	}
 
 	protected boolean checkEntitiesIdenticProperty(VWMLEntity e, VWMLEntity e1) {
-		return e.getId().equals(e1.getId());
+		return e.equals(e1);
 	}
 	
 	protected void errorReport() throws Exception {
