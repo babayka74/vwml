@@ -118,6 +118,7 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		boolean[] visitedOnE2 = new boolean[((VWMLComplexEntity)e2).getLink().getLinkedObjectsOnThisTime()];
 		for(; itE1.isCorrect(); itE1.next()) {
 			VWMLEntity pe1 = (VWMLEntity)((VWMLComplexEntity)e1).getLink().getConcreteLinkedEntity(itE1.getIt());
+			itE2.setIt(0);
 			for(; itE2.isCorrect(); itE2.next()) {
 				VWMLEntity pe2 = (VWMLEntity)((VWMLComplexEntity)e2).getLink().getConcreteLinkedEntity(itE2.getIt());
 				if (pe1.equals(pe2) && !visitedOnE2[itE2.getIt()]) {

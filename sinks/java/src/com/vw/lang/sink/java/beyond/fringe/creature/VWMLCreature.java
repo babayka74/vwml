@@ -100,7 +100,11 @@ public class VWMLCreature extends VWMLEntity {
 				if (parent != null) {
 					parent.getLink().link(e);
 				}
-				transformComplexEWEntityToVWML(e, ewe);
+				VWMLEntity r = transformComplexEWEntityToVWML(e, ewe);
+				if (parent == null) {
+					parent = e;
+					parent.getLink().link(r);
+				}									
 			}
 		}
 		if (ewEntity.getLink().getLinkedObjects().size() == 0) {
@@ -132,7 +136,11 @@ public class VWMLCreature extends VWMLEntity {
 					if (parent != null) {
 						parent.getLink().link(ewe);
 					}
-					transformComplexVWMLEntityToEW(ewe, e);
+					EWEntity r = transformComplexVWMLEntityToEW(ewe, e);
+					if (parent == null) {
+						parent = ewe;
+						parent.getLink().link(r);
+					}					
 				}
 			}
 		}

@@ -130,6 +130,7 @@ public class VWMLOperationSubstructHandler extends VWMLOperationHandler {
 			if (add) {
 				result.getLink().link(pe1);
 			}
+			itE2.setIt(0);
 		}
 		visitedOnE2 = null;
 		return result;

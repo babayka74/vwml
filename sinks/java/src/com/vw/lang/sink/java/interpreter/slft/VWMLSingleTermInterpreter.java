@@ -83,7 +83,6 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		getProcessor().init(this);
 		try {
 			activateComplexInterpretationProcess(getLinkage(), getContext(), entity);
-			int h = 0;
 		}
 		catch(Exception e) {
 			throw new Exception("Exception caught during interpretation life term on context '" + getContext().getContext() + "'; exception '" + e + "'");
