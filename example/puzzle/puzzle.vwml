@@ -61,7 +61,7 @@ module puzzle {
 			CorrespondenceCase ias nil;
 			CorrectChoice ias nil;
 
-			DoNothing ias (
+			PuzzleCompleted ias (
 				((Congratulations ! Puzzle completed !) Ew.Communication.say~) Do
 				7000 Relax
 			);
@@ -84,7 +84,7 @@ module puzzle {
 				(NoFreePlacesExist NoFreePlacesExist~)
 			)^;
 			(NoFreePlacesExist true) ias (
-				DoNothing~ Exe
+				PuzzleCompleted~ Exe
 			);
 			(NoFreePlacesExist false) ias (
 				(ExitFromGame false) ias (

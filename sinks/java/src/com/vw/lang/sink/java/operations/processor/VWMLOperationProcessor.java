@@ -15,16 +15,21 @@ import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.activatectx.VWMLOperationActivateContextHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.equal.VWMLOperationEqualHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOperationExeHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.first.VWMLOperationFirstHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.ident.VWMLOperationIdentHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.implicit.assemble.VWMLOperationImplicitAssembleHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.in.VWMLOperationInHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.include.VWMLOperationIncludeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.interpret.VWMLOperationInterpretHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.intersect.VWMLOperationIntersectHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.join.VWMLOperationJoinHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.last.VWMLOperationLastHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.onfringe.VWMLOperationOnFringeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWMLOperationRelaxHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.rest.VWMLOperationRestHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.substruct.VWMLOperationSubstructHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
@@ -55,6 +60,11 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPINTERSECT),        new VWMLOperationIntersectHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPSUBSTRUCT),        new VWMLOperationSubstructHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPIN),               new VWMLOperationInHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPINCL),             new VWMLOperationIncludeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPEQ),               new VWMLOperationEqualHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPFIRST),            new VWMLOperationFirstHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPREST),             new VWMLOperationRestHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPLAST),             new VWMLOperationLastHandler());
 		}
 	};
 	// called when unknown/unsupported operation is going to be executed
