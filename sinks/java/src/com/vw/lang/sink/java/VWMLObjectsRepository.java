@@ -200,6 +200,10 @@ public class VWMLObjectsRepository {
 		if (parent.getContextPath() != null) {
 			parent.setContextPath(VWMLJavaExportUtils.parseContext(parent.getContext()));
 		}
+		context = VWMLContextsRepository.instance().get(parent.getContext() + "." + contextId);
+		if (context != null) {
+			return context;
+		}
 		for(String pE : parent.getContextPath()) {
 			String partialPath = null;
 			if (contextId.startsWith(pE)) {
@@ -223,9 +227,6 @@ public class VWMLObjectsRepository {
 			p = p.substring(0, l);
 			partialPath = p + "." + contextId;
 			context = VWMLContextsRepository.instance().get(partialPath);
-		}
-		if (context == null) {
-			context = VWMLContextsRepository.instance().get(parent.getContext() + "." + contextId);
 		}
 		return context;
 	}
