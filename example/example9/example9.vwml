@@ -26,17 +26,17 @@ module example9 {
 			ask ias communication.in.read;
 		);
 		i ias 0;
-		test ias (
+		(test true) ias (
 			((a i~) 9)^
 			((a i~)~ ew.say~) Do
 		);
 		test2 ias (
-			test ias (
+			(test true) ias (
 				((a i~) 11)^
 				((a i~)~ ew.say~) Do
 			);
-			test~ Exe
-			(test2.test.(a i~)~ ew.say~) Do
+			(test true)~ Exe
+			((test true).(a i~)~ ew.say~) Do
 		);
 		lifeterm = (
 				test2~ Exe

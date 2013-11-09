@@ -43,7 +43,6 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 
 	}
 
-	@Override
 	public VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 		// TODO Auto-generated method stub
 		return entity;

@@ -22,7 +22,6 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 public class VWMLOperationLastHandler extends VWMLOperationHandler {
 
 	private VWMLEntity nilEntity = (VWMLEntity)VWMLObjectsRepository.instance().getNilEntity();
-	private VWMLEntity emptyEntity = (VWMLEntity)VWMLObjectsRepository.instance().getEmptyEntity();
 	
 	@Override
 	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {

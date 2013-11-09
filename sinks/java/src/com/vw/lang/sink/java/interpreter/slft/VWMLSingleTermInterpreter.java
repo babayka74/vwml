@@ -94,7 +94,6 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	 * @param stack
 	 * @throws Exception
 	 */
-	@Override
 	public VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 		if (!entity.isTerm() && !entity.isMarkedAsComplexEntity()) {
 			activateSimpleInterpretationProcess(entity, linkage, context);
@@ -117,7 +116,6 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 		return entity;
 	}
 
-	@Override
 	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		VWMLEntity entity = le;
 		VWMLEntity exeEntity = null;

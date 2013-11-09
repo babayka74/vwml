@@ -64,28 +64,19 @@ public abstract class VWMLIterpreterImpl {
 	public abstract void start() throws Exception;
 
 	/**
-	 * Starts interpretation on existed context by decomposing complex entity on simple; uses recursion
-	 * @param context
-	 * @throws Exception
-	 */
-	public abstract VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
-
-	/**
 	 * Clones current interpreter
 	 */
 	public abstract VWMLIterpreterImpl clone();
-	
+
 	/**
-	 * Starts term's interpretation process
-	 * @param linkage
-	 * @param context
-	 * @param le
+	 * Step-by-step interpretation
+	 * @return 'false' in case if interpretation finished, otherwise 'true' is returned
 	 * @throws Exception
 	 */
-	public void activateComplexInterpretationProcess(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
+	public boolean step() throws Exception {
 		throw new Exception("not implemented");
 	}
-
+	
 	protected VWMLEntity termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}

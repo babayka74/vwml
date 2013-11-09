@@ -28,6 +28,12 @@ public class VWMLContext extends VWMLObject {
 	private VWMLStack contextsStack = VWMLStack.instance();	
 	// used during main stack unwinding operation
 	private VWMLStack recurseStack = VWMLStack.instance();
+	// used in order to emulate recursion; aka code stack frame
+	private VWMLStack codeStack = VWMLStack.instance();
+	// next entity which will be processed after decomposition process
+	private VWMLEntity nextProcessedEntity = null;
+	// current stack frame
+	private VWMLSequentialTermInterpreterCodeStackFrame currentCodeStackFrame = null;
 	// reflects entity marked as observable to current top of stack; used during recursion detection and stack unwinding
 	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsObservable = new HashMap<VWMLEntity, VWMLEntity>();
 	// set to 'true' in case if context belongs to lifeterm
@@ -151,7 +157,23 @@ public class VWMLContext extends VWMLObject {
 	public void setLifeTermContext(boolean lifeTermContext) {
 		this.lifeTermContext = lifeTermContext;
 	}
-		
+
+	public VWMLEntity getNextProcessedEntity() {
+		return nextProcessedEntity;
+	}
+
+	public void setNextProcessedEntity(VWMLEntity nextProcessedEntity) {
+		this.nextProcessedEntity = nextProcessedEntity;
+	}
+
+	public VWMLSequentialTermInterpreterCodeStackFrame getCurrentCodeStackFrame() {
+		return currentCodeStackFrame;
+	}
+
+	public void setCurrentCodeStackFrame(VWMLSequentialTermInterpreterCodeStackFrame currentCodeStackFrame) {
+		this.currentCodeStackFrame = currentCodeStackFrame;
+	}
+
 	/**
 	 * Looks up for context's lifeterm
 	 * @return
@@ -205,6 +227,22 @@ public class VWMLContext extends VWMLObject {
 
 	public VWMLEntity peekRecurseEntity() {
 		return (VWMLEntity)recurseStack.peek();
+	}
+	
+	/**
+	 * Following methods used during code stack operation
+	 * @param entity
+	 */
+	public void pushStackFrame(VWMLSequentialTermInterpreterCodeStackFrame frame) {
+		codeStack.push(frame);
+	}
+	
+	public void popStackFrame() {
+		codeStack.pop();
+	}
+
+	public VWMLObject peekStackFrame() {
+		return codeStack.peek();
 	}
 	
 	/**

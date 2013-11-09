@@ -31,6 +31,8 @@ public class VWMLEntity extends VWMLObject {
 	private boolean isMarkedAsComplexEntity = false;
 	// set when operation is added to entity, but initially entity wasn't marked as term
 	private boolean isMarkedAsArtificalTerm = false;
+	// marked by interpreter in case when operation EXE is being applied
+	private boolean isOperatesByExe = false;
 	private int interpretationHistorySize;
 	
 	public VWMLEntity() {
@@ -138,14 +140,18 @@ public class VWMLEntity extends VWMLObject {
 		this.isMarkedAsComplexEntity = isMarkedAsComplexEntity;
 	}
 
-	public boolean isMarkedAsArtificalTerm() {
-		return isMarkedAsArtificalTerm;
-	}
-
+	/**
+	 * Marks entity as artificial term - used when artificial operation is added temporally
+	 * @param mark
+	 */
 	public void setMarkedAsArtificalTerm(boolean isMarkedAsArtificalTerm) {
 		this.isMarkedAsArtificalTerm = isMarkedAsArtificalTerm;
 	}
 
+	public boolean isMarkedAsArtificalTerm() {
+		return isMarkedAsArtificalTerm;
+	}
+	
 	/**
 	 * Returns 'true' in case if entity was marked as creature (entity which lives on intersection of worlds)
 	 * @return
@@ -154,6 +160,14 @@ public class VWMLEntity extends VWMLObject {
 		return isCreature;
 	}
 	
+	public boolean isOperateByExe() {
+		return isOperatesByExe;
+	}
+
+	public void setOperateByExe(boolean isOperatesByExe) {
+		this.isOperatesByExe = isOperatesByExe;
+	}
+
 	@Override
 	public String toString() {
 		return "VWMLEntity [interpreting=" + interpreting + ", getLink()="

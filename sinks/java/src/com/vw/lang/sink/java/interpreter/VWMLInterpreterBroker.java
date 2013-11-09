@@ -10,7 +10,6 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
 import com.vw.lang.sink.java.interpreter.parallel.VWMLParallelTermInterpreter;
 import com.vw.lang.sink.java.interpreter.reactive.VWMLReactiveTermInterpreter;
 import com.vw.lang.sink.java.interpreter.seq.VWMLSequentialTermInterpreter;
-import com.vw.lang.sink.java.interpreter.slft.VWMLSingleTermInterpreter;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.module.VWMLModule;
 
@@ -112,11 +111,11 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 	protected VWMLIterpreterImpl getConcreteInterpreterAccordingToConfiguration(VWMLLinkage linkage, List<VWMLEntity> terms) {
 		VWMLIterpreterImpl impl = null;
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE) {
-			impl = VWMLSingleTermInterpreter.instance(linkage, terms.get(0));
+			impl = VWMLSequentialTermInterpreter.instance(linkage, terms.get(0));
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE_SEQUENTIAL) {
-			impl = VWMLSequentialTermInterpreter.instance(linkage, terms);
+			impl = VWMLSequentialTermInterpreter.instance(linkage, terms.get(0));
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.REACTIVE) {
