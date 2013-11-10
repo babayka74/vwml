@@ -112,10 +112,12 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		VWMLIterpreterImpl impl = null;
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE) {
 			impl = VWMLSequentialTermInterpreter.instance(linkage, terms.get(0));
+			config.setStepByStepInterpretation(false);
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE_SEQUENTIAL) {
 			impl = VWMLSequentialTermInterpreter.instance(linkage, terms.get(0));
+			config.setStepByStepInterpretation(true);
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.REACTIVE) {

@@ -8,7 +8,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
 
 /**
- * Internal interpreter's functionality
+ * Abstract interpreter's functionality
  * @author ogibayev
  *
  */
@@ -24,6 +24,17 @@ public abstract class VWMLIterpreterImpl {
 	private VWMLContext context = VWMLContext.instance();
 	// operating processor
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
+
+	/**
+	 * Starts interpretation logic
+	 * @throws Exception
+	 */
+	public abstract void start() throws Exception;
+
+	/**
+	 * Clones current interpreter
+	 */
+	public abstract VWMLIterpreterImpl clone();
 	
 	public List<VWMLEntity> getTerms() {
 		return terms;
@@ -58,26 +69,11 @@ public abstract class VWMLIterpreterImpl {
 	}
 
 	/**
-	 * Starts interpretation logic
-	 * @throws Exception
-	 */
-	public abstract void start() throws Exception;
-
-	/**
-	 * Clones current interpreter
-	 */
-	public abstract VWMLIterpreterImpl clone();
-
-	/**
 	 * Step-by-step interpretation
 	 * @return 'false' in case if interpretation finished, otherwise 'true' is returned
 	 * @throws Exception
 	 */
 	public boolean step() throws Exception {
-		throw new Exception("not implemented");
-	}
-	
-	protected VWMLEntity termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
 		throw new Exception("not implemented");
 	}
 	

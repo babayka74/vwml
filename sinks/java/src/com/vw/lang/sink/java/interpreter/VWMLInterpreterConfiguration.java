@@ -50,6 +50,7 @@ public class VWMLInterpreterConfiguration {
 	private int executionStepDelay = DEF_EXECUTION_STEP_DELAY;
 	private INTERPRETER_MT_STRATEGY interpretationMtStrategy;
 	private IVWMLGate debuggerGate = null;
+	private boolean isStepByStepInterpretation = false;
 	
 	private VWMLInterpreterConfiguration() {
 		super();
@@ -84,9 +85,20 @@ public class VWMLInterpreterConfiguration {
 		this.debuggerGate = debuggerGate;
 	}
 
+	public boolean isStepByStepInterpretation() {
+		return isStepByStepInterpretation;
+	}
+
+	public void setStepByStepInterpretation(boolean isStepByStepInterpretation) {
+		this.isStepByStepInterpretation = isStepByStepInterpretation;
+	}
+
 	@Override
 	public String toString() {
 		return "VWMLInterpreterConfiguration [executionStepDelay="
-				+ executionStepDelay + "]";
+				+ executionStepDelay + ", interpretationMtStrategy="
+				+ interpretationMtStrategy + ", debuggerGate=" + debuggerGate
+				+ ", isStepByStepInterpretation=" + isStepByStepInterpretation
+				+ "]";
 	}
 }

@@ -76,7 +76,7 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 		cloned.setConfig(this.getConfig());
 		return cloned;
 	}
-	
+		
 	/**
 	 * Starts interpretation logic
 	 * @throws Exception
@@ -103,104 +103,118 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 			getContext().setNextProcessedEntity(entity);
 			VWMLSequentialTermInterpreterCodeStackFrame frame = buildCodeStackFrame(entity, entity, null);
 			getContext().setCurrentCodeStackFrame(frame);
-			startCompleteInterpretationProcess(getLinkage(), getContext());
+			result = continueProcessingOfCurrentEntity;
+			lastInterpretedTerm = getContext().getCurrentCodeStackFrame().getTerm();
+			lastInterpretedEntity = getContext().getCurrentCodeStackFrame().getAssociatedEntity();
+			if (!getConfig().isStepByStepInterpretation()) {
+				startCompleteInterpretationProcess(getLinkage(), getContext());
+			}
 		}
 		catch(Exception e) {
 			throw new Exception("Exception caught during interpretation life term on context '" + getContext().getContext() + "'; exception '" + e + "'");
 		}
 	}
-	
+
+	public boolean step() throws Exception {
+		if (!getConfig().isStepByStepInterpretation()) {
+			throw new Exception("set flag 'isStepByStepInterpretation' in configuration before method step is called");
+		}
+		stepImpl(getLinkage(), getContext());
+		return result == stopProcessing;
+	}	
+
 	protected void startCompleteInterpretationProcess(VWMLLinkage linkage, VWMLContext context) throws Exception {
-		result = continueProcessingOfCurrentEntity;
-		lastInterpretedTerm = context.getCurrentCodeStackFrame().getTerm();
-		lastInterpretedEntity = context.getCurrentCodeStackFrame().getAssociatedEntity();
 		while(result != stopProcessing) {
-			if (result != finishedEntityProcessing) {
-				// working with lifeterm's context
-				if (lastInterpretedEntity.getContext() == null) {
-					throw new Exception("entity '" + lastInterpretedTerm + "' doesn't belong to any context !");
-				}
-				boolean pushEmptyMark = false;
-				if (!lastInterpretedEntity.isTerm() && lastInterpretedEntity.isMarkedAsComplexEntity()) {
-					// assemble operation is used if we need to collect result of entity interpretation process
-					lastInterpretedEntity.addOperation(opImplicitlyAddedRef);
-					lastInterpretedEntity.setMarkedAsArtificalTerm(true);
-					pushEmptyMark = true;
-				}
-				else
-				if (lastInterpretedEntity.isTerm() && ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity() != null) {
-					lastInterpretedEntity = ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity();
-					pushEmptyMark = true;
-				}
-				if (pushEmptyMark) {
-					context.getStack().pushEmptyMark();
-					context.pushContext(lastInterpretedEntity.getContext());
-				}
-				// push stack frame
-				pushCurrentStackFrame(context, lastInterpretedTerm, lastInterpretedEntity, null);				
-				if (checkIfDecompositionNeeded(linkage, context, lastInterpretedEntity)) {
-					// entity is decomposed and next entity is returned
-					result = decomposeAndGetNext(linkage, context);
-					if (result == nextEntityToProcess && context.getNextProcessedEntity() != null) {
-						// process next entity
-						lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-						continue;
-					} // else processing current entity					
-				}
-			} // entity processed - check its operations, if they are exist
-			else {
-				lastInterpretedTerm = context.getCurrentCodeStackFrame().getTerm();
-				lastInterpretedEntity = context.getCurrentCodeStackFrame().getAssociatedEntity();
-			}
-			// the 'defferredEntity' is result of EXE operation
-			// the 'EXE' operations is specific operation - it starts to interpret term fetched from the stack not in recursing manner
-			// this entity can be considered as 'defferred' since it is interpreted on next iteration
-			VWMLEntity defferredEntity = termInterpretation(linkage, context, lastInterpretedTerm);
-			if (defferredEntity != null) {
-				if (checkVWMLRecursion(context, defferredEntity)) {
-					// removes until recursive entity and resets its iterator
-					resolveVWMLRecursion(context, defferredEntity);
-				}
-				else {
-					context.popStackFrame();
-				}
-				defferredEntity.setOperateByExe(true);
-				markVWMLEntityAsProbableRecursion(context, defferredEntity);
-				context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
-				context.setNextProcessedEntity(defferredEntity);
-				lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-				resetArticialTermProperty(lastInterpretedTerm);				
-				result = nextEntityToProcess;
-				continue;
-			}
-			if (lastInterpretedTerm.isOperateByExe()) {
-				lastInterpretedTerm.setOperateByExe(false);
-				// consume ()
-				VWMLEntity eEmptyToBeConsumed = (VWMLEntity)context.getStack().peek();
-				if (eEmptyToBeConsumed != null && eEmptyToBeConsumed.isMarkedAsComplexEntity() && ((VWMLComplexEntity)eEmptyToBeConsumed).getLink().getLinkedObjectsOnThisTime() == 0) {
-					context.getStack().popUntilEmptyMark();
-				}
-			}
-			resetArticialTermProperty(lastInterpretedTerm);
-			// un-mark probable entity's recursion
-			unmarkVWMLEntityAsProbableRecursion(context, lastInterpretedTerm);			
-			context.popStackFrame();
-			if (defferredEntity == null) {
-				// pops stack frame
-				result = decomposeAndGetNext(linkage, context);
-				context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
-				if (result == nextEntityToProcess && context.getNextProcessedEntity() != null) {
-					// process next entity
-					lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-				}
-				else
-				if (result == continueProcessingOfCurrentEntity) {
-					throw new Exception("invalid state of interpreter; state is '" + result + "'; last interpreted entity '" + lastInterpretedEntity.getId() + "'");
-				}
-			}
+			stepImpl(linkage, context);
 		}
 	}
 
+	protected void stepImpl(VWMLLinkage linkage, VWMLContext context) throws Exception {
+		if (result != finishedEntityProcessing) {
+			// working with lifeterm's context
+			if (lastInterpretedEntity.getContext() == null) {
+				throw new Exception("entity '" + lastInterpretedTerm + "' doesn't belong to any context !");
+			}
+			boolean pushEmptyMark = false;
+			if (!lastInterpretedEntity.isTerm() && lastInterpretedEntity.isMarkedAsComplexEntity()) {
+				// assemble operation is used if we need to collect result of entity interpretation process
+				lastInterpretedEntity.addOperation(opImplicitlyAddedRef);
+				lastInterpretedEntity.setMarkedAsArtificalTerm(true);
+				pushEmptyMark = true;
+			}
+			else
+			if (lastInterpretedEntity.isTerm() && ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity() != null) {
+				lastInterpretedEntity = ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity();
+				pushEmptyMark = true;
+			}
+			if (pushEmptyMark) {
+				context.getStack().pushEmptyMark();
+				context.pushContext(lastInterpretedEntity.getContext());
+			}
+			// push stack frame
+			pushCurrentStackFrame(context, lastInterpretedTerm, lastInterpretedEntity, null);				
+			if (checkIfDecompositionNeeded(linkage, context, lastInterpretedEntity)) {
+				// entity is decomposed and next entity is returned
+				result = decomposeAndGetNext(linkage, context);
+				if (result == nextEntityToProcess && context.getNextProcessedEntity() != null) {
+					// process next entity
+					lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
+					return;
+				} // else processing current entity					
+			}
+		} // entity processed - check its operations, if they are exist
+		else {
+			lastInterpretedTerm = context.getCurrentCodeStackFrame().getTerm();
+			lastInterpretedEntity = context.getCurrentCodeStackFrame().getAssociatedEntity();
+		}
+		// the 'defferredEntity' is result of EXE operation
+		// the 'EXE' operations is specific operation - it starts to interpret term fetched from the stack not in recursing manner
+		// this entity can be considered as 'defferred' since it is interpreted on next iteration
+		VWMLEntity defferredEntity = termInterpretation(linkage, context, lastInterpretedTerm);
+		if (defferredEntity != null) {
+			if (checkVWMLRecursion(context, defferredEntity)) {
+				// removes until recursive entity and resets its iterator
+				resolveVWMLRecursion(context, defferredEntity);
+			}
+			else {
+				context.popStackFrame();
+			}
+			defferredEntity.setOperateByExe(true);
+			markVWMLEntityAsProbableRecursion(context, defferredEntity);
+			context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
+			context.setNextProcessedEntity(defferredEntity);
+			lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
+			resetArticialTermProperty(lastInterpretedTerm);				
+			result = nextEntityToProcess;
+			return;
+		}
+		if (lastInterpretedTerm.isOperateByExe()) {
+			lastInterpretedTerm.setOperateByExe(false);
+			// consume ()
+			VWMLEntity eEmptyToBeConsumed = (VWMLEntity)context.getStack().peek();
+			if (eEmptyToBeConsumed != null && eEmptyToBeConsumed.isMarkedAsComplexEntity() && ((VWMLComplexEntity)eEmptyToBeConsumed).getLink().getLinkedObjectsOnThisTime() == 0) {
+				context.getStack().popUntilEmptyMark();
+			}
+		}
+		resetArticialTermProperty(lastInterpretedTerm);
+		// un-mark probable entity's recursion
+		unmarkVWMLEntityAsProbableRecursion(context, lastInterpretedTerm);			
+		context.popStackFrame();
+		if (defferredEntity == null) {
+			// pops stack frame
+			result = decomposeAndGetNext(linkage, context);
+			context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
+			if (result == nextEntityToProcess && context.getNextProcessedEntity() != null) {
+				// process next entity
+				lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
+			}
+			else
+			if (result == continueProcessingOfCurrentEntity) {
+				throw new Exception("invalid state of interpreter; state is '" + result + "'; last interpreted entity '" + lastInterpretedEntity.getId() + "'");
+			}
+		}
+	}
+	
 	protected int decomposeAndGetNext(VWMLLinkage linkage, VWMLContext context) throws Exception {
 		VWMLEntity nextProcessed = null;
 		int result = continueProcessingOfCurrentEntity;
