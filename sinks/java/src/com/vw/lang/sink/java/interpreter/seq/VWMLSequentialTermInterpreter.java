@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLDynamicEntityProperties;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLSequentialTermInterpreterCodeStackFrame;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -138,8 +139,8 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 			boolean pushEmptyMark = false;
 			if (!lastInterpretedEntity.isTerm() && lastInterpretedEntity.isMarkedAsComplexEntity()) {
 				// assemble operation is used if we need to collect result of entity interpretation process
-				lastInterpretedEntity.addOperation(opImplicitlyAddedRef);
-				lastInterpretedEntity.setMarkedAsArtificalTerm(true);
+				VWMLDynamicEntityProperties props = context.getEntityDynamicProperties(lastInterpretedEntity, true);
+				props.setMarkedAsArtificalTerm(true);
 				pushEmptyMark = true;
 			}
 			else
@@ -170,7 +171,10 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 		// the 'defferredEntity' is result of EXE operation
 		// the 'EXE' operations is specific operation - it starts to interpret term fetched from the stack not in recursing manner
 		// this entity can be considered as 'defferred' since it is interpreted on next iteration
-		VWMLEntity defferredEntity = termInterpretation(linkage, context, lastInterpretedTerm);
+		VWMLDynamicEntityProperties props = context.getEntityDynamicProperties(lastInterpretedEntity, false);
+		VWMLEntity defferredEntity = termInterpretation(linkage, context,
+														lastInterpretedTerm,
+														(props == null) ? false : props.isMarkedAsArtificalTerm());
 		if (defferredEntity != null) {
 			if (checkVWMLRecursion(context, defferredEntity)) {
 				// removes until recursive entity and resets its iterator
@@ -179,24 +183,25 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 			else {
 				context.popStackFrame();
 			}
-			defferredEntity.setOperateByExe(true);
+			context.getEntityDynamicProperties(defferredEntity, true).setOperatesByExe(true);
 			markVWMLEntityAsProbableRecursion(context, defferredEntity);
 			context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
 			context.setNextProcessedEntity(defferredEntity);
 			lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-			resetArticialTermProperty(lastInterpretedTerm);				
+			resetArtificialEntityProperty(context, lastInterpretedEntity, null);				
 			result = nextEntityToProcess;
 			return;
 		}
-		if (lastInterpretedTerm.isOperateByExe()) {
-			lastInterpretedTerm.setOperateByExe(false);
+		VWMLDynamicEntityProperties termProps = context.getEntityDynamicProperties(lastInterpretedTerm, false);
+		if (termProps != null && termProps.isOperatesByExe()) {
+			termProps.setOperatesByExe(false);
 			// consume ()
 			VWMLEntity eEmptyToBeConsumed = (VWMLEntity)context.getStack().peek();
 			if (eEmptyToBeConsumed != null && eEmptyToBeConsumed.isMarkedAsComplexEntity() && ((VWMLComplexEntity)eEmptyToBeConsumed).getLink().getLinkedObjectsOnThisTime() == 0) {
 				context.getStack().popUntilEmptyMark();
 			}
 		}
-		resetArticialTermProperty(lastInterpretedTerm);
+		resetArtificialEntityProperty(context, lastInterpretedEntity, null);
 		// un-mark probable entity's recursion
 		unmarkVWMLEntityAsProbableRecursion(context, lastInterpretedTerm);			
 		context.popStackFrame();
@@ -241,19 +246,24 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 		return result;
 	}
 
-	protected void resetArticialTermProperty(VWMLEntity term) {
-		if (term.isTerm() && term.isMarkedAsArtificalTerm()) {
-			term.removeOperation(opImplicitlyAddedRef);
-			term.setMarkedAsArtificalTerm(false);
+	protected void resetArtificialEntityProperty(VWMLContext context, VWMLEntity entity, VWMLDynamicEntityProperties props) {
+		if (props == null) {
+			props = context.getEntityDynamicProperties(entity, false);
+			if (props != null && props.isMarkedAsArtificalTerm()) {
+				props.setMarkedAsArtificalTerm(false);
+			}
+		}
+		else {
+			props.setMarkedAsArtificalTerm(false);
 		}
 	}
 	
 	protected void markVWMLEntityAsProbableRecursion(VWMLContext context, VWMLEntity le) {
-		context.markEntityAsObservableInsideContext(le);
+		context.markEntityAsRecursiveInsideContext(le);
 	}
 
 	protected void unmarkVWMLEntityAsProbableRecursion(VWMLContext context, VWMLEntity le) {
-		context.unmarkEntityAsObservableInsideContext(le);
+		context.unmarkEntityAsRecursiveInsideContext(le);
 	}
 
 	protected void resolveVWMLRecursion(VWMLContext context, VWMLEntity le) {
@@ -261,12 +271,16 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 		while(context.peekStackFrame() != null && !found) {
 			VWMLSequentialTermInterpreterCodeStackFrame frame = (VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame();
 			boolean pop = false;
-			if (frame.getTerm().isTerm()) {
+			VWMLDynamicEntityProperties propsOfEntity = context.getEntityDynamicProperties(frame.getAssociatedEntity(), false);
+			if (frame.getTerm().isTerm() || (propsOfEntity != null && propsOfEntity.isMarkedAsArtificalTerm())) {
 				pop = true;
 			}
 			unmarkVWMLEntityAsProbableRecursion(context, frame.getTerm());
-			resetArticialTermProperty(frame.getTerm());
-			frame.getTerm().setOperateByExe(false);
+			resetArtificialEntityProperty(context, frame.getAssociatedEntity(), propsOfEntity);
+			VWMLDynamicEntityProperties propsOfTerm = context.getEntityDynamicProperties(frame.getAssociatedEntity(), false);
+			if (propsOfTerm != null && propsOfTerm.isOperatesByExe()) {
+				propsOfTerm.setOperatesByExe(false);
+			}
 			if (le.equals(frame.getTerm())) {
 				found = true;
 			}
@@ -282,7 +296,7 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 	protected boolean checkVWMLRecursion(VWMLContext context, VWMLEntity le) {
 		// the 'true' means that entity is being processed now and potential recurse detected - as result stack should be unwind
 		// and interpretation process starts from this entity again, but on 'unwinded' stack
-		return context.isEntityMarkedAsObservableInsideContext(le);
+		return context.isEntityMarkedAsRecursiveInsideContext(le);
 	}
 
 	protected boolean checkIfDecompositionNeeded(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
@@ -322,24 +336,30 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 	/**
 	 * Executes term's operations on stack; interpreted entity should be already on top of stack
 	 */
-	protected VWMLEntity termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le) throws Exception {
+	protected VWMLEntity termInterpretation(VWMLLinkage linkage, VWMLContext context, VWMLEntity le, boolean artificialTerm) throws Exception {
 		VWMLEntity exeEntity = null;
-		if (le.isTerm()) { // means that entity has operations which should be executed on top of stack
+		if (le.isTerm() || artificialTerm) { // means that entity has operations which should be executed on top of stack
 			// executes operations and serves stack
 			VWMLLinkIncrementalIterator itOps = le.acquireOperationsIterator();
-			// executes set of operations on stack; all operations are performed on top of stack
-			for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
-				// actually calls handle to process operation
-				if (exeEntity == null) {
-					handleOperation(linkage, context, op);
-				}
-				else {
-					exeEntity.addOperation(op); // deferred operations
-				}
-				// EXE is a special operation and its implementation lies out of general rules for 
-				// regular operations
-				if (op.getOpCode() == VWMLOperationsCode.OPEXECUTE) {
-					exeEntity = (VWMLEntity)context.getStack().pop();
+			if (itOps == null && artificialTerm) {
+				// executes __assemble__ operation
+				handleOperation(linkage, context, opImplicitlyAddedRef);
+			}
+			else {
+				// executes set of operations on stack; all operations are performed on top of stack
+				for(VWMLOperation op = le.getOperation(itOps); op != null; op = le.getOperation(itOps)) {
+					// actually calls handle to process operation
+					if (exeEntity == null) {
+						handleOperation(linkage, context, op);
+					}
+					else {
+						exeEntity.addOperation(op); // deferred operations
+					}
+					// EXE is a special operation and its implementation lies out of general rules for 
+					// regular operations
+					if (op.getOpCode() == VWMLOperationsCode.OPEXECUTE) {
+						exeEntity = (VWMLEntity)context.getStack().pop();
+					}
 				}
 			}
 			// removes 'empty mark' by propagating term's result to following term on stack

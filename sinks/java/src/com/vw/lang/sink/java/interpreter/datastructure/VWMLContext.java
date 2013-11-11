@@ -36,6 +36,10 @@ public class VWMLContext extends VWMLObject {
 	private VWMLSequentialTermInterpreterCodeStackFrame currentCodeStackFrame = null;
 	// reflects entity marked as observable to current top of stack; used during recursion detection and stack unwinding
 	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsObservable = new HashMap<VWMLEntity, VWMLEntity>();
+	// stores entities which are marked as recursive; used for recursion detection and stack unwinding
+	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsRecursive = new HashMap<VWMLEntity, VWMLEntity>();
+	// contains entity's dynamic properties which can't be stored inside VWMLEntity since entity can be interpreted by simultaneously
+	private Map<VWMLEntity, VWMLDynamicEntityProperties> entityDynamicPropertis = new HashMap<VWMLEntity, VWMLDynamicEntityProperties>();
 	// set to 'true' in case if context belongs to lifeterm
 	private boolean lifeTermContext = false;
 	private boolean unwinding = false;
@@ -175,6 +179,21 @@ public class VWMLContext extends VWMLObject {
 	}
 
 	/**
+	 * Returns dynamic properties associated with given entity
+	 * @param entity
+	 * @param acquire
+	 * @return
+	 */
+	public VWMLDynamicEntityProperties getEntityDynamicProperties(VWMLEntity entity, boolean acquire) {
+		VWMLDynamicEntityProperties dynProps = entityDynamicPropertis.get(entity);
+		if (dynProps == null && acquire) {
+			dynProps = new VWMLDynamicEntityProperties();
+			entityDynamicPropertis.put(entity, dynProps);
+		}
+		return dynProps;
+	}
+	
+	/**
 	 * Looks up for context's lifeterm
 	 * @return
 	 */
@@ -259,6 +278,26 @@ public class VWMLContext extends VWMLObject {
 	
 	public void unAssociateEntity(VWMLEntity entity) {
 		associatedEntities.remove(entity);
+	}
+
+	/**
+	 * Following methods manage entity recursive property
+	 * @param entity
+	 */
+	public void markEntityAsRecursiveInsideContext(VWMLEntity entity) {
+		VWMLEntity e = (VWMLEntity)this.getStack().peek();
+		if (e == null) {
+			e = new VWMLEntity(); // fake object
+		}
+		entitiesMarkedAsRecursive.put(entity, e);
+	}
+	
+	public boolean isEntityMarkedAsRecursiveInsideContext(VWMLEntity entity) {
+		return entitiesMarkedAsRecursive.containsKey(entity);
+	}
+	
+	public void unmarkEntityAsRecursiveInsideContext(VWMLEntity entity) {
+		entitiesMarkedAsRecursive.remove(entity);
 	}
 	
 	/**
