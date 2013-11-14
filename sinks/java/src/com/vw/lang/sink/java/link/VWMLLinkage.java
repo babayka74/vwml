@@ -26,10 +26,28 @@ public class VWMLLinkage {
 		modLifeTerms.add(entityAsTerm);
 	}
 	
+	/**
+	 * Returns list of all lifeterms
+	 * @return
+	 */
 	public static List<VWMLEntity> getLifeTerms() {
 		return modLifeTerms;
 	}
 
+	/**
+	 * Returns list of all source lifeterms
+	 * @return
+	 */
+	public static List<VWMLEntity> getSourceLifeTerms() {
+		List<VWMLEntity> sourceLifeTerms = new ArrayList<VWMLEntity>();
+		for(VWMLEntity e : getLifeTerms()) {
+			if (e.isLifeTermAsSource()) {
+				sourceLifeTerms.add(e);
+			}
+		}
+		return sourceLifeTerms;
+	}
+	
 	/**
 	 * Overridden by module's linkage
 	 * @return

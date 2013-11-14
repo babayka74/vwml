@@ -38,7 +38,7 @@ module example9 {
 			(test true)~ Exe
 			((test true).(a i~)~ ew.say~) Do
 		);
-		lifeterm = (
+		source lifeterm = (
 				test2~ Exe
 				7000 Relax
 			   ) Exe

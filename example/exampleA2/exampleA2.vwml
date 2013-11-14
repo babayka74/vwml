@@ -45,6 +45,6 @@ module exampleA2 {
 		    		7000 Relax
 			      );
 
-		lifeterm = RobbyLife~ Exe
+		source lifeterm = RobbyLife~ Exe
 	);
 }

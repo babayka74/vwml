@@ -62,7 +62,7 @@ module tesej3 {
 			lost ias (
 					((tesej was killed by minotaur) ew.say~) Do
 				);
-			battleResult ias (won won won won won won won won won won won won won won won);
+			battleResult ias (won won won lost won won lost won won lost won won won won won);
 			((Tesej is fighting with minotaur) ew.say~) Do
 			(strategyAfterFight battleResult~ Random)^
 			strategyAfterFight~~ Exe
@@ -87,7 +87,7 @@ module tesej3 {
 	tesejLife ias (	step~ Exe
 			(metMinotaur (tesejPos~ minotaur)Ident)~ Exe
 		      );
-	lifeterm = (
+	source lifeterm = (
                     ((hello world !) ew.say~) Do
                     ((enter tesej relaxion time) ew.say~) Do  
 		    (relax.time.v

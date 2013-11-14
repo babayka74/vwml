@@ -28,6 +28,7 @@ public class VWMLEntity extends VWMLObject {
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations();
 	private boolean isLifeTerm = false;
+	private boolean isLifeTermAsSource = false;
 	private boolean isMarkedAsComplexEntity = false;
 	// set when operation is added to entity, but initially entity wasn't marked as term
 	private boolean isMarkedAsArtificalTerm = false;
@@ -124,6 +125,14 @@ public class VWMLEntity extends VWMLObject {
 		this.isLifeTerm = isLifeTerm;
 	}
 	
+	public boolean isLifeTermAsSource() {
+		return isLifeTermAsSource;
+	}
+
+	public void setLifeTermAsSource(boolean isLifeTermAsSource) {
+		this.isLifeTermAsSource = isLifeTermAsSource;
+	}
+
 	/**
 	 * Returns true in case if entity can be considered as 'term'
 	 * @return

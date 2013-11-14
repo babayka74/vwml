@@ -29,6 +29,8 @@ tokens {
     OPACTIVATECTX=':';
     OPACTIVATEONFRINGE='Do';
     OPRELAX='Relax';
+    OPSTARTCONFLICTGROUP = '[';
+    OPENDCONFLICTGROUP = ']';   
     OPPROJECTION_1='Projection_1';
     OPPROJECTION_2='Projection_2';
     OPPROJECTION_3='Projection_3';
@@ -116,6 +118,8 @@ package com.vw.lang.grammar;
 	private String lastDeclaredCreatureProps = null;
 	private String lastProcessedComplexEntityId = null;
 	private boolean lastProcessedEntityAsTerm = false;
+	private boolean sourceLifeTermDetectedFlag = false;
+	private boolean conflictDefinitionOnRingStarted = false;
 	private String modName = null;
  	private boolean inDebug = false;
  	private boolean moduleInProgress = false;
@@ -494,6 +498,42 @@ package com.vw.lang.grammar;
 		}
 	} 
 	
+	protected void startConflictDefinitionOnRing(String conflictDefOnRing) throws RecognitionException {
+		try {
+			if (codeGenerator != null) {
+				codeGenerator.startConflictDefinitionOnRing(conflictDefOnRing);
+			}
+			conflictDefinitionOnRingStarted = true;
+		}
+		catch(Exception e) {
+			rethrowVWMLExceptionAsRecognitionException(e);
+		}
+	}
+
+	protected void addConflictDefinitionOnRing(String conflictDefOnRing) throws RecognitionException {
+		try {
+			if (conflictDefinitionOnRingStarted && codeGenerator != null) {
+				codeGenerator.addConflictDefinitionOnRing(conflictDefOnRing);
+			}
+		}
+		catch(Exception e) {
+			rethrowVWMLExceptionAsRecognitionException(e);
+		}
+
+	}
+
+	protected void endConflictDefinitionOnRing() throws RecognitionException {
+		try {
+			if (codeGenerator != null) {
+				codeGenerator.endConflictDefinitionOnRing();
+			}
+			conflictDefinitionOnRingStarted = false;
+		}
+		catch(Exception e) {
+			rethrowVWMLExceptionAsRecognitionException(e);
+		}
+	}
+	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
 		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
 	}
@@ -596,7 +636,7 @@ generatedFileLocation
     ;	
 
 optionalProps
-    : author? projname? description? entity_history_size? visualizer? beyond_the_fringe?
+    : author? projname? description? entity_history_size? visualizer? beyond_the_fringe? conflictring?
     ;
 
 author
@@ -704,6 +744,22 @@ creature
     	 		}
     ;
 
+conflictring
+    : 'conflictring' '{' conflictdef? '}'
+    ;	
+
+conflictdef
+    : name_of_conflict_on_ring { startConflictDefinitionOnRing($name_of_conflict_on_ring.id); } 'conflicts' '(' name_of_related_conflict_on_ring? ')' { endConflictDefinitionOnRing(); }
+    ;
+    
+name_of_conflict_on_ring returns [String id]
+    : ID { id = $ID.getText(); }	
+    ;	
+
+name_of_related_conflict_on_ring
+    : ID { addConflictDefinitionOnRing($ID.getText()); }
+    ;
+
 module
     : 'module' ID { 
     			modName = $ID.getText();
@@ -756,10 +812,19 @@ entity_def
     ;
 
 check_term_def
-    : LIFETERM '=' lifeterm_def
+    : source_lifetrerm? LIFETERM '=' lifeterm_def
     | term_def
     ;
-    
+
+source_lifetrerm
+    : 'source' {
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("source lifeterm indicator detected");
+    			}
+    			sourceLifeTermDetectedFlag = true;
+    	       }
+    ;
+
 lifeterm_def
     :  term_def {
     			if (logger.isInfoEnabled()) {
@@ -767,10 +832,11 @@ lifeterm_def
     			}
     			if (codeGenerator != null) {
   	       			try {
-					codeGenerator.markEntityAsLifeTerm(lastProcessedEntity);
+					codeGenerator.markEntityAsLifeTerm(lastProcessedEntity, sourceLifeTermDetectedFlag);
 					if (logger.isDebugEnabled()) {
-						logger.debug("entity '" + lastProcessedEntity + "' marked as lifeterm");
+						logger.debug("entity '" + lastProcessedEntity + "' marked as lifeterm; is source '" + sourceLifeTermDetectedFlag + "'");
 					}
+					sourceLifeTermDetectedFlag = false;
 				}
 				catch(Exception e) {
 					rethrowVWMLExceptionAsRecognitionException(e);
@@ -902,6 +968,8 @@ opclist
     | OPACTIVATECTX
     | OPACTIVATEONFRINGE
     | OPRELAX
+    | OPSTARTCONFLICTGROUP
+    | OPENDCONFLICTGROUP
     ;
 
 opprojection

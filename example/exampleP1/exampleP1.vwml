@@ -1,0 +1,51 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleP1"
+  		path = "c:\var\vwml/exampleP1/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleP1Proj"
+  		description = "ExampleP1"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleP1/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+		conflictring {
+			Example1.Robby.Creation.OnShelfSituation conflicts (Example1.Bob.Attempt.OnShelfSituation)
+		}
+	}
+}
+
+module exampleP1 {
+	Example1 ias (
+		OnShelf ias nil;
+		Robby ias (
+			FigureSet ias (Cube Ball);
+		        Creation ias (
+				OnShelfSituation [
+					(OnShelf FigureSet~ Random)^
+				OnShelfSituation ]
+			);
+			
+			source lifeterm = Creation~ Exe
+		);
+		Bob ias (
+			ColorSet ias (Red Green);
+			Attempt ias (
+				OnShelfSituation [
+					(Empty (Empty (OnShelf~ nil)Ident))^
+				OnShelfSituation ]
+				Empty~~ Exe
+			);
+			(Empty true) ias Attempt~ Exe;
+			(Empty false) ias (OnShelf (OnShelf~ ColorSet~ Random))^;
+			
+			source lifeterm = Attempt~ Exe
+		);
+	);
+}

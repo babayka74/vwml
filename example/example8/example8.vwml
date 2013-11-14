@@ -39,7 +39,7 @@ module example8 {
 				x ias Robby.(a false).(c true);
 			     );
 
-		lifeterm = (
+		source lifeterm = (
 				((a true).b (a false).(c true))^
 				(((a true).x~~~) ew.say~) Do
 				7000 Relax

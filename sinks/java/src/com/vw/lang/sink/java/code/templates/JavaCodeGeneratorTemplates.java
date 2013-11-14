@@ -22,7 +22,8 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tpublic static enum MARKED { \r\n" +
 	"\t\t\tENTITY,\r\n" +
 	"\t\t\tTERM,\r\n" +
-	"\t\t\tLIFETERM\r\n" +
+	"\t\t\tLIFETERM,\r\n" +
+	"\t\t\tSOURCELIFETERM\r\n" +
 	"\t\t} ;\r\n\r\n" + 
 	"\t\tprivate Object id; \r\n" +
 	"\t\tprivate Object linkedId;\r\n" +
@@ -69,9 +70,12 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tpublic boolean isMarkedAsTerm() {\r\n" +
 	"\t\t\treturn (marked == MARKED.TERM) || isMarkedAsLifeTerm();\r\n" +
 	"\t\t}\r\n\r\n" +
-	"\t\tpublic boolean isMarkedAsLifeTerm() {\r\n" +
-	"\t\t\treturn (marked == MARKED.LIFETERM);\r\n" +
+	"\t\tpublic boolean isMarkedAsSourceLifeTerm() {\r\n" +
+	"\t\t\treturn (marked == MARKED.SOURCELIFETERM);\r\n" +
 	"\t\t}\r\n\r\n" +	
+	"\t\tpublic boolean isMarkedAsLifeTerm() {\r\n" +
+	"\t\t\treturn (marked == MARKED.LIFETERM || isMarkedAsSourceLifeTerm());\r\n" +
+	"\t\t}\r\n\r\n" +
 	"\t\tpublic String[] getContextPath() {\r\n" +
 	"\t\t\treturn contextPath;\r\n" +
 	"\t\t}\r\n\r\n" +
@@ -154,6 +158,7 @@ public final class JavaCodeGeneratorTemplates {
 			"\t\t\tVWMLObject linkedEntity = processLinkedEntity(obj);\r\n" +
 			"\t\t\tif (obj.isMarkedAsLifeTerm()) {\r\n" +
 			"\t\t\t\t((VWMLEntity)linkedEntity).setLifeTerm(true);\r\n" +
+			"\t\t\t\t((VWMLEntity)linkedEntity).setLifeTermAsSource(obj.isMarkedAsSourceLifeTerm());\r\n" +
 			"\t\t\t\tVWMLLinkage.addLifeTerm((VWMLEntity)linkedEntity);\r\n" +
 			"\t\t\t}\r\n" +
 			"\t\t\tentity.link(linkedEntity);\r\n" +

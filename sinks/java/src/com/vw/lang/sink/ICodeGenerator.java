@@ -112,10 +112,11 @@ public interface ICodeGenerator {
 	
 	/**
 	 * Marks entity as lifeterm; the entity had to added and marked as term before this method is called
-	 * @param id
+	 * @param id (REL)
+	 * @param asSource lifeterm is considered as source term
 	 * @throws Exception
 	 */
-	public void markEntityAsLifeTerm(Object id) throws Exception;	
+	public void markEntityAsLifeTerm(Object id, boolean asSource) throws Exception;
 	
 	/**
 	 * Finishes generation of module
@@ -232,4 +233,22 @@ public interface ICodeGenerator {
 	 * @return
 	 */
 	public String getLangAsString();
+	
+	/**
+	 * Starts definition of conflict on the ring
+	 * @param conflictDefinitionName
+	 */
+	public void startConflictDefinitionOnRing(String conflictDefinitionName) throws Exception;
+	
+	/**
+	 * Adds definition of conflict, on the ring, to the ring
+	 * @param conflictDefinitionName
+	 */
+	public void addConflictDefinitionOnRing(String conflictDefinitionName) throws Exception;
+	
+	/**
+	 * Ends definition of conflict on the ring
+	 * @param conflictDefinitionName
+	 */
+	public void endConflictDefinitionOnRing() throws Exception;
 }

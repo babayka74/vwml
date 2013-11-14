@@ -128,8 +128,14 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			else {
 				String mark = "VWMLLinkWrap.MARKED.TERM";
 				if (obj.isAsLifeTerm()) {
-					mark = "VWMLLinkWrap.MARKED.LIFETERM";
+					if (!obj.isAsSource()) {
+						mark = "VWMLLinkWrap.MARKED.LIFETERM";
+					}
+					else {
+						mark = "VWMLLinkWrap.MARKED.SOURCELIFETERM";
+					}
 				}
+				
 				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\", " + arrayAsStr + ")";
 			}
 			ft = false;

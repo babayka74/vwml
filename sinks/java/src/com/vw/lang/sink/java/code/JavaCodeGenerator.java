@@ -270,6 +270,36 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		public String getContext() {
 			return context;
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((objId == null) ? 0 : objId.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			VWMLObjWrap other = (VWMLObjWrap) obj;
+			if (objId == null) {
+				if (other.objId != null) {
+					return false;
+				}
+			} else if (!objId.equals(other.objId)) {
+				return false;
+			}
+			return true;
+		}
 	}
 	
 	/**
@@ -282,6 +312,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private Object linkedId;
 		private boolean asTerm = false;
 		private boolean asLifeTerm = false;
+		private boolean asSource = false;
 		private String uniqId = "VWMLLINK_" + UUID.randomUUID().toString();
 		private String[] contextPath = null; // associates with linkedId (its concrete context)
 		private String activeContext = null; // active context - CE's context
@@ -307,6 +338,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.linkedId = linkedId;
 			this.asTerm = asTerm;
 			this.asLifeTerm = asLifeTerm;
+			parseContextPath();
+		}
+
+		public VWMLLinkWrap(Object id, Object linkedId, boolean asTerm, boolean asLifeTerm, boolean asSource) {
+			super();
+			this.id = id;
+			this.linkedId = linkedId;
+			this.asTerm = asTerm;
+			this.asLifeTerm = asLifeTerm;
+			this.asSource = asSource;
 			parseContextPath();
 		}
 		
@@ -344,6 +385,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 
 		public void setAsLifeTerm(boolean asLifeTerm) {
 			this.asLifeTerm = asLifeTerm;
+		}
+
+		public boolean isAsSource() {
+			return asSource;
+		}
+
+		public void setAsSource(boolean asSource) {
+			this.asSource = asSource;
 		}
 
 		public String getUniqId() {
@@ -451,7 +500,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	private Map<Object, VWMLOperationLink> operations = new HashMap<Object, VWMLOperationLink>();
 	// objects Id translation
 	private Map<Object, Object> idTranslationMap = new HashMap<Object, Object>();
-	
+	// entities of the conflict ring
+	private Map<String, List<String>> entitiesOfConflictRing = new HashMap<String, List<String>>();
+	// currently processed conflict definition name
+	private String activeConflictDefinitionName = null;
 	private VWMLLinkWrap lastLink = null;
 	// we need to store the last declared complex entity in order to detect complex context
 	// if complex context is detected then this entity is removed from declaration storage and
@@ -594,7 +646,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		normalizeCode();
 		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
 		new JavaCodeGeneratorModule(fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())]).buildModuleBody(modProps, getVisitor());
-		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects, declaredCreatures, declaredContexts);
+		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects, declaredCreatures, declaredContexts, entitiesOfConflictRing);
 		new JavaCodeGeneratorLinkage(fws[ModuleFiles.index(ModuleFiles.LINKAGE.toValue())]).buildModuleLinkagePart(modProps, linkage, interpret, markedAsTerm, operations);
 	}
 	
@@ -641,9 +693,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	/**
 	 * Marks entity as lifeterm; the entity had to added and marked as term before this method is called
 	 * @param id (REL)
+	 * @param asSource lifeterm is considered as source term
 	 * @throws Exception
 	 */
-	public void markEntityAsLifeTerm(Object id) throws Exception {
+	public void markEntityAsLifeTerm(Object id, boolean asSource) throws Exception {
 		boolean found = false;
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
 		// looking for the term which was added before
@@ -658,6 +711,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 		if (rel.getLastLink() != null && ((VWMLLinkWrap)rel.getLastLink()).isAsTerm()) {
 			((VWMLLinkWrap)rel.getLastLink()).setAsLifeTerm(true);
+			((VWMLLinkWrap)rel.getLastLink()).setAsSource(asSource);
 		}
 		else {
 			throw new Exception("Inconsistency found; object identified by '" + id + "' found in markedAsTerm collection but it is not marked as term");
@@ -813,6 +867,60 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		interpret.add(lastLink);
 	}
 	
+	/**
+	 * Starts definition of conflict on the ring
+	 * @param conflictDefinitionName
+	 */
+	public void startConflictDefinitionOnRing(String conflictDefinitionName) throws Exception {
+		String context = stripContextFrom(conflictDefinitionName);
+		if (!checkIfSimpleEntityDeclared(conflictDefinitionName, context)) {
+			declareSimpleEntity(conflictDefinitionName, context);
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("conflict definition on ring '" + conflictDefinitionName + "' defined on context '" + context + "'");
+		}
+		if (entitiesOfConflictRing.get(conflictDefinitionName) == null) {
+			entitiesOfConflictRing.put(conflictDefinitionName, new ArrayList<String>());
+		}
+		activeConflictDefinitionName = conflictDefinitionName;
+	}
+	
+	/**
+	 * Adds definition of conflict, on the ring, to the ring
+	 * @param conflictDefinitionName
+	 */
+	public void addConflictDefinitionOnRing(String conflictDefinitionName) throws Exception {
+		if (activeConflictDefinitionName == null) {
+			throw new Exception("active conflict definition name is null");
+		}
+		List<String> conflicts = entitiesOfConflictRing.get(activeConflictDefinitionName);
+		if (conflicts == null) {
+			throw new Exception("trying to add conflict definition outside conflict section");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("connects conflicts '" + activeConflictDefinitionName + "' and '" + conflictDefinitionName + "'");
+		}		
+		conflicts.add(conflictDefinitionName);
+		String context = stripContextFrom(conflictDefinitionName);
+		if (!checkIfSimpleEntityDeclared(conflictDefinitionName, context)) {
+			declareSimpleEntity(conflictDefinitionName, context);
+		}
+		// reversing include...
+		List<String> reversingConflicts = entitiesOfConflictRing.get(conflictDefinitionName);
+		if (reversingConflicts == null) {
+			reversingConflicts = new ArrayList<String>();
+			entitiesOfConflictRing.put(conflictDefinitionName, reversingConflicts);
+		}
+		reversingConflicts.add(activeConflictDefinitionName);
+	}
+	
+	/**
+	 * Ends definition of conflict on the ring
+	 * @param conflictDefinitionName
+	 */
+	public void endConflictDefinitionOnRing() throws Exception {
+		activeConflictDefinitionName = null;
+	}
 
 	public AbstractVWMLLinkVisitor getVisitor() {
 		return visitor;
@@ -872,4 +980,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			}
 		}
 	}
+	
+	private String stripContextFrom(String entity) {
+		if (entity.lastIndexOf('.') != -1) {
+			return entity.substring(0, entity.lastIndexOf('.'));
+		}
+		return "";
+	}
+	
+	private boolean checkIfSimpleEntityDeclared(Object id, String context) {
+		VWMLObjWrap v = new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, context);
+		return declaredObjects.contains(v);
+	}	
 }

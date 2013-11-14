@@ -127,7 +127,7 @@ module puzzle {
 				(Ew.RestPuzzles (Ew.RestPuzzles~ (Ew.RandomCard~))Substruct)^
 				Step~ Exe
 			);
-			lifeterm = Play~ Exe
+			source lifeterm = Play~ Exe
 		);
 	);
 }

@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.code.repository;
 
 import java.io.FileWriter;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -15,6 +16,7 @@ import com.vw.lang.sink.java.code.JavaCodeGenerator.VWMLObjWrap;
 import com.vw.lang.sink.java.code.JavaCodeGeneratorComponent;
 import com.vw.lang.sink.java.code.templates.JavaCodeGeneratorTemplates;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
@@ -47,7 +49,8 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 	public void buildModuleRepositoryPart(JavaModuleStartProps modProps,
 			                              List<VWMLObjWrap> declaredObjects,
 			                              List<VWMLObjWrap> declaredCreatures,
-			                              List<VWMLObjWrap> declaredContexts) throws Exception {
+			                              List<VWMLObjWrap> declaredContexts,
+			                              Map<String, List<String>> entitiesOfConflictRing) throws Exception {
 		// the fringe is context for creatures
 		declaredObjects.add(new VWMLObjWrap(VWMLObjectType.COMPLEX_ENTITY,
 				                            ComplexEntityNameBuilder.generateRootId(modProps.getModuleName()),
@@ -60,6 +63,9 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 		getFw().write("import " + AbstractVWMLLinkVisitor.class.getName() + ";\r\n");
 		if (declaredCreatures.size() > 0) {
 			getFw().write("import " + VWMLFringesRepository.class.getName() + ";\r\n");
+		}
+		if (entitiesOfConflictRing.size() > 0) {
+			getFw().write("import " + VWMLConflictRing.class.getName() + ";\r\n");
 		}
 		// starts class definition
 		getFw().write("\r\n" + JavaCodeGeneratorUtils.generateClassDef(ModuleFiles.REPOSITORY.toValue(), " extends VWMLRepository ", modProps));
@@ -82,6 +88,10 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 		if (declaredCreatures.size() > 0) {
 			getFw().write("\t\t// adding fringes\r\n");
 			getFw().write("\t\tregisterFringes();\r\n\r\n");
+		}
+		if (entitiesOfConflictRing.size() > 0) {
+			getFw().write("\t\t// register conflicts\r\n");
+			getFw().write("\t\tregisterConflicts();\r\n\r\n");
 		}
 		for(VWMLObjWrap obj : declaredObjects) {
 			getFw().write("\t\t// constructs entity '" + obj.getObjId() + "'\r\n");
@@ -115,6 +125,22 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 				String gate = obj.getReadableId() + ".instance()";
 				getFw().write("\t\tVWMLFringesRepository.registerFringeGate(\"" + fringe + "\", " + gate + ");\r\n");
 			}
+			getFw().write("\t}\r\n\r\n");
+		}
+		// initializes conflict ring
+		if (entitiesOfConflictRing.size() > 0) {
+			getFw().write("\tprotected void registerConflicts() throws Exception {\r\n");
+			getFw().write("\t\tVWMLConflictRing.init();\r\n");
+			for(String conflictName : entitiesOfConflictRing.keySet()) {
+				List<String> relatedConflicts = entitiesOfConflictRing.get(conflictName);
+				String[] arr = new String[relatedConflicts.size()];
+				relatedConflicts.toArray(arr);
+				getFw().write("\t\tVWMLConflictRing.register(\"" + conflictName + "\", " +
+							  JavaCodeGeneratorUtils.convertStaticStringArrayToString(arr) +
+							  ");\r\n");
+				arr = null;
+			}
+			getFw().write("\t\tVWMLConflictRing.done();\r\n");			
 			getFw().write("\t}\r\n");
 		}
 		// closes class

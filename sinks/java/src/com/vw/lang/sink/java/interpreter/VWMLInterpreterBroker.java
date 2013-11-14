@@ -87,7 +87,11 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (!modulesBuilt) {
 			build();
 		}
-		VWMLIterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), VWMLLinkage.getLifeTerms());
+		List<VWMLEntity> terms = VWMLLinkage.getSourceLifeTerms();
+		if (terms.size() == 0) {
+			terms = VWMLLinkage.getLifeTerms();
+		}
+		VWMLIterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), terms);
 		if (impl == null) {
 			throw new Exception("there were not found any interpreter; check interpreter's property file");
 		}
