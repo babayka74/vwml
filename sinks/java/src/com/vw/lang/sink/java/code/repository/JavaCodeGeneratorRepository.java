@@ -130,7 +130,6 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 		// initializes conflict ring
 		if (entitiesOfConflictRing.size() > 0) {
 			getFw().write("\tprotected void registerConflicts() throws Exception {\r\n");
-			getFw().write("\t\tVWMLConflictRing.init();\r\n");
 			for(String conflictName : entitiesOfConflictRing.keySet()) {
 				List<String> relatedConflicts = entitiesOfConflictRing.get(conflictName);
 				String[] arr = new String[relatedConflicts.size()];
@@ -140,7 +139,6 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 							  ");\r\n");
 				arr = null;
 			}
-			getFw().write("\t\tVWMLConflictRing.done();\r\n");			
 			getFw().write("\t}\r\n");
 		}
 		// closes class

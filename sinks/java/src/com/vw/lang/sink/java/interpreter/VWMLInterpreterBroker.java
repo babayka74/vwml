@@ -126,6 +126,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.REACTIVE) {
 			impl = VWMLReactiveTermInterpreter.instance(linkage, terms);
+			config.setStepByStepInterpretation(true);
 		}
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
