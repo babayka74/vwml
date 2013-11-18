@@ -899,8 +899,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("connects conflicts '" + activeConflictDefinitionName + "' and '" + conflictDefinitionName + "'");
-		}		
-		conflicts.add(conflictDefinitionName);
+		}
+		if (!conflicts.contains(conflictDefinitionName)) {
+			conflicts.add(conflictDefinitionName);
+		}
 		String context = stripContextFrom(conflictDefinitionName);
 		if (!checkIfSimpleEntityDeclared(conflictDefinitionName, context)) {
 			declareSimpleEntity(conflictDefinitionName, context);
@@ -911,7 +913,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			reversingConflicts = new ArrayList<String>();
 			entitiesOfConflictRing.put(conflictDefinitionName, reversingConflicts);
 		}
-		reversingConflicts.add(activeConflictDefinitionName);
+		if (!reversingConflicts.contains(activeConflictDefinitionName)) {
+			reversingConflicts.add(activeConflictDefinitionName);
+		}
 	}
 	
 	/**

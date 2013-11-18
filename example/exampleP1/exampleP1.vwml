@@ -23,12 +23,17 @@ options {
 
 module exampleP1 {
 	Example1 ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+		);
 		OnShelf ias nil;
 		Robby ias (
 			FigureSet ias (Cube Ball);
 		        Creation ias (
 				OnShelfSituation [
 					(OnShelf FigureSet~ Random)^
+					((put on shelf figure OnShelf~) ew.say~) Do  
 				OnShelfSituation ]
 			);
 			
@@ -39,11 +44,16 @@ module exampleP1 {
 			Attempt ias (
 				OnShelfSituation [
 					(Empty (Empty (OnShelf~ nil)Ident))^
+					((state of the shelf is Empty~) ew.say~) Do
 				OnShelfSituation ]
 				Empty~~ Exe
 			);
 			(Empty true) ias Attempt~ Exe;
-			(Empty false) ias (OnShelf (OnShelf~ ColorSet~ Random))^;
+			(Empty false) ias (
+						(OnShelf (OnShelf~ ColorSet~ Random))^
+						((state of the shelf is OnShelf~) ew.say~) Do 
+						7000 Relax
+					);
 			
 			source lifeterm = Attempt~ Exe
 		);

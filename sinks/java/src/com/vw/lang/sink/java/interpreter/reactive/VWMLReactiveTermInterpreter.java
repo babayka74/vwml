@@ -6,6 +6,9 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.interpreter.seq.VWMLSequentialTermInterpreter;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
 /**
@@ -15,6 +18,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  */
 public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 
+	private VWMLConflictRing ring = VWMLConflictRing.instance();
 	
 	private VWMLReactiveTermInterpreter() {
 	}
@@ -47,8 +51,29 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 		if (getTerms() == null  || getTerms().size() == 0) {
 			throw new Exception("term should be set before method is called");
 		}
+		getConfig().setStepByStepInterpretation(true);
+		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		for(VWMLEntity e : getTerms()) {
-			
+			// looking for ring node by source lifeterm's context 
+			VWMLConflictRingNode n = ring.findNodeByEntityContext(e.getContext().getContext());
+			if (n == null) {
+				throw new Exception("couldn't find ring node by context '" + e.getContext().getContext() + "'");
+			}
+			// instantiates new sequential interpreter
+			VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), e);
+			impl.setConfig(getConfig());
+			// associating interpreter and ring node
+			n.setInterpreter(impl);
+			// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
+			impl.start();
+		}
+		// starts reactive interpretation activity
+		while(true) {
+			VWMLConflictRingNode node = ring.next();
+			if (node == null) {
+				break;
+			}
+			node.operate();
 		}
 	}
 

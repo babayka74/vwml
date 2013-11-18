@@ -1,0 +1,47 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleP2"
+  		path = "c:\var\vwml/exampleP2/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleP2Proj"
+  		description = "ExampleP2"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleP2/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+		conflictring {
+			Example2.Bob.Attempt.OnShelfSituation conflicts ()
+		}
+	}
+}
+
+module exampleP2 {
+	Example2 ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+		);
+		OnShelf ias nil;
+		Bob ias (
+			ColorSet ias (Red Green);
+			Attempt ias (
+				OnShelfSituation [
+					(Empty (Empty (OnShelf~ nil)Ident))^
+					((interpreted as Empty~) ew.say~) Do  
+		    			500 Relax
+				OnShelfSituation ]
+				Empty~~ Exe
+			);
+			(Empty true)  ias Attempt~ Exe;
+			(Empty false) ias (OnShelf (OnShelf~ ColorSet~ Random))^;
+			
+			source lifeterm = Attempt~ Exe
+		);
+	);
+}

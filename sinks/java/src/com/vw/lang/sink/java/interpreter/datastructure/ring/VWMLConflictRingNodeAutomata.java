@@ -1,7 +1,14 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_B_ACT_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_B_PAS_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_E_ACT_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_E_PAS_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_N_ACT_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_N_PAS_Action;
+
 /**
- * Node's automata which returns next action which should be run on interpreter 
+ * Node's automata which activates next action on interpreter 
  * @author Oleg
  *
  */
@@ -17,7 +24,7 @@ public class VWMLConflictRingNodeAutomata {
 		
 	}
 	
-	public static VWMLConflictRingNodeAutomata build() {
+	public static VWMLConflictRingNodeAutomata build(VWMLConflictRingNode node) {
 		VWMLConflictRingNodeAutomata a = new VWMLConflictRingNodeAutomata();
 		a.init();
 		return a;
@@ -25,15 +32,16 @@ public class VWMLConflictRingNodeAutomata {
 	
 	/**
 	 * Executes automata's action depending on input parameters
+	 * @param node
 	 * @param input
 	 * @param activityState
 	 */
-	public void runAction(VWMLConflictRingNodeAutomataInputs input, VWMLConflictRingNodeAutomataStates activityState) throws Exception {
-		
+	public void runAction(VWMLConflictRingNode node, VWMLConflictRingNodeAutomataInputs input, VWMLConflictRingNodeAutomataStates activityState) throws Exception {
+		cells[input.ordinal()][activityState.ordinal()].getAction().action(node);
 	}
 	
 	/**
-	 * initializes automata's data structures
+	 * initializes automata's data structures (not expendable)
 	 */
 	protected void init() {
 		for(int i = 0; i < IN_MAX; i++) {
@@ -41,5 +49,12 @@ public class VWMLConflictRingNodeAutomata {
 				cells[i][j] = new VWMLConflictRingNodeAutomataCell();
 			}
 		}
+		// initializes automata's actions (automata has fixed set of inputs and states)
+		cells[VWMLConflictRingNodeAutomataInputs.IN_N.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_ACT.ordinal()].setAction(new VWMLConflictRingNode_N_ACT_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_N.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_PAS.ordinal()].setAction(new VWMLConflictRingNode_N_PAS_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_B.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_ACT.ordinal()].setAction(new VWMLConflictRingNode_B_ACT_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_B.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_PAS.ordinal()].setAction(new VWMLConflictRingNode_B_PAS_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_E.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_ACT.ordinal()].setAction(new VWMLConflictRingNode_E_ACT_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_E.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_PAS.ordinal()].setAction(new VWMLConflictRingNode_E_PAS_Action());
 	}
 }

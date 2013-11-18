@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
@@ -70,9 +71,26 @@ public class VWMLOperationUtils {
 			String id = newComplexEntity.buildReadableId();
 			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
 			if (lookedEntity != null) {
+				boolean activateUnlink = true;
+				if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
+					if (lookedEntity.getLink() != null) {
+						lookedEntity.getLink().getLinkedObjects().clear();
+					}
+					lookedEntity.setLink(newComplexEntity.getLink());
+					VWMLLinkIncrementalIterator it = newComplexEntity.getLink().acquireLinkedObjectsIterator();
+					if (it != null) {
+						for(; it.isCorrect(); it.next()) {
+							newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()).getLink().setParent(lookedEntity);
+						}
+					}
+					activateUnlink = false;
+				}
 				if (remove) {
 					VWMLObjectsRepository.instance().remove(newComplexEntity);
-					newComplexEntity.getLink().unlinkFromAll();
+					if (activateUnlink) {
+						newComplexEntity.getLink().unlinkFromAll();
+					}
+					newComplexEntity.setLink(null);
 				}
 				newComplexEntity = lookedEntity;
 			}

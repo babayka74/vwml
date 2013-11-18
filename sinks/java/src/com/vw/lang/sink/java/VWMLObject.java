@@ -87,6 +87,10 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		link.link(linked);
 	}
 	
+	public void setLink(VWMLLink link) {
+		this.link = link;
+	}
+
 	/**
 	 * Unlinks objects: current and given 
 	 * @param obj

@@ -10,10 +10,14 @@ import com.vw.lang.beyond.java.fringe.gate.GateConstants;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.activatectx.VWMLOperationActivateContextHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.bp.VWMLOperationBreakPointHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictend.VWMLOperationConflictSituationEndHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictstart.VWMLOperationConflictSituationStartHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.equal.VWMLOperationEqualHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOperationExeHandler;
@@ -41,30 +45,35 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VW
 public class VWMLOperationProcessor {
 	
 	private IVWMLGate debuggerGate = null;
+	private VWMLInterpreterObserver observer = null;
 	/**
 	 * maps VWML operation to its handler
 	 */
 	@SuppressWarnings("serial")
 	private static Map<VWMLOperation, VWMLOperationHandler> s_processorMap = new HashMap<VWMLOperation, VWMLOperationHandler>() {
 		{
-			put(new VWMLOperation(VWMLOperationsCode.OPINTERPRET),        new VWMLOperationInterpretHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPCREATEEXPR),       new VWMLOperationCreateExprHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPRANDOM),           new VWMLOperationRandomHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPEXECUTE),          new VWMLOperationExeHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE), new VWMLOperationImplicitAssembleHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPIDENT),            new VWMLOperationIdentHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATECTX),      new VWMLOperationActivateContextHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPDO),               new VWMLOperationOnFringeHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPRELAX),            new VWMLOperationRelaxHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPJOIN),             new VWMLOperationJoinHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPINTERSECT),        new VWMLOperationIntersectHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPSUBSTRUCT),        new VWMLOperationSubstructHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPIN),               new VWMLOperationInHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPINCL),             new VWMLOperationIncludeHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPEQ),               new VWMLOperationEqualHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPFIRST),            new VWMLOperationFirstHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPREST),             new VWMLOperationRestHandler());
-			put(new VWMLOperation(VWMLOperationsCode.OPLAST),             new VWMLOperationLastHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPINTERPRET),        		new VWMLOperationInterpretHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCREATEEXPR),       		new VWMLOperationCreateExprHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPRANDOM),           		new VWMLOperationRandomHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPEXECUTE),          		new VWMLOperationExeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE), 		new VWMLOperationImplicitAssembleHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPIDENT),           	 	new VWMLOperationIdentHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATECTX),      		new VWMLOperationActivateContextHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPDO),               		new VWMLOperationOnFringeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPRELAX),            		new VWMLOperationRelaxHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPJOIN),             		new VWMLOperationJoinHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPINTERSECT),        		new VWMLOperationIntersectHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPSUBSTRUCT),        		new VWMLOperationSubstructHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPIN),               		new VWMLOperationInHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPINCL),             		new VWMLOperationIncludeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPEQ),               		new VWMLOperationEqualHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPFIRST),            		new VWMLOperationFirstHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPREST),             		new VWMLOperationRestHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPLAST),             		new VWMLOperationLastHandler());
+			// service commands
+			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONEND),   new VWMLOperationConflictSituationEndHandler());
 		}
 	};
 	// called when unknown/unsupported operation is going to be executed
@@ -103,6 +112,7 @@ public class VWMLOperationProcessor {
 			handler = unknownOperationHandler;
 		}
 		try {
+			handler.reportInterpreterInternalState(interpreter);
 			checkBpAction(context, operation, true);
 			handler.handle(interpreter, linkage, context, operation);
 			checkBpAction(context, operation, false);
@@ -113,6 +123,14 @@ public class VWMLOperationProcessor {
 		}
 	}
 	
+	public VWMLInterpreterObserver getObserver() {
+		return observer;
+	}
+
+	public void setObserver(VWMLInterpreterObserver observer) {
+		this.observer = observer;
+	}
+
 	protected void checkBpAction(VWMLContext context, VWMLOperation operation, boolean beforeOp) {
 		if (debuggerGate != null) {
 			EWComplexEntity ce = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(), null);

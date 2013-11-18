@@ -23,11 +23,6 @@ import com.vw.lang.sink.java.operations.VWMLOperationsCode;
  */
 public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 
-	private static final int continueProcessingOfCurrentEntity = 0;
-	private static final int nextEntityToProcess = 1;
-	private static final int stopProcessing = 2;
-	private static final int finishedEntityProcessing = 3;
-
 	private static final VWMLOperation opImplicitlyAddedRef = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
 
 	// interpreter's temprary states
@@ -78,6 +73,14 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 		return cloned;
 	}
 		
+	/**
+	 * Returns last interpreter's status
+	 * @return
+	 */
+	public int getStatus() {
+		return result;
+	}
+	
 	/**
 	 * Starts interpretation logic
 	 * @throws Exception

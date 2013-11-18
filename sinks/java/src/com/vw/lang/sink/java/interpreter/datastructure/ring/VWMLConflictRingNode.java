@@ -13,7 +13,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// node's controlled interpreter
 	private VWMLIterpreterImpl interpreter;
 	// node's automata
-	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build();
+	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build(this);
 	// index of conflict fragment 
 	private int sigma;
 	
@@ -29,6 +29,19 @@ public class VWMLConflictRingNode extends VWMLObject {
 		return new VWMLConflictRingNode(id, readableId);
 	}
 
+	/**
+	 * Executes node's operational logic
+	 * @throws Exception
+	 */
+	public void operate() throws Exception {
+		VWMLConflictRingNodeAutomataInputs input = interpreter.getObserver().getConflictOperationalState();
+		VWMLConflictRingNodeAutomataStates state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
+		if (getSigma() == 0) {
+			state = VWMLConflictRingNodeAutomataStates.STATE_ACT;
+		}
+		nodeAutomata.runAction(this, input, state);
+	}
+	
 	public VWMLIterpreterImpl getInterpreter() {
 		return interpreter;
 	}

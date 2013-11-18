@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
 
@@ -14,6 +15,11 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
  */
 public abstract class VWMLIterpreterImpl {
 
+	public static final int continueProcessingOfCurrentEntity = 0;
+	public static final int nextEntityToProcess = 1;
+	public static final int stopProcessing = 2;
+	public static final int finishedEntityProcessing = 3;
+	
 	// list of terms to be interpreted
 	private List<VWMLEntity> terms;
 	// linkage (usually linkage module of the main module)
@@ -24,6 +30,8 @@ public abstract class VWMLIterpreterImpl {
 	private VWMLContext context = VWMLContext.instance();
 	// operating processor
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
+	// observer
+	private VWMLInterpreterObserver observer = new VWMLInterpreterObserver();
 
 	/**
 	 * Starts interpretation logic
@@ -68,6 +76,16 @@ public abstract class VWMLIterpreterImpl {
 		return processor;
 	}
 
+	public VWMLInterpreterObserver getObserver() {
+		return observer;
+	}
+
+	public void setObserver(VWMLInterpreterObserver observer) {
+		this.observer = observer;
+		// delegates it to processor
+		processor.setObserver(observer);
+	}
+
 	/**
 	 * Step-by-step interpretation
 	 * @return 'false' in case if interpretation finished, otherwise 'true' is returned
@@ -79,5 +97,13 @@ public abstract class VWMLIterpreterImpl {
 	
 	protected void setContext(VWMLContext context) {
 		this.context = context;
+	}
+	
+	/**
+	 * Returns last interpreter's status
+	 * @return
+	 */
+	public int getStatus() {
+		return stopProcessing;
 	}
 }
