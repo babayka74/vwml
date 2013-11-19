@@ -5,7 +5,6 @@ import java.util.Properties;
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
-import com.vw.lang.beyond.java.fringe.gate.console.Console;
 
 /**
  * Clones entities

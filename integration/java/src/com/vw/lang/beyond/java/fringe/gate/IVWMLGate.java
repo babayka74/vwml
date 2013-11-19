@@ -8,6 +8,10 @@ import java.util.Properties;
  *
  */
 public interface IVWMLGate extends IEW2VWMLGate, IVWML2EWGate {
+	
+	public static final String builtInTimeCommandId = "getCurrentSystemTime";
+	public static final String builtInDelayCommandId = "sleep";
+	
 	public void init() throws Exception;
 	public void done() throws Exception;
 	public void activateConfiguration(Properties props) throws Exception;

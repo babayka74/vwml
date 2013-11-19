@@ -6,6 +6,8 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflict
 import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_E_PAS_Action;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_N_ACT_Action;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_N_PAS_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_W_ACT_Action;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_W_PAS_Action;
 
 /**
  * Node's automata which activates next action on interpreter 
@@ -56,5 +58,7 @@ public class VWMLConflictRingNodeAutomata {
 		cells[VWMLConflictRingNodeAutomataInputs.IN_B.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_PAS.ordinal()].setAction(new VWMLConflictRingNode_B_PAS_Action());
 		cells[VWMLConflictRingNodeAutomataInputs.IN_E.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_ACT.ordinal()].setAction(new VWMLConflictRingNode_E_ACT_Action());
 		cells[VWMLConflictRingNodeAutomataInputs.IN_E.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_PAS.ordinal()].setAction(new VWMLConflictRingNode_E_PAS_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_W.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_ACT.ordinal()].setAction(new VWMLConflictRingNode_W_ACT_Action());
+		cells[VWMLConflictRingNodeAutomataInputs.IN_W.ordinal()][VWMLConflictRingNodeAutomataStates.STATE_PAS.ordinal()].setAction(new VWMLConflictRingNode_W_PAS_Action());
 	}
 }

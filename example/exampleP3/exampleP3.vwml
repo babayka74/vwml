@@ -1,0 +1,60 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleP3"
+  		path = "c:\var\vwml/exampleP3/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleP3Proj"
+  		description = "ExampleP3"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleP3/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+		conflictring {
+			Example3.Robby.Creation.OnShelfSituation conflicts (Example3.Bob.Creation.OnShelfSituation)
+		}
+	}
+}
+
+module exampleP3 {
+	Example3 ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+		);
+		OnShelf ias nil;
+		Robby ias (
+			FigureSet ias (Cube Ball);
+			Life ias (Creation~ Exe Life~ Exe);
+		        Creation ias (
+				OnShelfSituation [
+					(OnShelf FigureSet~ Random)^
+					((robby put figure OnShelf~ on shelf) ew.say~) Do 
+					3000 Relax
+					(OnShelf nil)^
+				OnShelfSituation ]
+			);
+			
+			source lifeterm = Life~ Exe
+		);
+		Bob ias (
+			FigureSet ias (Cube Ball);
+			Life ias (Creation~ Exe Life~ Exe);
+		        Creation ias (
+				OnShelfSituation [
+					(OnShelf FigureSet~ Random)^
+					((bob put figure OnShelf~ on shelf) ew.say~) Do 
+					2000 Relax
+					(OnShelf nil)^
+				OnShelfSituation ]
+			);
+			
+			source lifeterm = Life~ Exe
+		);
+	);
+}

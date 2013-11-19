@@ -15,8 +15,13 @@ public class VWMLFringesRepository {
 	private Map<String, IVWMLGate> fringeGates = new HashMap<String, IVWMLGate>();
 	
 	private static String s_DebugFringeReservedName = "__vwml_debug_fringe__";
+	private static String s_TimeFringeReservedName  = "__vwml_time_fringe__";
 	
 	private static VWMLFringesRepository s_instance = new VWMLFringesRepository();
+	
+	private VWMLFringesRepository() {
+		registerFringeGate(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
+	}
 	
 	/**
 	 * Registers fringe; associate fringe's name and its gate
@@ -42,6 +47,14 @@ public class VWMLFringesRepository {
 	 */
 	public static String getDebugFringeName() {
 		return s_DebugFringeReservedName;
+	}
+
+	/**
+	 * Returns built-in timer manager fringe's name
+	 * @return
+	 */
+	public static String getTimerManagerFringeName() {
+		return s_TimeFringeReservedName;
 	}
 	
 	protected void associateFringe2Gates(String fringe, IVWMLGate gate) {

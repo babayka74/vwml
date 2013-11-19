@@ -2,10 +2,16 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.relax;
 
 import java.util.List;
 
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
@@ -16,7 +22,7 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
  * @author ogibayev
  *
  */
-public class VWMLOperationRelaxHandler  extends VWMLOperationHandler {
+public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 
 	@Override
 	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
@@ -37,10 +43,33 @@ public class VWMLOperationRelaxHandler  extends VWMLOperationHandler {
 			}
 			finally {
 			}
-			Thread.sleep(timeToRelax);
+			if (interpreter.getConfig().getInterpretationMtStrategy() != VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.REACTIVE) {
+				internalDelayImpl(timeToRelax);
+			}
+			else { // reactive implementation
+				reactiveDelayImpl(interpreter, timeToRelax);
+			}
 		}
 		inspector.clear();
 		entities.clear();
 		stack.popUntilEmptyMark();
+	}
+	
+	protected void internalDelayImpl(int delay) throws Exception {
+		Thread.sleep(delay);
+	}
+	
+	protected void reactiveDelayImpl(VWMLIterpreterImpl interpreter, int delay) throws Exception {
+		if (delay != 0) {
+			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
+			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
+			VWMLOperationRelaxTimerCallback callback = new VWMLOperationRelaxTimerCallback();
+			if (interpreter.getObserver() != null) {
+				VWMLConflictRingNodeAutomataInputs conflictRingNodeAutomataInput = interpreter.getObserver().getConflictOperationalState();
+				callback.setConflictRingNodeAutomataInput(conflictRingNodeAutomataInput);
+				interpreter.getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_W);
+			}
+			VWMLInterpreterTimerManager.instance().addTimer(e.getId(), delay, Long.valueOf((String)e.getId()), interpreter, callback);
+		}
 	}
 }
