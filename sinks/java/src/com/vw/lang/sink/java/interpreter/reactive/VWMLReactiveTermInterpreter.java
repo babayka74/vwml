@@ -2,12 +2,16 @@ package com.vw.lang.sink.java.interpreter.reactive;
 
 import java.util.List;
 
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.interpreter.seq.VWMLSequentialTermInterpreter;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
@@ -59,22 +63,33 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 			if (n == null) {
 				throw new Exception("couldn't find ring node by context '" + e.getContext().getContext() + "'");
 			}
+			if (n.getInterpreter() != null) { // already processed
+				continue;
+			}
 			// instantiates new sequential interpreter
 			VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), e);
 			impl.setConfig(getConfig());
+			impl.setTimerManager(getTimerManager());
 			// associating interpreter and ring node
 			n.setInterpreter(impl);
 			// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
 			impl.start();
 		}
+		// check consistency
+		if (!ring.checkConsistency()) {
+			throw new Exception("the conflict ring was built with errors; there are nodes without interprerter");
+		}
+		IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
 		while(true) {
 			VWMLConflictRingNode node = ring.next();
 			if (node == null) {
 				break;
 			}
+			spinTimerManager(getTimerManager(), fringeGate);
 			node.operate();
 		}
+		getTimerManager().stop();
 	}
 
 	@Override
@@ -82,5 +97,12 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 		VWMLIterpreterImpl cloned = instance(super.getLinkage(), null, null);
 		cloned.setConfig(this.getConfig());
 		return cloned;
+	}
+	
+	protected void spinTimerManager(VWMLInterpreterTimerManager timerManager, IVWMLGate fringeGate) throws Exception {
+		EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
+		if (e != null) {
+			timerManager.processReactive(Long.valueOf((String)e.getId()));
+		}
 	}
 }

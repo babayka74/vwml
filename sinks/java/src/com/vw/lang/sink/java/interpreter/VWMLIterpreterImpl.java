@@ -5,6 +5,7 @@ import java.util.List;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
 
@@ -32,6 +33,8 @@ public abstract class VWMLIterpreterImpl {
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
 	// observer
 	private VWMLInterpreterObserver observer = new VWMLInterpreterObserver();
+	// reactive timer manager
+	private VWMLInterpreterTimerManager timerManager = VWMLInterpreterTimerManager.instance();	
 
 	/**
 	 * Starts interpretation logic
@@ -84,6 +87,14 @@ public abstract class VWMLIterpreterImpl {
 		this.observer = observer;
 		// delegates it to processor
 		processor.setObserver(observer);
+	}
+
+	public VWMLInterpreterTimerManager getTimerManager() {
+		return timerManager;
+	}
+
+	public void setTimerManager(VWMLInterpreterTimerManager timerManager) {
+		this.timerManager = timerManager;
 	}
 
 	/**

@@ -159,6 +159,14 @@ public class ComplexEntityNameBuilder {
 	}
 	
 	/**
+	 * Returns 'true' in case if build operation is allowed
+	 * @return
+	 */
+	public boolean isBuildAllowed() {
+		return (rootComplexEntity != null);
+	}
+	
+	/**
 	 * Clears name builder's storage
 	 */
 	public void clear() {

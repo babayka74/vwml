@@ -35,7 +35,7 @@ module exampleP3 {
 				OnShelfSituation [
 					(OnShelf FigureSet~ Random)^
 					((robby put figure OnShelf~ on shelf) ew.say~) Do 
-					3000 Relax
+					5000 Relax
 					(OnShelf nil)^
 				OnShelfSituation ]
 			);

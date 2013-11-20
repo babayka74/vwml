@@ -34,7 +34,7 @@ module exampleP2 {
 				OnShelfSituation [
 					(Empty (Empty (OnShelf~ nil)Ident))^
 					((interpreted as Empty~) ew.say~) Do  
-		    			500 Relax
+		    			5000 Relax
 				OnShelfSituation ]
 				Empty~~ Exe
 			);

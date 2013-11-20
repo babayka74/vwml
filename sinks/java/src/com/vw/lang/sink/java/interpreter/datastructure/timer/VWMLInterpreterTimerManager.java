@@ -11,19 +11,14 @@ import java.util.List;
 public class VWMLInterpreterTimerManager {
 	private List<VWMLInterpreterTimer> timers = new LinkedList<VWMLInterpreterTimer>();
 	
-	private static VWMLInterpreterTimerManager s_instance = null;
-	
 	private VWMLInterpreterTimerManager() {
 		
 	}
 	
 	public static synchronized VWMLInterpreterTimerManager instance() {
-		if (s_instance != null) {
-			return s_instance;
-		}
-		s_instance = new VWMLInterpreterTimerManager();
-		s_instance.init();
-		return s_instance;
+		VWMLInterpreterTimerManager instance = new VWMLInterpreterTimerManager();
+		instance.init();
+		return instance;
 	}
 
 	/**
@@ -76,7 +71,7 @@ public class VWMLInterpreterTimerManager {
 			return;
 		}
 		VWMLInterpreterTimer tm = timers.get(0);
-		int t =  tm.getTime() - (int)(currentTimeStamp - tm.getTimeStamp());
+		int t =  tm.getOrigTime() - (int)(currentTimeStamp - tm.getTimeStamp());
 		if (t <= 0) {
 			tm.setTime(0);
 			while(timers.size() != 0 && timers.get(0).getTime() == 0) {

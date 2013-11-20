@@ -1,0 +1,114 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleP4"
+  		path = "c:\var\vwml/exampleP4/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleP4Proj"
+  		description = "ExampleP4"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleP4/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+		conflictring {
+			Example4.Robby.Creation.ShelfSituation conflicts (Example4.Tom.GetInput.ShelfSituation)
+			Example4.Bob.Creation.ShelfSituation conflicts (Example4.Tom.GetInput.ShelfSituation)
+		}
+	}
+}
+
+module exampleP4 {
+	Example4 ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+		);
+		BShelf ias nil;
+		RShelf ias nil;
+		Robby ias (
+			FigureSet ias (Cube Ball);
+		        Creation ias (
+				1000 Relax 
+				ShelfSituation [
+					(RShelf FigureSet~ Random)^
+					((Robby put figure RShelf~ on shelf) ew.say~) Do
+				ShelfSituation ]
+			);
+			
+			source lifeterm = Creation~ Exe
+		);
+		Bob ias (
+			FigureSet ias (Cube Ball);
+		        Creation ias (
+				ShelfSituation [
+					(BShelf FigureSet~ Random)^
+					((Bob put figure BShelf~ on shelf) ew.say~) Do 
+				ShelfSituation ]
+			);
+			
+			source lifeterm = Creation~ Exe
+		);
+		Tom ias (
+			Input ias nil;
+			State ias 1;
+			ColorSet ias (Green Red Blue);
+			Attempt ias (
+				GetInput~ Exe
+				(Input~ State~)~ Exe
+			);
+			GetInput ias (
+				ShelfSituation [
+					(Input (Empty (RShelf~ nil)Ident (BShelf~ nil)Ident))^
+				ShelfSituation ]
+			);
+			((Empty false false) 1) ias (
+				BColoring~ Exe
+				RColoring~ Exe
+				(State 4)^
+				Attempt~ Exe
+			);
+			((Empty false false) 2) ias (
+				BColoring~ Exe
+				(State 4)^
+				Attempt~ Exe
+			);
+			((Empty false false) 3) ias (
+				RColoring~ Exe
+				(State 4)^
+				Attempt~ Exe
+			);
+			((Empty true false) 1) ias (
+				BColoring~ Exe
+				(State 3)^
+				Attempt~ Exe
+			);
+			((Empty false true) 1) ias (
+				RColoring~ Exe
+				(State 2)^
+				Attempt~ Exe
+			);
+			((Empty false false) 4) ias (
+				((Tom colored all figures of Robby as Bob) ew.say~) Do 
+				10000 Relax
+			);
+			((Empty true true) 1) ias Attempt~ Exe;
+			((Empty true false) 3) ias Attempt~ Exe;
+			((Empty false true) 2) ias Attempt~ Exe;
+			RColoring ias (
+				(RShelf (RShelf~ ColorSet~ Random))^
+				((Tom colored figure of Robby as RShelf~ ) ew.say~) Do 
+			);
+			BColoring ias (
+				(BShelf (BShelf~ ColorSet~ Random))^
+				((Tom colored figure of Bob as BShelf~ ) ew.say~) Do 
+			);
+			
+			source lifeterm = Attempt~ Exe
+		);
+	);
+}

@@ -11,7 +11,6 @@ import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
-import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
@@ -69,7 +68,9 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 				callback.setConflictRingNodeAutomataInput(conflictRingNodeAutomataInput);
 				interpreter.getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_W);
 			}
-			VWMLInterpreterTimerManager.instance().addTimer(e.getId(), delay, Long.valueOf((String)e.getId()), interpreter, callback);
+			if (interpreter.getTimerManager() != null) {
+				interpreter.getTimerManager().addTimer(e.getId(), delay, Long.valueOf((String)e.getId()), interpreter, callback);
+			}
 		}
 	}
 }

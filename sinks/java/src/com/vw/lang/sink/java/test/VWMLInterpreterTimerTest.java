@@ -51,14 +51,16 @@ public class VWMLInterpreterTimerTest {
 	
 	@Test
 	public void test() throws Exception {
+		VWMLInterpreterTimerManager tm = VWMLInterpreterTimerManager.instance();
 		VWMLInterpreterTestTimerCallback callback = new VWMLInterpreterTestTimerCallback(4);
-		VWMLInterpreterTimerManager.instance().addTimer("t1", 500, System.currentTimeMillis(), null, callback);
-		VWMLInterpreterTimerManager.instance().addTimer("t2", 500, System.currentTimeMillis(), null, callback);
-		VWMLInterpreterTimerManager.instance().addTimer("t3", 401, System.currentTimeMillis(), null, callback);
-		VWMLInterpreterTimerManager.instance().addTimer("t4", 600, System.currentTimeMillis(), null, callback);
+		tm.addTimer("t1", 500, System.currentTimeMillis(), null, callback);
+		tm.addTimer("t2", 500, System.currentTimeMillis(), null, callback);
+		tm.addTimer("t3", 401, System.currentTimeMillis(), null, callback);
+		tm.addTimer("t4", 600, System.currentTimeMillis(), null, callback);
 		while(!callback.expiredAll()) {
-			VWMLInterpreterTimerManager.instance().processReactive(System.currentTimeMillis());
+			tm.processReactive(System.currentTimeMillis());
 			Thread.sleep(100);
 		}
+		tm.stop();
 	}
 }

@@ -20,7 +20,7 @@ public class VWMLFringesRepository {
 	private static VWMLFringesRepository s_instance = new VWMLFringesRepository();
 	
 	private VWMLFringesRepository() {
-		registerFringeGate(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
+		associateFringe2Gates(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
 	}
 	
 	/**

@@ -31,6 +31,15 @@ public class Time implements IVWMLGate {
 	
 	@Override
 	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+		return null;
+	}
+
+	@Override
+	public void activateVWCallback(IEW2VWMLGate gate) {
+	}
+
+	@Override
+	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
 		EWEntity e = null;
 		if (((String)commandId).equalsIgnoreCase(IVWMLGate.builtInTimeCommandId)) {
 			e = EWEntityBuilder.buildSimpleEntity(String.valueOf(System.currentTimeMillis()), null);
@@ -47,15 +56,6 @@ public class Time implements IVWMLGate {
 			}
 		}
 		return e;
-	}
-
-	@Override
-	public void activateVWCallback(IEW2VWMLGate gate) {
-	}
-
-	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
-		return null;
 	}
 
 	@Override

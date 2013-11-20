@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-11-18 11:04:54
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2013-11-20 11:18:04
 
 package com.vw.lang.grammar;
 
@@ -159,6 +159,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     	private EntityWalker contextWalker = EntityWalker.instance();
     	private EntityWalker.Relation lastProcessedEntity = null;
     	private String activeFringe = null;
+    	private String lastDeclaredEntityId = null;
     	private String lastDeclaredCreatureId = null;
     	private String lastDeclaredCreatureProps = null;
     	private String lastProcessedComplexEntityId = null;
@@ -248,6 +249,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     	
     	protected void complexEntityDeclarationPhase2() throws RecognitionException {
     		complexEntityNameBuilderDecl.stopProgress();
+    	    	if (logger.isDebugEnabled()) {
+    	    		logger.debug("complex entity declaration process - stopped");
+    	    	}			
     	}
     	
     	protected String complexEntityDeclarationPhase3() throws RecognitionException {
@@ -587,13 +591,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "filedef"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:545:1: filedef : ( props )? ( include ( include )* )? ( module )? EOF ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:549:1: filedef : ( props )? ( include ( include )* )? ( module )? EOF ;
     public final void filedef() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:5: ( ( props )? ( include ( include )* )? ( module )? EOF )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:7: ( props )? ( include ( include )* )? ( module )? EOF
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:5: ( ( props )? ( include ( include )* )? ( module )? EOF )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:7: ( props )? ( include ( include )* )? ( module )? EOF
             {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:7: ( props )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:7: ( props )?
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -602,7 +606,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt1) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:7: props
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:7: props
                     {
                     pushFollow(FOLLOW_props_in_filedef424);
                     props();
@@ -616,7 +620,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:14: ( include ( include )* )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:14: ( include ( include )* )?
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -625,7 +629,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt3) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:15: include ( include )*
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:15: include ( include )*
                     {
                     pushFollow(FOLLOW_include_in_filedef428);
                     include();
@@ -633,7 +637,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     state._fsp--;
                     if (state.failed) return ;
 
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:23: ( include )*
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:23: ( include )*
                     loop2:
                     do {
                         int alt2=2;
@@ -646,7 +650,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                         switch (alt2) {
                     	case 1 :
-                    	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:24: include
+                    	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:24: include
                     	    {
                     	    pushFollow(FOLLOW_include_in_filedef431);
                     	    include();
@@ -669,7 +673,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:36: ( module )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:36: ( module )?
             int alt4=2;
             int LA4_0 = input.LA(1);
 
@@ -678,7 +682,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt4) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:546:36: module
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:550:36: module
                     {
                     pushFollow(FOLLOW_module_in_filedef437);
                     module();
@@ -732,14 +736,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "include"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:567:1: include : include_vwml ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:571:1: include : include_vwml ;
     public final void include() throws RecognitionException {
         String include_vwml1 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:568:5: ( include_vwml )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:568:7: include_vwml
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:572:5: ( include_vwml )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:572:7: include_vwml
             {
             pushFollow(FOLLOW_include_vwml_in_include461);
             include_vwml1=include_vwml();
@@ -772,7 +776,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "include_vwml"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:576:1: include_vwml returns [String id] : 'include' STRING_LITERAL ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:580:1: include_vwml returns [String id] : 'include' STRING_LITERAL ;
     public final String include_vwml() throws RecognitionException {
         String id = null;
 
@@ -780,8 +784,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
         Token STRING_LITERAL2=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:577:5: ( 'include' STRING_LITERAL )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:577:8: 'include' STRING_LITERAL
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:581:5: ( 'include' STRING_LITERAL )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:581:8: 'include' STRING_LITERAL
             {
             match(input,65,FOLLOW_65_in_include_vwml489); if (state.failed) return id;
 
@@ -807,11 +811,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "props"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:580:1: props : 'options' '{' optionsList '}' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:584:1: props : 'options' '{' optionsList '}' ;
     public final void props() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:581:5: ( 'options' '{' optionsList '}' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:581:7: 'options' '{' optionsList '}'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:585:5: ( 'options' '{' optionsList '}' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:585:7: 'options' '{' optionsList '}'
             {
             match(input,68,FOLLOW_68_in_props510); if (state.failed) return ;
 
@@ -843,11 +847,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "optionsList"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:584:1: optionsList : lang ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:588:1: optionsList : lang ;
     public final void optionsList() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:585:5: ( lang )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:585:7: lang
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:589:5: ( lang )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:589:7: lang
             {
             pushFollow(FOLLOW_lang_in_optionsList537);
             lang();
@@ -873,10 +877,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "lang"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:588:1: lang : ( ( 'language' '=' JAVA )=> langJava | otherLanguages );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:592:1: lang : ( ( 'language' '=' JAVA )=> langJava | otherLanguages );
     public final void lang() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:589:5: ( ( 'language' '=' JAVA )=> langJava | otherLanguages )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:593:5: ( ( 'language' '=' JAVA )=> langJava | otherLanguages )
             int alt5=2;
             int LA5_0 = input.LA(1);
 
@@ -896,7 +900,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt5) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:589:7: ( 'language' '=' JAVA )=> langJava
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:593:7: ( 'language' '=' JAVA )=> langJava
                     {
                     pushFollow(FOLLOW_langJava_in_lang564);
                     langJava();
@@ -907,7 +911,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:590:7: otherLanguages
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:594:7: otherLanguages
                     {
                     pushFollow(FOLLOW_otherLanguages_in_lang572);
                     otherLanguages();
@@ -935,11 +939,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "otherLanguages"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:593:1: otherLanguages :;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:597:1: otherLanguages :;
     public final void otherLanguages() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:594:5: ()
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:595:5: 
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:598:5: ()
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:599:5: 
             {
             }
 
@@ -954,7 +958,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "langJava"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:597:1: langJava : 'language' '=' JAVA '{' javaProps '}' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:601:1: langJava : 'language' '=' JAVA '{' javaProps '}' ;
     public final void langJava() throws RecognitionException {
 
                codeGenerator = vwmlModelBuilder.getCodeGenerator(VWMLModelBuilder.SINK_TYPE.JAVA);
@@ -963,8 +967,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                }
             
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:604:5: ( 'language' '=' JAVA '{' javaProps '}' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:604:7: 'language' '=' JAVA '{' javaProps '}'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:608:5: ( 'language' '=' JAVA '{' javaProps '}' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:608:7: 'language' '=' JAVA '{' javaProps '}'
             {
             match(input,66,FOLLOW_66_in_langJava615); if (state.failed) return ;
 
@@ -1000,7 +1004,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "javaProps"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:607:1: javaProps : propPackage ( generatedFileLocation )? optionalProps ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:611:1: javaProps : propPackage ( generatedFileLocation )? optionalProps ;
     public final void javaProps() throws RecognitionException {
 
         	// instantiating module's properties which will be filled later
@@ -1011,8 +1015,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
         	}
             
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:616:5: ( propPackage ( generatedFileLocation )? optionalProps )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:616:7: propPackage ( generatedFileLocation )? optionalProps
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:620:5: ( propPackage ( generatedFileLocation )? optionalProps )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:620:7: propPackage ( generatedFileLocation )? optionalProps
             {
             pushFollow(FOLLOW_propPackage_in_javaProps651);
             propPackage();
@@ -1020,7 +1024,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             state._fsp--;
             if (state.failed) return ;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:616:19: ( generatedFileLocation )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:620:19: ( generatedFileLocation )?
             int alt6=2;
             int LA6_0 = input.LA(1);
 
@@ -1029,7 +1033,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt6) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:616:19: generatedFileLocation
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:620:19: generatedFileLocation
                     {
                     pushFollow(FOLLOW_generatedFileLocation_in_javaProps653);
                     generatedFileLocation();
@@ -1067,14 +1071,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "propPackage"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:619:1: propPackage : 'package' '=' packageName ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:623:1: propPackage : 'package' '=' packageName ;
     public final void propPackage() throws RecognitionException {
         VirtualWorldModelingLanguageParser.packageName_return packageName3 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:620:5: ( 'package' '=' packageName )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:620:7: 'package' '=' packageName
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:624:5: ( 'package' '=' packageName )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:624:7: 'package' '=' packageName
             {
             match(input,69,FOLLOW_69_in_propPackage678); if (state.failed) return ;
 
@@ -1113,15 +1117,15 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "packageName"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:627:1: packageName : STRING_LITERAL ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:631:1: packageName : STRING_LITERAL ;
     public final VirtualWorldModelingLanguageParser.packageName_return packageName() throws RecognitionException {
         VirtualWorldModelingLanguageParser.packageName_return retval = new VirtualWorldModelingLanguageParser.packageName_return();
         retval.start = input.LT(1);
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:628:5: ( STRING_LITERAL )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:628:7: STRING_LITERAL
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:632:5: ( STRING_LITERAL )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:632:7: STRING_LITERAL
             {
             match(input,STRING_LITERAL,FOLLOW_STRING_LITERAL_in_packageName701); if (state.failed) return retval;
 
@@ -1146,14 +1150,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "generatedFileLocation"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:631:1: generatedFileLocation : 'path' '=' path ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:635:1: generatedFileLocation : 'path' '=' path ;
     public final void generatedFileLocation() throws RecognitionException {
         VirtualWorldModelingLanguageParser.path_return path4 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:632:5: ( 'path' '=' path )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:632:7: 'path' '=' path
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:636:5: ( 'path' '=' path )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:636:7: 'path' '=' path
             {
             match(input,70,FOLLOW_70_in_generatedFileLocation718); if (state.failed) return ;
 
@@ -1189,13 +1193,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "optionalProps"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:639:1: optionalProps : ( author )? ( projname )? ( description )? ( entity_history_size )? ( visualizer )? ( beyond_the_fringe )? ( conflictring )? ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:643:1: optionalProps : ( author )? ( projname )? ( description )? ( entity_history_size )? ( visualizer )? ( beyond_the_fringe )? ( conflictring )? ;
     public final void optionalProps() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:5: ( ( author )? ( projname )? ( description )? ( entity_history_size )? ( visualizer )? ( beyond_the_fringe )? ( conflictring )? )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:7: ( author )? ( projname )? ( description )? ( entity_history_size )? ( visualizer )? ( beyond_the_fringe )? ( conflictring )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:5: ( ( author )? ( projname )? ( description )? ( entity_history_size )? ( visualizer )? ( beyond_the_fringe )? ( conflictring )? )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:7: ( author )? ( projname )? ( description )? ( entity_history_size )? ( visualizer )? ( beyond_the_fringe )? ( conflictring )?
             {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:7: ( author )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:7: ( author )?
             int alt7=2;
             int LA7_0 = input.LA(1);
 
@@ -1204,7 +1208,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt7) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:7: author
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:7: author
                     {
                     pushFollow(FOLLOW_author_in_optionalProps742);
                     author();
@@ -1218,7 +1222,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:15: ( projname )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:15: ( projname )?
             int alt8=2;
             int LA8_0 = input.LA(1);
 
@@ -1227,7 +1231,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt8) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:15: projname
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:15: projname
                     {
                     pushFollow(FOLLOW_projname_in_optionalProps745);
                     projname();
@@ -1241,7 +1245,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:25: ( description )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:25: ( description )?
             int alt9=2;
             int LA9_0 = input.LA(1);
 
@@ -1250,7 +1254,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt9) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:25: description
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:25: description
                     {
                     pushFollow(FOLLOW_description_in_optionalProps748);
                     description();
@@ -1264,7 +1268,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:38: ( entity_history_size )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:38: ( entity_history_size )?
             int alt10=2;
             int LA10_0 = input.LA(1);
 
@@ -1273,7 +1277,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt10) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:38: entity_history_size
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:38: entity_history_size
                     {
                     pushFollow(FOLLOW_entity_history_size_in_optionalProps751);
                     entity_history_size();
@@ -1287,7 +1291,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:59: ( visualizer )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:59: ( visualizer )?
             int alt11=2;
             int LA11_0 = input.LA(1);
 
@@ -1296,7 +1300,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt11) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:59: visualizer
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:59: visualizer
                     {
                     pushFollow(FOLLOW_visualizer_in_optionalProps754);
                     visualizer();
@@ -1310,7 +1314,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:71: ( beyond_the_fringe )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:71: ( beyond_the_fringe )?
             int alt12=2;
             int LA12_0 = input.LA(1);
 
@@ -1319,7 +1323,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt12) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:71: beyond_the_fringe
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:71: beyond_the_fringe
                     {
                     pushFollow(FOLLOW_beyond_the_fringe_in_optionalProps757);
                     beyond_the_fringe();
@@ -1333,7 +1337,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
 
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:90: ( conflictring )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:90: ( conflictring )?
             int alt13=2;
             int LA13_0 = input.LA(1);
 
@@ -1342,7 +1346,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt13) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:640:90: conflictring
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:90: conflictring
                     {
                     pushFollow(FOLLOW_conflictring_in_optionalProps760);
                     conflictring();
@@ -1374,14 +1378,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "author"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:643:1: author : 'author' '=' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:647:1: author : 'author' '=' string ;
     public final void author() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return string5 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:5: ( 'author' '=' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:644:7: 'author' '=' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:648:5: ( 'author' '=' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:648:7: 'author' '=' string
             {
             match(input,56,FOLLOW_56_in_author778); if (state.failed) return ;
 
@@ -1417,14 +1421,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "projname"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:651:1: projname : 'project_name' '=' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:655:1: projname : 'project_name' '=' string ;
     public final void projname() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return string6 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:652:5: ( 'project_name' '=' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:652:7: 'project_name' '=' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:656:5: ( 'project_name' '=' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:656:7: 'project_name' '=' string
             {
             match(input,71,FOLLOW_71_in_projname801); if (state.failed) return ;
 
@@ -1460,14 +1464,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "description"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:659:1: description : 'description' '=' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:663:1: description : 'description' '=' string ;
     public final void description() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return string7 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:660:5: ( 'description' '=' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:660:7: 'description' '=' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:664:5: ( 'description' '=' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:664:7: 'description' '=' string
             {
             match(input,62,FOLLOW_62_in_description828); if (state.failed) return ;
 
@@ -1503,14 +1507,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "entity_history_size"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:667:1: entity_history_size : 'entity_history_size' '=' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:671:1: entity_history_size : 'entity_history_size' '=' string ;
     public final void entity_history_size() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return string8 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:668:5: ( 'entity_history_size' '=' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:668:7: 'entity_history_size' '=' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:672:5: ( 'entity_history_size' '=' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:672:7: 'entity_history_size' '=' string
             {
             match(input,63,FOLLOW_63_in_entity_history_size851); if (state.failed) return ;
 
@@ -1546,11 +1550,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "visualizer"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:676:1: visualizer : 'visualizer' '{' visualizer_body '}' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:680:1: visualizer : 'visualizer' '{' visualizer_body '}' ;
     public final void visualizer() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:677:5: ( 'visualizer' '{' visualizer_body '}' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:677:7: 'visualizer' '{' visualizer_body '}'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:681:5: ( 'visualizer' '{' visualizer_body '}' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:681:7: 'visualizer' '{' visualizer_body '}'
             {
             match(input,73,FOLLOW_73_in_visualizer875); if (state.failed) return ;
 
@@ -1582,10 +1586,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "visualizer_body"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:680:1: visualizer_body : ( visualizer_class visualizer_datapath |);
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:684:1: visualizer_body : ( visualizer_class visualizer_datapath |);
     public final void visualizer_body() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:681:5: ( visualizer_class visualizer_datapath |)
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:685:5: ( visualizer_class visualizer_datapath |)
             int alt14=2;
             int LA14_0 = input.LA(1);
 
@@ -1605,7 +1609,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt14) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:681:7: visualizer_class visualizer_datapath
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:685:7: visualizer_class visualizer_datapath
                     {
                     pushFollow(FOLLOW_visualizer_class_in_visualizer_body899);
                     visualizer_class();
@@ -1622,7 +1626,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:683:5: 
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:687:5: 
                     {
                     }
                     break;
@@ -1644,14 +1648,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "visualizer_class"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:685:1: visualizer_class : 'class' '=' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:689:1: visualizer_class : 'class' '=' string ;
     public final void visualizer_class() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return string9 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:686:5: ( 'class' '=' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:686:7: 'class' '=' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:690:5: ( 'class' '=' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:690:7: 'class' '=' string
             {
             match(input,58,FOLLOW_58_in_visualizer_class924); if (state.failed) return ;
 
@@ -1687,14 +1691,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "visualizer_datapath"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:693:1: visualizer_datapath : 'data' '=' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:697:1: visualizer_datapath : 'data' '=' string ;
     public final void visualizer_datapath() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return string10 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:694:5: ( 'data' '=' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:694:7: 'data' '=' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:698:5: ( 'data' '=' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:698:7: 'data' '=' string
             {
             match(input,61,FOLLOW_61_in_visualizer_datapath951); if (state.failed) return ;
 
@@ -1733,15 +1737,15 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "path"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:701:1: path : STRING_LITERAL ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:705:1: path : STRING_LITERAL ;
     public final VirtualWorldModelingLanguageParser.path_return path() throws RecognitionException {
         VirtualWorldModelingLanguageParser.path_return retval = new VirtualWorldModelingLanguageParser.path_return();
         retval.start = input.LT(1);
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:702:5: ( STRING_LITERAL )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:702:7: STRING_LITERAL
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:706:5: ( STRING_LITERAL )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:706:7: STRING_LITERAL
             {
             match(input,STRING_LITERAL,FOLLOW_STRING_LITERAL_in_path978); if (state.failed) return retval;
 
@@ -1766,11 +1770,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "beyond_the_fringe"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:706:1: beyond_the_fringe : 'beyond' '{' beyond_the_fringe_body '}' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:710:1: beyond_the_fringe : 'beyond' '{' beyond_the_fringe_body '}' ;
     public final void beyond_the_fringe() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:707:5: ( 'beyond' '{' beyond_the_fringe_body '}' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:707:7: 'beyond' '{' beyond_the_fringe_body '}'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:711:5: ( 'beyond' '{' beyond_the_fringe_body '}' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:711:7: 'beyond' '{' beyond_the_fringe_body '}'
             {
             match(input,57,FOLLOW_57_in_beyond_the_fringe996); if (state.failed) return ;
 
@@ -1802,11 +1806,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "beyond_the_fringe_body"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:710:1: beyond_the_fringe_body : finges ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:714:1: beyond_the_fringe_body : finges ;
     public final void beyond_the_fringe_body() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:711:5: ( finges )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:711:8: finges
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:715:5: ( finges )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:715:8: finges
             {
             pushFollow(FOLLOW_finges_in_beyond_the_fringe_body1024);
             finges();
@@ -1832,13 +1836,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "finges"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:714:1: finges : ( fringe )+ ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:718:1: finges : ( fringe )+ ;
     public final void finges() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:715:5: ( ( fringe )+ )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:715:8: ( fringe )+
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:719:5: ( ( fringe )+ )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:719:8: ( fringe )+
             {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:715:8: ( fringe )+
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:719:8: ( fringe )+
             int cnt15=0;
             loop15:
             do {
@@ -1852,7 +1856,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                 switch (alt15) {
             	case 1 :
-            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:715:9: fringe
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:719:9: fringe
             	    {
             	    pushFollow(FOLLOW_fringe_in_finges1043);
             	    fringe();
@@ -1892,13 +1896,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "fringe"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:718:1: fringe : 'fringe' ID 'ias' '(' creatures ')' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:722:1: fringe : 'fringe' ID 'ias' '(' creatures ')' ;
     public final void fringe() throws RecognitionException {
         Token ID11=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:719:5: ( 'fringe' ID 'ias' '(' creatures ')' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:719:8: 'fringe' ID 'ias' '(' creatures ')'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:723:5: ( 'fringe' ID 'ias' '(' creatures ')' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:723:8: 'fringe' ID 'ias' '(' creatures ')'
             {
             match(input,64,FOLLOW_64_in_fringe1063); if (state.failed) return ;
 
@@ -1938,13 +1942,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "creatures"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:725:1: creatures : ( creature )+ ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:729:1: creatures : ( creature )+ ;
     public final void creatures() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:726:5: ( ( creature )+ )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:726:7: ( creature )+
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:730:5: ( ( creature )+ )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:730:7: ( creature )+
             {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:726:7: ( creature )+
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:730:7: ( creature )+
             int cnt16=0;
             loop16:
             do {
@@ -1958,7 +1962,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                 switch (alt16) {
             	case 1 :
-            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:726:8: creature
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:730:8: creature
             	    {
             	    pushFollow(FOLLOW_creature_in_creatures1112);
             	    creature();
@@ -1998,15 +2002,15 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "creature"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:729:1: creature : ID 'ias' string ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:733:1: creature : ID 'ias' string ;
     public final void creature() throws RecognitionException {
         Token ID12=null;
         VirtualWorldModelingLanguageParser.string_return string13 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:741:5: ( ID 'ias' string )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:741:7: ID 'ias' string
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:745:5: ( ID 'ias' string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:745:7: ID 'ias' string
             {
             ID12=(Token)match(input,ID,FOLLOW_ID_in_creature1140); if (state.failed) return ;
 
@@ -2055,37 +2059,44 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "conflictring"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:748:1: conflictring : 'conflictring' '{' ( conflictdef )? '}' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:752:1: conflictring : 'conflictring' '{' ( conflictdef )* '}' ;
     public final void conflictring() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:749:5: ( 'conflictring' '{' ( conflictdef )? '}' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:749:7: 'conflictring' '{' ( conflictdef )? '}'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:5: ( 'conflictring' '{' ( conflictdef )* '}' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:7: 'conflictring' '{' ( conflictdef )* '}'
             {
             match(input,59,FOLLOW_59_in_conflictring1166); if (state.failed) return ;
 
             match(input,74,FOLLOW_74_in_conflictring1168); if (state.failed) return ;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:749:26: ( conflictdef )?
-            int alt17=2;
-            int LA17_0 = input.LA(1);
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:26: ( conflictdef )*
+            loop17:
+            do {
+                int alt17=2;
+                int LA17_0 = input.LA(1);
 
-            if ( (LA17_0==ID) ) {
-                alt17=1;
-            }
-            switch (alt17) {
-                case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:749:26: conflictdef
-                    {
-                    pushFollow(FOLLOW_conflictdef_in_conflictring1170);
-                    conflictdef();
+                if ( (LA17_0==ID) ) {
+                    alt17=1;
+                }
 
-                    state._fsp--;
-                    if (state.failed) return ;
 
-                    }
-                    break;
+                switch (alt17) {
+            	case 1 :
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:26: conflictdef
+            	    {
+            	    pushFollow(FOLLOW_conflictdef_in_conflictring1170);
+            	    conflictdef();
 
-            }
+            	    state._fsp--;
+            	    if (state.failed) return ;
+
+            	    }
+            	    break;
+
+            	default :
+            	    break loop17;
+                }
+            } while (true);
 
 
             match(input,75,FOLLOW_75_in_conflictring1173); if (state.failed) return ;
@@ -2108,14 +2119,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "conflictdef"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:752:1: conflictdef : name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:756:1: conflictdef : name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')' ;
     public final void conflictdef() throws RecognitionException {
         String name_of_conflict_on_ring14 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:5: ( name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:7: name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:757:5: ( name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:757:7: name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')'
             {
             pushFollow(FOLLOW_name_of_conflict_on_ring_in_conflictdef1191);
             name_of_conflict_on_ring14=name_of_conflict_on_ring();
@@ -2129,7 +2140,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
             match(input,52,FOLLOW_52_in_conflictdef1197); if (state.failed) return ;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:113: ( name_of_related_conflict_on_ring )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:757:113: ( name_of_related_conflict_on_ring )?
             int alt18=2;
             int LA18_0 = input.LA(1);
 
@@ -2138,7 +2149,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt18) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:753:113: name_of_related_conflict_on_ring
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:757:113: name_of_related_conflict_on_ring
                     {
                     pushFollow(FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1199);
                     name_of_related_conflict_on_ring();
@@ -2174,7 +2185,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "name_of_conflict_on_ring"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:756:1: name_of_conflict_on_ring returns [String id] : ID ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:760:1: name_of_conflict_on_ring returns [String id] : ID ;
     public final String name_of_conflict_on_ring() throws RecognitionException {
         String id = null;
 
@@ -2182,8 +2193,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
         Token ID15=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:757:5: ( ID )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:757:7: ID
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:761:5: ( ID )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:761:7: ID
             {
             ID15=(Token)match(input,ID,FOLLOW_ID_in_name_of_conflict_on_ring1229); if (state.failed) return id;
 
@@ -2207,13 +2218,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "name_of_related_conflict_on_ring"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:760:1: name_of_related_conflict_on_ring : ID ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:764:1: name_of_related_conflict_on_ring : ID ;
     public final void name_of_related_conflict_on_ring() throws RecognitionException {
         Token ID16=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:761:5: ( ID )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:761:7: ID
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:765:5: ( ID )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:765:7: ID
             {
             ID16=(Token)match(input,ID,FOLLOW_ID_in_name_of_related_conflict_on_ring1250); if (state.failed) return ;
 
@@ -2237,13 +2248,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "module"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:764:1: module : 'module' ID body ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:768:1: module : 'module' ID body ;
     public final void module() throws RecognitionException {
         Token ID17=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:765:5: ( 'module' ID body )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:765:7: 'module' ID body
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:769:5: ( 'module' ID body )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:769:7: 'module' ID body
             {
             match(input,67,FOLLOW_67_in_module1269); if (state.failed) return ;
 
@@ -2300,15 +2311,15 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "body"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:793:1: body : '{' ( expression ( expression )* )? '}' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:797:1: body : '{' ( expression ( expression )* )? '}' ;
     public final void body() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:794:4: ( '{' ( expression ( expression )* )? '}' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:794:6: '{' ( expression ( expression )* )? '}'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:4: ( '{' ( expression ( expression )* )? '}' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:6: '{' ( expression ( expression )* )? '}'
             {
             match(input,74,FOLLOW_74_in_body1295); if (state.failed) return ;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:794:10: ( expression ( expression )* )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:10: ( expression ( expression )* )?
             int alt20=2;
             int LA20_0 = input.LA(1);
 
@@ -2317,7 +2328,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt20) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:794:11: expression ( expression )*
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:11: expression ( expression )*
                     {
                     pushFollow(FOLLOW_expression_in_body1298);
                     expression();
@@ -2325,7 +2336,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     state._fsp--;
                     if (state.failed) return ;
 
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:794:22: ( expression )*
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:22: ( expression )*
                     loop19:
                     do {
                         int alt19=2;
@@ -2338,7 +2349,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                         switch (alt19) {
                     	case 1 :
-                    	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:794:23: expression
+                    	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:23: expression
                     	    {
                     	    pushFollow(FOLLOW_expression_in_body1301);
                     	    expression();
@@ -2381,10 +2392,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "expression"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:798:1: expression : ( ( entity_decl IAS )=> entity_def | check_term_def );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:802:1: expression : ( ( entity_decl IAS )=> entity_def | check_term_def );
     public final void expression() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:799:5: ( ( entity_decl IAS )=> entity_def | check_term_def )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:803:5: ( ( entity_decl IAS )=> entity_def | check_term_def )
             int alt21=2;
             switch ( input.LA(1) ) {
             case ID:
@@ -2445,7 +2456,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
             switch (alt21) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:799:7: ( entity_decl IAS )=> entity_def
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:803:7: ( entity_decl IAS )=> entity_def
                     {
                     pushFollow(FOLLOW_entity_def_in_expression1333);
                     entity_def();
@@ -2456,7 +2467,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:800:7: check_term_def
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:804:7: check_term_def
                     {
                     pushFollow(FOLLOW_check_term_def_in_expression1341);
                     check_term_def();
@@ -2484,14 +2495,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "entity_def"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:803:1: entity_def : entity_decl IAS ( term )* SEMICOLON ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:807:1: entity_def : entity_decl IAS ( term )* SEMICOLON ;
     public final void entity_def() throws RecognitionException {
         String entity_decl18 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:804:5: ( entity_decl IAS ( term )* SEMICOLON )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:804:7: entity_decl IAS ( term )* SEMICOLON
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:808:5: ( entity_decl IAS ( term )* SEMICOLON )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:808:7: entity_decl IAS ( term )* SEMICOLON
             {
             pushFollow(FOLLOW_entity_decl_in_entity_def1358);
             entity_decl18=entity_decl();
@@ -2502,11 +2513,18 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             match(input,IAS,FOLLOW_IAS_in_entity_def1360); if (state.failed) return ;
 
             if ( state.backtracking==0 ) {
+                			lastDeclaredEntityId = null;
+                        		if (complexEntityNameBuilderDecl.isBuildAllowed()) {
+                				lastDeclaredEntityId = complexEntityDeclarationPhase3();
+                			}
+                			else {
+                				lastDeclaredEntityId = entity_decl18;
+                			}
                 			// adds entity id to context stack
-                			declareAbsoluteContextByIASRelation(entity_decl18);
+                			declareAbsoluteContextByIASRelation(lastDeclaredEntityId);
                 		      }
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:807:15: ( term )*
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:818:15: ( term )*
             loop22:
             do {
                 int alt22=2;
@@ -2519,7 +2537,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                 switch (alt22) {
             	case 1 :
-            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:807:16: term
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:818:16: term
             	    {
             	    pushFollow(FOLLOW_term_in_entity_def1365);
             	    term();
@@ -2540,7 +2558,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
             if ( state.backtracking==0 ) {
                 		      	// removes top entity from stack
-                		      	handleProcessedAbsoluteContextbyIASRelation(entity_decl18);
+                		      	handleProcessedAbsoluteContextbyIASRelation(lastDeclaredEntityId);
                 		      }
 
             }
@@ -2561,10 +2579,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "check_term_def"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:815:1: check_term_def : ( ( source_lifetrerm )? LIFETERM '=' lifeterm_def | term_def );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:826:1: check_term_def : ( ( source_lifetrerm )? LIFETERM '=' lifeterm_def | term_def );
     public final void check_term_def() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:5: ( ( source_lifetrerm )? LIFETERM '=' lifeterm_def | term_def )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:827:5: ( ( source_lifetrerm )? LIFETERM '=' lifeterm_def | term_def )
             int alt24=2;
             int LA24_0 = input.LA(1);
 
@@ -2584,9 +2602,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt24) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:7: ( source_lifetrerm )? LIFETERM '=' lifeterm_def
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:827:7: ( source_lifetrerm )? LIFETERM '=' lifeterm_def
                     {
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:7: ( source_lifetrerm )?
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:827:7: ( source_lifetrerm )?
                     int alt23=2;
                     int LA23_0 = input.LA(1);
 
@@ -2595,7 +2613,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     switch (alt23) {
                         case 1 :
-                            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:7: source_lifetrerm
+                            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:827:7: source_lifetrerm
                             {
                             pushFollow(FOLLOW_source_lifetrerm_in_check_term_def1413);
                             source_lifetrerm();
@@ -2622,7 +2640,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:7: term_def
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:828:7: term_def
                     {
                     pushFollow(FOLLOW_term_def_in_check_term_def1428);
                     term_def();
@@ -2650,11 +2668,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "source_lifetrerm"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:820:1: source_lifetrerm : 'source' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:831:1: source_lifetrerm : 'source' ;
     public final void source_lifetrerm() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:821:5: ( 'source' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:821:7: 'source'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:832:5: ( 'source' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:832:7: 'source'
             {
             match(input,72,FOLLOW_72_in_source_lifetrerm1445); if (state.failed) return ;
 
@@ -2683,11 +2701,11 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "lifeterm_def"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:829:1: lifeterm_def : term_def ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:840:1: lifeterm_def : term_def ;
     public final void lifeterm_def() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:830:5: ( term_def )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:830:8: term_def
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:841:5: ( term_def )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:841:8: term_def
             {
             pushFollow(FOLLOW_term_def_in_lifeterm_def1465);
             term_def();
@@ -2731,14 +2749,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "term_def"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:849:1: term_def : entity ( oplist )* ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:860:1: term_def : entity ( oplist )* ;
     public final void term_def() throws RecognitionException {
         EntityWalker.Relation entity19 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:850:5: ( entity ( oplist )* )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:850:7: entity ( oplist )*
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:861:5: ( entity ( oplist )* )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:861:7: entity ( oplist )*
             {
             pushFollow(FOLLOW_entity_in_term_def1484);
             entity19=entity();
@@ -2754,7 +2772,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                 		}
                 	     }
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:856:13: ( oplist )*
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:867:13: ( oplist )*
             loop25:
             do {
                 int alt25=2;
@@ -2767,7 +2785,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                 switch (alt25) {
             	case 1 :
-            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:856:14: oplist
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:867:14: oplist
             	    {
             	    pushFollow(FOLLOW_oplist_in_term_def1489);
             	    oplist();
@@ -2816,7 +2834,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "entity_decl"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:872:1: entity_decl returns [String id] : ( simple_entity_decl | '(' complex_entity_decl ')' );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:883:1: entity_decl returns [String id] : ( simple_entity_decl | complex_entity_decl );
     public final String entity_decl() throws RecognitionException {
         String id = null;
 
@@ -2825,7 +2843,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:873:5: ( simple_entity_decl | '(' complex_entity_decl ')' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:884:5: ( simple_entity_decl | complex_entity_decl )
             int alt26=2;
             int LA26_0 = input.LA(1);
 
@@ -2845,7 +2863,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt26) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:873:7: simple_entity_decl
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:884:7: simple_entity_decl
                     {
                     pushFollow(FOLLOW_simple_entity_decl_in_entity_decl1523);
                     simple_entity_decl20=simple_entity_decl();
@@ -2858,21 +2876,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:874:7: '(' complex_entity_decl ')'
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:885:7: complex_entity_decl
                     {
-                    match(input,52,FOLLOW_52_in_entity_decl1534); if (state.failed) return id;
-
-                    if ( state.backtracking==0 ) { complexEntityDeclarationPhase1(); }
-
-                    pushFollow(FOLLOW_complex_entity_decl_in_entity_decl1539);
+                    pushFollow(FOLLOW_complex_entity_decl_in_entity_decl1534);
                     complex_entity_decl();
 
                     state._fsp--;
                     if (state.failed) return id;
-
-                    match(input,53,FOLLOW_53_in_entity_decl1541); if (state.failed) return id;
-
-                    if ( state.backtracking==0 ) { id = complexEntityDeclarationPhase3(); }
 
                     }
                     break;
@@ -2894,13 +2904,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "compound_entity_decl"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:877:1: compound_entity_decl : entity_decl ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:888:1: compound_entity_decl : entity_decl ;
     public final void compound_entity_decl() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:878:5: ( entity_decl )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:878:7: entity_decl
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:889:5: ( entity_decl )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:889:7: entity_decl
             {
-            pushFollow(FOLLOW_entity_decl_in_compound_entity_decl1560);
+            pushFollow(FOLLOW_entity_decl_in_compound_entity_decl1551);
             entity_decl();
 
             state._fsp--;
@@ -2924,7 +2934,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "simple_entity_decl"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:881:1: simple_entity_decl returns [String id] : ID ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:892:1: simple_entity_decl returns [String id] : ID ;
     public final String simple_entity_decl() throws RecognitionException {
         String id = null;
 
@@ -2932,10 +2942,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
         Token ID21=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:882:5: ( ID )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:882:7: ID
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:893:5: ( ID )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:893:7: ID
             {
-            ID21=(Token)match(input,ID,FOLLOW_ID_in_simple_entity_decl1585); if (state.failed) return id;
+            ID21=(Token)match(input,ID,FOLLOW_ID_in_simple_entity_decl1576); if (state.failed) return id;
 
             if ( state.backtracking==0 ) { id = simpleEntityDeclaration(ID21.getText()); }
 
@@ -2957,14 +2967,17 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "complex_entity_decl"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:885:1: complex_entity_decl : ( compound_entity_decl )+ ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:896:1: complex_entity_decl : '(' ( entity_decl )* ')' ;
     public final void complex_entity_decl() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:889:5: ( ( compound_entity_decl )+ )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:889:7: ( compound_entity_decl )+
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:897:5: ( '(' ( entity_decl )* ')' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:897:7: '(' ( entity_decl )* ')'
             {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:889:7: ( compound_entity_decl )+
-            int cnt27=0;
+            match(input,52,FOLLOW_52_in_complex_entity_decl1599); if (state.failed) return ;
+
+            if ( state.backtracking==0 ) {complexEntityDeclarationPhase1();}
+
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:897:47: ( entity_decl )*
             loop27:
             do {
                 int alt27=2;
@@ -2977,10 +2990,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                 switch (alt27) {
             	case 1 :
-            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:889:8: compound_entity_decl
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:897:48: entity_decl
             	    {
-            	    pushFollow(FOLLOW_compound_entity_decl_in_complex_entity_decl1618);
-            	    compound_entity_decl();
+            	    pushFollow(FOLLOW_entity_decl_in_complex_entity_decl1604);
+            	    entity_decl();
 
             	    state._fsp--;
             	    if (state.failed) return ;
@@ -2989,21 +3002,17 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             	    break;
 
             	default :
-            	    if ( cnt27 >= 1 ) break loop27;
-            	    if (state.backtracking>0) {state.failed=true; return ;}
-                        EarlyExitException eee =
-                            new EarlyExitException(27, input);
-                        throw eee;
+            	    break loop27;
                 }
-                cnt27++;
             } while (true);
 
 
+            if ( state.backtracking==0 ) {complexEntityDeclarationPhase2();}
+
+            match(input,53,FOLLOW_53_in_complex_entity_decl1610); if (state.failed) return ;
+
             }
 
-            if ( state.backtracking==0 ) {
-                	complexEntityDeclarationPhase2();
-                }
         }
 
             catch (RecognitionException e) {
@@ -3020,13 +3029,13 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "term"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:892:1: term : expression ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:900:1: term : expression ;
     public final void term() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:893:5: ( expression )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:893:7: expression
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:901:5: ( expression )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:901:7: expression
             {
-            pushFollow(FOLLOW_expression_in_term1637);
+            pushFollow(FOLLOW_expression_in_term1627);
             expression();
 
             state._fsp--;
@@ -3050,7 +3059,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "entity"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:896:1: entity returns [EntityWalker.Relation rel] : ( simple_entity | complex_entity | '.' );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:904:1: entity returns [EntityWalker.Relation rel] : ( simple_entity | complex_entity | '.' );
     public final EntityWalker.Relation entity() throws RecognitionException {
         EntityWalker.Relation rel = null;
 
@@ -3061,7 +3070,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:897:5: ( simple_entity | complex_entity | '.' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:905:5: ( simple_entity | complex_entity | '.' )
             int alt28=3;
             switch ( input.LA(1) ) {
             case ID:
@@ -3090,9 +3099,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
             switch (alt28) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:897:7: simple_entity
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:905:7: simple_entity
                     {
-                    pushFollow(FOLLOW_simple_entity_in_entity1660);
+                    pushFollow(FOLLOW_simple_entity_in_entity1650);
                     simple_entity22=simple_entity();
 
                     state._fsp--;
@@ -3105,9 +3114,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:901:7: complex_entity
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:909:7: complex_entity
                     {
-                    pushFollow(FOLLOW_complex_entity_in_entity1679);
+                    pushFollow(FOLLOW_complex_entity_in_entity1669);
                     complex_entity23=complex_entity();
 
                     state._fsp--;
@@ -3120,9 +3129,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:904:7: '.'
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:912:7: '.'
                     {
-                    match(input,54,FOLLOW_54_in_entity1696); if (state.failed) return rel;
+                    match(input,54,FOLLOW_54_in_entity1686); if (state.failed) return rel;
 
                     if ( state.backtracking==0 ) {
                                                 	processComplexContext(lastProcessedEntity);
@@ -3148,7 +3157,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "simple_entity"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:910:1: simple_entity returns [EntityWalker.Relation rel] : ID ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:918:1: simple_entity returns [EntityWalker.Relation rel] : ID ;
     public final EntityWalker.Relation simple_entity() throws RecognitionException {
         EntityWalker.Relation rel = null;
 
@@ -3156,10 +3165,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
         Token ID24=null;
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:911:5: ( ID )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:911:7: ID
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:919:5: ( ID )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:919:7: ID
             {
-            ID24=(Token)match(input,ID,FOLLOW_ID_in_simple_entity1738); if (state.failed) return rel;
+            ID24=(Token)match(input,ID,FOLLOW_ID_in_simple_entity1728); if (state.failed) return rel;
 
             if ( state.backtracking==0 ) {
                 		rel = simpleEntityAssembling((ID24!=null?ID24.getText():null));
@@ -3183,7 +3192,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "complex_entity"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:916:1: complex_entity returns [EntityWalker.Relation rel] : '(' ( term )* ')' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:924:1: complex_entity returns [EntityWalker.Relation rel] : '(' ( term )* ')' ;
     public final EntityWalker.Relation complex_entity() throws RecognitionException {
         EntityWalker.Relation rel = null;
 
@@ -3192,12 +3201,12 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             	complexEntityStartAssembling();
             
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:923:5: ( '(' ( term )* ')' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:923:7: '(' ( term )* ')'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:931:5: ( '(' ( term )* ')' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:931:7: '(' ( term )* ')'
             {
-            match(input,52,FOLLOW_52_in_complex_entity1779); if (state.failed) return rel;
+            match(input,52,FOLLOW_52_in_complex_entity1769); if (state.failed) return rel;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:923:11: ( term )*
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:931:11: ( term )*
             loop29:
             do {
                 int alt29=2;
@@ -3210,9 +3219,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
                 switch (alt29) {
             	case 1 :
-            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:923:12: term
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:931:12: term
             	    {
-            	    pushFollow(FOLLOW_term_in_complex_entity1782);
+            	    pushFollow(FOLLOW_term_in_complex_entity1772);
             	    term();
 
             	    state._fsp--;
@@ -3227,7 +3236,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             } while (true);
 
 
-            match(input,53,FOLLOW_53_in_complex_entity1786); if (state.failed) return rel;
+            match(input,53,FOLLOW_53_in_complex_entity1776); if (state.failed) return rel;
 
             }
 
@@ -3250,7 +3259,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "oplist"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:935:1: oplist : ( opclist | opprojection );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:943:1: oplist : ( opclist | opprojection );
     public final void oplist() throws RecognitionException {
         VirtualWorldModelingLanguageParser.opclist_return opclist25 =null;
 
@@ -3258,7 +3267,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:937:5: ( opclist | opprojection )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:945:5: ( opclist | opprojection )
             int alt30=2;
             int LA30_0 = input.LA(1);
 
@@ -3278,9 +3287,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             }
             switch (alt30) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:937:7: opclist
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:945:7: opclist
                     {
-                    pushFollow(FOLLOW_opclist_in_oplist1878);
+                    pushFollow(FOLLOW_opclist_in_oplist1868);
                     opclist25=opclist();
 
                     state._fsp--;
@@ -3296,9 +3305,9 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:943:7: opprojection
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:951:7: opprojection
                     {
-                    pushFollow(FOLLOW_opprojection_in_oplist1894);
+                    pushFollow(FOLLOW_opprojection_in_oplist1884);
                     opprojection26=opprojection();
 
                     state._fsp--;
@@ -3334,14 +3343,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "opclist"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:951:1: opclist : ( OPJOIN | OPINTERSECT | OPSUBSTRUCT | OPFIRST | OPLAST | OPBEGIN | OPREST | OPCARTESIAN | OPIN | OPINCL | OPEQ | OPIDENT | OPSQU | OPINTERPRET | OPCREATEEXPR | OPEXECUTE | OPRANDOM | OPACTIVATECTX | OPACTIVATEONFRINGE | OPRELAX | OPSTARTCONFLICTGROUP | OPENDCONFLICTGROUP | OPBREAKPOINT );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:959:1: opclist : ( OPJOIN | OPINTERSECT | OPSUBSTRUCT | OPFIRST | OPLAST | OPBEGIN | OPREST | OPCARTESIAN | OPIN | OPINCL | OPEQ | OPIDENT | OPSQU | OPINTERPRET | OPCREATEEXPR | OPEXECUTE | OPRANDOM | OPACTIVATECTX | OPACTIVATEONFRINGE | OPRELAX | OPSTARTCONFLICTGROUP | OPENDCONFLICTGROUP | OPBREAKPOINT );
     public final VirtualWorldModelingLanguageParser.opclist_return opclist() throws RecognitionException {
         VirtualWorldModelingLanguageParser.opclist_return retval = new VirtualWorldModelingLanguageParser.opclist_return();
         retval.start = input.LT(1);
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:952:5: ( OPJOIN | OPINTERSECT | OPSUBSTRUCT | OPFIRST | OPLAST | OPBEGIN | OPREST | OPCARTESIAN | OPIN | OPINCL | OPEQ | OPIDENT | OPSQU | OPINTERPRET | OPCREATEEXPR | OPEXECUTE | OPRANDOM | OPACTIVATECTX | OPACTIVATEONFRINGE | OPRELAX | OPSTARTCONFLICTGROUP | OPENDCONFLICTGROUP | OPBREAKPOINT )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:960:5: ( OPJOIN | OPINTERSECT | OPSUBSTRUCT | OPFIRST | OPLAST | OPBEGIN | OPREST | OPCARTESIAN | OPIN | OPINCL | OPEQ | OPIDENT | OPSQU | OPINTERPRET | OPCREATEEXPR | OPEXECUTE | OPRANDOM | OPACTIVATECTX | OPACTIVATEONFRINGE | OPRELAX | OPSTARTCONFLICTGROUP | OPENDCONFLICTGROUP | OPBREAKPOINT )
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:
             {
             if ( (input.LA(1) >= OPACTIVATECTX && input.LA(1) <= OPLAST)||(input.LA(1) >= OPRANDOM && input.LA(1) <= OPSUBSTRUCT) ) {
@@ -3380,14 +3389,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "opprojection"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:977:1: opprojection : ( OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:985:1: opprojection : ( OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 );
     public final VirtualWorldModelingLanguageParser.opprojection_return opprojection() throws RecognitionException {
         VirtualWorldModelingLanguageParser.opprojection_return retval = new VirtualWorldModelingLanguageParser.opprojection_return();
         retval.start = input.LT(1);
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:978:5: ( OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:986:5: ( OPPROJECTION_1 | OPPROJECTION_2 | OPPROJECTION_3 | OPPROJECTION_4 | OPPROJECTION_5 | OPPROJECTION_6 | OPPROJECTION_7 | OPPROJECTION_8 | OPPROJECTION_9 )
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:
             {
             if ( (input.LA(1) >= OPPROJECTION_1 && input.LA(1) <= OPPROJECTION_9) ) {
@@ -3423,10 +3432,10 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "termLanguages"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:989:1: termLanguages : ( JAVA | C | CPP | OBJECTIVEC );
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:997:1: termLanguages : ( JAVA | C | CPP | OBJECTIVEC );
     public final void termLanguages() throws RecognitionException {
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:990:5: ( JAVA | C | CPP | OBJECTIVEC )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:998:5: ( JAVA | C | CPP | OBJECTIVEC )
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:
             {
             if ( input.LA(1)==C||input.LA(1)==CPP||input.LA(1)==JAVA||input.LA(1)==OBJECTIVEC ) {
@@ -3462,17 +3471,17 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "string"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:996:1: string : STRING_LITERAL ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1004:1: string : STRING_LITERAL ;
     public final VirtualWorldModelingLanguageParser.string_return string() throws RecognitionException {
         VirtualWorldModelingLanguageParser.string_return retval = new VirtualWorldModelingLanguageParser.string_return();
         retval.start = input.LT(1);
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:997:5: ( STRING_LITERAL )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:997:7: STRING_LITERAL
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1005:5: ( STRING_LITERAL )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1005:7: STRING_LITERAL
             {
-            match(input,STRING_LITERAL,FOLLOW_STRING_LITERAL_in_string2229); if (state.failed) return retval;
+            match(input,STRING_LITERAL,FOLLOW_STRING_LITERAL_in_string2219); if (state.failed) return retval;
 
             }
 
@@ -3494,8 +3503,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
     // $ANTLR start synpred1_VirtualWorldModelingLanguage
     public final void synpred1_VirtualWorldModelingLanguage_fragment() throws RecognitionException {
-        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:589:7: ( 'language' '=' JAVA )
-        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:589:8: 'language' '=' JAVA
+        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:593:7: ( 'language' '=' JAVA )
+        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:593:8: 'language' '=' JAVA
         {
         match(input,66,FOLLOW_66_in_synpred1_VirtualWorldModelingLanguage555); if (state.failed) return ;
 
@@ -3510,8 +3519,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
     // $ANTLR start synpred2_VirtualWorldModelingLanguage
     public final void synpred2_VirtualWorldModelingLanguage_fragment() throws RecognitionException {
-        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:799:7: ( entity_decl IAS )
-        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:799:8: entity_decl IAS
+        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:803:7: ( entity_decl IAS )
+        // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:803:8: entity_decl IAS
         {
         pushFollow(FOLLOW_entity_decl_in_synpred2_VirtualWorldModelingLanguage1326);
         entity_decl();
@@ -3641,7 +3650,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     public static final BitSet FOLLOW_string_in_creature1146 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_59_in_conflictring1166 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000400L});
     public static final BitSet FOLLOW_74_in_conflictring1168 = new BitSet(new long[]{0x0000000000000400L,0x0000000000000800L});
-    public static final BitSet FOLLOW_conflictdef_in_conflictring1170 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
+    public static final BitSet FOLLOW_conflictdef_in_conflictring1170 = new BitSet(new long[]{0x0000000000000400L,0x0000000000000800L});
     public static final BitSet FOLLOW_75_in_conflictring1173 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_name_of_conflict_on_ring_in_conflictdef1191 = new BitSet(new long[]{0x1000000000000000L});
     public static final BitSet FOLLOW_60_in_conflictdef1195 = new BitSet(new long[]{0x0010000000000000L});
@@ -3673,23 +3682,23 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     public static final BitSet FOLLOW_entity_in_term_def1484 = new BitSet(new long[]{0x0001FFFFFFFE0002L});
     public static final BitSet FOLLOW_oplist_in_term_def1489 = new BitSet(new long[]{0x0001FFFFFFFE0002L});
     public static final BitSet FOLLOW_simple_entity_decl_in_entity_decl1523 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_52_in_entity_decl1534 = new BitSet(new long[]{0x0010000000000400L});
-    public static final BitSet FOLLOW_complex_entity_decl_in_entity_decl1539 = new BitSet(new long[]{0x0020000000000000L});
-    public static final BitSet FOLLOW_53_in_entity_decl1541 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_entity_decl_in_compound_entity_decl1560 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_simple_entity_decl1585 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_compound_entity_decl_in_complex_entity_decl1618 = new BitSet(new long[]{0x0010000000000402L});
-    public static final BitSet FOLLOW_expression_in_term1637 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_simple_entity_in_entity1660 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_complex_entity_in_entity1679 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_54_in_entity1696 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_simple_entity1738 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_52_in_complex_entity1779 = new BitSet(new long[]{0x0070000000002400L,0x0000000000000100L});
-    public static final BitSet FOLLOW_term_in_complex_entity1782 = new BitSet(new long[]{0x0070000000002400L,0x0000000000000100L});
-    public static final BitSet FOLLOW_53_in_complex_entity1786 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_opclist_in_oplist1878 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_opprojection_in_oplist1894 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_STRING_LITERAL_in_string2229 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_complex_entity_decl_in_entity_decl1534 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_entity_decl_in_compound_entity_decl1551 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ID_in_simple_entity_decl1576 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_52_in_complex_entity_decl1599 = new BitSet(new long[]{0x0030000000000400L});
+    public static final BitSet FOLLOW_entity_decl_in_complex_entity_decl1604 = new BitSet(new long[]{0x0030000000000400L});
+    public static final BitSet FOLLOW_53_in_complex_entity_decl1610 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expression_in_term1627 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_simple_entity_in_entity1650 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_complex_entity_in_entity1669 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_54_in_entity1686 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ID_in_simple_entity1728 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_52_in_complex_entity1769 = new BitSet(new long[]{0x0070000000002400L,0x0000000000000100L});
+    public static final BitSet FOLLOW_term_in_complex_entity1772 = new BitSet(new long[]{0x0070000000002400L,0x0000000000000100L});
+    public static final BitSet FOLLOW_53_in_complex_entity1776 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_opclist_in_oplist1868 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_opprojection_in_oplist1884 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_STRING_LITERAL_in_string2219 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_66_in_synpred1_VirtualWorldModelingLanguage555 = new BitSet(new long[]{0x0080000000000000L});
     public static final BitSet FOLLOW_55_in_synpred1_VirtualWorldModelingLanguage557 = new BitSet(new long[]{0x0000000000000800L});
     public static final BitSet FOLLOW_JAVA_in_synpred1_VirtualWorldModelingLanguage559 = new BitSet(new long[]{0x0000000000000002L});

@@ -115,6 +115,7 @@ package com.vw.lang.grammar;
 	private EntityWalker contextWalker = EntityWalker.instance();
 	private EntityWalker.Relation lastProcessedEntity = null;
 	private String activeFringe = null;
+	private String lastDeclaredEntityId = null;
 	private String lastDeclaredCreatureId = null;
 	private String lastDeclaredCreatureProps = null;
 	private String lastProcessedComplexEntityId = null;
@@ -204,6 +205,9 @@ package com.vw.lang.grammar;
 	
 	protected void complexEntityDeclarationPhase2() throws RecognitionException {
 		complexEntityNameBuilderDecl.stopProgress();
+	    	if (logger.isDebugEnabled()) {
+	    		logger.debug("complex entity declaration process - stopped");
+	    	}			
 	}
 	
 	protected String complexEntityDeclarationPhase3() throws RecognitionException {
@@ -746,7 +750,7 @@ creature
     ;
 
 conflictring
-    : 'conflictring' '{' conflictdef? '}'
+    : 'conflictring' '{' conflictdef* '}'
     ;	
 
 conflictdef
@@ -802,12 +806,19 @@ expression
 
 entity_def
     : entity_decl IAS {
+    			lastDeclaredEntityId = null;
+            		if (complexEntityNameBuilderDecl.isBuildAllowed()) {
+    				lastDeclaredEntityId = complexEntityDeclarationPhase3();
+    			}
+    			else {
+    				lastDeclaredEntityId = $entity_decl.id;
+    			}
     			// adds entity id to context stack
-    			declareAbsoluteContextByIASRelation($entity_decl.id);
+    			declareAbsoluteContextByIASRelation(lastDeclaredEntityId);
     		      } (term)* SEMICOLON
     		      {
     		      	// removes top entity from stack
-    		      	handleProcessedAbsoluteContextbyIASRelation($entity_decl.id);
+    		      	handleProcessedAbsoluteContextbyIASRelation(lastDeclaredEntityId);
     		      }
     		      
     ;
@@ -871,7 +882,7 @@ term_def
 
 entity_decl returns [String id]
     : simple_entity_decl  {id = $simple_entity_decl.id;}
-    | '(' { complexEntityDeclarationPhase1(); }  complex_entity_decl ')' { id = complexEntityDeclarationPhase3(); }
+    | complex_entity_decl
     ;
 
 compound_entity_decl
@@ -883,10 +894,7 @@ simple_entity_decl returns [String id]
     ;
     
 complex_entity_decl
-    @after {
-    	complexEntityDeclarationPhase2();
-    }
-    : (compound_entity_decl)+
+    : '(' {complexEntityDeclarationPhase1();} (entity_decl)* {complexEntityDeclarationPhase2();} ')'
     ;
 
 term

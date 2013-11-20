@@ -8,6 +8,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.timer;
 public class VWMLInterpreterTimer {
 	private Object id;
 	private int time;
+	private int origTime;
 	private Object userData;
 	private long timeStamp;
 	private VWMLInterpreterTimerCallback callback;
@@ -20,6 +21,7 @@ public class VWMLInterpreterTimer {
 		super();
 		this.id = id;
 		this.time = time;
+		this.origTime = this.time;
 		this.userData = userData;
 		this.timeStamp = timeStamp;
 		this.callback = callback;
@@ -63,5 +65,9 @@ public class VWMLInterpreterTimer {
 
 	public void setCallback(VWMLInterpreterTimerCallback callback) {
 		this.callback = callback;
+	}
+
+	public int getOrigTime() {
+		return origTime;
 	}
 }

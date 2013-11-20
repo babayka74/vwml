@@ -48,7 +48,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		entities.clear();
 		stack.popUntilEmptyMark();
 		if (interpretingEntity == null) {
-			throw new Exception("the interpreting entity can't be 'null'; check VWML's code; entity '" + entity + "'");
+			throw new Exception("the interpreting entity '" + entity.getReadableId() + "' can't be 'null'; check VWML's code; entity '" + entity + "'");
 		}
 		stack.push(interpretingEntity);
 	}

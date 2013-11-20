@@ -57,6 +57,33 @@ public class VWMLConflictRing {
 	}
 	
 	/**
+	 * Returns true in case if ring in consistency state
+	 * @return
+	 */
+	public boolean checkConsistency() {
+		boolean corrected = true;
+		for(VWMLConflictRingNode node : conflictRing) {
+			if (node.getInterpreter() == null) {
+				corrected = false;
+				for(VWMLConflictRingNode n : conflictRing) {
+					if (n != node && n.getInterpreter() != null) {
+						if (((String)n.getId()).startsWith((String)node.getId()) ||
+							((String)node.getId()).startsWith((String)n.getId())) {
+							node.setInterpreter(n.getInterpreter());
+							corrected = true;
+							break;
+						}
+					}
+				}
+				if (!corrected) {
+					break;
+				}
+			}
+		}
+		return corrected;
+	}
+	
+	/**
 	 * Returns current node on the ring and goes to next
 	 * @return
 	 */
