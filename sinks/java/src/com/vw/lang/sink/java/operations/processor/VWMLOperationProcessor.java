@@ -8,7 +8,7 @@ import com.vw.lang.beyond.java.fringe.entity.EWComplexEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.gate.GateConstants;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -94,7 +94,7 @@ public class VWMLOperationProcessor {
 	/**
 	 * Processor's initialization steps
 	 */
-	public void init(VWMLIterpreterImpl interpreter) {
+	public void init(VWMLInterpreterImpl interpreter) {
 		debuggerGate = interpreter.getConfig().getDebuggerGate();
 	}
 	
@@ -106,7 +106,7 @@ public class VWMLOperationProcessor {
 	 * @param operation
 	 * @throws Exception
 	 */
-	public void processOperation(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+	public void processOperation(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLOperationHandler handler = s_processorMap.get(operation);
 		if (handler == null) {
 			handler = unknownOperationHandler;

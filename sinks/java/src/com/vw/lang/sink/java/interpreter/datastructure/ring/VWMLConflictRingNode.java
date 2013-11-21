@@ -1,7 +1,7 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
 import com.vw.lang.sink.java.VWMLObject;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 
 /**
  * Part of conflict ring 
@@ -11,7 +11,7 @@ import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
 public class VWMLConflictRingNode extends VWMLObject {
 	
 	// node's controlled interpreter
-	private VWMLIterpreterImpl interpreter;
+	private VWMLInterpreterImpl interpreter;
 	// node's automata
 	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build(this);
 	// index of conflict fragment 
@@ -42,11 +42,11 @@ public class VWMLConflictRingNode extends VWMLObject {
 		nodeAutomata.runAction(this, input, state);
 	}
 	
-	public VWMLIterpreterImpl getInterpreter() {
+	public VWMLInterpreterImpl getInterpreter() {
 		return interpreter;
 	}
 
-	public void setInterpreter(VWMLIterpreterImpl interpreter) {
+	public void setInterpreter(VWMLInterpreterImpl interpreter) {
 		this.interpreter = interpreter;
 	}
 

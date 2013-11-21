@@ -1,6 +1,6 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.conflictstart;
 
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
@@ -16,7 +16,7 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHandler {
 
 	@Override
-	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
 		stack.popUntilEmptyMark();
 	}
@@ -26,7 +26,7 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 	 * @param interpreter
 	 */
 	@Override
-	public void reportInterpreterInternalState(VWMLIterpreterImpl interpreter) {
+	public void reportInterpreterInternalState(VWMLInterpreterImpl interpreter) {
 		if (interpreter.getObserver() !=  null) {
 			interpreter.getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_B);
 		}

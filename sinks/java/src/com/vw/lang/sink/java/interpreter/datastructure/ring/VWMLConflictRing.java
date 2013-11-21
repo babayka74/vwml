@@ -3,7 +3,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.ring;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 
 /**
  * Conflict ring is used for resolving conflict situations during active interpretation phases
@@ -13,8 +13,11 @@ import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
  */
 public class VWMLConflictRing {
 	private int currentNodeIndex = 0;
+	private boolean initialyEmptyRing = false;
 	// actual conflict ring data structure
 	private List<VWMLConflictRingNode> conflictRing = new LinkedList<VWMLConflictRingNode>();
+
+	private static int s_artificialNodeIdx = 0;
 	// singleton implementation
 	private static VWMLConflictRing s_conflictRing = null;
 	
@@ -56,12 +59,23 @@ public class VWMLConflictRing {
 		
 	}
 	
+	public boolean isInitialyEmptyRing() {
+		return initialyEmptyRing;
+	}
+
+	public void setInitialyEmptyRing(boolean initialyEmptyRing) {
+		this.initialyEmptyRing = initialyEmptyRing;
+	}
+
 	/**
 	 * Returns true in case if ring in consistency state
 	 * @return
 	 */
 	public boolean checkConsistency() {
 		boolean corrected = true;
+		if (conflictRing.size() == 0 || initialyEmptyRing) {
+			return corrected;
+		}
 		for(VWMLConflictRingNode node : conflictRing) {
 			if (node.getInterpreter() == null) {
 				corrected = false;
@@ -84,6 +98,14 @@ public class VWMLConflictRing {
 	}
 	
 	/**
+	 * Returns 'true' in case if ring contains at least one node
+	 * @return
+	 */
+	public boolean isRingOperational() {
+		return (conflictRing.size() != 0);
+	}
+	
+	/**
 	 * Returns current node on the ring and goes to next
 	 * @return
 	 */
@@ -97,7 +119,7 @@ public class VWMLConflictRing {
 			n = conflictRing.get(currentNodeIndex);
 			currentNodeIndex++;
 			currentNodeIndex = currentNodeIndex % conflictRing.size();
-			if (n.getInterpreter().getStatus() == VWMLIterpreterImpl.stopProcessing) {
+			if (n.getInterpreter().getStatus() == VWMLInterpreterImpl.stopProcessing) {
 				stoppedInterpreters++;
 			}
 			else {
@@ -118,10 +140,20 @@ public class VWMLConflictRing {
 	 */
 	public VWMLConflictRingNode findNodeByEntityContext(String context) {
 		VWMLConflictRingNode f = null;
-		for (VWMLConflictRingNode n : conflictRing) {
-			if (((String)n.getId()).startsWith(context)) {
-				f = n;
-				break;
+		if (!isRingOperational()) {
+			initialyEmptyRing = true;
+		}
+		if (initialyEmptyRing) {
+			String id = "artificialNode_" + s_artificialNodeIdx;
+			f = addNode(VWMLConflictRingNode.build(id, id));
+			s_artificialNodeIdx++;
+		}
+		else {
+			for (VWMLConflictRingNode n : conflictRing) {
+				if (((String)n.getId()).startsWith(context)) {
+					f = n;
+					break;
+				}
 			}
 		}
 		return f;

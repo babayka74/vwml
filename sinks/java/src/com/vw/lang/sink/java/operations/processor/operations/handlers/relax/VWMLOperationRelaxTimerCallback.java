@@ -1,6 +1,6 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.relax;
 
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerCallback;
@@ -16,7 +16,7 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 	
 	@Override
 	public void timerCbk(VWMLInterpreterTimer timer) {
-		VWMLIterpreterImpl interpreter = (VWMLIterpreterImpl)timer.getUserData();
+		VWMLInterpreterImpl interpreter = (VWMLInterpreterImpl)timer.getUserData();
 		if (interpreter != null && interpreter.getObserver() != null) {
 			interpreter.getObserver().setConflictOperationalState(conflictRingNodeAutomataInput);
 		}

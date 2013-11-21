@@ -1,6 +1,6 @@
 package com.vw.lang.sink.java.operations.processor;
 
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -21,13 +21,13 @@ public abstract class VWMLOperationHandler {
 	 * @param operation
 	 * @throws Exception
 	 */
-	public abstract void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception;
+	public abstract void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception;
 	
 	/**
 	 * Reports to observer interpreter's internal state
 	 * @param interpreter
 	 */
-	public void reportInterpreterInternalState(VWMLIterpreterImpl interpreter) {
+	public void reportInterpreterInternalState(VWMLInterpreterImpl interpreter) {
 		if (interpreter.getObserver() !=  null) {
 			interpreter.getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_N);
 		}

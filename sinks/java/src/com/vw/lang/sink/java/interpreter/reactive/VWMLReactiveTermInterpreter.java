@@ -7,7 +7,7 @@ import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -20,7 +20,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  * @author ogibayev
  *
  */
-public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
+public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 
 	private VWMLConflictRing ring = VWMLConflictRing.instance();
 	
@@ -93,8 +93,8 @@ public class VWMLReactiveTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	@Override
-	public VWMLIterpreterImpl clone() {
-		VWMLIterpreterImpl cloned = instance(super.getLinkage(), null, null);
+	public VWMLInterpreterImpl clone() {
+		VWMLInterpreterImpl cloned = instance(super.getLinkage(), null, null);
 		cloned.setConfig(this.getConfig());
 		return cloned;
 	}

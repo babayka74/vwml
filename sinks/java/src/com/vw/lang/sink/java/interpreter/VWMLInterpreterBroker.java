@@ -91,7 +91,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (terms.size() == 0) {
 			terms = VWMLLinkage.getLifeTerms();
 		}
-		VWMLIterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), terms);
+		VWMLInterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), terms);
 		if (impl == null) {
 			throw new Exception("there were not found any interpreter; check interpreter's property file");
 		}
@@ -112,8 +112,8 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		}
 	}
 
-	protected VWMLIterpreterImpl getConcreteInterpreterAccordingToConfiguration(VWMLLinkage linkage, List<VWMLEntity> terms) {
-		VWMLIterpreterImpl impl = null;
+	protected VWMLInterpreterImpl getConcreteInterpreterAccordingToConfiguration(VWMLLinkage linkage, List<VWMLEntity> terms) {
+		VWMLInterpreterImpl impl = null;
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE) {
 			impl = VWMLSequentialTermInterpreter.instance(linkage, terms.get(0));
 			config.setStepByStepInterpretation(false);

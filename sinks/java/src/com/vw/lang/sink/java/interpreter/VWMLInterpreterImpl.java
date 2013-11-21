@@ -2,9 +2,11 @@ package com.vw.lang.sink.java.interpreter;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
@@ -14,7 +16,7 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
  * @author ogibayev
  *
  */
-public abstract class VWMLIterpreterImpl {
+public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public static final int continueProcessingOfCurrentEntity = 0;
 	public static final int nextEntityToProcess = 1;
@@ -29,6 +31,9 @@ public abstract class VWMLIterpreterImpl {
 	private VWMLInterpreterConfiguration config = null;
 	// internal worker thread
 	private VWMLContext context = VWMLContext.instance();
+	// stack of child interpreters; the interpreter is interpreted as child when it is instantiated during
+	// 'activate context' operation
+	private VWMLStack childInterpreters = VWMLStack.instance();
 	// operating processor
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
 	// observer
@@ -45,7 +50,7 @@ public abstract class VWMLIterpreterImpl {
 	/**
 	 * Clones current interpreter
 	 */
-	public abstract VWMLIterpreterImpl clone();
+	public abstract VWMLInterpreterImpl clone();
 	
 	public List<VWMLEntity> getTerms() {
 		return terms;
@@ -97,6 +102,18 @@ public abstract class VWMLIterpreterImpl {
 		this.timerManager = timerManager;
 	}
 
+	public void pushInterpreterToChildStack(VWMLInterpreterImpl interpreter) {
+		childInterpreters.push(interpreter);
+	}
+	
+	public VWMLInterpreterImpl peekInterpreterFromChildStack() {
+		return (VWMLInterpreterImpl)childInterpreters.peek();
+	}
+	
+	public void popInterpreterFromChildStack() {
+		childInterpreters.pop();
+	}
+	
 	/**
 	 * Step-by-step interpretation
 	 * @return 'false' in case if interpretation finished, otherwise 'true' is returned

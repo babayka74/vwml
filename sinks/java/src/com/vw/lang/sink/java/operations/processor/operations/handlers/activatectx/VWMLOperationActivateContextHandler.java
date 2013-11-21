@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -22,7 +22,7 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 
 	@Override
-	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity entity = null;
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
@@ -60,12 +60,15 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 		inspector.clear();
 	}
 	
-	protected void exectuteLifeTerm(VWMLIterpreterImpl interpreter, VWMLEntity lfTerm) throws Exception {
-		VWMLIterpreterImpl ii = interpreter.clone();
+	protected void exectuteLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity lfTerm) throws Exception {
+		VWMLInterpreterImpl ii = interpreter.clone();
 		List<VWMLEntity> terms = new ArrayList<VWMLEntity>();
 		terms.add(lfTerm);
 		ii.setTerms(terms);
 		ii.start();
+		if (interpreter.getConfig().isStepByStepInterpretation()) {
+			interpreter.pushInterpreterToChildStack(ii);
+		}
 		terms = null; // marks all elements to be garbage collected
 	}
 }

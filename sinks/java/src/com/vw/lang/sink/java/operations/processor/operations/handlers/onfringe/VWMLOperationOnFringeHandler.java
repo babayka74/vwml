@@ -7,7 +7,7 @@ import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.beyond.fringe.creature.VWMLCreature;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -25,7 +25,7 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 	private static final int s_numberOfArgs = 2;
 	
 	@Override
-	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity answerFromEW = null;
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();

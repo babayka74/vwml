@@ -7,7 +7,7 @@ import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
@@ -24,7 +24,7 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 
 	@Override
-	public void handle(VWMLIterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		int timeToRelax = 0;
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
@@ -58,7 +58,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		Thread.sleep(delay);
 	}
 	
-	protected void reactiveDelayImpl(VWMLIterpreterImpl interpreter, int delay) throws Exception {
+	protected void reactiveDelayImpl(VWMLInterpreterImpl interpreter, int delay) throws Exception {
 		if (delay != 0) {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);

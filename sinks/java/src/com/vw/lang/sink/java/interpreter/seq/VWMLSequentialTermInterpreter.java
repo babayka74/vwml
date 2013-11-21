@@ -7,7 +7,7 @@ import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLDynamicEntityProperties;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLSequentialTermInterpreterCodeStackFrame;
@@ -21,7 +21,7 @@ import com.vw.lang.sink.java.operations.VWMLOperationsCode;
  * @author ogibayev
  *
  */
-public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
+public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 
 	private static final VWMLOperation opImplicitlyAddedRef = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
 
@@ -67,8 +67,8 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 	/**
 	 * Clones current interpreter
 	 */
-	public VWMLIterpreterImpl clone() {
-		VWMLIterpreterImpl cloned = instance(super.getLinkage(), null, null);
+	public VWMLInterpreterImpl clone() {
+		VWMLInterpreterImpl cloned = instance(super.getLinkage(), null, null);
 		cloned.setConfig(this.getConfig());
 		return cloned;
 	}
@@ -120,16 +120,25 @@ public class VWMLSequentialTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	public boolean step() throws Exception {
-		if (!getConfig().isStepByStepInterpretation()) {
-			throw new Exception("set flag 'isStepByStepInterpretation' in configuration before method step is called");
+		boolean stopped = false;
+		VWMLInterpreterImpl ii = peekInterpreterFromChildStack();
+		if (ii != null) {
+			stopped = ii.step();
+			if (stopped) { // means stopped
+				popInterpreterFromChildStack();
+			}
 		}
-		stepImpl(getLinkage(), getContext());
-		return result == stopProcessing;
+		else {
+			stepImpl(getLinkage(), getContext());
+			stopped = (result == stopProcessing);
+		}
+		return stopped;
 	}	
 
 	protected void startCompleteInterpretationProcess(VWMLLinkage linkage, VWMLContext context) throws Exception {
-		while(result != stopProcessing) {
-			stepImpl(linkage, context);
+		boolean stopped = false;
+		while(!stopped) {
+			stopped = step();
 		}
 	}
 

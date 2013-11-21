@@ -6,7 +6,7 @@ import java.util.List;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -18,7 +18,7 @@ import com.vw.lang.sink.java.operations.VWMLOperationsCode;
  * @author ogibayev
  *
  */
-public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
+public class VWMLSingleTermInterpreter extends VWMLInterpreterImpl {
 
 	private VWMLSingleTermInterpreter() {
 	}
@@ -53,8 +53,8 @@ public class VWMLSingleTermInterpreter extends VWMLIterpreterImpl {
 	/**
 	 * Clones current interpreter
 	 */
-	public VWMLIterpreterImpl clone() {
-		VWMLIterpreterImpl cloned = instance(super.getLinkage(), null, null);
+	public VWMLInterpreterImpl clone() {
+		VWMLInterpreterImpl cloned = instance(super.getLinkage(), null, null);
 		cloned.setConfig(this.getConfig());
 		return cloned;
 	}

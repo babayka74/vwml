@@ -1,6 +1,6 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
@@ -50,7 +50,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 */
 	public boolean nextStep(VWMLConflictRingNode node) throws Exception {
 		boolean r = false;
-		if (node.getInterpreter() != null && node.getInterpreter().getStatus() != VWMLIterpreterImpl.stopProcessing) {
+		if (node.getInterpreter() != null && node.getInterpreter().getStatus() != VWMLInterpreterImpl.stopProcessing) {
 			r = node.getInterpreter().step();
 		}		
 		return r;

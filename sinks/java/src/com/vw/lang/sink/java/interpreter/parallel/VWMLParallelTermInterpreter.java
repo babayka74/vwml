@@ -3,7 +3,7 @@ package com.vw.lang.sink.java.interpreter.parallel;
 import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.VWMLIterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
@@ -12,7 +12,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  * @author ogibayev
  *
  */
-public class VWMLParallelTermInterpreter extends VWMLIterpreterImpl {
+public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 
 	private VWMLParallelTermInterpreter() {
 	}
@@ -49,7 +49,7 @@ public class VWMLParallelTermInterpreter extends VWMLIterpreterImpl {
 	}
 
 	@Override
-	public VWMLIterpreterImpl clone() {
+	public VWMLInterpreterImpl clone() {
 		// TODO Auto-generated method stub
 		return null;
 	}
