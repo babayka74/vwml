@@ -17,11 +17,11 @@ public class VWMLInterpreterTimer {
 		super();
 	}
 
-	public VWMLInterpreterTimer(Object id, int time, Object userData, long timeStamp, VWMLInterpreterTimerCallback callback) {
+	public VWMLInterpreterTimer(Object id, int origTime, int time, Object userData, long timeStamp, VWMLInterpreterTimerCallback callback) {
 		super();
 		this.id = id;
 		this.time = time;
-		this.origTime = this.time;
+		this.origTime = origTime;
 		this.userData = userData;
 		this.timeStamp = timeStamp;
 		this.callback = callback;

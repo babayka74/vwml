@@ -35,9 +35,9 @@ module exampleP3 {
 				OnShelfSituation [
 					(OnShelf FigureSet~ Random)^
 					((robby put figure OnShelf~ on shelf) ew.say~) Do 
-					2000 Relax
 					(OnShelf nil)^
 				OnShelfSituation ]
+				2000 Relax
 			);
 			
 			source lifeterm = Life~ Exe
@@ -49,9 +49,9 @@ module exampleP3 {
 				OnShelfSituation [
 					(OnShelf FigureSet~ Random)^
 					((bob put figure OnShelf~ on shelf) ew.say~) Do 
-					1000 Relax
 					(OnShelf nil)^
 				OnShelfSituation ]
+				1000 Relax
 			);
 			
 			source lifeterm = Life~ Exe

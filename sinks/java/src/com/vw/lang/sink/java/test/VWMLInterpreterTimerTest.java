@@ -8,6 +8,8 @@ import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTime
 
 public class VWMLInterpreterTimerTest {
 
+	private static VWMLInterpreterTimerManager tm = VWMLInterpreterTimerManager.instance();
+	
 	protected class VWMLInterpreterTestTimerCallback extends VWMLInterpreterTimerCallback {
 
 		private int expired = 0;
@@ -25,6 +27,8 @@ public class VWMLInterpreterTimerTest {
 		@Override
 		public void timerCbk(VWMLInterpreterTimer timer) {
 			System.out.println("timer '" + timer.getId() + "' expired");
+			VWMLInterpreterTestTimerCallback callback = new VWMLInterpreterTestTimerCallback(1);
+			tm.addTimer("t1", 996, System.currentTimeMillis(), null, callback);
 			expired++;
 		}
 
@@ -51,15 +55,12 @@ public class VWMLInterpreterTimerTest {
 	
 	@Test
 	public void test() throws Exception {
-		VWMLInterpreterTimerManager tm = VWMLInterpreterTimerManager.instance();
-		VWMLInterpreterTestTimerCallback callback = new VWMLInterpreterTestTimerCallback(4);
-		tm.addTimer("t1", 500, System.currentTimeMillis(), null, callback);
-		tm.addTimer("t2", 500, System.currentTimeMillis(), null, callback);
-		tm.addTimer("t3", 401, System.currentTimeMillis(), null, callback);
-		tm.addTimer("t4", 600, System.currentTimeMillis(), null, callback);
+		VWMLInterpreterTestTimerCallback callback = new VWMLInterpreterTestTimerCallback(2);
+		tm.addTimer("t1", 996, System.currentTimeMillis(), null, callback);
+		tm.addTimer("t2", 2100, System.currentTimeMillis(), null, callback);
 		while(!callback.expiredAll()) {
 			tm.processReactive(System.currentTimeMillis());
-			Thread.sleep(100);
+			Thread.sleep(0);
 		}
 		tm.stop();
 	}

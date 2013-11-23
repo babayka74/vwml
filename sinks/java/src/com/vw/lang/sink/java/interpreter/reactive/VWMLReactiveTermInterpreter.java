@@ -75,10 +75,8 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
 			impl.start();
 		}
-		// check consistency
-		if (!ring.checkConsistency()) {
-			throw new Exception("the conflict ring was built with errors; there are nodes without interprerter");
-		}
+		// normalization process
+		ring.normalize();
 		IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
 		while(true) {

@@ -13,7 +13,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode
  */
 public class VWMLConflictRingNode_W_PAS_Action extends VWMLConflictRingNodeAutomataAction {
 
-	private static final String s_delay = "10";
+	private static final String s_delay = "0";
 	private static final EWEntity s_eAsDelay = new EWEntity(s_delay, s_delay);
 	
 	@Override

@@ -1,0 +1,112 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.exampleP5"
+  		path = "c:\var\vwml/exampleP5/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleP5Proj"
+  		description = "ExampleP5"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/exampleP5/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+		conflictring {
+			Example5.Robby.GetContCase.Study conflicts (Example5.Bob.Creation.PutOnShelf)
+			Example5.Robby.Creation.PutOnShelf conflicts (Example5.Bob.GetContCase.Study)
+			Example5.Robby.Creation.PutOnShelf conflicts (Example5.Bob.Creation.PutOnShelf)
+		}
+	}
+}
+
+module exampleP5 {
+	Example5 ias (
+		ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+			increaseQ ias services.math.inc;
+		);
+		OnShelf ias nil;
+		MAXQ ias 10;
+		Q ias 0;
+		Robby ias (
+			QR ias 0;
+			Finish ias nil;
+			FigureSet ias (Ball Cube);
+			Life ias (
+				GetContCase~ Exe
+				Finish~~ Exe
+			);
+			GetContCase ias (
+				Study [
+					(Finish (Finish (MAXQ~ Q~)Ident))^
+				Study ]
+			);
+			(Finish true) ias (
+				((Robby reports about Q~ figures) ew.say~) Do
+				10000 Relax
+			);
+			(Finish false) ias (
+				Creation~ Exe
+				Life~ Exe
+			);
+			Creation ias (
+				PutOnShelf [
+					(Shelf full false) ias (
+						(OnShelf FigureSet~ Random)^
+						(Q ((Q~) ew.increaseQ~) Do)^
+						(QR ((QR~) ew.increaseQ~) Do)^
+						((Robby put figure OnShelf~ on shelf and created QR~ figures) ew.say~) Do
+					);
+					(Shelf full true) ias DoNothing;
+					(Shelf full (MAXQ~ Q~)Ident)~ Exe
+				PutOnShelf ]
+				1000 Relax
+			);
+			source lifeterm = Life~ Exe
+		);
+		Bob ias (
+			QB ias 0;
+			Finish ias nil;
+			FigureSet ias (Ball Cube);
+			Life ias (
+				GetContCase~ Exe
+				Finish~~ Exe
+			);
+			GetContCase ias (
+				Study [
+					(Finish (Finish (MAXQ~ Q~)Ident))^
+				Study ]
+			);
+			(Finish true) ias (
+				((Bob reports about Q~ figures) ew.say~) Do
+				10000 Relax
+			);
+			(Finish false) ias (
+				Creation~ Exe
+				Life~ Exe
+			);
+			Creation ias (
+				PutOnShelf [
+					(Shelf full false) ias (
+						(OnShelf FigureSet~ Random)^
+						(Q ((Q~) ew.increaseQ~) Do)^
+						(QB ((QB~) ew.increaseQ~) Do)^
+						((Bob put figure OnShelf~ on shelf and create QB~ figures) ew.say~) Do
+					);
+					(Shelf full true) ias DoNothing;
+					(Shelf full (MAXQ~ Q~)Ident)~ Exe
+				PutOnShelf ]
+				2000 Relax
+			);
+			source lifeterm = Life~ Exe
+		);
+	);
+}

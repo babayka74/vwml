@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -29,6 +30,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
+		VWMLContext originalContext = context.peekContext();
 		// since inspector reads until empty mark we should read entity's original context
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() != 0) {
@@ -46,7 +48,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 				internalDelayImpl(timeToRelax);
 			}
 			else { // reactive implementation
-				reactiveDelayImpl(interpreter, timeToRelax);
+				reactiveDelayImpl(originalContext, interpreter, timeToRelax);
 			}
 		}
 		inspector.clear();
@@ -58,15 +60,13 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		Thread.sleep(delay);
 	}
 	
-	protected void reactiveDelayImpl(VWMLInterpreterImpl interpreter, int delay) throws Exception {
+	protected void reactiveDelayImpl(VWMLContext activeContext, VWMLInterpreterImpl interpreter, int delay) throws Exception {
 		if (delay != 0) {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
 			VWMLOperationRelaxTimerCallback callback = new VWMLOperationRelaxTimerCallback();
 			if (interpreter.getObserver() != null) {
-				VWMLConflictRingNodeAutomataInputs conflictRingNodeAutomataInput = interpreter.getObserver().getConflictOperationalState();
-				callback.setConflictRingNodeAutomataInput(conflictRingNodeAutomataInput);
-				interpreter.getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_W);
+				interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
 			}
 			if (interpreter.getTimerManager() != null) {
 				interpreter.getTimerManager().addTimer(e.getId(), delay, Long.valueOf((String)e.getId()), interpreter, callback);

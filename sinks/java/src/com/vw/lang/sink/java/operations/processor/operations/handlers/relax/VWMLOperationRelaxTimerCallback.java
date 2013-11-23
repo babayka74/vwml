@@ -1,7 +1,7 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.relax;
 
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerCallback;
 
@@ -12,21 +12,11 @@ import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTime
  */
 public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallback {
 	
-	private VWMLConflictRingNodeAutomataInputs conflictRingNodeAutomataInput;
-	
 	@Override
 	public void timerCbk(VWMLInterpreterTimer timer) {
 		VWMLInterpreterImpl interpreter = (VWMLInterpreterImpl)timer.getUserData();
 		if (interpreter != null && interpreter.getObserver() != null) {
-			interpreter.getObserver().setConflictOperationalState(conflictRingNodeAutomataInput);
+			interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
 		}
-	}
-
-	public VWMLConflictRingNodeAutomataInputs getConflictRingNodeAutomataInput() {
-		return conflictRingNodeAutomataInput;
-	}
-
-	public void setConflictRingNodeAutomataInput(VWMLConflictRingNodeAutomataInputs conflictRingNodeAutomataInput) {
-		this.conflictRingNodeAutomataInput = conflictRingNodeAutomataInput;
 	}
 }

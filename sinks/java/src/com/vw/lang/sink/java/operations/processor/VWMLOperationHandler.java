@@ -25,11 +25,12 @@ public abstract class VWMLOperationHandler {
 	
 	/**
 	 * Reports to observer interpreter's internal state
+	 * @param context 
 	 * @param interpreter
 	 */
-	public void reportInterpreterInternalState(VWMLInterpreterImpl interpreter) {
+	protected void reportInterpreterInternalState(String context, VWMLInterpreterImpl interpreter) {
 		if (interpreter.getObserver() !=  null) {
-			interpreter.getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_N);
+			interpreter.getObserver().setConflictOperationalState(context, VWMLConflictRingNodeAutomataInputs.IN_N);
 		}
 	}
 }

@@ -62,7 +62,18 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 */
 	public void resetInput(VWMLConflictRingNode node) {
 		if (node.getInterpreter().getObserver() != null) {
-			node.getInterpreter().getObserver().setConflictOperationalState(VWMLConflictRingNodeAutomataInputs.IN_N);
+			node.getInterpreter().getObserver().setConflictOperationalState((String)node.getId(), VWMLConflictRingNodeAutomataInputs.IN_N);
+			node.getInterpreter().getObserver().setActiveConflictContext(null);
+		}
+	}
+	
+	/**
+	 * Resets observer's active conflict context
+	 * @param node
+	 */
+	public void resetActiveConflictContext(VWMLConflictRingNode node) {
+		if (node.getInterpreter().getObserver() != null) {
+			node.getInterpreter().getObserver().setActiveConflictContext(null);
 		}
 	}
 }

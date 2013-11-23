@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -68,33 +69,33 @@ public class VWMLConflictRing {
 	}
 
 	/**
-	 * Returns true in case if ring in consistency state
+	 * Normalizes conflict ring by grouping nodes
 	 * @return
 	 */
-	public boolean checkConsistency() {
-		boolean corrected = true;
+	public void normalize() {
 		if (conflictRing.size() == 0 || initialyEmptyRing) {
-			return corrected;
+			return;
 		}
+		List<VWMLConflictRingNode> toRemove = new ArrayList<VWMLConflictRingNode>();
 		for(VWMLConflictRingNode node : conflictRing) {
-			if (node.getInterpreter() == null) {
-				corrected = false;
-				for(VWMLConflictRingNode n : conflictRing) {
-					if (n != node && n.getInterpreter() != null) {
-						if (((String)n.getId()).startsWith((String)node.getId()) ||
-							((String)node.getId()).startsWith((String)n.getId())) {
-							node.setInterpreter(n.getInterpreter());
-							corrected = true;
-							break;
-						}
+			if (node.getInterpreter() != null && !node.isGrouped()) {
+				// node is grouping node
+				String nodeCtx = node.getInterpreter().getContext().getContext();				
+				// looking for candidate for group
+				for(VWMLConflictRingNode candidateNode : conflictRing) {
+					if (candidateNode != node && candidateNode.getInterpreter() == null &&
+						((String)candidateNode.getId()).startsWith(nodeCtx)) {
+						candidateNode.setInterpreter(node.getInterpreter());
+						toRemove.add(candidateNode);
+						node.addToGroup(candidateNode);
 					}
-				}
-				if (!corrected) {
-					break;
 				}
 			}
 		}
-		return corrected;
+		for(VWMLConflictRingNode r : toRemove) {
+			conflictRing.remove(r);
+		}
+		toRemove.clear();
 	}
 	
 	/**

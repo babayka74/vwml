@@ -112,7 +112,6 @@ public class VWMLOperationProcessor {
 			handler = unknownOperationHandler;
 		}
 		try {
-			handler.reportInterpreterInternalState(interpreter);
 			checkBpAction(context, operation, true);
 			handler.handle(interpreter, linkage, context, operation);
 			checkBpAction(context, operation, false);

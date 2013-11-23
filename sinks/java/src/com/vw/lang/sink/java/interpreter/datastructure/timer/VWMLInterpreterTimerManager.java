@@ -36,8 +36,9 @@ public class VWMLInterpreterTimerManager {
 	 * @param callback
 	 */
 	public void addTimer(Object id, int time, long timeStamp, Object userData, VWMLInterpreterTimerCallback callback) {
+		int otime = time;
 		if (timers.size() == 0) {
-			timers.add(new VWMLInterpreterTimer(id, time, userData, timeStamp, callback));
+			timers.add(new VWMLInterpreterTimer(id, otime, time, userData, timeStamp, callback));
 		}
 		else {
 			int i = 0; 
@@ -52,12 +53,12 @@ public class VWMLInterpreterTimerManager {
 				}
 			}
 			if (i == timers.size()) {
-				timers.add(new VWMLInterpreterTimer(id, time, userData, timeStamp, callback));
+				timers.add(new VWMLInterpreterTimer(id, otime, time, userData, timeStamp, callback));
 			}
 			else {
 				t = timers.get(i);
 				t.setTime(t.getTime() - time);
-				timers.add(i, new VWMLInterpreterTimer(id, time, userData, timeStamp, callback));
+				timers.add(i, new VWMLInterpreterTimer(id, otime, time, userData, timeStamp, callback));
 			}
 		}
 	}
