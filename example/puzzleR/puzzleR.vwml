@@ -1,0 +1,194 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.puzzle.model.vwml.puzzleR"
+  		path = "c:\var\vwml/puzzleR/src"
+  		author = "Groozman M.Z."
+		project_name = "puzzleRProj"
+  		description = "Simple puzzle game"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/puzzleR/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module puzzleR {
+	/*
+		EW represents external world data which can be loaded during game's 
+		initialization phase
+	*/
+	Ew ias (
+		FreePlaces ias (
+			p1 p2 p3
+			p4 p5 p6
+			p7 p8 p9
+		);
+		RestPuzzles ias (
+			c1 c2 c3
+			c4 c5 c6
+			c7 c8 c9
+		);
+		Correspondence ias (
+			(p1 c1)(p2 c2)(p3 c3)
+			(p4 c4)(p5 c5)(p6 c6)
+			(p7 c7)(p8 c8)(p9 c9)
+		);
+	);
+	/* 
+		Robby is representer of real gamer in virtual world.
+	   	Robby waits for commands and applies them to puzzle
+	*/
+	Robby ias (
+		CardPlace ias nil;
+		/* Actions which can be performed by Robby */
+		Actions ias (
+			/* 
+				method 'write' of object defined by fringe 'commmunication.out' sends messages
+				to the external world.
+				The entity 'say' is pseudonim entity for entity 'communication.out.write'
+		 	*/
+			say ias communication.out.write;
+			/* 
+				method 'read' of object defined by fringe 'commmunication.in' receives messages 
+				from the external world in pulling manner
+				The entity 'ask' is pseudonim entity for entity 'communication.in.read'
+		 	*/
+			ask ias communication.in.read;
+			/* 
+				method 'inc' of object defined by fringe 'services.math' increments given entity's value 
+				(entity's value must be a number)
+				The entity 'inc' is pseudonim entity for entity 'services.math.inc'
+		 	*/
+			inc ias services.math.inc;
+			/* Robby selects random card */
+			GetRandomCard ias (
+				/* takes random card */			
+				(Puzzle.RandomCard Ew.RestPuzzles~ Random)^
+				((select place where card Puzzle.RandomCard~ should be placed or type next to get next card) Actions.say~) Do
+				((available places are Ew.FreePlaces~) Actions.say~) Do
+			);
+			/* processes selected card */
+			ProcessCard ias (
+				(Puzzle.PlaceChoice CardPlace)^
+				((place is Puzzle.PlaceChoice~~) Robby.Actions.say~) Do
+				Puzzle.Play~ Exe
+			);
+			/* Check puzzle completition */
+                        CheckEndOfGame ias (
+				Puzzle.CheckEndOfGame~ Exe
+				/* analyzing result */
+				Robby.Actions.LogicGenerated.Command~~ Exe
+			);
+			/* logic generated commands/actions */
+			LogicGenerated ias (
+				Command ias nil;
+				/* real user placed card to invalid place */
+				InvalidCardPlace ias (
+					(Puzzle.Errors ((Puzzle.Errors~) Actions.inc~) Do)^
+					((place is invalid) Actions.say~) Do
+					CommandsLoop.Step~ Exe
+				);
+				RightPlace ias (
+					((Right choice !) Actions.say~) Do
+					CommandsLoop.Step~ Exe
+				);
+				/* Nothing todo; passing to strategy -> wait for user input */
+				PuzzleNotCompleted ias (
+					/* asking Robby to select random card */
+					Robby.Actions.GetRandomCard~ Exe
+					/* dispatches command and checks validity */
+					CommandsLoop.DispatchUserCommands~ Exe
+				);
+				/* Finishig game  */
+				PuzzleCompleted ias (
+					((Congratulations ! Puzzle completed !) Actions.say~) Do
+					7000 Relax
+				);
+			);
+		);
+		CommandsLoop ias (
+			ServiceCommands ias (exit next available);
+		        DispatchUserCommands ias (
+				Command ias nil;
+				Input ias Robby.Actions.ask;
+				(ServiceCommandsProcessing true) ias (
+					/* real user typed exit */
+					exit ias (
+						((Bye !) Robby.Actions.say~) Do
+						3000 Relax
+					);
+					/* real user asked for new card */
+					next ias (
+						((card Puzzle.RandomCard~ was not placed ! gettig new) Robby.Actions.say~) Do
+						Step~ Exe;
+					);
+					Command~~ Exe
+				);
+				(ServiceCommandsProcessing false) ias (
+					/* actual processing  */
+					(Robby.CardPlace Command~)^
+					Robby.Actions.ProcessCard~ Exe
+					/* analyzing result */
+					Robby.Actions.LogicGenerated.Command~~ Exe
+				);
+				/* reads user input and pushes to internal stack */ 
+				(Command (() Input~~) Do)^
+				/* applies 'Command' to given context */
+				(Command~ (ServiceCommandsProcessing (Command~ ServiceCommands~)In)) Context
+				(ServiceCommandsProcessing (Command~ ServiceCommands~)In)~ Exe 
+			);
+			Step ias (
+				Robby.Actions.CheckEndOfGame~ Exe
+			);
+		);
+		source lifeterm = CommandsLoop.Step~ Exe
+	);
+	Puzzle ias (
+			Errors ias 0;
+			RandomCard ias nil;
+			PlaceChoice ias nil;
+
+			CorrespondenceCase ias nil;
+			CorrectChoice ias nil;
+
+			CheckEndOfGame ias (
+				(EndOfGame (Ew.FreePlaces~ ()) Ident)~ Exe
+			);
+			(EndOfGame true) ias (
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.PuzzleCompleted)^
+			);
+			(EndOfGame false) ias (
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.PuzzleNotCompleted)^
+			);
+			Play ias (
+				CorrespondenceStudy~ Exe
+				GetCorrespondenceCase~ Exe
+				CorrespondenceCase~~ Exe
+			);
+	                CorrespondenceStudy ias (
+				CorrectChoice
+				((Puzzle.PlaceChoice~~ Puzzle.RandomCard~) Ew.Correspondence~) In
+			)^;
+			GetCorrespondenceCase ias (
+				CorrespondenceCase
+				(CorrectChoice CorrectChoice~)
+			)^;
+			(CorrectChoice false) ias (
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.InvalidCardPlace)^
+			);
+			(CorrectChoice true) ias (
+				(Ew.FreePlaces (Ew.FreePlaces~ (Puzzle.PlaceChoice~~))Substruct)^
+				(Ew.RestPuzzles (Ew.RestPuzzles~ (Puzzle.RandomCard~))Substruct)^
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.RightPlace)^
+			);
+	);
+}

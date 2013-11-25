@@ -31,7 +31,8 @@ tokens {
     OPRELAX='Relax';
     OPSTARTCONFLICTGROUP = '[';
     OPENDCONFLICTGROUP = ']';
-    OPBREAKPOINT = 'Bp';   
+    OPBREAKPOINT = 'Bp';
+    OPAPPLYTOCONTEXT='Context';   
     OPPROJECTION_1='Projection_1';
     OPPROJECTION_2='Projection_2';
     OPPROJECTION_3='Projection_3';
@@ -980,6 +981,7 @@ opclist
     | OPSTARTCONFLICTGROUP
     | OPENDCONFLICTGROUP
     | OPBREAKPOINT
+    | OPAPPLYTOCONTEXT
     ;
 
 opprojection

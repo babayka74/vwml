@@ -41,6 +41,7 @@ public class VWMLOperationUtils {
 			                                                                AbstractVWMLLinkVisitor visitor,
 			                                                                boolean addIfUnknown) throws Exception {
 		VWMLEntity newComplexEntity = null;
+		String origEffectiveContext = context;
 		// if effective context (lifeterm's context) isn't parent of entity's context it means that 
 		// actual interpretation is being run on context identified by effectiveContext id
 		if (!VWMLContext.isContextChildOf(effectiveContext, context)) {
@@ -63,41 +64,59 @@ public class VWMLOperationUtils {
 			newComplexEntity = (VWMLEntity)VWMLObjectsRepository.instance().getEmptyEntity();
 			remove = false;
 		}
-		if (addIfUnknown) {
-			VWMLContext ctx = VWMLContextsRepository.instance().get(context);
-			if (ctx == null) {
-				throw new Exception("couldn't find context identified by '" + context + "'");
-			}
-			String id = newComplexEntity.buildReadableId();
-			VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
-			if (lookedEntity != null) {
-				boolean activateUnlink = true;
-				if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
-					if (lookedEntity.getLink() != null) {
-						lookedEntity.getLink().getLinkedObjects().clear();
-					}
-					lookedEntity.setLink(newComplexEntity.getLink());
-					VWMLLinkIncrementalIterator it = newComplexEntity.getLink().acquireLinkedObjectsIterator();
-					if (it != null) {
-						for(; it.isCorrect(); it.next()) {
-							newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()).getLink().setParent(lookedEntity);
-						}
-					}
-					activateUnlink = false;
+		if (addIfUnknown && remove) {
+			VWMLEntity e = addIfUnknown(context, newComplexEntity);
+			if (e == newComplexEntity) {
+				e = addIfUnknown(origEffectiveContext, newComplexEntity);
+				if (e == newComplexEntity) {
+					addToRepository(context, newComplexEntity);
 				}
-				if (remove) {
-					VWMLObjectsRepository.instance().remove(newComplexEntity);
-					if (activateUnlink) {
-						newComplexEntity.getLink().unlinkFromAll();
-					}
-					newComplexEntity.setLink(null);
+				else {
+					newComplexEntity = e;
 				}
-				newComplexEntity = lookedEntity;
 			}
 			else {
-				newComplexEntity.setId(id);
-				VWMLObjectsRepository.instance().addConcrete(newComplexEntity, ctx);
+				newComplexEntity = e;
 			}
+		}
+		return newComplexEntity;
+	}
+
+	private static void addToRepository(String context, VWMLEntity newComplexEntity) throws Exception {
+		String id = newComplexEntity.buildReadableId();
+		newComplexEntity.setId(id);
+		VWMLContext ctx = VWMLContextsRepository.instance().get(context);
+		VWMLObjectsRepository.instance().addConcrete(newComplexEntity, ctx);
+	}
+	
+	private static VWMLEntity addIfUnknown(String context, VWMLEntity newComplexEntity) throws Exception {
+		VWMLContext ctx = VWMLContextsRepository.instance().get(context);
+		if (ctx == null) {
+			throw new Exception("couldn't find context identified by '" + context + "'");
+		}
+		String id = newComplexEntity.buildReadableId();
+		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
+		if (lookedEntity != null) {
+			boolean activateUnlink = true;
+			if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
+				if (lookedEntity.getLink() != null) {
+					lookedEntity.getLink().getLinkedObjects().clear();
+				}
+				lookedEntity.setLink(newComplexEntity.getLink());
+				VWMLLinkIncrementalIterator it = newComplexEntity.getLink().acquireLinkedObjectsIterator();
+				if (it != null) {
+					for(; it.isCorrect(); it.next()) {
+						newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()).getLink().setParent(lookedEntity);
+					}
+				}
+				activateUnlink = false;
+			}
+			VWMLObjectsRepository.instance().remove(newComplexEntity);
+			if (activateUnlink) {
+				newComplexEntity.getLink().unlinkFromAll();
+			}
+			newComplexEntity.setLink(null);
+			newComplexEntity = lookedEntity;
 		}
 		return newComplexEntity;
 	}

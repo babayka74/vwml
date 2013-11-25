@@ -34,7 +34,7 @@ module exampleP5 {
 			increaseQ ias services.math.inc;
 		);
 		OnShelf ias nil;
-		MAXQ ias 10;
+		MAXQ ias 32;
 		Q ias 0;
 		Robby ias (
 			QR ias 0;
@@ -51,7 +51,7 @@ module exampleP5 {
 			);
 			(Finish true) ias (
 				((Robby reports about Q~ figures) ew.say~) Do
-				10000 Relax
+				30000 Relax
 			);
 			(Finish false) ias (
 				Creation~ Exe
@@ -87,7 +87,7 @@ module exampleP5 {
 			);
 			(Finish true) ias (
 				((Bob reports about Q~ figures) ew.say~) Do
-				10000 Relax
+				30000 Relax
 			);
 			(Finish false) ias (
 				Creation~ Exe
@@ -104,7 +104,7 @@ module exampleP5 {
 					(Shelf full true) ias DoNothing;
 					(Shelf full (MAXQ~ Q~)Ident)~ Exe
 				PutOnShelf ]
-				2000 Relax
+				3000 Relax
 			);
 			source lifeterm = Life~ Exe
 		);

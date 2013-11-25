@@ -61,6 +61,13 @@ public class VWMLInterpreterTimerManager {
 				timers.add(i, new VWMLInterpreterTimer(id, otime, time, userData, timeStamp, callback));
 			}
 		}
+/*		
+		System.out.println("timers ->");
+		for(VWMLInterpreterTimer t : timers) {
+			System.out.print(t.getId() + ":" + t.getOrigTime() + ":" + t.getTime());
+		}
+		System.out.println();
+*/		
 	}
 
 	/**
