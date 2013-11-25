@@ -16,7 +16,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// node's controlled interpreter
 	private VWMLInterpreterImpl interpreter;
 	// node's automata
-	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build(this);
+	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build();
 	// index of conflict fragment 
 	private int sigma;
 	// true in case if node belongs to any group

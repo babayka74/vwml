@@ -22,14 +22,19 @@ public class VWMLConflictRingNodeAutomata {
 	// automata's cells
 	private VWMLConflictRingNodeAutomataCell[][] cells = new VWMLConflictRingNodeAutomataCell[IN_MAX][STATE_MAX];
 	
+	private static VWMLConflictRingNodeAutomata s_automata = null;
+	
 	private VWMLConflictRingNodeAutomata() {
 		
 	}
 	
-	public static VWMLConflictRingNodeAutomata build(VWMLConflictRingNode node) {
-		VWMLConflictRingNodeAutomata a = new VWMLConflictRingNodeAutomata();
-		a.init();
-		return a;
+	public static synchronized VWMLConflictRingNodeAutomata build() {
+		if (s_automata != null) {
+			return s_automata;
+		}
+		s_automata = new VWMLConflictRingNodeAutomata();
+		s_automata.init();
+		return s_automata;
 	}
 	
 	/**

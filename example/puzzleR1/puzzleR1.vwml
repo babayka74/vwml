@@ -1,0 +1,207 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.puzzle.model.vwml.puzzleR1"
+  		path = "c:\var\vwml/puzzleR1/src"
+  		author = "Groozman M.Z."
+		project_name = "puzzleR1Proj"
+  		description = "Simple puzzle game"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/puzzleR1/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module puzzleR1 {
+	/*
+		EW represents external world data which can be loaded during game's 
+		initialization phase
+	*/
+	Ew ias (
+		FreePlaces ias (
+			p1 p2 p3
+			p4 p5 p6
+			p7 p8 p9
+		);
+		RestPuzzles ias (
+			c1 c2 c3
+			c4 c5 c6
+			c7 c8 c9
+		);
+		Correspondence ias (
+			(p1 c1)(p2 c2)(p3 c3)
+			(p4 c4)(p5 c5)(p6 c6)
+			(p7 c7)(p8 c8)(p9 c9)
+		);
+	);
+	/* 
+		Robby is representer of real gamer in virtual world.
+	   	Robby waits for commands and applies them to puzzle
+	*/
+	Robby ias (
+		Command ias nil;
+		Card ias nil;
+		CardPlace ias nil;
+		/* Actions which can be performed by Robby */
+		Actions ias (
+			/* 
+				method 'write' of object defined by fringe 'commmunication.out' sends messages
+				to the external world.
+				The entity 'say' is pseudonim entity for entity 'communication.out.write'
+		 	*/
+			say ias communication.out.write;
+			/* 
+				method 'read' of object defined by fringe 'commmunication.in' receives messages 
+				from the external world in pulling manner
+				The entity 'ask' is pseudonim entity for entity 'communication.in.read'
+		 	*/
+			ask ias communication.in.read;
+			/* 
+				method 'inc' of object defined by fringe 'services.math' increments given entity's value 
+				(entity's value must be a number)
+				The entity 'inc' is pseudonim entity for entity 'services.math.inc'
+		 	*/
+			inc ias services.math.inc;
+			/* check user's input data and if everything is ready - starts game's step */
+			CheckAndPlay ias (
+				(CardNotSelected true) ias (
+					(Card Command~)^
+					((selected card is Card~) Robby.Actions.say~) Do
+					CommandsLoop.DispatchUserCommands~ Exe
+				);
+				(CardPlaceNotSelected true) ias (
+					(CardPlace Command~)^
+					((selected card place is CardPlace~) Robby.Actions.say~) Do
+					/* Card and Card's place collected, running game step */
+					Puzzle.Play~ Exe
+				);
+				(CardNotSelected false) ias nil;
+				(CardPlaceNotSelected false) ias nil;
+
+				(CardNotSelected (Card~ nil) Ident)~ Exe
+				(CardPlaceNotSelected (CardPlace~ nil) Ident)~ Exe
+			);
+			/* Check puzzle completition */
+                        CheckEndOfGame ias (
+				Puzzle.CheckEndOfGame~ Exe
+				/* analyzing result */
+				Robby.Actions.LogicGenerated.Command~~ Exe
+			);
+			/* logic generated commands/actions */
+			LogicGenerated ias (
+				Command ias nil;
+				ResetPair ias (
+					(Card nil)^
+					(CardPlace nil)^
+				);
+				/* real user selected invalid pair (card and/or place) */
+				InvalidPair ias (
+					((pair Card~ and CardPlace~ is invalid) Actions.say~) Do
+					ResetPair~ Exe
+					(Puzzle.Errors ((Puzzle.Errors~) Actions.inc~) Do)^
+					CommandsLoop.Step~ Exe
+				);
+				RightPair ias (
+					ResetPair~ Exe
+					((Right choice !) Actions.say~) Do
+					CommandsLoop.Step~ Exe
+				);
+				/* Nothing todo; passing to strategy -> wait for user input */
+				PuzzleNotCompleted ias (
+					ResetPair~ Exe
+					/* dispatches command and checks validity */
+					CommandsLoop.DispatchUserCommands~ Exe
+				);
+				/* Finishig game  */
+				PuzzleCompleted ias (
+					((Congratulations ! Puzzle completed !) Actions.say~) Do
+					7000 Relax
+				);
+			);
+		);
+		CommandsLoop ias (
+			ServiceCommands ias (exit shuffle available);
+		        DispatchUserCommands ias (
+				Command ias nil;
+				Input ias Robby.Actions.ask;
+				(ServiceCommandsProcessing true) ias (
+					/* real user typed exit */
+					exit ias (
+						((Bye !) Robby.Actions.say~) Do
+						3000 Relax
+					);
+					/* real user asked for new card */
+					shuffle ias (
+						((card and placed shuffled) Robby.Actions.say~) Do
+						Step~ Exe;
+					);
+					Command~~ Exe
+				);
+				(ServiceCommandsProcessing false) ias (
+					/* actual processing  */
+					(Robby.Command Command~)^
+					Robby.Actions.CheckAndPlay~ Exe
+					/* analyzing result */
+					Robby.Actions.LogicGenerated.Command~~ Exe
+				);
+				((step 1 is select card from Ew.RestPuzzles~) Robby.Actions.say~) Do
+				((step 2 is select where to put it from Ew.FreePlaces~) Robby.Actions.say~) Do
+				/* reads user input and pushes to internal stack */ 
+				(Command (() Input~~) Do)^
+				/* applies 'Command' to given context */
+				(Command~ (ServiceCommandsProcessing (Command~ ServiceCommands~)In)) Context
+				(ServiceCommandsProcessing (Command~ ServiceCommands~)In)~ Exe 
+			);
+			Step ias (
+				Robby.Actions.CheckEndOfGame~ Exe
+			);
+		);
+		source lifeterm = CommandsLoop.Step~ Exe
+	);
+	Puzzle ias (
+			Errors ias 0;
+
+			CorrespondenceCase ias nil;
+			CorrectChoice ias nil;
+
+			CheckEndOfGame ias (
+				(EndOfGame (Ew.FreePlaces~ ()) Ident)~ Exe
+			);
+			(EndOfGame true) ias (
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.PuzzleCompleted)^
+			);
+			(EndOfGame false) ias (
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.PuzzleNotCompleted)^
+			);
+			Play ias (
+				CorrespondenceStudy~ Exe
+				GetCorrespondenceCase~ Exe
+				CorrespondenceCase~~ Exe
+			);
+	                CorrespondenceStudy ias (
+				CorrectChoice
+				((Robby.CardPlace~ Robby.Card~) Ew.Correspondence~) In
+			)^;
+			GetCorrespondenceCase ias (
+				CorrespondenceCase
+				(CorrectChoice CorrectChoice~)
+			)^;
+			(CorrectChoice false) ias (
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.InvalidPair)^
+			);
+			(CorrectChoice true) ias (
+				(Ew.FreePlaces (Ew.FreePlaces~ (Robby.CardPlace~))Substruct)^
+				(Ew.RestPuzzles (Ew.RestPuzzles~ (Robby.Card~))Substruct)^
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.RightPair)^
+			);
+	);
+}
