@@ -58,25 +58,10 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		getConfig().setStepByStepInterpretation(true);
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		for(VWMLEntity e : getTerms()) {
-			// looking for ring node by source lifeterm's context 
-			VWMLConflictRingNode n = ring.findNodeByEntityContext(e.getContext().getContext());
-			if (n == null) {
-				throw new Exception("couldn't find ring node by context '" + e.getContext().getContext() + "'");
-			}
-			if (n.getInterpreter() != null) { // already processed
-				continue;
-			}
-			// instantiates new sequential interpreter
-			VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), e);
-			impl.setConfig(getConfig());
-			impl.setTimerManager(getTimerManager());
-			// associating interpreter and ring node
-			n.setInterpreter(impl);
-			// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
-			impl.start();
+			activateSourceLifeTerm(e);
 		}
 		// normalization process
-		ring.normalize();
+		normalizeInterpreterData();
 		IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
 		while(true) {
@@ -102,5 +87,30 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		if (e != null) {
 			timerManager.processReactive(Long.valueOf((String)e.getId()));
 		}
+	}
+	
+	protected void normalizeInterpreterData() throws Exception {
+		// ring's normalization process
+		ring.normalize();
+	}
+	
+	protected boolean activateSourceLifeTerm(VWMLEntity term) throws Exception {
+		// looking for ring node by source lifeterm's context 
+		VWMLConflictRingNode n = ring.findNodeByEntityContext(term.getContext().getContext());
+		if (n == null) {
+			throw new Exception("couldn't find ring node by context '" + term.getContext().getContext() + "'");
+		}
+		if (n.getInterpreter() != null) { // already processed
+			return false;
+		}
+		// instantiates new sequential interpreter
+		VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), term);
+		impl.setConfig(getConfig());
+		impl.setTimerManager(getTimerManager());
+		// associating interpreter and ring node
+		n.setInterpreter(impl);
+		// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
+		impl.start();
+		return true;
 	}
 }

@@ -1,6 +1,9 @@
 package com.vw.lang.sink.java.entity;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectBuilder;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -22,8 +25,8 @@ public class VWMLEntity extends VWMLObject {
 	// true means that entity lives on intersection of worlds (see VWMLCreature)
 	protected boolean isCreature = false;
 	
-	// this entity is interpreted as another entity/term
 	private VWMLContext context;
+	// this entity is interpreted as another entity/term
 	private VWMLEntity interpreting;
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations();
@@ -35,6 +38,8 @@ public class VWMLEntity extends VWMLObject {
 	// marked by interpreter in case when operation EXE is being applied
 	private boolean isOperatesByExe = false;
 	private int interpretationHistorySize;
+	// if entity is cloned this field is set to entity from which it was cloned 
+	private VWMLEntity clonedFrom = null;
 	
 	public VWMLEntity() {
 		super();
@@ -44,6 +49,24 @@ public class VWMLEntity extends VWMLObject {
 		super(id, readableId);
 	}
 
+	/**
+	 * Clones entity including conflict fragments, in case if cloned entity is source lifeterm
+	 * @param id (new entity's id)
+	 * @return
+	 * @throws Exception
+	 */
+	public VWMLEntity clone(Object id) throws Exception {
+		VWMLEntity cloned = clone((String)getId(), (String)id, getContext());
+		// now we have to find 'master' entity in order to get conflict fragments
+		if (cloned.getInterpreting() != null) {
+			VWMLEntity clonedSourceLft = cloned.getContext().findSourceLifeTerm();
+			if (clonedSourceLft != null) {
+				
+			}
+		}
+		return cloned;
+	}
+	
 	public VWMLContext getContext() {
 		return context;
 	}
@@ -177,6 +200,14 @@ public class VWMLEntity extends VWMLObject {
 		this.isOperatesByExe = isOperatesByExe;
 	}
 
+	protected VWMLEntity getClonedFrom() {
+		return clonedFrom;
+	}
+
+	protected void setClonedFrom(VWMLEntity clonedFrom) {
+		this.clonedFrom = clonedFrom;
+	}
+
 	@Override
 	public String toString() {
 		return "VWMLEntity [interpreting=" + interpreting + ", getLink()="
@@ -207,5 +238,71 @@ public class VWMLEntity extends VWMLObject {
 			return false;
 		}
 		return true;
+	}
+	
+	protected VWMLOperations getAssociatedOperations() {
+		return associatedOperations;
+	}
+
+	protected void setAssociatedOperations(VWMLOperations associatedOperations) {
+		this.associatedOperations = associatedOperations;
+	}
+
+	/**
+	 * Clones current entity, the Id is changed to newId
+	 * (usually used by operation 'Clone' when new source lifeterm is created in runtime)
+	 * @param origRootContext
+	 * @param newContext
+	 * @param newId
+	 * @param context
+	 * @return
+	 */
+	protected VWMLEntity clone(String oldId, String newId, VWMLContext context) throws Exception {
+		VWMLObjectBuilder.VWMLObjectType type = VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY;
+		if (isMarkedAsComplexEntity()) {
+			type = VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY;
+		}
+		if (newId.startsWith(oldId + ".")) {
+			// newId is changed here
+			newId.replaceAll(oldId + "\\\\.", newId + "\\.");
+		}
+		if (getInterpreting() != null) {
+			String contextId = context.getContext() + "." + newId;
+			context = VWMLContextsRepository.instance().createContextIfNotExists(contextId);
+		}
+		// new entity is registered on repository
+		VWMLEntity cloned = (VWMLEntity)VWMLObjectsRepository.acquire(type,
+																	  newId,
+																	  context.getContext(),
+																	  getInterpretationHistorySize(),
+																	  getLink().getLinkOperationVisitor());
+		cloned.setLifeTerm(isLifeTerm());
+		cloned.setLifeTermAsSource(isLifeTermAsSource());
+		cloned.setClonedFrom(this);
+		if (isTerm()) {
+			cloned.setAssociatedOperations(getAssociatedOperations());
+		}
+		if (getInterpreting() != null) {
+			VWMLEntity clonedInterpreting = getInterpreting();
+			if (getInterpreting().getContext().getContext().startsWith(oldId)) {
+				clonedInterpreting = getInterpreting().clone(oldId,
+															 (String)getInterpreting().getId(),
+															 context);
+			}
+			cloned.setInterpreting(clonedInterpreting);
+		}
+		else {
+			VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
+			if (it != null) {
+				for(; it.isCorrect(); it.next()) {
+					VWMLEntity linked = ((VWMLEntity)getLink().getConcreteLinkedEntity(it.getIt()));
+					if (linked.getContext().getContext().startsWith(oldId)) {
+						linked = linked.clone(oldId, (String)getInterpreting().getId(), context);
+					}
+					cloned.getLink().link(linked);
+				}
+			}
+		}
+		return cloned;
 	}
 }

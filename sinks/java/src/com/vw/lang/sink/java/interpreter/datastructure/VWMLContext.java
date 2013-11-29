@@ -207,6 +207,21 @@ public class VWMLContext extends VWMLObject {
 		}
 		return lfTerm;
 	}
+
+	/**
+	 * Looks up for context's source lifeterm
+	 * @return
+	 */
+	public VWMLEntity findSourceLifeTerm() {
+		VWMLEntity lfTerm = null;
+		for(VWMLEntity e : associatedEntities) {
+			if (e.isLifeTermAsSource()) {
+				lfTerm = e;
+				break;
+			}
+		}
+		return lfTerm;
+	}
 	
 	/**
 	 * Following methods are Push/Peek/Pop context to/from special internal stack (used in order to restore entity)

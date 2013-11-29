@@ -63,13 +63,13 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 
 	private void applyContext(VWMLEntity entity) throws Exception {
 		if (entity.getLink().getLinkedObjectsOnThisTime() == 2) {
-			VWMLEntity command = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
+			VWMLEntity e = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 			String contextToFind = buildAbsoluteContext((VWMLEntity)entity.getLink().getConcreteLinkedEntity(1));
 			VWMLContext ctx = VWMLContextsRepository.instance().get(contextToFind);
 			if (ctx == null) {
 				throw new Exception("couldn't find context identified by '" + contextToFind + "'; operation 'OPAPPLYTOCONTEXT'");
 			}
-			command.setContext(ctx);
+			e.setContext(ctx);
 		}
 	}
 	

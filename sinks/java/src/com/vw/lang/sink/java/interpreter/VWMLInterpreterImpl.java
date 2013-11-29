@@ -122,7 +122,7 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	public boolean step() throws Exception {
 		throw new Exception("not implemented");
 	}
-	
+		
 	protected void setContext(VWMLContext context) {
 		this.context = context;
 	}

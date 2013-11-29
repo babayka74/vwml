@@ -30,6 +30,7 @@ public enum VWMLOperationsCode {
     OPCONFLICTSITUATIONEND("]"),
     OPBREAKPOINT("Bp"),
     OPAPPLYTOCONTEXT("Context"),
+    OPCLONE("Clone"),
     OPPROJECTION_1("Projection_1"),
     OPPROJECTION_2("Projection_2"),
     OPPROJECTION_3("Projection_3"),

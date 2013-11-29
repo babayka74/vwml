@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
-
 /**
  * Conflict ring is used for resolving conflict situations during active interpretation phases
  * Can be considered as orchestration layer for parallel interpreting machines
@@ -58,6 +56,17 @@ public class VWMLConflictRing {
 	 */
 	public static void done() {
 		
+	}
+	
+	/**
+	 * Resets all internal data structure allowing to start all interpreters from beginning
+	 */
+	public void reset() throws Exception {
+		for(VWMLConflictRingNode node : conflictRing) {
+			if (node.getInterpreter() != null && !node.isGrouped()) {
+				node.reset();
+			}
+		}
 	}
 	
 	public boolean isInitialyEmptyRing() {
@@ -120,7 +129,7 @@ public class VWMLConflictRing {
 			n = conflictRing.get(currentNodeIndex);
 			currentNodeIndex++;
 			currentNodeIndex = currentNodeIndex % conflictRing.size();
-			if (n.getInterpreter().getStatus() == VWMLInterpreterImpl.stopProcessing) {
+			if (n.isStopped()) {
 				stoppedInterpreters++;
 			}
 			else {

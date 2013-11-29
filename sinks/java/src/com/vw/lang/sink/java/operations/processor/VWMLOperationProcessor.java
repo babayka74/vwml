@@ -17,6 +17,7 @@ import com.vw.lang.sink.java.operations.VWMLOperationsCode;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.activatectx.VWMLOperationActivateContextHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.applytoctx.VWMLOperationApplyToContextHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.bp.VWMLOperationBreakPointHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.clone.VWMLOperationCloneHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictend.VWMLOperationConflictSituationEndHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictstart.VWMLOperationConflictSituationStartHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
@@ -72,6 +73,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPREST),             		new VWMLOperationRestHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPLAST),             		new VWMLOperationLastHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPAPPLYTOCONTEXT),         new VWMLOperationApplyToContextHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCLONE),   				new VWMLOperationCloneHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());

@@ -14,16 +14,23 @@ import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 public class VWMLConflictRingNode extends VWMLObject {
 	
 	// node's controlled interpreter
-	private VWMLInterpreterImpl interpreter;
+	private VWMLInterpreterImpl interpreter = null;
 	// node's automata
 	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build();
 	// index of conflict fragment 
-	private int sigma;
+	private int sigma = 0;
 	// true in case if node belongs to any group
 	private boolean grouped = false;
 	private int groupedCount = 0;
+	// index of interpreter which is going to be run on current iteration
+	private int currentInterpreterIdx = 0;
+	// the node is considered as stopped when all interpreters (master and cloned) stopped
+	private int stoppedInterpreters = 0;
 	// group of nodes (each node is considered as conflict fragment) which belong to the same source lifeterm
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
+	// cloned source lifeterms' interpreters which correspond to given node
+	// all cloned terms have the same properties and associated with master node
+	private List<VWMLInterpreterImpl> cloned = new ArrayList<VWMLInterpreterImpl>();
 	
 	public VWMLConflictRingNode() {
 		
@@ -38,51 +45,69 @@ public class VWMLConflictRingNode extends VWMLObject {
 	}
 
 	/**
+	 * Resets internal structures, allowing us to 'resurrect' node
+	 */
+	public void reset() throws Exception {
+		sigma = 0;
+		currentInterpreterIdx = 0;
+		stoppedInterpreters = 0;
+		if (interpreter != null && !interpreter.getConfig().isStepByStepInterpretation()) {
+			interpreter.start();
+		}
+		cloned.clear();
+	}
+	
+	/**
 	 * Executes node's operational logic
 	 * @throws Exception
 	 */
 	public void operate() throws Exception {
-		VWMLConflictRingNode operationalNode = null;
-		VWMLConflictRingNodeAutomataInputs input = null;
-		VWMLConflictRingNodeAutomataStates state = null;
-		if (!isGroup()) {
-			operationalNode = this;
+		VWMLInterpreterImpl ii = null;
+		// original/aka 'prototyped' node
+		if (currentInterpreterIdx == 0) {
+			ii = interpreter;
 		}
 		else {
-			String activeConflictContext = interpreter.getObserver().getActiveConflictContext();
-			if (activeConflictContext == null) {
-				operationalNode = this;
-			}
-			else {
-				// looking for a node inside the group
-				if (activeConflictContext.equals(getId())) { // lead node
-					operationalNode = this;
-				}
-				else {
-					for(VWMLConflictRingNode n : group) {
-						if (((String)n.getId()).equals(activeConflictContext)) {
-							operationalNode = n;
-							break;
-						}
-					}
-				}
-				if (operationalNode == null) {
-					throw new Exception("couldn't find conflic fragment (node) by active conflict context '" + activeConflictContext + "'");
-				}
-			}
+			ii = cloned.get(currentInterpreterIdx - 1);
 		}
-		if (operationalNode != null) {
-			input = interpreter.getObserver().getConflictOperationalState((String)operationalNode.getId());
-			state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
-			if (operationalNode.getSigma() == 0) {
-				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;
-			}
+		operateOnInterpreter(ii);
+		if (ii.getStatus() == VWMLInterpreterImpl.stopProcessing) {
+			stoppedInterpreters++;
 		}
-		nodeAutomata.runAction(operationalNode, input, state);
+		currentInterpreterIdx++;
+		currentInterpreterIdx = currentInterpreterIdx % (1 + cloned.size());
 	}
 	
+	/**
+	 * Adds cloned interpreter to node; the interpreter should be initialized and ready for interpretation
+	 * @param ii
+	 */
+	public void addCloned(VWMLInterpreterImpl ii) {
+		cloned.add(ii);
+	}
+	
+	/**
+	 * Removes cloned interpreter from interpretation ring
+	 * @param ii
+	 */
+	public void removeCloned(VWMLInterpreterImpl ii) {
+		cloned.remove(ii);
+	}
+	
+	/**
+	 * Returns master (not cloned) interpreter
+	 * @return
+	 */
 	public VWMLInterpreterImpl getInterpreter() {
 		return interpreter;
+	}
+	
+	/**
+	 * Returns 'true' in case if main and all cloned interpreters finished interpretation process
+	 * @return
+	 */
+	public boolean isStopped() {
+		return (stoppedInterpreters == cloned.size() + 1);
 	}
 
 	public void setInterpreter(VWMLInterpreterImpl interpreter) {
@@ -155,5 +180,45 @@ public class VWMLConflictRingNode extends VWMLObject {
 		else {
 			setGrouped(false);
 		}
+	}
+	
+	protected void operateOnInterpreter(VWMLInterpreterImpl operationalInterpreter) throws Exception {
+		VWMLConflictRingNode operationalNode = null;
+		VWMLConflictRingNodeAutomataInputs input = null;
+		VWMLConflictRingNodeAutomataStates state = null;
+		if (!isGroup()) {
+			operationalNode = this;
+		}
+		else {
+			String activeConflictContext = interpreter.getObserver().getActiveConflictContext();
+			if (activeConflictContext == null) {
+				operationalNode = this;
+			}
+			else {
+				// looking for a node inside the group
+				if (activeConflictContext.equals(getId())) { // lead node
+					operationalNode = this;
+				}
+				else {
+					for(VWMLConflictRingNode n : group) {
+						if (((String)n.getId()).equals(activeConflictContext)) {
+							operationalNode = n;
+							break;
+						}
+					}
+				}
+				if (operationalNode == null) {
+					throw new Exception("couldn't find conflic fragment (node) by active conflict context '" + activeConflictContext + "'");
+				}
+			}
+		}
+		if (operationalNode != null) {
+			input = interpreter.getObserver().getConflictOperationalState((String)operationalNode.getId());
+			state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
+			if (operationalNode.getSigma() == 0) {
+				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;
+			}
+		}
+		nodeAutomata.runAction(operationalNode, input, state);
 	}
 }
