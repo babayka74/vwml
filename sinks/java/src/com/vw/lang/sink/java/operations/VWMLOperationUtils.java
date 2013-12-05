@@ -54,6 +54,7 @@ public class VWMLOperationUtils {
 																		 cen,
 																		 context,
 																		 interpretationHistorySize,
+																		 VWMLObjectsRepository.notAsOriginal,
 																		 visitor);
 	
 			for(int i = fromPos; i >= 0; i--) {
@@ -83,6 +84,7 @@ public class VWMLOperationUtils {
 	}
 
 	private static void addToRepository(String context, VWMLEntity newComplexEntity) throws Exception {
+		VWMLObjectsRepository.instance().remove(newComplexEntity);
 		String id = newComplexEntity.buildReadableId();
 		newComplexEntity.setId(id);
 		VWMLContext ctx = VWMLContextsRepository.instance().get(context);

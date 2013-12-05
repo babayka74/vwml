@@ -27,7 +27,7 @@ public class UndefinedEntityAsEntityInterpretationStrategy extends UndefinedEnti
 		}
 		// adds undefined entity to repository 
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
-									  context, linkage.getEntityHistorySize(), visitor);
+									  context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
 		linkage.interpretAs(id, id, ctx);
 		if (logger.isDebugEnabled()) {
 			logger.debug("undefined entity '" + id + "' is interpreted as simple entity '" + id + "'; cyclic interpretation on effective context '" + context + "'");

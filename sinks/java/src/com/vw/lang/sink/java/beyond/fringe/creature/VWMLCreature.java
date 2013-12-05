@@ -78,6 +78,7 @@ public class VWMLCreature extends VWMLEntity {
 											   ewEntity.getId(),
 											   ewEntity.getContext(),
 											   0,
+											   VWMLObjectsRepository.notAsOriginal,
 											   null);
 		if (parent != null) {
 			parent.getLink().link(e);
@@ -90,6 +91,7 @@ public class VWMLCreature extends VWMLEntity {
 				   ewEntity.getId(),
 				   ewEntity.getContext(),
 				   0,
+				   VWMLObjectsRepository.notAsOriginal,
 				   null);
 		for(EWObject ewo : ewEntity.getLink().getLinkedObjects()) {
 			EWEntity ewe = (EWEntity)ewo;

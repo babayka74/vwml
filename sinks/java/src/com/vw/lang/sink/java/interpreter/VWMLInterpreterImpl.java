@@ -7,6 +7,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
@@ -29,6 +30,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLLinkage linkage;
 	// interpreter's configuration
 	private VWMLInterpreterConfiguration config = null;
+	// interpreter's conflict ring
+	private VWMLConflictRing ring = null;
 	// internal worker thread
 	private VWMLContext context = VWMLContext.instance();
 	// stack of child interpreters; the interpreter is interpreted as child when it is instantiated during
@@ -52,6 +55,14 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 */
 	public abstract VWMLInterpreterImpl clone();
 	
+	public VWMLConflictRing getRing() {
+		return ring;
+	}
+
+	public void setRing(VWMLConflictRing ring) {
+		this.ring = ring;
+	}
+
 	public List<VWMLEntity> getTerms() {
 		return terms;
 	}

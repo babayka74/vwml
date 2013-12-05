@@ -77,6 +77,7 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 																					cen,
 																					(String)entity.getContext().getContext(),
 																					context.getEntityInterpretationHistorySize(),
+																					VWMLObjectsRepository.notAsOriginal,
 																					context.getLinkOperationVisitor());
 			// go through the list in order to create interpreting expression
 			for(; le != null; le = (VWMLEntity)entity.getLink().peek(it)) {

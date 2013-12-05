@@ -1,0 +1,147 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.tesej.model.vwml.tesej4"
+  		path = "c:\var\vwml/tesej4/src"
+  		author = "Groozman M.Z."
+		project_name = "tesej4Proj"
+  		description = "Tesej4 walk"
+		visualizer {
+			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
+			data = "c:\var\vwml/tesej4/diagram"
+		}
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe move ias (
+				toPosition ias "com.vw.lang.beyond.java.fringe.gate.movement.Go"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+		conflictring {
+			GameTesej.Tesej.Actions.LogicGenerated.CheckPositionBeforeMovement.Study conflicts (GameTesej.Tesej.Actions.LogicGenerated.CheckPositionBeforeMovement.Study)
+		}
+	}
+}
+
+module tesej4 {
+	GameTesej ias (
+		Ew ias (
+			say ias communication.out.write;
+			ask ias communication.in.read;
+			inc ias services.math.inc;
+			movedToPosition ias move.toPosition.go;
+		);
+		Map ias (
+			a ias (a h b g f h e c d);
+			b ias (b a e e g f f f);
+			c ias (a c e d f);
+			d ias (d c g h g g h h g);
+			e ias (e c a b g);
+			f ias (f c b a b g);
+			g ias (g b e h e c b g b);
+			h ias (h a e c e e a);
+		);
+		EntityRestingTime ias (
+			Time ias (
+				v ias 500;
+			);
+			((relaxing Time.v~ miliseconds) Ew.say~) Do
+			Time.v~ Relax
+		);
+		TesejIds ias 0;
+		SpecialPositions ias (Tesej Minotaur TesejTemple MinotaurTemple);
+		Tesej ias (
+			/* Tesej's initial position */
+			Position ias Map.a;
+			/* Tesej selected position but not approved, so need to check whether another entities has occupied it or no */
+			TempPosition ias Position;
+			/* Tesej's previous position; needed in order to report Tesej's movement */
+			PrevPosition ias Position;
+			/* Temporary entity which is used in order to store some entity during phase of taking decision about Tesej's movement */
+			K ias Position;
+			/* Actions which can be performed by Tesej */
+			Actions ias (
+				LogicGenerated ias (
+					/* tesej's action */
+					Action ias nil;
+					/* tesej selects new position, but not moved */
+					SelectNewPosition ias (
+						(TempPosition Position~~ Random)^
+						/* checking position before taking decision */
+						(Action CheckPositionBeforeMovement)^
+						LifeStep~ Exe
+					);
+					/* takes decision  */				
+					CheckPositionBeforeMovement ias (
+						Study [
+							/* checking whether somebody has already taken position */
+							(Action LogicGenerated.(PositionUsed (TempPosition~~ SpecialPositions~)In))^
+							LifeStep~ Exe
+						Study ]
+					);
+					/* Position is free and Tesej moves to it */
+					MoveToPosition ias (
+						(Position~ K~)^
+						(PrevPosition Position~)^
+						(Position TempPosition~)^
+						(K~ Position~)^
+						(Position~ Tesej)^
+						/* some delay before moveing to new position */
+						EntityRestingTime~ Exe
+						/* commands to move to position */
+						(Action SelectNewPosition)^ 
+						LifeStep~ Exe
+					);
+					/* Tesej is cloned */
+					ToClone ias (
+						(TesejIds ((TesejIds~) Ew.inc~) Do)^
+						(Tesej (Tesej TesejIds~)) Clone
+						(Action SelectNewPosition)^ 
+						LifeStep~ Exe
+					);
+					/* finds who occupied position and runs tesej's action depending on it */
+					(PositionUsed true) ias (
+						/* some Tesej on position */
+						(PositionUsed Tesej) ias (
+							(Action SelectNewPosition)^
+							LifeStep~ Exe
+						);
+						/* Minotaur is here */
+                                              	(PositionUsed Minotaur) ias (
+						);
+						/* Tesej's temple; here tesej can be cloned */
+                                              	(PositionUsed TesejTemple) ias (
+							(Action ToClone)^
+							LifeStep~ Exe
+						);
+						/* Minotaur's temple; here minotaur can be cloned */
+                                              	(PositionUsed MinotaurTemple) ias (
+						);
+
+						(PositionUsed TempPosition~~)~ Exe
+					);
+					/* position is free, here are no special actions needed */
+					(PositionUsed false) ias (
+						(Action MoveToPosition)^
+						LifeStep~ Exe						
+					);
+				);
+			);
+			/* Tesej's life step; used when logic generated action should be processed */
+			LifeStep ias (
+				Actions.LogicGenerated.Action~~ Exe
+			);
+			/* Its life term; initial action; used when Tesej moves from old position to new one */
+			Life ias (
+				(Actions.LogicGenerated.Action Actions.LogicGenerated.SelectNewPosition)^ 
+				Actions.LogicGenerated.Action~~ Exe
+			);
+			/* Its source lifeterm */
+   			source lifeterm = (Tesej (Tesej TesejIds~)) Clone
+		);
+	);
+}

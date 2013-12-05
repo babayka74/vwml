@@ -69,6 +69,7 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 												 ComplexEntityNameBuilder.generateRandomName(),
 												 context.getContext(),
 												 entity.getInterpretationHistorySize(),
+												 VWMLObjectsRepository.notAsOriginal,
 												 entity.getLink().getLinkOperationVisitor());
 		for(; it.isCorrect(); it.next()) {
 			VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());

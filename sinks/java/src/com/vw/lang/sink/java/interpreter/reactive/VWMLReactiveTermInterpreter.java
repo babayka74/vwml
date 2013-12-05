@@ -107,6 +107,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), term);
 		impl.setConfig(getConfig());
 		impl.setTimerManager(getTimerManager());
+		impl.setRing(ring);
 		// associating interpreter and ring node
 		n.setInterpreter(impl);
 		// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)

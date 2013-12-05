@@ -1,11 +1,14 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.clone;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLCloneFactory;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
@@ -32,7 +35,8 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 				throw new Exception("at least one entity should be complex; operation 'OPCLONE'");
 			}
 			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == 2) {
-				handleCloneOperation((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0),
+				handleCloneOperation(interpreter,
+									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0),
 									 entities.get(0).getLink().getConcreteLinkedEntity(1).getId());
 			}
 			else {
@@ -41,14 +45,39 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		}
 		else
 		if (entities.size() == 2) {
-			handleCloneOperation(entities.get(0), entities.get(1).getId());
+			handleCloneOperation(interpreter, entities.get(1), entities.get(0).getId());
 		}
 		inspector.clear();
 		entities.clear();
 		stack.popUntilEmptyMark();
 	}
 
-	protected void handleCloneOperation(VWMLEntity origEntity, Object clonedObjectId) throws Exception {
-		origEntity.clone(clonedObjectId);
+	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, Object clonedObjectId) throws Exception {
+		VWMLEntity cloned = clone(origEntity, clonedObjectId);
+		if (cloned.getInterpreting() != null && interpreter.getRing() != null) {
+			VWMLEntity clonedSourceLft = cloned.getContext().findSourceLifeTerm();
+			if (clonedSourceLft != null) {
+				activateSourceLifeTerm(interpreter, clonedSourceLft);
+			}
+		}
+	}
+	
+	private void activateSourceLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity clonedSourceLft) throws Exception {
+		VWMLConflictRingNode ringNode = interpreter.getRing().findNodeByEntityContext(clonedSourceLft.getContext().getContext());
+		if (ringNode == null) {
+			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
+		}
+		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
+		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
+		tl.add(clonedSourceLft);	
+		clonedInterpreter.setTerms(tl);
+		clonedInterpreter.setTimerManager(interpreter.getTimerManager());
+		clonedInterpreter.setRing(interpreter.getRing());
+		clonedInterpreter.start();
+		ringNode.addCloned(clonedInterpreter);
+	}
+	
+	private VWMLEntity clone(VWMLEntity origEntity, Object clonedObjectId) throws Exception {
+		return VWMLCloneFactory.cloneContext(origEntity, clonedObjectId);
 	}
 }

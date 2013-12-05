@@ -105,6 +105,7 @@ public class VWMLOperationSubstructHandler extends VWMLOperationHandler {
 																	  ComplexEntityNameBuilder.generateRandomName(),
 																	  ownerEntity.getContext().getContext(),
 																	  ownerEntity.getInterpretationHistorySize(),
+																	  VWMLObjectsRepository.notAsOriginal,
 																	  ownerEntity.getLink().getLinkOperationVisitor());
 		VWMLLinkIncrementalIterator itE1 = ((VWMLComplexEntity)e1).getLink().acquireLinkedObjectsIterator();
 		VWMLLinkIncrementalIterator itE2 = ((VWMLComplexEntity)e2).getLink().acquireLinkedObjectsIterator();

@@ -69,6 +69,7 @@ public class VWMLOperationRestHandler extends VWMLOperationHandler {
 				  ComplexEntityNameBuilder.generateRandomName(),
 				  entity.getContext().getContext(),
 				  entity.getInterpretationHistorySize(),
+				  VWMLObjectsRepository.notAsOriginal,
 				  entity.getLink().getLinkOperationVisitor());
 	
 		VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)entity).getLink().acquireLinkedObjectsIterator();

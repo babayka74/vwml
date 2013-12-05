@@ -21,25 +21,25 @@ public class VWMLContext extends VWMLObject {
 	private String[] contextPath;
 	private String context;
 	
-	private VWMLStack stack = VWMLStack.instance();	
+	private VWMLStack stack = null;	
 	// processed contexts placed here; used only if current context belongs to lifeterm
 	// we need it in order to restore entity's context after 'assemble' operation;
 	// context is pushed in the same time as 'empty mark' is pushed to operational stack
-	private VWMLStack contextsStack = VWMLStack.instance();	
+	private VWMLStack contextsStack = null;	
 	// used during main stack unwinding operation
-	private VWMLStack recurseStack = VWMLStack.instance();
+	private VWMLStack recurseStack = null;
 	// used in order to emulate recursion; aka code stack frame
-	private VWMLStack codeStack = VWMLStack.instance();
+	private VWMLStack codeStack = null;
 	// next entity which will be processed after decomposition process
 	private VWMLEntity nextProcessedEntity = null;
 	// current stack frame
 	private VWMLSequentialTermInterpreterCodeStackFrame currentCodeStackFrame = null;
 	// reflects entity marked as observable to current top of stack; used during recursion detection and stack unwinding
-	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsObservable = new HashMap<VWMLEntity, VWMLEntity>();
+	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsObservable = null;
 	// stores entities which are marked as recursive; used for recursion detection and stack unwinding
-	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsRecursive = new HashMap<VWMLEntity, VWMLEntity>();
+	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsRecursive = null;
 	// contains entity's dynamic properties which can't be stored inside VWMLEntity since entity can be interpreted by simultaneously
-	private Map<VWMLEntity, VWMLDynamicEntityProperties> entityDynamicPropertis = new HashMap<VWMLEntity, VWMLDynamicEntityProperties>();
+	private Map<VWMLEntity, VWMLDynamicEntityProperties> entityDynamicProperties = null;
 	// set to 'true' in case if context belongs to lifeterm
 	private boolean lifeTermContext = false;
 	private boolean unwinding = false;
@@ -76,7 +76,7 @@ public class VWMLContext extends VWMLObject {
 		}
 		return r;
 	}
-	
+		
 	/**
 	 * Returns stack's associated context
 	 * @return
@@ -151,6 +151,9 @@ public class VWMLContext extends VWMLObject {
 	}
 
 	public VWMLStack getStack() {
+		if (stack == null) {
+			stack = VWMLStack.instance();
+		}
 		return stack;
 	}
 
@@ -185,10 +188,10 @@ public class VWMLContext extends VWMLObject {
 	 * @return
 	 */
 	public VWMLDynamicEntityProperties getEntityDynamicProperties(VWMLEntity entity, boolean acquire) {
-		VWMLDynamicEntityProperties dynProps = entityDynamicPropertis.get(entity);
+		VWMLDynamicEntityProperties dynProps = getEntityDynamicProperties().get(entity);
 		if (dynProps == null && acquire) {
 			dynProps = new VWMLDynamicEntityProperties();
-			entityDynamicPropertis.put(entity, dynProps);
+			getEntityDynamicProperties().put(entity, dynProps);
 		}
 		return dynProps;
 	}
@@ -229,21 +232,21 @@ public class VWMLContext extends VWMLObject {
 	 */
 	public void pushContext(VWMLContext context) {
 		if (isLifeTermContext()) {
-			contextsStack.push(context);
+			getContextsStack().push(context);
 		}
 	}
 	
 	public VWMLContext peekContext() {
 		VWMLContext c = null;
 		if (isLifeTermContext()) {
-			c = (VWMLContext)contextsStack.peek();
+			c = (VWMLContext)getContextsStack().peek();
 		}
 		return c;
 	}
 	
 	public void popContext() {
 		if (isLifeTermContext()) {
-			contextsStack.pop();
+			getContextsStack().pop();
 		}
 	}
 	
@@ -252,15 +255,15 @@ public class VWMLContext extends VWMLObject {
 	 * @param entity
 	 */
 	public void pushRecurseEntity(VWMLEntity entity) {
-		recurseStack.push(entity);
+		getRecurseStack().push(entity);
 	}
 	
 	public void popRecurseEntity() {
-		recurseStack.pop();
+		getRecurseStack().pop();
 	}
 
 	public VWMLEntity peekRecurseEntity() {
-		return (VWMLEntity)recurseStack.peek();
+		return (VWMLEntity)getRecurseStack().peek();
 	}
 	
 	/**
@@ -268,15 +271,15 @@ public class VWMLContext extends VWMLObject {
 	 * @param entity
 	 */
 	public void pushStackFrame(VWMLSequentialTermInterpreterCodeStackFrame frame) {
-		codeStack.push(frame);
+		getCodeStack().push(frame);
 	}
 	
 	public void popStackFrame() {
-		codeStack.pop();
+		getCodeStack().pop();
 	}
 
 	public VWMLObject peekStackFrame() {
-		return codeStack.peek();
+		return getCodeStack().peek();
 	}
 	
 	/**
@@ -288,11 +291,16 @@ public class VWMLContext extends VWMLObject {
 	}
 	
 	public VWMLEntity[] getAsStorage() {
-		return (VWMLEntity[])associatedEntities.toArray();
+		VWMLEntity[] entities = new VWMLEntity[associatedEntities.size()];
+		return associatedEntities.toArray(entities);
 	}
 	
 	public void unAssociateEntity(VWMLEntity entity) {
 		associatedEntities.remove(entity);
+	}
+	
+	public Set<VWMLEntity> getAssociatedEntities() {
+		return associatedEntities;
 	}
 
 	/**
@@ -304,15 +312,15 @@ public class VWMLContext extends VWMLObject {
 		if (e == null) {
 			e = new VWMLEntity(); // fake object
 		}
-		entitiesMarkedAsRecursive.put(entity, e);
+		getEntitiesMarkedAsRecursive().put(entity, e);
 	}
 	
 	public boolean isEntityMarkedAsRecursiveInsideContext(VWMLEntity entity) {
-		return entitiesMarkedAsRecursive.containsKey(entity);
+		return getEntitiesMarkedAsRecursive().containsKey(entity);
 	}
 	
 	public void unmarkEntityAsRecursiveInsideContext(VWMLEntity entity) {
-		entitiesMarkedAsRecursive.remove(entity);
+		getEntitiesMarkedAsRecursive().remove(entity);
 	}
 	
 	/**
@@ -324,19 +332,19 @@ public class VWMLContext extends VWMLObject {
 		if (e == null) {
 			e = new VWMLEntity(); // fake object
 		}
-		entitiesMarkedAsObservable.put(entity, e);
+		getEntitiesMarkedAsObservable().put(entity, e);
 	}
 	
 	public boolean isEntityMarkedAsObservableInsideContext(VWMLEntity entity) {
-		return entitiesMarkedAsObservable.containsKey(entity);
+		return getEntitiesMarkedAsObservable().containsKey(entity);
 	}
 	
 	public void unmarkEntityAsObservableInsideContext(VWMLEntity entity) {
-		entitiesMarkedAsObservable.remove(entity);
+		getEntitiesMarkedAsObservable().remove(entity);
 	}
 	
 	public VWMLEntity getTopOfStackWhenEntityWasMarkedAsObservable(VWMLEntity entity) {
-		return entitiesMarkedAsObservable.get(entity);
+		return getEntitiesMarkedAsObservable().get(entity);
 	}
 	
 	public void unwindStackTill(VWMLEntity tillEntity) {
@@ -383,5 +391,47 @@ public class VWMLContext extends VWMLObject {
 			return false;
 		}
 		return true;
+	}
+
+	protected VWMLStack getContextsStack() {
+		if (contextsStack == null) {
+			contextsStack = VWMLStack.instance();
+		}
+		return contextsStack;
+	}
+
+	protected VWMLStack getCodeStack() {
+		if (codeStack == null) {
+			codeStack = VWMLStack.instance();
+		}
+		return codeStack;
+	}
+
+	protected VWMLStack getRecurseStack() {
+		if (recurseStack == null) {
+			recurseStack = VWMLStack.instance();
+		}
+		return recurseStack;
+	}
+
+	protected Map<VWMLEntity, VWMLEntity> getEntitiesMarkedAsObservable() {
+		if (entitiesMarkedAsObservable == null) {
+			entitiesMarkedAsObservable = new HashMap<VWMLEntity, VWMLEntity>();
+		}
+		return entitiesMarkedAsObservable;
+	}
+
+	protected Map<VWMLEntity, VWMLEntity> getEntitiesMarkedAsRecursive() {
+		if (entitiesMarkedAsRecursive == null) {
+			entitiesMarkedAsRecursive = new HashMap<VWMLEntity, VWMLEntity>();
+		}
+		return entitiesMarkedAsRecursive;
+	}
+
+	protected Map<VWMLEntity, VWMLDynamicEntityProperties> getEntityDynamicProperties() {
+		if (entityDynamicProperties == null) {
+			entityDynamicProperties = new HashMap<VWMLEntity, VWMLDynamicEntityProperties>();
+		}
+		return entityDynamicProperties;
 	}
 }

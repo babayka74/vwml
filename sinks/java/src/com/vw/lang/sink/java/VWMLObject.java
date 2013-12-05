@@ -12,6 +12,8 @@ import com.vw.lang.sink.java.link.VWMLLink;
 public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private Object id;
 	private String readableId;
+	// complex name includes absolute or relative path delimited by '.'
+	private boolean compoundName = false;
 	// context path consists from set of entity ids
 	// VWML object which takes responsibility of superviser of any changes on given object
 	private VWMLObject superviser = null;
@@ -26,8 +28,8 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 
 	public VWMLObject(Object id, String readableId) {
 		super();
-		this.id = id;
-		this.readableId = readableId;
+		setId(id);
+		setReadableId(readableId);
 	}
 
 	@Override
@@ -61,6 +63,9 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	
 	public void setId(Object id) {
 		this.id = id;
+		if (id != null && ((String)id).contains(".")) {
+			setCompoundName(true);
+		}
 	}
 	
 	public String getReadableId() {
@@ -69,6 +74,10 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	
 	public void setReadableId(String readableId) {
 		this.readableId = readableId;
+	}
+	
+	public boolean isCompoundName() {
+		return compoundName;
 	}
 
 	public VWMLObject getSuperviser() {
@@ -166,5 +175,9 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 			r = getId().toString().compareTo(o.getId().toString());
 		}
 		return r;
+	}
+
+	protected void setCompoundName(boolean compoundName) {
+		this.compoundName = compoundName;
 	}
 }

@@ -30,9 +30,9 @@ public class UndefinedEntityAsEmptyComplexEntityInterpretationStrategy extends U
 		String ceName = ComplexEntityNameBuilder.generateEmptyComplexEntity();
 		// adds undefined entity to repository 
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY,
-									  id, context, linkage.getEntityHistorySize(), visitor);
+									  id, context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY,
-									  ceName, context, linkage.getEntityHistorySize(), visitor);
+									  ceName, context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
 		// builds interpreting association
 		linkage.interpretAs(id, ceName, ctx);
 		if (logger.isDebugEnabled()) {

@@ -24,9 +24,9 @@ public class UndefinedEntityAsNilEntityInterpretationStrategy extends UndefinedE
 		}
 		// adds undefined entity to repository 
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
-									  context, linkage.getEntityHistorySize(), visitor);
+									  context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
 		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId,
-									  context, linkage.getEntityHistorySize(), visitor);
+									  context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
 		linkage.interpretAs(id, VWMLEntity.s_NilEntityId, ctx);
 		return VWMLObjectsRepository.instance().get(id, ctx);
 	}

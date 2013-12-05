@@ -63,6 +63,7 @@ public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 															   emptyCEName,
 															   parentEntity.getContext().getContext(),
 															   parentEntity.getInterpretationHistorySize(),
+															   VWMLObjectsRepository.notAsOriginal,
 															   visitor);
 		}
 		return entity;

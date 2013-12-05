@@ -200,7 +200,7 @@ public final class JavaCodeGeneratorTemplates {
 	"\t}\r\n\r\n" +
 	"\tprivate VWMLObject getTermById(Object id, Object termId, String context) throws Exception {\r\n" +
 	"\t\tVWMLEntity e = (VWMLEntity)getEntityById(id, context);\r\n" +
-	"\t\tVWMLTerm term = (VWMLTerm)VWMLObjectsRepository.acquire(VWMLObjectType.TERM, termId, context, e.getInterpretationHistorySize(), e.getLink().getLinkOperationVisitor());\r\n" +
+	"\t\tVWMLTerm term = (VWMLTerm)VWMLObjectsRepository.acquire(VWMLObjectType.TERM, termId, context, e.getInterpretationHistorySize(), VWMLObjectsRepository.asOriginal, e.getLink().getLinkOperationVisitor());\r\n" +
 	"\t\tterm.setAssociatedEntity(e);\r\n" +
 	"\t\treturn term;\r\n" +
 	"\t}\r\n\r\n" +

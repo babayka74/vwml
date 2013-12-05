@@ -3,7 +3,9 @@ package com.vw.lang.sink.java;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 
 /**
@@ -36,6 +38,21 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	/**
+	 * Clones context identified by id
+	 * @param asContext
+	 * @param newContextId
+	 * @return
+	 */
+	public static VWMLContext clone(Object newContextId, VWMLContext context, VWMLCloneAuxCache auxCache) throws Exception {
+		context = VWMLContextsRepository.instance().get(VWMLContextsRepository.instance().normalizeContext(context.getContext()));
+		String[] clonedContextFullPath = context.getContextPath().clone();
+		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
+		VWMLContext newContext = VWMLContextsRepository.instance().createFromContextPath(clonedContextFullPath);
+		copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, auxCache);
+		return newContext;
+	}
+	
+	/**
 	 * Returns default context which can be root if VWML program doesn't contain any contexts
 	 * @return
 	 */
@@ -45,7 +62,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 			defaultContext = createContextIfNotExists(s_default_context);
 		}
 		return defaultContext;
-	}
+	}	
 	
 	/**
 	 * Creates and registers in repository in case if context doesn't exist, otherwise reference to existed context is returned
@@ -55,12 +72,26 @@ public class VWMLContextsRepository extends VWMLRepository {
 	public VWMLContext createContextIfNotExists(Object contextId) {
 		contextId = normalizeContext((String)contextId);
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
+		return createFromContextPath(contextPath);
+	}
+
+	/**
+	 * Allows to create context (if not exists) by context path
+	 * @param contextPath
+	 * @return
+	 */
+	public VWMLContext createFromContextPath(String[] contextPath) {
 		String rootContext = null;
+		int startCtxIndex = 1;
 		if (contextPath == null || contextPath.length == 0 || contextPath[0].length() == 0) {
 			rootContext = s_default_context;
 		}
 		else {
 			rootContext = contextPath[0];
+			if (!rootContext.equals(getDefaultContextId())) {
+				rootContext = getDefaultContextId();
+				startCtxIndex = 0;
+			}
 		}
 		VWMLContext root = contextsMap.get(rootContext);
 		if (root == null) {
@@ -68,7 +99,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 			root.setContext(rootContext);
 			contextsMap.put(rootContext, root);
 		}
-		return create(root, contextPath, 1);
+		return create(root, contextPath, startCtxIndex);
 	}
 	
 	/**
@@ -92,7 +123,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}		
 		return find(root, contextPath, 1);
 	}
-		
+
 	protected VWMLContext create(VWMLContext parent, String[] contextPath, int pos) {
 		String actualContext = "";
 		for(int i = pos; i < contextPath.length; i++) {
@@ -144,5 +175,26 @@ public class VWMLContextsRepository extends VWMLRepository {
 			return context;
 		}
 		return s_default_context + "." + context; 
+	}
+	
+	protected static void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLCloneAuxCache auxCache) throws Exception {
+		if (initialEntityId != null && newEntityId != null) {
+			for(VWMLEntity e : contextFrom.getAssociatedEntities()) {
+				if (!e.isOriginal()) {
+					continue; // passing entities which were created in runtime
+				}
+				System.out.println("entity '" + e.getId() + "' on context '" + contextFrom.getContext() + "'");
+				e.clone(initialEntityId, newEntityId, contextTo, contextFrom, auxCache, false);
+			}
+		}
+		VWMLLinkIncrementalIterator it = contextFrom.getLink().acquireLinkedObjectsIterator();
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				VWMLContext c = (VWMLContext)contextFrom.getLink().getConcreteLinkedEntity(it.getIt());
+				VWMLContext n = instance().createContextIfNotExists(contextTo.getContext() + "." + c.getId());
+				contextTo.link(n);
+				copyFrom(initialEntityId, newEntityId, c, n, auxCache);
+			}
+		}
 	}
 }

@@ -100,7 +100,7 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 					                                         ", \"" + obj.getObjId() +
 					                                         "\", \"" + obj.getContext() + "\", " +
 					                                         entityHistorySize +
-					                                         ", preprocessorStructureVisualizer);\r\n");
+					                                         ", VWMLObjectsRepository.asOriginal, preprocessorStructureVisualizer);\r\n");
 		}		
 		// closes 'build' method
 		getFw().write("\t}\r\n\r\n");

@@ -19,18 +19,32 @@ public class VWMLObjectsRepository {
 	// defines static types of unchanged entities
 	private VWMLObjectsRepository() {
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
+		VWMLEntity e = null;
 		// built-in complex entity id
-		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null));
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
 		// built-in simple entity id
-		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, defaultContext, 0, null));
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null));
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
 		// built-in logical 'false' entity id
-		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, defaultContext, 0, null));
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
 		// built-in logical 'true' entity id
-		add((VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, defaultContext, 0, null));
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
 	}
-
+	
+	public static boolean notAsOriginal = false;
+	public static boolean asOriginal = true;
+	
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
 	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
@@ -48,10 +62,11 @@ public class VWMLObjectsRepository {
 	 * @param id
 	 * @param context
 	 * @param entityHistorySize
+	 * @param asOriginalOnCreation
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, String context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) throws Exception {
+	public static VWMLObject acquire(VWMLObjectBuilder.VWMLObjectType type, Object id, String context, Integer entityHistorySize, boolean asOriginalOnCreation, AbstractVWMLLinkVisitor visitor) throws Exception {
 		VWMLContext c = VWMLContextsRepository.instance().get(context);
 		if (c == null) {
 			throw new Exception("coudln't find context '" + context + "'");
@@ -68,6 +83,7 @@ public class VWMLObjectsRepository {
 				contextChanged = true;
 			}
 			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
+			((VWMLEntity)obj).setOriginal(asOriginalOnCreation);
 			if (!contextChanged) {
 				instance().add((VWMLEntity)obj);
 			}
