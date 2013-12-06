@@ -3,7 +3,9 @@ package com.vw.lang.sink.java.interpreter.datastructure.ring;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLCloneFactory;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 
 /**
@@ -63,15 +65,19 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 */
 	public void operate() throws Exception {
 		VWMLInterpreterImpl ii = null;
-		// original/aka 'prototyped' node
-		if (currentInterpreterIdx == 0) {
-			ii = interpreter;
+		ii = getInterpreterByInternalRRIndex();
+		if (ii.getStatus() != VWMLInterpreterImpl.stopProcessing &&  ii.getStatus() != VWMLInterpreterImpl.stopped) {
+			operateOnInterpreter(ii);
 		}
-		else {
-			ii = cloned.get(currentInterpreterIdx - 1);
-		}
-		operateOnInterpreter(ii);
 		if (ii.getStatus() == VWMLInterpreterImpl.stopProcessing) {
+			ii.setStatus(VWMLInterpreterImpl.stopped);
+			if (ii.isCloned()) {
+				for(VWMLEntity t : ii.getTerms()) {
+					if (t.getClonedFrom() != null) {
+						VWMLCloneFactory.releaseClonedContext(ii.getClonedFromEntity(), t.getContext());
+					}
+				}
+			}
 			stoppedInterpreters++;
 		}
 		currentInterpreterIdx++;
@@ -99,7 +105,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 * @return
 	 */
 	public VWMLInterpreterImpl getInterpreter() {
-		return interpreter;
+		return getInterpreterByInternalRRIndex();
 	}
 	
 	/**
@@ -190,7 +196,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 			operationalNode = this;
 		}
 		else {
-			String activeConflictContext = interpreter.getObserver().getActiveConflictContext();
+			String activeConflictContext = operationalInterpreter.getObserver().getActiveConflictContext();
 			if (activeConflictContext == null) {
 				operationalNode = this;
 			}
@@ -213,12 +219,20 @@ public class VWMLConflictRingNode extends VWMLObject {
 			}
 		}
 		if (operationalNode != null) {
-			input = interpreter.getObserver().getConflictOperationalState((String)operationalNode.getId());
+			input = operationalInterpreter.getObserver().getConflictOperationalState((String)operationalNode.getId());
 			state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
 			if (operationalNode.getSigma() == 0) {
 				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;
 			}
 		}
 		nodeAutomata.runAction(operationalNode, input, state);
+	}
+	
+	protected VWMLInterpreterImpl getInterpreterByInternalRRIndex() {
+		VWMLInterpreterImpl ii = interpreter;
+		if (currentInterpreterIdx != 0) {
+			ii = cloned.get(currentInterpreterIdx - 1);
+		}
+		return ii;
 	}
 }

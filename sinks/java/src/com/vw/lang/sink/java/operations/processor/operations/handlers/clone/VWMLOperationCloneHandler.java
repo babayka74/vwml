@@ -55,21 +55,30 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, Object clonedObjectId) throws Exception {
 		VWMLEntity cloned = clone(origEntity, clonedObjectId);
 		if (cloned.getInterpreting() != null && interpreter.getRing() != null) {
-			VWMLEntity clonedSourceLft = cloned.getContext().findSourceLifeTerm();
+			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();
 			if (clonedSourceLft != null) {
-				activateSourceLifeTerm(interpreter, clonedSourceLft);
+				activateSourceLifeTerm(interpreter, cloned, clonedSourceLft);
 			}
 		}
 	}
 	
-	private void activateSourceLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity clonedSourceLft) throws Exception {
-		VWMLConflictRingNode ringNode = interpreter.getRing().findNodeByEntityContext(clonedSourceLft.getContext().getContext());
+	private void activateSourceLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		// lookup for original
+		VWMLEntity p = clonedSourceLft;
+		while(p.getClonedFrom() != null) {
+			p = p.getClonedFrom();
+		}
+		VWMLConflictRingNode ringNode = interpreter.getRing().findNodeByEntityContext(p.getContext().getContext());
 		if (ringNode == null) {
 			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
-		tl.add(clonedSourceLft);	
+		tl.add(clonedSourceLft);
+		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
+		// needed when resources should be released
+		clonedInterpreter.setClonedFromEntity(cloned);
+		clonedInterpreter.setCloned(true);
 		clonedInterpreter.setTerms(tl);
 		clonedInterpreter.setTimerManager(interpreter.getTimerManager());
 		clonedInterpreter.setRing(interpreter.getRing());

@@ -302,6 +302,10 @@ public class VWMLContext extends VWMLObject {
 	public Set<VWMLEntity> getAssociatedEntities() {
 		return associatedEntities;
 	}
+	
+	public void removeAllAssociatedEntities() {
+		associatedEntities.clear();
+	}
 
 	/**
 	 * Following methods manage entity recursive property

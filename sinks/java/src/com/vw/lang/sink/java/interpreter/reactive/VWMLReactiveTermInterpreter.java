@@ -64,15 +64,18 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		normalizeInterpreterData();
 		IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
+		setStatus(continueProcessingOfCurrentEntity);
 		while(true) {
 			VWMLConflictRingNode node = ring.next();
 			if (node == null) {
+				setStatus(stopProcessing);
 				break;
 			}
 			spinTimerManager(getTimerManager(), fringeGate);
 			node.operate();
 		}
 		getTimerManager().stop();
+		setStatus(stopped);
 	}
 
 	@Override

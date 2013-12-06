@@ -227,12 +227,8 @@ public class VWMLEntity extends VWMLObject {
 		this.isOperatesByExe = isOperatesByExe;
 	}
 
-	protected VWMLEntity getClonedFrom() {
+	public VWMLEntity getClonedFrom() {
 		return clonedFrom;
-	}
-
-	protected void setClonedFrom(VWMLEntity clonedFrom) {
-		this.clonedFrom = clonedFrom;
 	}
 
 	public boolean isOriginal() {
@@ -274,7 +270,11 @@ public class VWMLEntity extends VWMLObject {
 		}
 		return true;
 	}
-	
+
+	protected void setClonedFrom(VWMLEntity clonedFrom) {
+		this.clonedFrom = clonedFrom;
+	}
+
 	protected VWMLOperations getAssociatedOperations() {
 		return associatedOperations;
 	}

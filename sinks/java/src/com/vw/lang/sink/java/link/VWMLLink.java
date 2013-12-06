@@ -53,6 +53,13 @@ public class VWMLLink {
 	}
 
 	/**
+	 * Clears linked storage
+	 */
+	public void clear() {
+		linkedObjects.clear();
+	}
+	
+	/**
 	 * Returns 'true' in case if objects have been linked
 	 * @param obj
 	 * @return
@@ -67,10 +74,12 @@ public class VWMLLink {
 	 */
 	public void link(VWMLObject linked) {
 		// links: itself -> linked
-		itself.getLink().getLinkedObjects().add(linked);
-		linked.getLink().setParent(itself);
-		if (getLinkOperationVisitor() != null) {
-			getLinkOperationVisitor().link(itself, linked);
+		if (!itself.getLink().getLinkedObjects().contains(linked)) {
+			itself.getLink().getLinkedObjects().add(linked);
+			linked.getLink().setParent(itself);
+			if (getLinkOperationVisitor() != null) {
+				getLinkOperationVisitor().link(itself, linked);
+			}
 		}
 	}
 
@@ -79,7 +88,7 @@ public class VWMLLink {
 	 * @param obj
 	 */
 	public void unlinkFrom(VWMLObject obj) {
-		if (isLinked(obj)) {
+		if (obj != null && isLinked(obj)) {
 			itself.getLink().getLinkedObjects().remove(obj);
 			obj.getLink().setParent(itself.getLink().getParent());
 			if (getLinkOperationVisitor() != null) {
@@ -92,11 +101,13 @@ public class VWMLLink {
 	 * Unlinks from all linked entities
 	 */
 	public void unlinkFromAll() {
-		itself.getLink().getLinkedObjects().clear();
-		if (itself.getLink().getParent() != null) {
-			itself.getLink().getParent().getLink().unlinkFrom(itself);
+		if (itself != null) {
+			itself.getLink().getLinkedObjects().clear();
+			if (itself.getLink().getParent() != null) {
+				itself.getLink().getParent().getLink().unlinkFrom(itself);
+			}
+			itself.getLink().setParent(null);
 		}
-		itself.getLink().setParent(null);
 	}
 	
 	/**

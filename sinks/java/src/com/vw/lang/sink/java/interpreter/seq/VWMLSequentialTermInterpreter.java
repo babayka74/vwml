@@ -26,8 +26,6 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	private static final VWMLOperation opImplicitlyAddedRef = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
 
 	// interpreter's temprary states
-	// last step's result
-	private int result = continueProcessingOfCurrentEntity;
 	// last term
 	private VWMLEntity lastInterpretedTerm = null;
 	// last assoociated term's entity
@@ -57,6 +55,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	}
 
 	public void setTerm(VWMLEntity term) {
+		setStatus(continueProcessingOfCurrentEntity);
 		if (term != null) {
 			List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 			tl.add(term);
@@ -73,14 +72,6 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		return cloned;
 	}
 		
-	/**
-	 * Returns last interpreter's status
-	 * @return
-	 */
-	public int getStatus() {
-		return result;
-	}
-	
 	/**
 	 * Starts interpretation logic
 	 * @throws Exception
@@ -107,7 +98,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			getContext().setNextProcessedEntity(entity);
 			VWMLSequentialTermInterpreterCodeStackFrame frame = buildCodeStackFrame(entity, entity, null);
 			getContext().setCurrentCodeStackFrame(frame);
-			result = continueProcessingOfCurrentEntity;
+			setStatus(continueProcessingOfCurrentEntity);
 			lastInterpretedTerm = getContext().getCurrentCodeStackFrame().getTerm();
 			lastInterpretedEntity = getContext().getCurrentCodeStackFrame().getAssociatedEntity();
 			if (!getConfig().isStepByStepInterpretation()) {
@@ -130,7 +121,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		}
 		else {
 			stepImpl(getLinkage(), getContext());
-			stopped = (result == stopProcessing);
+			stopped = (getStatus() == stopProcessing);
 		}
 		return stopped;
 	}	
@@ -143,7 +134,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	}
 
 	protected void stepImpl(VWMLLinkage linkage, VWMLContext context) throws Exception {
-		if (result != finishedEntityProcessing) {
+		if (getStatus() != finishedEntityProcessing) {
 			// working with lifeterm's context
 			if (lastInterpretedEntity.getContext() == null) {
 				throw new Exception("entity '" + lastInterpretedTerm + "' doesn't belong to any context !");
@@ -168,8 +159,8 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			pushCurrentStackFrame(context, lastInterpretedTerm, lastInterpretedEntity, null);				
 			if (checkIfDecompositionNeeded(linkage, context, lastInterpretedEntity)) {
 				// entity is decomposed and next entity is returned
-				result = decomposeAndGetNext(linkage, context);
-				if (result == nextEntityToProcess && context.getNextProcessedEntity() != null) {
+				setStatus(decomposeAndGetNext(linkage, context));
+				if (getStatus() == nextEntityToProcess && context.getNextProcessedEntity() != null) {
 					// process next entity
 					lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
 					return;
@@ -201,7 +192,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			context.setNextProcessedEntity(defferredEntity);
 			lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
 			resetArtificialEntityProperty(context, lastInterpretedEntity, null);				
-			result = nextEntityToProcess;
+			setStatus(nextEntityToProcess);
 			return;
 		}
 		VWMLDynamicEntityProperties termProps = context.getEntityDynamicProperties(lastInterpretedTerm, false);
@@ -219,15 +210,15 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		context.popStackFrame();
 		if (defferredEntity == null) {
 			// pops stack frame
-			result = decomposeAndGetNext(linkage, context);
+			setStatus(decomposeAndGetNext(linkage, context));
 			context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
-			if (result == nextEntityToProcess && context.getNextProcessedEntity() != null) {
+			if (getStatus() == nextEntityToProcess && context.getNextProcessedEntity() != null) {
 				// process next entity
 				lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
 			}
 			else
-			if (result == continueProcessingOfCurrentEntity) {
-				throw new Exception("invalid state of interpreter; state is '" + result + "'; last interpreted entity '" + lastInterpretedEntity.getId() + "'");
+			if (getStatus() == continueProcessingOfCurrentEntity) {
+				throw new Exception("invalid state of interpreter; state is '" + getStatus() + "'; last interpreted entity '" + lastInterpretedEntity.getId() + "'");
 			}
 		}
 	}

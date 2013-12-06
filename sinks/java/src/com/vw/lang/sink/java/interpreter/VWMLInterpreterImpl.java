@@ -23,13 +23,19 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	public static final int nextEntityToProcess = 1;
 	public static final int stopProcessing = 2;
 	public static final int finishedEntityProcessing = 3;
+	public static final int stopped = 4;
 	
+	private int status = stopProcessing;
 	// list of terms to be interpreted
 	private List<VWMLEntity> terms;
 	// linkage (usually linkage module of the main module)
 	private VWMLLinkage linkage;
 	// interpreter's configuration
 	private VWMLInterpreterConfiguration config = null;
+	// this interpreter was cloned as result of cloning operation of entity
+	private VWMLEntity clonedFromEntity = null;
+	// 'true' in case if interpreter was instantiated during 'clone' operation
+	private boolean cloned = false;
 	// interpreter's conflict ring
 	private VWMLConflictRing ring = null;
 	// internal worker thread
@@ -143,6 +149,30 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 * @return
 	 */
 	public int getStatus() {
-		return stopProcessing;
+		return status;
+	}
+
+	/**
+	 * Sets status
+	 * @param status
+	 */
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public boolean isCloned() {
+		return cloned;
+	}
+
+	public void setCloned(boolean cloned) {
+		this.cloned = cloned;
+	}
+
+	public VWMLEntity getClonedFromEntity() {
+		return clonedFromEntity;
+	}
+
+	public void setClonedFromEntity(VWMLEntity clonedFromEntity) {
+		this.clonedFromEntity = clonedFromEntity;
 	}
 }

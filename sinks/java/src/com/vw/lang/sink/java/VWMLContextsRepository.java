@@ -53,6 +53,27 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	/**
+	 * Releases context's resources and related entities
+	 * @param clonedContext
+	 * @throws Exception
+	 */
+	public static void releaseCloned(VWMLContext clonedContext) throws Exception {
+		VWMLContextsRepository.instance().release(clonedContext);
+	}
+
+	/**
+	 * Removes entity which was associated with context from context itslef
+	 * @param entity
+	 * @param context
+	 */
+	public static void removeAssociatedEntityFromContext(VWMLEntity entity, VWMLContext context) {
+		if (entity != null && context != null) {
+			VWMLContextsRepository.instance().removeAssociatedEntity(entity, context);
+			entity.getLink().unlinkFromAll();
+		}
+	}
+	
+	/**
 	 * Returns default context which can be root if VWML program doesn't contain any contexts
 	 * @return
 	 */
@@ -192,9 +213,32 @@ public class VWMLContextsRepository extends VWMLRepository {
 			for(; it.isCorrect(); it.next()) {
 				VWMLContext c = (VWMLContext)contextFrom.getLink().getConcreteLinkedEntity(it.getIt());
 				VWMLContext n = instance().createContextIfNotExists(contextTo.getContext() + "." + c.getId());
-				contextTo.link(n);
 				copyFrom(initialEntityId, newEntityId, c, n, auxCache);
 			}
 		}
 	}
+	
+	protected void release(VWMLContext context) {
+		System.out.println("release context '" + context.getContext() + "'");
+		for(VWMLEntity e : context.getAssociatedEntities()) {
+			// release entity's relations
+			e.getLink().unlinkFromAll();
+		}
+		VWMLLinkIncrementalIterator it = context.getLink().acquireLinkedObjectsIterator();
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				VWMLContext c = (VWMLContext)context.getLink().getConcreteLinkedEntity(it.getIt());
+				if (c != null) {
+					release(c);
+				}
+			}
+		}
+		context.getLink().clear();
+		context.removeAllAssociatedEntities();
+	}
+	
+	protected void removeAssociatedEntity(VWMLEntity entity, VWMLContext context) {
+		context.getAssociatedEntities().remove(entity);
+	}
+
 }

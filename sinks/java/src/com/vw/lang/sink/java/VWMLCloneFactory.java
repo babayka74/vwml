@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 
 /**
  * Performs clone building process
@@ -27,5 +28,16 @@ public class VWMLCloneFactory {
 			auxCache.reset();
 		}
 		return clonedEntity;
+	}
+	
+	/**
+	 * Releases all resources and entities which were allocated during the cloneContext operation
+	 * @param clonedFrom
+	 * @param clonedContext
+	 * @throws Exception
+	 */
+	public static void releaseClonedContext(VWMLEntity clonedFrom, VWMLContext clonedContext) throws Exception {
+		VWMLContextsRepository.releaseCloned(clonedContext);
+		VWMLContextsRepository.removeAssociatedEntityFromContext(clonedFrom, clonedFrom.getContext());
 	}
 }
