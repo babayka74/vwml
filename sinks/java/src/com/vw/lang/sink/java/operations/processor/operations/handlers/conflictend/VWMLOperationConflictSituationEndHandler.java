@@ -41,6 +41,9 @@ public class VWMLOperationConflictSituationEndHandler extends VWMLOperationHandl
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
 		}
+		if (entity.getClonedFrom() != null) {
+			entity = entity.getClonedFrom();
+		}
 		reportInterpreterInternalState((String)entity.getId(), interpreter);
 		inspector.clear();
 		entities.clear();

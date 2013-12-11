@@ -3,7 +3,6 @@ package com.vw.lang.sink.java.interpreter.seq;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
@@ -198,11 +197,12 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		VWMLDynamicEntityProperties termProps = context.getEntityDynamicProperties(lastInterpretedTerm, false);
 		if (termProps != null && termProps.isOperatesByExe()) {
 			termProps.setOperatesByExe(false);
+			context.getStack().popUntilEmptyMark();
 			// consume ()
-			VWMLEntity eEmptyToBeConsumed = (VWMLEntity)context.getStack().peek();
-			if (eEmptyToBeConsumed != null && eEmptyToBeConsumed.isMarkedAsComplexEntity() && ((VWMLComplexEntity)eEmptyToBeConsumed).getLink().getLinkedObjectsOnThisTime() == 0) {
-				context.getStack().popUntilEmptyMark();
-			}
+			//VWMLEntity eEmptyToBeConsumed = (VWMLEntity)context.getStack().peek();
+			//if (eEmptyToBeConsumed != null && eEmptyToBeConsumed.isMarkedAsComplexEntity() && ((VWMLComplexEntity)eEmptyToBeConsumed).getLink().getLinkedObjectsOnThisTime() == 0) {
+			//	context.getStack().popUntilEmptyMark();
+			//}
 		}
 		resetArtificialEntityProperty(context, lastInterpretedEntity, null);
 		// un-mark probable entity's recursion

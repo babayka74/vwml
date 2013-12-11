@@ -36,7 +36,9 @@ module tesej4 {
 			movedToPosition ias move.toPosition.go;
 		);
 		Map ias (
-			a ias (a h b g f h e c d);
+			/* a ias (TesejTemple TesejTemple TesejTemple); */
+
+			a ias (TesejTemple a h TesejTemple b g TesejTemple f h e c d TesejTemple);
 			b ias (b a e e g f f f);
 			c ias (a c e d f);
 			d ias (d c g h g g h h g);
@@ -47,22 +49,25 @@ module tesej4 {
 		);
 		EntityRestingTime ias (
 			Time ias (
-				v ias 500;
+				v ias 1000;
 			);
 			((relaxing Time.v~ miliseconds) Ew.say~) Do
 			Time.v~ Relax
 		);
+		/* Global counter of Tesejs */
 		TesejIds ias 0;
 		SpecialPositions ias (Tesej Minotaur TesejTemple MinotaurTemple);
 		Tesej ias (
+			/* Initial Tesej's id */
+			Id ias 0;
 			/* Tesej's initial position */
 			Position ias Map.a;
+			/* Temporary entity which is used in order to store some entity during phase of taking decision about Tesej's movement */
+			K ias Map.a;
 			/* Tesej selected position but not approved, so need to check whether another entities has occupied it or no */
 			TempPosition ias Position;
 			/* Tesej's previous position; needed in order to report Tesej's movement */
 			PrevPosition ias Position;
-			/* Temporary entity which is used in order to store some entity during phase of taking decision about Tesej's movement */
-			K ias Position;
 			/* Actions which can be performed by Tesej */
 			Actions ias (
 				LogicGenerated ias (
@@ -70,26 +75,45 @@ module tesej4 {
 					Action ias nil;
 					/* tesej selects new position, but not moved */
 					SelectNewPosition ias (
+						/* Restores position's interpretetion */
+						(Position~ K~)^
 						(TempPosition Position~~ Random)^
+						((Tesej Id~ selects position) Ew.say~) Do
 						/* checking position before taking decision */
 						(Action CheckPositionBeforeMovement)^
 						LifeStep~ Exe
 					);
-					/* takes decision  */				
+					/* makes decision  */				
 					CheckPositionBeforeMovement ias (
 						Study [
-							/* checking whether somebody has already taken position */
-							(Action LogicGenerated.(PositionUsed (TempPosition~~ SpecialPositions~)In))^
-							LifeStep~ Exe
+							(PositionTaken true) ias doNothing;
+							(PositionTaken false) ias (
+								/* store former position in 'PrevPosition' */
+								(PrevPosition Position~)^
+								/* Position is interpreted as new position (interpretation of TempPosition) generated during SelectNewPosition */
+								(Position TempPosition~)^
+								/* on each movenet current position is marked as Tesej's position; so interpretation of current position
+						   		should be stored in separate entity */
+								(K Position~~)^
+								/* Marks current position as taken over by Tesej */
+								(Position~ Tesej)^
+							);
+							((Tesej Id~ analyzes position) Ew.say~) Do
+							/* Checks if position was taken before */
+							(WasPositionTaken (TempPosition~~ SpecialPositions~)In)^
+							/* Actual checking... */
+							(PositionTaken WasPositionTaken~)~ Exe
+							/* run actual actions */
+							(Action LogicGenerated.(PositionUsed WasPositionTaken~))^
+							((Tesej Id~ analyzed and took action Action~) Ew.say~) Do
 						Study ]
+						((Tesej Id~ action Action~ before life step) Ew.say~) Do
+						LifeStep~ Exe
 					);
 					/* Position is free and Tesej moves to it */
+					/* some of comments below reflet steps for first movements only (as example) */
 					MoveToPosition ias (
-						(Position~ K~)^
-						(PrevPosition Position~)^
-						(Position TempPosition~)^
-						(K~ Position~)^
-						(Position~ Tesej)^
+						((Tesej Id~ moved from PrevPosition~ to Position~) Ew.say~) Do	
 						/* some delay before moveing to new position */
 						EntityRestingTime~ Exe
 						/* commands to move to position */
@@ -98,14 +122,16 @@ module tesej4 {
 					);
 					/* Tesej is cloned */
 					ToClone ias (
+						((Tesej Id~ is going to be cloned) Ew.say~) Do
 						(TesejIds ((TesejIds~) Ew.inc~) Do)^
 						(Tesej (Tesej TesejIds~)) Clone
-						(Action SelectNewPosition)^ 
+						(Action SelectNewPosition)^
+						((Tesej Id~ was cloned by temple and action is Action~) Ew.say~) Do 
 						LifeStep~ Exe
 					);
 					/* finds who occupied position and runs tesej's action depending on it */
 					(PositionUsed true) ias (
-						/* some Tesej on position */
+						/* some Tesej on position - selects new */
 						(PositionUsed Tesej) ias (
 							(Action SelectNewPosition)^
 							LifeStep~ Exe
@@ -141,7 +167,11 @@ module tesej4 {
 				Actions.LogicGenerated.Action~~ Exe
 			);
 			/* Its source lifeterm */
-   			source lifeterm = (Tesej (Tesej TesejIds~)) Clone
+   			source lifeterm = (
+						(K K~~)^
+						(Id TesejIds~)^
+						Life~ Exe
+					) Exe
 		);
 	);
 }

@@ -37,7 +37,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == 2) {
 				handleCloneOperation(interpreter,
 									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0),
-									 entities.get(0).getLink().getConcreteLinkedEntity(1).getId());
+									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1));
 			}
 			else {
 				throw new Exception("arguments != 2 for operation 'OPCLONE'");
@@ -45,15 +45,15 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		}
 		else
 		if (entities.size() == 2) {
-			handleCloneOperation(interpreter, entities.get(1), entities.get(0).getId());
+			handleCloneOperation(interpreter, entities.get(1), entities.get(0));
 		}
 		inspector.clear();
 		entities.clear();
 		stack.popUntilEmptyMark();
 	}
 
-	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, Object clonedObjectId) throws Exception {
-		VWMLEntity cloned = clone(origEntity, clonedObjectId);
+	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
+		VWMLEntity cloned = clone(origEntity, clonedObject);
 		if (cloned.getInterpreting() != null && interpreter.getRing() != null) {
 			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();
 			if (clonedSourceLft != null) {
@@ -68,10 +68,11 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		while(p.getClonedFrom() != null) {
 			p = p.getClonedFrom();
 		}
-		VWMLConflictRingNode ringNode = interpreter.getRing().findNodeByEntityContext(p.getContext().getContext());
-		if (ringNode == null) {
+		VWMLConflictRingNode ringMasterNode = interpreter.getRing().findNodeByEntityContext(p.getContext().getContext());
+		if (ringMasterNode == null) {
 			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
+		VWMLConflictRingNode clonedNode = ringMasterNode.clone();
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);
@@ -82,11 +83,13 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		clonedInterpreter.setTerms(tl);
 		clonedInterpreter.setTimerManager(interpreter.getTimerManager());
 		clonedInterpreter.setRing(interpreter.getRing());
+		clonedNode.setInterpreter(clonedInterpreter);
+		ringMasterNode.addCloned(clonedNode);
+		clonedNode.setMasterNode(ringMasterNode);		
 		clonedInterpreter.start();
-		ringNode.addCloned(clonedInterpreter);
 	}
 	
-	private VWMLEntity clone(VWMLEntity origEntity, Object clonedObjectId) throws Exception {
-		return VWMLCloneFactory.cloneContext(origEntity, clonedObjectId);
+	private VWMLEntity clone(VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
+		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId());
 	}
 }

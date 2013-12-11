@@ -12,6 +12,8 @@ import com.vw.lang.sink.java.link.VWMLLink;
 public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private Object id;
 	private String readableId;
+	private String simpleName;
+	private String[] parsedName;
 	// complex name includes absolute or relative path delimited by '.'
 	private boolean compoundName = false;
 	// context path consists from set of entity ids
@@ -65,9 +67,23 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		this.id = id;
 		if (id != null && ((String)id).contains(".")) {
 			setCompoundName(true);
+			int le = ((String)id).lastIndexOf(".");
+			simpleName = ((String)id).substring(le + 1);
+			parsedName = ((String)id).split(".");			
+		}
+		else {
+			simpleName = ((String)id);
 		}
 	}
-	
+
+	public String[] getParsedName() {
+		return parsedName;
+	}
+
+	public String getSimpleName() {
+		return simpleName;
+	}
+
 	public String getReadableId() {
 		return readableId;
 	}

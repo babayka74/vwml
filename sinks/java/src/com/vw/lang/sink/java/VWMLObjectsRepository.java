@@ -191,8 +191,9 @@ public class VWMLObjectsRepository {
 	 * @return
 	 */
 	public void addByEntityKey(VWMLEntity entity, VWMLContext context) throws Exception {
-		if (!repo.containsKey(entity.getId())) {
-			repo.put(entity.getId(), entity);
+		String k = buildAssociationKey(context.getContext(), entity.getSimpleName());
+		if (!repo.containsKey(k)) {
+			repo.put(k, entity);
 			// associates acquired entity with context
 			context.associateEntity(entity);
 		}

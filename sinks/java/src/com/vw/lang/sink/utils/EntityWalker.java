@@ -49,6 +49,10 @@ public class EntityWalker {
 			return obj;
 		}
 		
+		public void setObj(Object obj) {
+			this.obj = obj;
+		}
+
 		public REL getRelation() {
 			return relation;
 		}

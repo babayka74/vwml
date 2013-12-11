@@ -74,12 +74,10 @@ public class VWMLLink {
 	 */
 	public void link(VWMLObject linked) {
 		// links: itself -> linked
-		if (!itself.getLink().getLinkedObjects().contains(linked)) {
-			itself.getLink().getLinkedObjects().add(linked);
-			linked.getLink().setParent(itself);
-			if (getLinkOperationVisitor() != null) {
-				getLinkOperationVisitor().link(itself, linked);
-			}
+		itself.getLink().getLinkedObjects().add(linked);
+		linked.getLink().setParent(itself);
+		if (getLinkOperationVisitor() != null) {
+			getLinkOperationVisitor().link(itself, linked);
 		}
 	}
 

@@ -10,6 +10,7 @@ package com.vw.lang.sink.java.entity;
 public class VWMLTerm extends VWMLEntity {
 
 	private VWMLEntity associatedEntity;
+	private VWMLEntity originalAssociatedEntity;
 	
 	public VWMLTerm() {
 		super();
@@ -29,5 +30,12 @@ public class VWMLTerm extends VWMLEntity {
 
 	public void setAssociatedEntity(VWMLEntity associatedEntity) {
 		this.associatedEntity = associatedEntity;
+		if (originalAssociatedEntity == null) {
+			originalAssociatedEntity = associatedEntity;
+		}
+	}
+
+	public VWMLEntity getOriginalAssociatedEntity() {
+		return originalAssociatedEntity;
 	}
 }

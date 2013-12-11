@@ -22,7 +22,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
-				n.incSigma();
+				n.incSigma(node);
 			}
 		}
 	}
@@ -37,7 +37,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
-				n.decSigma();
+				n.decSigma(node);
 			}
 		}
 	}

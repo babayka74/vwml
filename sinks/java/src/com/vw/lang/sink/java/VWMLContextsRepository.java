@@ -48,7 +48,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		String[] clonedContextFullPath = context.getContextPath().clone();
 		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
 		VWMLContext newContext = VWMLContextsRepository.instance().createFromContextPath(clonedContextFullPath);
-		copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, auxCache);
+		copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, context, auxCache);
 		return newContext;
 	}
 	
@@ -198,14 +198,13 @@ public class VWMLContextsRepository extends VWMLRepository {
 		return s_default_context + "." + context; 
 	}
 	
-	protected static void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLCloneAuxCache auxCache) throws Exception {
+	protected static void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLContext initial, VWMLCloneAuxCache auxCache) throws Exception {
 		if (initialEntityId != null && newEntityId != null) {
 			for(VWMLEntity e : contextFrom.getAssociatedEntities()) {
 				if (!e.isOriginal()) {
 					continue; // passing entities which were created in runtime
 				}
-				System.out.println("entity '" + e.getId() + "' on context '" + contextFrom.getContext() + "'");
-				e.clone(initialEntityId, newEntityId, contextTo, contextFrom, auxCache, false);
+				e.clone(null, initialEntityId, newEntityId, contextTo, initial, auxCache, false);
 			}
 		}
 		VWMLLinkIncrementalIterator it = contextFrom.getLink().acquireLinkedObjectsIterator();
@@ -213,13 +212,12 @@ public class VWMLContextsRepository extends VWMLRepository {
 			for(; it.isCorrect(); it.next()) {
 				VWMLContext c = (VWMLContext)contextFrom.getLink().getConcreteLinkedEntity(it.getIt());
 				VWMLContext n = instance().createContextIfNotExists(contextTo.getContext() + "." + c.getId());
-				copyFrom(initialEntityId, newEntityId, c, n, auxCache);
+				copyFrom(initialEntityId, newEntityId, c, n, initial, auxCache);
 			}
 		}
 	}
 	
 	protected void release(VWMLContext context) {
-		System.out.println("release context '" + context.getContext() + "'");
 		for(VWMLEntity e : context.getAssociatedEntities()) {
 			// release entity's relations
 			e.getLink().unlinkFromAll();

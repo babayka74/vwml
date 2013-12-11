@@ -266,8 +266,10 @@ package com.vw.lang.grammar;
 		ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
 		Object entityId = null;
 		String c = "";
+		// top pushed entity's id should be changed on updated in case if its id is the same
+		EntityWalker.Relation rel = (EntityWalker.Relation)entityWalker.peek();		
 		if (contextDescriptor != null && logger.isDebugEnabled()) {
-			logger.debug("Starting unwinding process of defferred effective context");
+			logger.debug("Starting unwinding process of defferred effective context; top pushed entity is '" + rel.getObj() + "'");
 		}
 		while(contextDescriptor != null) {
 			if (entityId == null) {
@@ -289,6 +291,12 @@ package com.vw.lang.grammar;
 		if (entityId != null) {
 			newEntityId = VWMLContextBuilder.buildFullEntityName(c, (String)entityId);
 			if (codeGenerator != null) {
+				if (rel != null && rel.getObj().equals(entityId)) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Top pushed entity '" + entityId + "' is changed to '" + newEntityId + "' also");
+					}
+					rel.setObj(newEntityId);
+				}
 				codeGenerator.changeObjectIdToImmidiatly(entityId, newEntityId);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Entity '" + entityId + "' changed to '" + newEntityId + "'");
