@@ -22,7 +22,8 @@ options {
 			)
 		}
 		conflictring {
-			GameTesej.Tesej.Actions.LogicGenerated.CheckPositionBeforeMovement.Study conflicts (GameTesej.Tesej.Actions.LogicGenerated.CheckPositionBeforeMovement.Study)
+			GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select conflicts (GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select)
+			GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers conflicts (GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers)
 		}
 	}
 }
@@ -36,8 +37,7 @@ module tesej4 {
 			movedToPosition ias move.toPosition.go;
 		);
 		Map ias (
-			/* a ias (TesejTemple TesejTemple TesejTemple); */
-
+			x ias (a);
 			a ias (TesejTemple a h TesejTemple b g TesejTemple f h e c d TesejTemple);
 			b ias (b a e e g f f f);
 			c ias (a c e d f);
@@ -56,37 +56,31 @@ module tesej4 {
 		);
 		/* Global counter of Tesejs */
 		TesejIds ias 0;
-		SpecialPositions ias (Tesej Minotaur TesejTemple MinotaurTemple);
+		SpecialPositions ias (TesejItself Tesej Minotaur TesejTemple MinotaurTemple);
 		Tesej ias (
 			/* Initial Tesej's id */
 			Id ias 0;
 			/* Tesej's initial position */
-			Position ias Map.a;
+			Position ias Map.x;
 			/* Temporary entity which is used in order to store some entity during phase of taking decision about Tesej's movement */
 			K ias Map.a;
 			/* Tesej selected position but not approved, so need to check whether another entities has occupied it or no */
 			TempPosition ias Position;
 			/* Tesej's previous position; needed in order to report Tesej's movement */
 			PrevPosition ias Position;
+			/* initialy position wasn't taken by anybody */
+			PositionTakenBy ias nil;
 			/* Actions which can be performed by Tesej */
 			Actions ias (
 				LogicGenerated ias (
 					/* tesej's action */
 					Action ias nil;
-					/* tesej selects new position, but not moved */
-					SelectNewPosition ias (
-						/* Restores position's interpretetion */
-						(Position~ K~)^
-						(TempPosition Position~~ Random)^
-						((Tesej Id~ selects position) Ew.say~) Do
-						/* checking position before taking decision */
-						(Action CheckPositionBeforeMovement)^
-						LifeStep~ Exe
-					);
 					/* makes decision  */				
-					CheckPositionBeforeMovement ias (
-						Study [
-							(PositionTaken true) ias doNothing;
+					SelectNewPosition ias (
+						Select [
+							(PositionTaken true) ias (
+								(PositionTakenBy TempPosition~~)^
+							);
 							(PositionTaken false) ias (
 								/* store former position in 'PrevPosition' */
 								(PrevPosition Position~)^
@@ -95,65 +89,62 @@ module tesej4 {
 								/* on each movenet current position is marked as Tesej's position; so interpretation of current position
 						   		should be stored in separate entity */
 								(K Position~~)^
+								((Tesej Id~ moved from PrevPosition~ to Position~) Ew.say~) Do	
 								/* Marks current position as taken over by Tesej */
 								(Position~ Tesej)^
+								(PositionTakenBy TesejItself)^
 							);
+							((Tesej Id~ selects position) Ew.say~) Do
+							/* Restores position's interpretetion */
+							(Position~ K~)^
+							(TempPosition Position~~ Random)^
 							((Tesej Id~ analyzes position) Ew.say~) Do
 							/* Checks if position was taken before */
-							(WasPositionTaken (TempPosition~~ SpecialPositions~)In)^
-							/* Actual checking... */
-							(PositionTaken WasPositionTaken~)~ Exe
+							(PositionTaken (TempPosition~~ SpecialPositions~)In)~ Exe
 							/* run actual actions */
-							(Action LogicGenerated.(PositionUsed WasPositionTaken~))^
+							(Action LogicGenerated.OnTakenPosition))^
 							((Tesej Id~ analyzed and took action Action~) Ew.say~) Do
-						Study ]
+						Select ]
 						((Tesej Id~ action Action~ before life step) Ew.say~) Do
-						LifeStep~ Exe
-					);
-					/* Position is free and Tesej moves to it */
-					/* some of comments below reflet steps for first movements only (as example) */
-					MoveToPosition ias (
-						((Tesej Id~ moved from PrevPosition~ to Position~) Ew.say~) Do	
-						/* some delay before moveing to new position */
-						EntityRestingTime~ Exe
-						/* commands to move to position */
-						(Action SelectNewPosition)^ 
 						LifeStep~ Exe
 					);
 					/* Tesej is cloned */
 					ToClone ias (
 						((Tesej Id~ is going to be cloned) Ew.say~) Do
-						(TesejIds ((TesejIds~) Ew.inc~) Do)^
+						IncTesejNumbers [
+							(TesejIds ((TesejIds~) Ew.inc~) Do)^
+						IncTesejNumbers ]
 						(Tesej (Tesej TesejIds~)) Clone
 						(Action SelectNewPosition)^
 						((Tesej Id~ was cloned by temple and action is Action~) Ew.say~) Do 
 						LifeStep~ Exe
 					);
 					/* finds who occupied position and runs tesej's action depending on it */
-					(PositionUsed true) ias (
+					OnTakenPosition ias (
 						/* some Tesej on position - selects new */
-						(PositionUsed Tesej) ias (
+						Tesej ias (
 							(Action SelectNewPosition)^
 							LifeStep~ Exe
 						);
+						TesejItself ias (
+							/* some delay before moveing to new position */
+							EntityRestingTime~ Exe
+							(Action SelectNewPosition)^
+							LifeStep~ Exe						
+						);
 						/* Minotaur is here */
-                                              	(PositionUsed Minotaur) ias (
+                                                Minotaur ias (
 						);
 						/* Tesej's temple; here tesej can be cloned */
-                                              	(PositionUsed TesejTemple) ias (
+                                              	TesejTemple ias (
 							(Action ToClone)^
 							LifeStep~ Exe
 						);
 						/* Minotaur's temple; here minotaur can be cloned */
-                                              	(PositionUsed MinotaurTemple) ias (
+                                              	MinotaurTemple ias (
 						);
 
-						(PositionUsed TempPosition~~)~ Exe
-					);
-					/* position is free, here are no special actions needed */
-					(PositionUsed false) ias (
-						(Action MoveToPosition)^
-						LifeStep~ Exe						
+						PositionTakenBy~ Exe
 					);
 				);
 			);

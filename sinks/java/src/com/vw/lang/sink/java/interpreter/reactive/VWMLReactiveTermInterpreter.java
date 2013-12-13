@@ -10,6 +10,7 @@ import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.interpreter.seq.VWMLSequentialTermInterpreter;
@@ -60,7 +61,6 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		for(VWMLEntity e : getTerms()) {
 			activateSourceLifeTerm(e);
 		}
-		// normalization process
 		normalizeInterpreterData();
 		IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
@@ -99,10 +99,11 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	
 	protected boolean activateSourceLifeTerm(VWMLEntity term) throws Exception {
 		// looking for ring node by source lifeterm's context 
-		VWMLConflictRingNode n = ring.findNodeByEntityContext(term.getContext().getContext());
-		if (n == null) {
-			throw new Exception("couldn't find ring node by context '" + term.getContext().getContext() + "'");
+		VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(term.getContext().getContext());
+		if (g == null) {
+			throw new Exception("couldn't find ring group by context '" + term.getContext().getContext() + "'");
 		}
+		VWMLConflictRingNode n = g.findMasterNode();
 		if (n.getInterpreter() != null) { // already processed
 			return false;
 		}

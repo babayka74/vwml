@@ -22,7 +22,12 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
-				n.incSigma(node);
+				if (n != node) {
+					n.incSigma();
+				}
+				else {
+					incrementOnExecutionGroup(node);
+				}
 			}
 		}
 	}
@@ -37,7 +42,12 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
-				n.decSigma(node);
+				if (n != node) {
+					n.decSigma();
+				}
+				else {
+					decrementOnExecutionGroup(node);
+				}
 			}
 		}
 	}
@@ -75,5 +85,13 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 		if (node.getInterpreter().getObserver() != null) {
 			node.getInterpreter().getObserver().setActiveConflictContext(null);
 		}
+	}
+	
+	protected void incrementOnExecutionGroup(VWMLConflictRingNode node) {
+		node.getExecutionGroup().updateSigma(node, true);
+	}
+	
+	protected void decrementOnExecutionGroup(VWMLConflictRingNode node) {
+		node.getExecutionGroup().updateSigma(node, false);
 	}
 }

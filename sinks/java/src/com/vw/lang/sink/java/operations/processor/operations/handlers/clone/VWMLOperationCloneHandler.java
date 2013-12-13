@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -68,14 +69,19 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		while(p.getClonedFrom() != null) {
 			p = p.getClonedFrom();
 		}
-		VWMLConflictRingNode ringMasterNode = interpreter.getRing().findNodeByEntityContext(p.getContext().getContext());
+		VWMLConflictRingExecutionGroup group = interpreter.getRing().findGroupByEntityContext(p.getContext().getContext());
+		if (group == null) {
+			throw new Exception("couldn't ring find group by context '" + clonedSourceLft.getContext().getContext() + "'");
+		}
+		VWMLConflictRingNode ringMasterNode = group.findMasterNode();
 		if (ringMasterNode == null) {
 			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
-		VWMLConflictRingNode clonedNode = ringMasterNode.clone();
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);
+		VWMLConflictRingNode clonedNode = ringMasterNode.clone(clonedInterpreter);
+		clonedNode.markAsClone(true);
 		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
 		// needed when resources should be released
 		clonedInterpreter.setClonedFromEntity(cloned);
@@ -83,9 +89,9 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		clonedInterpreter.setTerms(tl);
 		clonedInterpreter.setTimerManager(interpreter.getTimerManager());
 		clonedInterpreter.setRing(interpreter.getRing());
-		clonedNode.setInterpreter(clonedInterpreter);
-		ringMasterNode.addCloned(clonedNode);
-		clonedNode.setMasterNode(ringMasterNode);		
+		clonedNode.setMasterNode(ringMasterNode);
+		clonedNode.setExecutionGroup(group);
+		group.add(clonedNode);
 		clonedInterpreter.start();
 	}
 	

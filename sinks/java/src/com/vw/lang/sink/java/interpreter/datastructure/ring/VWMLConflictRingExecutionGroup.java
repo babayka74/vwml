@@ -1,0 +1,110 @@
+package com.vw.lang.sink.java.interpreter.datastructure.ring;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.vw.lang.sink.java.VWMLObject;
+
+/**
+ * Ring's execution group
+ * @author Oleg
+ *
+ */
+public class VWMLConflictRingExecutionGroup extends VWMLObject {
+	private int rIndex = 0;
+	// cloned source lifeterms' nodes which correspond to given node
+	// all cloned terms have the same properties and associated with master node
+	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
+	
+	public VWMLConflictRingExecutionGroup() {
+		
+	}
+	
+	public VWMLConflictRingExecutionGroup(Object id, String readableId) {
+		super(id, readableId);
+	}
+	
+	public static VWMLConflictRingExecutionGroup build(Object id, String readableId) {
+		return new VWMLConflictRingExecutionGroup(id, readableId);
+	}
+
+	public void add(VWMLConflictRingNode n) {
+		group.add(n);
+	}
+	
+	public void remove(VWMLConflictRingNode n) {
+		group.remove(n);
+	}
+	
+	public void reset() throws Exception {
+		VWMLConflictRingNode master = null;
+		for(VWMLConflictRingNode n : group) {
+			if (!n.isClone()) {
+				if (n.getInterpreter() != null && !n.isGrouped()) {
+					n.reset();
+				}
+				master = n;
+				break;
+			}
+		}
+		group.clear();
+		group.add(master);
+	}
+	
+	public boolean isStopped() {
+		boolean stopped = true;
+		for(VWMLConflictRingNode n : group) {
+			if (!n.isStopped()) {
+				stopped = false;
+				break;
+			}
+		}
+		return stopped;
+	}
+	
+	public VWMLConflictRingNode findMasterNode() {
+		VWMLConflictRingNode master = null;
+		for(VWMLConflictRingNode n : group) {
+			if (!n.isClone()) {
+				master = n;
+				break;
+			}
+		}
+		return master;
+	}
+	
+	public VWMLConflictRingNode schedule() {
+		if (group.size() == 0) {
+			return null;
+		}
+		VWMLConflictRingNode r = null;
+		for(int i = 0; i < group.size() && r == null; i++) {
+			VWMLConflictRingNode n = group.get(rIndex);
+			if (!n.isStopped()) {
+				r = n;
+			}
+			rIndex++;
+			rIndex = rIndex % group.size();
+		}
+		return r;
+	}
+	
+	public void updateSigma(VWMLConflictRingNode initiator, boolean inc) {
+		boolean initatorIsGroup = initiator.isGrouped();
+		for(VWMLConflictRingNode n : group) {
+			if (n != initiator) {
+				if (initatorIsGroup) {
+					n.updateSigmaOnGrouped(initiator, inc);
+				}
+				else {
+					if (inc) {
+						n.incSigma();
+					}
+					else {
+						n.decSigma();
+					}
+				}
+			}
+		}
+	}
+}
