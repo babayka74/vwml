@@ -93,6 +93,7 @@ module tesej4 {
 								/* Marks current position as taken over by Tesej */
 								(Position~ Tesej)^
 								(PositionTakenBy TesejItself)^
+								((Taken position is PositionTakenBy~) Ew.say~) Do	
 							);
 							((Tesej Id~ selects position) Ew.say~) Do
 							/* Restores position's interpretetion */
@@ -102,7 +103,7 @@ module tesej4 {
 							/* Checks if position was taken before */
 							(PositionTaken (TempPosition~~ SpecialPositions~)In)~ Exe
 							/* run actual actions */
-							(Action LogicGenerated.OnTakenPosition))^
+							(Action LogicGenerated.OnTakenPosition)^
 							((Tesej Id~ analyzed and took action Action~) Ew.say~) Do
 						Select ]
 						((Tesej Id~ action Action~ before life step) Ew.say~) Do
@@ -122,29 +123,28 @@ module tesej4 {
 					/* finds who occupied position and runs tesej's action depending on it */
 					OnTakenPosition ias (
 						/* some Tesej on position - selects new */
-						Tesej ias (
+						(TakenBy Tesej) ias (
 							(Action SelectNewPosition)^
 							LifeStep~ Exe
 						);
-						TesejItself ias (
+						(TakenBy TesejItself) ias (
 							/* some delay before moveing to new position */
 							EntityRestingTime~ Exe
 							(Action SelectNewPosition)^
 							LifeStep~ Exe						
 						);
 						/* Minotaur is here */
-                                                Minotaur ias (
+                                                (TakenBy Minotaur) ias (
 						);
 						/* Tesej's temple; here tesej can be cloned */
-                                              	TesejTemple ias (
+                                              	(TakenBy TesejTemple) ias (
 							(Action ToClone)^
 							LifeStep~ Exe
 						);
 						/* Minotaur's temple; here minotaur can be cloned */
-                                              	MinotaurTemple ias (
+                                              	(TakenBy MinotaurTemple) ias (
 						);
-
-						PositionTakenBy~ Exe
+						(TakenBy PositionTakenBy~)~ Exe
 					);
 				);
 			);

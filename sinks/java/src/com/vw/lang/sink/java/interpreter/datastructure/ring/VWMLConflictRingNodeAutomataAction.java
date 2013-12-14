@@ -23,7 +23,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				if (n != node) {
-					n.incSigma();
+					incrementOnExecutionGroup(n);
 				}
 				else {
 					incrementOnExecutionGroup(node);
@@ -43,7 +43,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				if (n != node) {
-					n.decSigma();
+					decrementOnExecutionGroup(n);
 				}
 				else {
 					decrementOnExecutionGroup(node);

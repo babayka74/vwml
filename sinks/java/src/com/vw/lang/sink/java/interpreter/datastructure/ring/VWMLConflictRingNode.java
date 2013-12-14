@@ -28,6 +28,8 @@ public class VWMLConflictRingNode extends VWMLObject {
 	private int groupedCount = 0;
 	private VWMLConflictRingExecutionGroup executionGroup = null;
 	private VWMLConflictRingNode masterNode = null;
+	// internal group (see below)
+	private VWMLConflictRingNode groupOwner = null;
 	// group of nodes (each node is considered as conflict fragment) which belong to the same source lifeterm
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
 	
@@ -43,6 +45,11 @@ public class VWMLConflictRingNode extends VWMLObject {
 		return new VWMLConflictRingNode(id, readableId);
 	}
 
+	/**
+	 * Clones current node with specified interpreter
+	 * @param relatedInterpreter
+	 * @return
+	 */
 	public VWMLConflictRingNode clone(VWMLInterpreterImpl relatedInterpreter) {
 		VWMLConflictRingNode n = build(this.getId(), this.getReadableId());
 		VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
@@ -61,9 +68,23 @@ public class VWMLConflictRingNode extends VWMLObject {
 			VWMLConflictRingNode ngCloned = ng.clone(relatedInterpreter);
 			n.addToGroup(ngCloned);
 		}
+		n.setSigma(getSigma());
 		n.setExecutionGroup(getExecutionGroup());
 		n.setInterpreter(relatedInterpreter);
 		return n;
+	}
+	
+	/**
+	 * Clones node's sigma which tells how many nodes pretends on shared resource on this time (called during 'clone' operation)
+	 * @param rtNode
+	 */
+	public void cloneSigmaFor(VWMLConflictRingNode clonedNode) {
+		for(int i = 0; i < group.size(); i++) {
+			VWMLConflictRingNode g1 = group.get(i);
+			VWMLConflictRingNode g2 = clonedNode.getGroup().get(i);
+			g2.setSigma(g1.getSigma());
+		}
+		clonedNode.setSigma(getSigma());
 	}
 	
 	/**
@@ -71,7 +92,10 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 */
 	public void reset() throws Exception {
 		sigma = 0;
-		if (interpreter != null && !interpreter.getConfig().isStepByStepInterpretation()) {
+		for(int i = 0; i < group.size(); i++) {
+			group.get(i).reset();
+		}
+		if (!isGrouped() && interpreter != null && !interpreter.getConfig().isStepByStepInterpretation()) {
 			interpreter.start();
 		}
 	}
@@ -82,6 +106,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 */
 	public void operate() throws Exception {
 		if (getInterpreter().getStatus() != VWMLInterpreterImpl.stopProcessing && getInterpreter().getStatus() != VWMLInterpreterImpl.stopped) {
+			getInterpreter().setRtNode(this);
 			operateOnNode();
 		}
 		if (getInterpreter().getStatus() == VWMLInterpreterImpl.stopProcessing) {
@@ -148,6 +173,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 		group.add(node);
 		node.setGrouped(true);
 		node.incGroupedCounter();
+		node.setGroupOwner(this);
 	}
 	
 	/**
@@ -169,6 +195,10 @@ public class VWMLConflictRingNode extends VWMLObject {
 		this.masterNode = masterNode;
 	}
 
+	public VWMLConflictRingNode getGroupOwner() {
+		return groupOwner;
+	}
+
 	/**
 	 * Called by execution group when group on cloned nodes' 'sigmas' should be updated
 	 * @param initiator
@@ -179,9 +209,11 @@ public class VWMLConflictRingNode extends VWMLObject {
 			if (initiator.getId().equals(grouped.getId())) {
 				if (inc) {
 					grouped.incSigma();
+					//System.out.println("(G) Node '" + initiator.getId() + "'; context '" + initiator.getInterpreter().getContext().getContext() + "' inc on node '" + grouped.getId() + "'; context '" + grouped.getInterpreter().getContext().getContext());
 				}
 				else {
 					grouped.decSigma();
+					//System.out.println("(G) Node '" + initiator.getId() + "'; context '" + initiator.getInterpreter().getContext().getContext() + "' dec on node '" + grouped.getId() + "'; context '" + grouped.getInterpreter().getContext().getContext());
 				}
 			}
 		}
@@ -222,6 +254,10 @@ public class VWMLConflictRingNode extends VWMLObject {
 
 	public void setExecutionGroup(VWMLConflictRingExecutionGroup executionGroup) {
 		this.executionGroup = executionGroup;
+		// all grouped nodes should belong to the same group
+		for(VWMLConflictRingNode n : group) {
+			n.setExecutionGroup(executionGroup);
+		}
 	}
 
 	protected void operateOnNode() throws Exception {
@@ -260,23 +296,9 @@ public class VWMLConflictRingNode extends VWMLObject {
 			if (operationalNode.getSigma() == 0) {
 				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;
 			}
-			// System.out.println("Node of '" + operationalNode.getInterpreter().getContext().getContext() + "'; sigma '" + operationalNode.getSigma() + "'; state '" + state + "'; input '" + input + "'");
+			//System.out.println("Node of '" + operationalNode.getInterpreter().getContext().getContext() + "'; sigma '" + operationalNode.getSigma() + "'; state '" + state + "'; input '" + input + "'");
 		}
 		nodeAutomata.runAction(operationalNode, input, state);
-	}
-	
-	protected void operateOnSigma(VWMLConflictRingNode exclude, boolean inc) {
-		if (exclude == this) {
-			// means that recurrent conflict detected; usually used when conflict situation occurred on cloned terms
-		}
-		else {
-			if (inc) {
-				incSigmaImpl();
-			}
-			else {
-				decSigmaImpl();
-			}
-		}
 	}
 	
 	protected void incSigmaImpl() {
@@ -287,5 +309,13 @@ public class VWMLConflictRingNode extends VWMLObject {
 		if (sigma > 0) {
 			sigma--;
 		}
+	}
+	
+	protected void setGroupOwner(VWMLConflictRingNode groupOwner) {
+		this.groupOwner = groupOwner;
+	}
+
+	protected List<VWMLConflictRingNode> getGroup() {
+		return group;
 	}
 }

@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationProcessor;
@@ -36,6 +37,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLEntity clonedFromEntity = null;
 	// 'true' in case if interpreter was instantiated during 'clone' operation
 	private boolean cloned = false;
+	// interpreter's run-time node (the same interpreter may belong to some nodes in the same time - nut all nodes must be in the same node's group)
+	private VWMLConflictRingNode rtNode = null;
 	// interpreter's conflict ring
 	private VWMLConflictRing ring = null;
 	// internal worker thread
@@ -61,6 +64,14 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 */
 	public abstract VWMLInterpreterImpl clone();
 	
+	public VWMLConflictRingNode getRtNode() {
+		return rtNode;
+	}
+
+	public void setRtNode(VWMLConflictRingNode rtNode) {
+		this.rtNode = rtNode;
+	}
+
 	public VWMLConflictRing getRing() {
 		return ring;
 	}

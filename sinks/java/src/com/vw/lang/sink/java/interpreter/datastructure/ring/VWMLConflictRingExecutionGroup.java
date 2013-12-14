@@ -90,18 +90,24 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	}
 	
 	public void updateSigma(VWMLConflictRingNode initiator, boolean inc) {
-		boolean initatorIsGroup = initiator.isGrouped();
+		VWMLConflictRingNode nodeToExclude = initiator;
+		boolean initiatorWasGrouped = initiator.isGrouped();
+		if (initiatorWasGrouped) {
+			nodeToExclude = initiator.getGroupOwner();
+		}
 		for(VWMLConflictRingNode n : group) {
-			if (n != initiator) {
-				if (initatorIsGroup) {
+			if (n != nodeToExclude) {
+				if (initiatorWasGrouped) {
 					n.updateSigmaOnGrouped(initiator, inc);
 				}
 				else {
 					if (inc) {
 						n.incSigma();
+						//System.out.println("Node '" + initiator.getId() + "'; context '" + initiator.getInterpreter().getContext().getContext() + "' inc on node '" + n.getId() + "'; context '" + n.getInterpreter().getContext().getContext());
 					}
 					else {
 						n.decSigma();
+						//System.out.println("Node '" + initiator.getId() + "'; context '" + initiator.getInterpreter().getContext().getContext() + "' dec on node '" + n.getId() + "'; context '" + n.getInterpreter().getContext().getContext());						
 					}
 				}
 			}
