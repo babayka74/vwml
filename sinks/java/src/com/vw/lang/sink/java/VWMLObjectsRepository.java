@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
+import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
@@ -30,6 +31,14 @@ public class VWMLObjectsRepository {
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId2, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId3, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// built-in logical 'false' entity id
@@ -92,6 +101,32 @@ public class VWMLObjectsRepository {
 			}
 		}
 		return obj;
+	}
+	
+	/**
+	 * Returns 'true' in case if entity should be swallowed. Usually checks on 'Exe' operation, when it is finished
+	 * @param e
+	 * @return
+	 */
+	public static boolean shouldEntityBeConsumed(VWMLEntity e) throws Exception {
+		boolean r = false;
+		if (e != null) {
+			if (e.isMarkedAsComplexEntity() && ((VWMLComplexEntity)e).getLink().getLinkedObjectsOnThisTime() == 0) {
+				r = true;
+			}
+			else
+			if (!e.isMarkedAsComplexEntity()) {
+				String[] donothing = {VWMLEntity.s_doNothingEntityId, VWMLEntity.s_doNothingEntityId2, VWMLEntity.s_doNothingEntityId3};
+				for(String s : donothing) {
+					VWMLEntity entity = (VWMLEntity)instance().get(s, VWMLContextsRepository.instance().getDefaultContext());
+					if (entity.equals(e)) {
+						r = true;
+						break;
+					}
+				}
+			}
+		}
+		return r;
 	}
 	
 	public void add(VWMLEntity obj) {

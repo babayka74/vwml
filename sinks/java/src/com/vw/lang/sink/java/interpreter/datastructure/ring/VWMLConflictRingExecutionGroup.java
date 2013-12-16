@@ -89,14 +89,14 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		return r;
 	}
 	
-	public void updateSigma(VWMLConflictRingNode initiator, boolean inc) {
+	public void updateSigma(VWMLConflictRingNode initiator, boolean inc, boolean forAllNodes) {
 		VWMLConflictRingNode nodeToExclude = initiator;
 		boolean initiatorWasGrouped = initiator.isGrouped();
 		if (initiatorWasGrouped) {
 			nodeToExclude = initiator.getGroupOwner();
 		}
 		for(VWMLConflictRingNode n : group) {
-			if (n != nodeToExclude) {
+			if (n != nodeToExclude || forAllNodes) {
 				if (initiatorWasGrouped) {
 					n.updateSigmaOnGrouped(initiator, inc);
 				}

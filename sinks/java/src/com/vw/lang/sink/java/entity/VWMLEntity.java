@@ -20,6 +20,8 @@ public class VWMLEntity extends VWMLObject {
 	public static final String s_NilEntityId       = "nil";
 	public static final String s_EmptyEntityId     = "()";
 	public static final String s_doNothingEntityId = "doNothing";
+	public static final String s_doNothingEntityId2 = "DoNothing";
+	public static final String s_doNothingEntityId3 = "donothing";	
 	public static final String s_trueEntityId      = "true";
 	public static final String s_falseEntityId     = "false";
 

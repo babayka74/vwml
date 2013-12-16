@@ -65,6 +65,13 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 		List<VWMLEntity> terms = new ArrayList<VWMLEntity>();
 		terms.add(lfTerm);
 		ii.setTerms(terms);
+		ii.setRtNode(interpreter.getRtNode());
+		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
+		// needed when resources should be released
+		ii.setClonedFromEntity(interpreter.getClonedFromEntity());
+		ii.setCloned(interpreter.isCloned());
+		ii.setTimerManager(interpreter.getTimerManager());
+		ii.setRing(interpreter.getRing());
 		ii.start();
 		if (interpreter.getConfig().isStepByStepInterpretation()) {
 			interpreter.pushInterpreterToChildStack(ii);

@@ -38,14 +38,14 @@ module tesej4 {
 		);
 		Map ias (
 			x ias (a);
-			a ias (TesejTemple a h TesejTemple b g TesejTemple f h e c d TesejTemple);
-			b ias (b a e e g f f f);
-			c ias (a c e d f);
-			d ias (d c g h g g h h g);
-			e ias (e c a b g);
-			f ias (f c b a b g);
-			g ias (g b e h e c b g b);
-			h ias (h a e c e e a);
+			a ias (a h b g TesejTemple f h e c d TesejTemple);
+			b ias (b a e h g f TesejTemple f f);
+			c ias (a c e TesejTemple d f);
+			d ias (TesejTemple d c g h g g h h g);
+			e ias (e c a b TesejTemple g);
+			f ias (f c b TesejTemple a b g);
+			g ias (g b e h e TesejTemple c b g b);
+			h ias (h a e TesejTemple c e e a);
 		);
 		EntityRestingTime ias (
 			Time ias (
@@ -55,6 +55,7 @@ module tesej4 {
 			Time.v~ Relax
 		);
 		/* Global counter of Tesejs */
+		MaxNumberOfClonedTesejs ias 5;
 		TesejIds ias 0;
 		SpecialPositions ias (TesejItself Tesej Minotaur TesejTemple MinotaurTemple);
 		Tesej ias (
@@ -63,7 +64,7 @@ module tesej4 {
 			/* Tesej's initial position */
 			Position ias Map.x;
 			/* Temporary entity which is used in order to store some entity during phase of taking decision about Tesej's movement */
-			K ias Map.a;
+			K ias Map.x;
 			/* Tesej selected position but not approved, so need to check whether another entities has occupied it or no */
 			TempPosition ias Position;
 			/* Tesej's previous position; needed in order to report Tesej's movement */
@@ -80,6 +81,7 @@ module tesej4 {
 						Select [
 							(PositionTaken true) ias (
 								(PositionTakenBy TempPosition~~)^
+								((Taken position is PositionTakenBy~) Ew.say~) Do
 							);
 							(PositionTaken false) ias (
 								/* store former position in 'PrevPosition' */
@@ -111,13 +113,19 @@ module tesej4 {
 					);
 					/* Tesej is cloned */
 					ToClone ias (
-						((Tesej Id~ is going to be cloned) Ew.say~) Do
 						IncTesejNumbers [
-							(TesejIds ((TesejIds~) Ew.inc~) Do)^
+							(DoNotCloneTesej true) ias (
+								((Tesej Id~ coud not be cloned since MaxNumberOfClonedTesejs~ tesejs have been reached) Ew.say~) Do
+							);
+							(DoNotCloneTesej false) ias (
+								((Tesej Id~ is going to be cloned) Ew.say~) Do
+								(TesejIds ((TesejIds~) Ew.inc~) Do)^
+								(Tesej (Tesej TesejIds~)) Clone
+							);
+							(DoNotCloneTesej (MaxNumberOfClonedTesejs~ TesejIds~)Ident)~ Exe
 						IncTesejNumbers ]
-						(Tesej (Tesej TesejIds~)) Clone
 						(Action SelectNewPosition)^
-						((Tesej Id~ was cloned by temple and action is Action~) Ew.say~) Do 
+						((Tesej Id~ took action Action~) Ew.say~) Do 
 						LifeStep~ Exe
 					);
 					/* finds who occupied position and runs tesej's action depending on it */

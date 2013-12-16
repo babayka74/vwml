@@ -23,10 +23,10 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				if (n != node) {
-					incrementOnExecutionGroup(n);
+					incrementOnExecutionGroup(n, true);
 				}
 				else {
-					incrementOnExecutionGroup(node);
+					incrementOnExecutionGroup(node, false);
 				}
 			}
 		}
@@ -43,10 +43,10 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				if (n != node) {
-					decrementOnExecutionGroup(n);
+					decrementOnExecutionGroup(n, true);
 				}
 				else {
-					decrementOnExecutionGroup(node);
+					decrementOnExecutionGroup(node, false);
 				}
 			}
 		}
@@ -87,11 +87,11 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 		}
 	}
 	
-	protected void incrementOnExecutionGroup(VWMLConflictRingNode node) {
-		node.getExecutionGroup().updateSigma(node, true);
+	protected void incrementOnExecutionGroup(VWMLConflictRingNode node, boolean forAllNodes) {
+		node.getExecutionGroup().updateSigma(node, true, forAllNodes);
 	}
 	
-	protected void decrementOnExecutionGroup(VWMLConflictRingNode node) {
-		node.getExecutionGroup().updateSigma(node, false);
+	protected void decrementOnExecutionGroup(VWMLConflictRingNode node, boolean forAllNodes) {
+		node.getExecutionGroup().updateSigma(node, false, forAllNodes);
 	}
 }
