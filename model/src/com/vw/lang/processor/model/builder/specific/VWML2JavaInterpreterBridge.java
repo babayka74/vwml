@@ -8,13 +8,12 @@ import java.util.Set;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.processor.model.builder.VWMLModuleInfo;
-import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
+import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterBroker;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
 import com.vw.lang.sink.java.module.VWMLModule;
 
 /**
@@ -102,7 +101,6 @@ public class VWML2JavaInterpreterBridge {
 		imports += "import " + IVWMLInterpreterBroker.class.getName() + ";\r\n";
 		imports += "import " + VWMLInterpreterBroker.class.getName() + ";\r\n";
 		imports += "import " + VWMLPair.class.getName() + ";\r\n";
-		imports += "import " + VWMLPairLookUp.class.getName() + ";\r\n";
 		imports += "import " + IVWMLGate.class.getName() + ";\r\n";
 		// looking for debugger's property
 		if (projProps.getInterpretationProps().isActivateDebugger()) {

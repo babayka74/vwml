@@ -8,6 +8,8 @@ import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.VWMLLinkWrap;
@@ -26,7 +28,6 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
-import com.vw.lang.sink.utils.EntityWalker.REL;
 
 /**
  * Generates code related to linkage phase
@@ -65,6 +66,8 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 				"java.util.Map",
 				"com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType",
 				VWMLEntity.class.getName(),
+				VWMLObject.class.getName(),
+				VWMLObjectsRepository.class.getName(),
 				VWMLTerm.class.getName(),
 				VWMLOperationsCode.class.getName(),
 				VWMLOperation.class.getName(),
@@ -93,6 +96,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		String operation2ObjectsAssociation = generateOperation2ObjectAssociations(operations);
 		getFw().write(operation2ObjectsAssociation);
 		String entityMarkedAsTerm = JavaCodeGeneratorUtils.generateObjectsDefinition("entityMarkedAsTerms", markedAsTerm);
+		getFw().write("\t@SuppressWarnings(\"unused\")\r\n");
 		getFw().write(entityMarkedAsTerm);
 		getFw().write("\tprivate AbstractVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
 		// defined strategy for undefined entity
@@ -120,10 +124,8 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			if (!ft) {
 				list += ",";
 			}
-			String s = JavaCodeGeneratorUtils.convertStaticStringArrayToString(obj.getContextPath());
-			String arrayAsStr = (s == null) ? null : s;
 			if (!obj.isAsTerm()) {
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\", " + arrayAsStr + ")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", VWMLLinkWrap.MARKED.ENTITY, \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\")";
 			}
 			else {
 				String mark = "VWMLLinkWrap.MARKED.TERM";
@@ -136,7 +138,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 					}
 				}
 				
-				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\", " + arrayAsStr + ")";
+				list += "\r\n\t\tnew VWMLLinkWrap(\"" + obj.getId() + "\", \"" + obj.getLinkedId() + "\", " + mark + ", \"" + obj.getUniqId() + "\", \"" + obj.getActiveContext() + "\")";
 			}
 			ft = false;
 		}
@@ -168,8 +170,8 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 	
 	private String generateOperation2ObjectAssociations(Map<Object, VWMLOperationLink> operations) {
 		boolean ft = true;
-		// key is uniq entity's key, which describes entity's position in AST
-		String appliedOperations = "\tprivate Map<Object, VWMLOperationLink> appliedOperations = new HashMap<Object, VWMLOperationLink>() {\r\n";
+		// key is unique entity's key, which describes entity's position in AST
+		String appliedOperations = "\t@SuppressWarnings(\"serial\")\r\n\tprivate Map<Object, VWMLOperationLink> appliedOperations = new HashMap<Object, VWMLOperationLink>() {\r\n";
 		for(Object id : operations.keySet()) {
 			VWMLOperationLink link = operations.get(id);
 			String opsAsList = new String();
@@ -184,8 +186,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			if (!ft) {
 				appliedOperations += ",\r\n";
 			}
-			String rel = (link.getRel() == REL.LINK) ? "VWMLOperationLink.REL.LINK" : "VWMLOperationLink.REL.ASSOCIATION";
-			appliedOperations += "\t\t{put(\"" + id + "\", new VWMLOperationLink(\"" + link.getEntityId() + "\", \"" + link.getLinkId() + "\", new String[] {" + opsAsList + "}, " + rel + "));}\r\n";
+			appliedOperations += "\t\t{put(\"" + id + "\", new VWMLOperationLink(new String[] {" + opsAsList + "}));}\r\n";
 		}
 		appliedOperations += "\t};\r\n\r\n";
 		return appliedOperations;

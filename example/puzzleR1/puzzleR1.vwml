@@ -5,10 +5,6 @@ options {
   		author = "Groozman M.Z."
 		project_name = "puzzleR1Proj"
   		description = "Simple puzzle game"
-		visualizer {
-			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
-			data = "c:\var\vwml/puzzleR1/diagram"
-		}
 		beyond {
 			fringe communication ias (
 				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
@@ -125,6 +121,7 @@ module puzzleR1 {
 				PuzzleCompleted ias (
 					((Congratulations ! Puzzle completed !) Actions.say~) Do
 					7000 Relax
+					((Bye) Actions.say~) Do
 				);
 			);
 		);
@@ -155,11 +152,12 @@ module puzzleR1 {
 				);
 				((step 1 is select card from Ew.RestPuzzles~) Robby.Actions.say~) Do
 				((step 2 is select where to put it from Ew.FreePlaces~) Robby.Actions.say~) Do
-				/* reads user input and pushes to internal stack */ 
-				(Command (() Input~~) Do)^
+				/* reads user input and pushes to internal stack */
+				(Command ((Robby.Card~ Robby.CardPlace~) Input~~) Do)^
+				(IsServiceCommand (Command~ ServiceCommands~)In)^
 				/* applies 'Command' to given context */
-				(Command~ (ServiceCommandsProcessing (Command~ ServiceCommands~)In)) Context
-				(ServiceCommandsProcessing (Command~ ServiceCommands~)In)~ Exe 
+				(Command~ (ServiceCommandsProcessing IsServiceCommand~)) Context
+				(ServiceCommandsProcessing IsServiceCommand~)~ Exe 
 			);
 			Step ias (
 				Robby.Actions.CheckEndOfGame~ Exe

@@ -13,9 +13,7 @@ import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.java.VWMLJavaExportUtils;
-import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
-import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.code.linkage.JavaCodeGeneratorLinkage;
 import com.vw.lang.sink.java.code.module.JavaCodeGeneratorModule;
 import com.vw.lang.sink.java.code.repository.JavaCodeGeneratorRepository;
@@ -952,7 +950,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}
 	
 	private String prepareImports() {
-		Class<?> importedClasses[] = {VWMLObjectsRepository.class, VWMLObject.class};
+		Class<?> importedClasses[] = {};
 		String imports = new String();
 		for(Class<?> ic : importedClasses) {
 			imports += "import " + ic.getName() + ";\r\n";

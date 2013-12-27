@@ -114,6 +114,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		boolean stopped = false;
 		VWMLInterpreterImpl ii = peekInterpreterFromChildStack();
 		if (ii != null) {
+			ii.setRtNode(getRtNode());
 			stopped = ii.step();
 			if (stopped) { // means stopped
 				popInterpreterFromChildStack();

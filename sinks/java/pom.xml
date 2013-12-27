@@ -71,6 +71,7 @@
 						<exclude>com/vw/lang/sink/java/test/generated/data/*</exclude>
 						<exclude>com/vw/lang/sink/java/test/generated/srcs/*</exclude>
 						<exclude>com/vw/lang/sink/java/test/generated/srcs/test/*</exclude>
+						<exclude>com/vw/lang/sink/java/test/interpreter/datastructure/*</exclude>
 						<exclude>com/vw/lang/sink/java/code/*</exclude>
 						<exclude>com/vw/lang/sink/java/code/templates/*</exclude>
 						<exclude>com/vw/lang/sink/java/code/utils/*</exclude>

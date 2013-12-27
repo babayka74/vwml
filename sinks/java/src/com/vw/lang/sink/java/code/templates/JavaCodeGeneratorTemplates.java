@@ -29,33 +29,13 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tprivate Object linkedId;\r\n" +
 	"\t\tprivate MARKED marked = MARKED.ENTITY;\r\n" +
 	"\t\tprivate Object uniqId = null;\r\n\r\n" +
-	"\t\tprivate String[] contextPath = null;\r\n\r\n" +
 	"\t\tprivate String context = null;\r\n\r\n" +
-	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId) {\r\n" +
-	"\t\t\tsuper();\r\n" +
-	"\t\t\tthis.id = id;\r\n" +
-	"\t\t\tthis.linkedId = linkedId;\r\n" +
-	"\t\t}\r\n\r\n" +
-	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId, MARKED marked) {\r\n" +
-	"\t\t\tsuper();\r\n" +
-	"\t\t\tthis.id = id;\r\n" +
-	"\t\t\tthis.linkedId = linkedId;\r\n" +
-	"\t\t\tthis.marked = marked;\r\n" +
-	"\t\t}\r\n\r\n" +
-	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId, MARKED marked, Object uniqId) {\r\n" +
+	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId, MARKED marked, Object uniqId, String context) {\r\n" +
 	"\t\t\tsuper();\r\n" +
 	"\t\t\tthis.id = id;\r\n" +
 	"\t\t\tthis.linkedId = linkedId;\r\n" +
 	"\t\t\tthis.marked = marked;\r\n" +
 	"\t\t\tthis.uniqId = uniqId;\r\n" +
-	"\t\t}\r\n\r\n" +
-	"\t\tpublic VWMLLinkWrap(Object id, Object linkedId, MARKED marked, Object uniqId, String context, String[] contextPath) {\r\n" +
-	"\t\t\tsuper();\r\n" +
-	"\t\t\tthis.id = id;\r\n" +
-	"\t\t\tthis.linkedId = linkedId;\r\n" +
-	"\t\t\tthis.marked = marked;\r\n" +
-	"\t\t\tthis.uniqId = uniqId;\r\n" +
-	"\t\t\tthis.contextPath = contextPath;\r\n" +
 	"\t\t\tthis.context = context;\r\n" +
 	"\t\t}\r\n\r\n" +	
 	"\t\tpublic Object getId() {\r\n" +
@@ -76,44 +56,18 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\tpublic boolean isMarkedAsLifeTerm() {\r\n" +
 	"\t\t\treturn (marked == MARKED.LIFETERM || isMarkedAsSourceLifeTerm());\r\n" +
 	"\t\t}\r\n\r\n" +
-	"\t\tpublic String[] getContextPath() {\r\n" +
-	"\t\t\treturn contextPath;\r\n" +
-	"\t\t}\r\n\r\n" +
 	"\t\tpublic String getContext() {\r\n" +
 	"\t\t\treturn context;\r\n" +
 	"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n" +
 	"\tprivate static class VWMLOperationLink { \r\n\r\n" +
-	"\t\tpublic static enum REL {  \r\n" +
-	"\t\t\tASSOCIATION,  \r\n" +
-	"\t\t\tLINK,  \r\n" +
-	"\t\t\tNONE  \r\n" +
-	"\t\t}  \r\n\r\n" +	
-	"\t\tprivate Object entityId; \r\n" +
-	"\t\tprivate Object linkId; \r\n" +
-	"\t\tprivate VWMLOperationLink.REL rel; \r\n" +
 	"\t\tprivate String[] associatedOperations; \r\n\r\n" +
-	"\t\tpublic VWMLOperationLink() { \r\n" +
+	"\t\tpublic VWMLOperationLink(String[] associatedOperations) { \r\n" +
 	"\t\t\tsuper(); \r\n" +
-	"\t\t} \r\n\r\n" +
-	"\t\tpublic VWMLOperationLink(Object entityId, Object linkId, String[] associatedOperations, VWMLOperationLink.REL rel) { \r\n" +
-	"\t\t\tsuper(); \r\n" +
-	"\t\t\tthis.entityId = entityId; \r\n" +
-	"\t\t\tthis.linkId = linkId; \r\n" +
 	"\t\t\tthis.associatedOperations = associatedOperations; \r\n" +
-	"\t\t\tthis.rel = rel; \r\n" +
 	"\t\t} \r\n\r\n" +
-	"\t\tpublic Object getEntityId() { \r\n" + 
-	"\t\t\treturn entityId;\r\n" +
-	"\t\t}\r\n\r\n" +
-	"\t\tpublic Object getLinkId() {\r\n" +
-	"\t\t\treturn linkId;\r\n" +
-	"\t\t}\r\n\r\n" +
 	"\t\tpublic String[] getAssociatedOperations() {\r\n" +
 	"\t\t\treturn associatedOperations;\r\n" +
-	"\t\t}\r\n" +
-	"\t\tpublic VWMLOperationLink.REL getRel() {\r\n" +
-	"\t\t\treturn rel;\r\n" +
 	"\t\t}\r\n" +
 	"\t}\r\n\r\n";
 

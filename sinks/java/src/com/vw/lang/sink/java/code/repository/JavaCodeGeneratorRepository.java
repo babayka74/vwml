@@ -10,6 +10,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.ModuleFiles;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.VWMLObjWrap;
@@ -57,6 +58,7 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 				                            ""));
 		// caption and common imports are added before (see startModule) method
 		getFw().write("import " + VWMLRepository.class.getCanonicalName() + ";\r\n");
+		getFw().write("import " + VWMLObjectsRepository.class.getCanonicalName() + ";\r\n");
 		getFw().write("import " + VWMLContextsRepository.class.getCanonicalName() + ";\r\n");
 		getFw().write("import " + VWMLObjectBuilder.VWMLObjectType.class.getCanonicalName() + ";\r\n");		
 		// adds visitor's interface in any case

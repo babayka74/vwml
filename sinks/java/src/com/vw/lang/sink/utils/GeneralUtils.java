@@ -3,8 +3,6 @@ package com.vw.lang.sink.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 /**
  * Set of helper methods which are used by both code generators and parsers
  * @author ogibayev
@@ -12,7 +10,6 @@ import org.apache.log4j.Logger;
  */
 public class GeneralUtils {
 	
-	private static Logger logger = Logger.getLogger(GeneralUtils.class);
 	private static List<Object> s_objContainer = new ArrayList<Object>();
 	
 	/**
@@ -33,7 +30,7 @@ public class GeneralUtils {
 		try {
 			return Class.forName(className).newInstance();
 		} catch (Exception e) {
-			logger.error("couldn't instantiate class '" + className + "'; the cause is '" + e + "'", e);
+			// swallow it
 		}
 		return null;
 	}
@@ -50,7 +47,7 @@ public class GeneralUtils {
 			Class<?> clazz = Class.forName(className);
 			obj = clazz.getMethod(method).invoke(null);
 		} catch (Exception e) {
-			logger.error("couldn't instantiate class '" + className + "'; the cause is '" + e + "'", e);
+			// swallow it
 		}
 		return obj;
 	}

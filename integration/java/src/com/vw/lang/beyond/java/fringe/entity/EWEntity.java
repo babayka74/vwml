@@ -7,9 +7,33 @@ package com.vw.lang.beyond.java.fringe.entity;
  */
 public class EWEntity extends EWObject {
 
+	public static final String s_NilEntityId       = "nil";
+	public static final String s_EmptyEntityId     = "()";
+	public static final String s_doNothingEntityId = "doNothing";
+	public static final String s_doNothingEntityId2 = "DoNothing";
+	public static final String s_doNothingEntityId3 = "donothing";	
+	public static final String s_trueEntityId      = "true";
+	public static final String s_falseEntityId     = "false";
+	
 	private String context;
 	protected boolean isMarkedAsComplexEntity = false;
 
+	public static boolean isNilEntity(EWEntity e) {
+		return e.getId().equals(s_NilEntityId);
+	}
+
+	public static boolean isTrueEntity(EWEntity e) {
+		return e.getId().equals(s_trueEntityId);
+	}
+
+	public static boolean isFalseEntity(EWEntity e) {
+		return e.getId().equals(s_falseEntityId);
+	}
+
+	public static boolean isEmptyEntity(EWEntity e) {
+		return e.getId().equals(s_EmptyEntityId);
+	}
+	
 	public EWEntity() {
 		super();
 	}

@@ -1,7 +1,5 @@
 package com.vw.lang.sink.java.entity.undefined.strategy;
 
-import org.apache.log4j.Logger;
-
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
@@ -18,8 +16,6 @@ import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
  */
 public class UndefinedEntityAsEmptyComplexEntityInterpretationStrategy extends UndefinedEntityInterpretationStrategy {
 
-	private Logger logger = Logger.getLogger(UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class);
-	
 	@Override
 	public VWMLObject process(String context, Object id, AbstractVWMLLinkVisitor visitor, VWMLLinkage linkage) throws Exception {
 		VWMLContext ctx = VWMLContextsRepository.instance().get(context);
@@ -35,9 +31,6 @@ public class UndefinedEntityAsEmptyComplexEntityInterpretationStrategy extends U
 									  ceName, context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
 		// builds interpreting association
 		linkage.interpretAs(id, ceName, ctx);
-		if (logger.isDebugEnabled()) {
-			logger.debug("undefined entity '" + id + "' is interpreted as complex entity '" + ceName + "'");
-		}
 		return VWMLObjectsRepository.instance().get(id, ctx);
 	}
 }
