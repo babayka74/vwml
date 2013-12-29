@@ -41,13 +41,14 @@ public class VWMLOperationEqualHandler extends VWMLOperationHandler {
 			result = handleEqualOnComplexEntity(entities.get(0), context);
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
-					   entities.size() - 1,
-					   context.getContext(),
-					   context.getContext(),
-					   context.getEntityInterpretationHistorySize(),
-					   context.getLinkOperationVisitor(),
-					   VWMLOperationUtils.s_dontAddIfUnknown);
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+																							   entities,
+																							   entities.size() - 1,
+																							   context,
+																							   context,
+																							   context.getEntityInterpretationHistorySize(),
+																							   context.getLinkOperationVisitor(),
+																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleEqualOnComplexEntity(entity, context);
 			entity = null;
 		}

@@ -32,10 +32,11 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 			throw new Exception("arguments != 2 for operation 'OPAPPLYTOCONTEXT'");
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+																					   entities,
 																					   entities.size() - 1,
-																					   (String)originalContext.getContext(),
-																					   context.getContext(),
+																					   originalContext,
+																					   context,
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);

@@ -46,6 +46,8 @@ public class VWMLEntity extends VWMLObject {
 	private int interpretationHistorySize;
 	// if entity is cloned this field is set to entity from which it was cloned 
 	private VWMLEntity clonedFrom = null;
+	// entity linked entity; used when special entity __mark__ is pushed to stack
+	private VWMLEntity specialLinkedEntity = null;
 	
 	public VWMLEntity() {
 		super();
@@ -213,6 +215,14 @@ public class VWMLEntity extends VWMLObject {
 	public void setInterpretationHistorySize(int interpretationHistorySize) {
 		this.interpretationHistorySize = interpretationHistorySize;
 		interpretationHistory.setMaxHistorySize(this.interpretationHistorySize);
+	}
+
+	public VWMLEntity getSpecialLinkedEntity() {
+		return specialLinkedEntity;
+	}
+
+	public void setSpecialLinkedEntity(VWMLEntity specialLinkedEntity) {
+		this.specialLinkedEntity = specialLinkedEntity;
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {

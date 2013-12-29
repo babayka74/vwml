@@ -43,10 +43,11 @@ public class VWMLOperationIncludeHandler extends VWMLOperationHandler {
 			result = handleIncludeOnComplexEntity(entities.get(0), context);
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+					   entities,
 					   entities.size() - 1,
-					   context.getContext(),
-					   context.getContext(),
+					   context,
+					   context,
 					   context.getEntityInterpretationHistorySize(),
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);

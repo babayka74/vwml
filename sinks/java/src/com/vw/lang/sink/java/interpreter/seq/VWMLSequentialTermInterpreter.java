@@ -153,6 +153,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 				pushEmptyMark = true;
 			}
 			if (pushEmptyMark) {
+				// associates empty mark with processed entity (used when entity is assembled)
 				context.getStack().pushEmptyMark();
 				context.pushContext(lastInterpretedEntity.getContext());
 			}

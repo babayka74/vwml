@@ -42,13 +42,14 @@ public class VWMLOperationRestHandler extends VWMLOperationHandler {
 			result = handleRestOnComplexEntity(entities.get(0), context);
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
-					   entities.size() - 1,
-					   context.getContext(),
-					   context.getContext(),
-					   context.getEntityInterpretationHistorySize(),
-					   context.getLinkOperationVisitor(),
-					   VWMLOperationUtils.s_dontAddIfUnknown);
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+																							   entities,
+																							   entities.size() - 1,
+																							   context,
+																							   context,
+																							   context.getEntityInterpretationHistorySize(),
+																							   context.getLinkOperationVisitor(),
+																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleRestOnComplexEntity(entity, context);
 			entity = null;
 		}
@@ -65,9 +66,9 @@ public class VWMLOperationRestHandler extends VWMLOperationHandler {
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_num_args) {
 			return emptyEntity;
 		}
-		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
+		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquireWithoutCheckingOnExistence(VWMLObjectType.COMPLEX_ENTITY,
 				  ComplexEntityNameBuilder.generateRandomName(),
-				  entity.getContext().getContext(),
+				  entity.getContext(),
 				  entity.getInterpretationHistorySize(),
 				  VWMLObjectsRepository.notAsOriginal,
 				  entity.getLink().getLinkOperationVisitor());

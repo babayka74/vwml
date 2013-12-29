@@ -41,13 +41,14 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 			result = handleIntersectOnComplexEntity(entities.get(0), context);
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
-					   entities.size() - 1,
-					   context.getContext(),
-					   context.getContext(),
-					   context.getEntityInterpretationHistorySize(),
-					   context.getLinkOperationVisitor(),
-					   VWMLOperationUtils.s_dontAddIfUnknown);
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+																							   entities,
+																							   entities.size() - 1,
+																							   context,
+																							   context,
+																							   context.getEntityInterpretationHistorySize(),
+																							   context.getLinkOperationVisitor(),
+																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleIntersectOnComplexEntity(entity, context);
 			entity = null;
 		}
@@ -101,9 +102,9 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		if (!e1.isMarkedAsComplexEntity() || !e2.isMarkedAsComplexEntity()) {
 			return nilEntity;
 		}
-		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
+		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquireWithoutCheckingOnExistence(VWMLObjectType.COMPLEX_ENTITY,
 																	  ComplexEntityNameBuilder.generateRandomName(),
-																	  ownerEntity.getContext().getContext(),
+																	  ownerEntity.getContext(),
 																	  ownerEntity.getInterpretationHistorySize(),
 																	  VWMLObjectsRepository.notAsOriginal,
 																	  ownerEntity.getLink().getLinkOperationVisitor());

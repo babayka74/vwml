@@ -102,6 +102,23 @@ public class VWMLObjectsRepository {
 		}
 		return obj;
 	}
+
+	/**
+	 * Acquires object identified by type and id and puts it to repository
+	 * @param type
+	 * @param id
+	 * @param context
+	 * @param entityHistorySize
+	 * @param asOriginalOnCreation
+	 * @param visitor
+	 * @return
+	 */
+	public static VWMLObject acquireWithoutCheckingOnExistence(VWMLObjectBuilder.VWMLObjectType type, Object id, VWMLContext context, Integer entityHistorySize, boolean asOriginalOnCreation, AbstractVWMLLinkVisitor visitor) throws Exception {
+		VWMLObject obj = VWMLObjectBuilder.build(type, id, context, entityHistorySize, visitor);
+		((VWMLEntity)obj).setOriginal(asOriginalOnCreation);
+		instance().addByEntityKey((VWMLEntity)obj, context);
+		return obj;
+	}	
 	
 	/**
 	 * Returns 'true' in case if entity should be swallowed. Usually checks on 'Exe' operation, when it is finished
@@ -130,6 +147,9 @@ public class VWMLObjectsRepository {
 	}
 	
 	public void add(VWMLEntity obj) {
+		if (obj.getContext() == null) {
+			return; // temporary entity
+		}
 		String key = buildAssociatingKeyOnContext(obj);
 		if (!repo.containsKey(key)) {
 			repo.put(key, obj);
@@ -139,6 +159,9 @@ public class VWMLObjectsRepository {
 	}
 	
 	public void remove(VWMLEntity obj) {
+		if (obj.getContext() == null) {
+			return; // temporary entity
+		}
 		String key = buildAssociatingKeyOnContext(obj);
 		repo.remove(key);
 		obj.getContext().unAssociateEntity(obj);

@@ -85,7 +85,8 @@ public class VWMLStack {
 	}
 	
 	public void pushEmptyMark() {
-		stack.push(new VWMLEntity(s_specialMark, null));
+		VWMLEntity e = new VWMLEntity(s_specialMark, null);
+		stack.push(e);
 	}
 	
 	public boolean popEmptyMark() {

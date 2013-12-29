@@ -126,7 +126,8 @@ public class VWMLCreature extends VWMLEntity {
 	}
 	
 	private static EWEntity transformComplexVWMLEntityToEW(EWEntity parent, VWMLEntity vwmlEntity) throws Exception {
-		EWEntity ewe = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(), vwmlEntity.getContext().getContext());
+		EWEntity ewe = EWEntityBuilder.buildComplexEntity(UUID.randomUUID().toString(),
+				                                          (vwmlEntity.getContext() != null) ? vwmlEntity.getContext().getContext() : null);
 		VWMLLinkIncrementalIterator it = vwmlEntity.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(VWMLObject o = vwmlEntity.getLink().peek(it); o != null; o = vwmlEntity.getLink().peek(it)) {

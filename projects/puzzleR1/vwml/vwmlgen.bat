@@ -1,0 +1,1 @@
+vwml -m source -entity ue_im3 -interpreter ./interpreter/interpreter.properties %1.vwml

@@ -38,13 +38,14 @@ public class VWMLOperationFirstHandler extends VWMLOperationHandler {
 			result = handleFirstOnComplexEntity(entities.get(0), context);
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
-					   entities.size() - 1,
-					   context.getContext(),
-					   context.getContext(),
-					   context.getEntityInterpretationHistorySize(),
-					   context.getLinkOperationVisitor(),
-					   VWMLOperationUtils.s_dontAddIfUnknown);
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+																							   entities,
+																							   entities.size() - 1,
+																							   context,
+																							   context,
+																							   context.getEntityInterpretationHistorySize(),
+																							   context.getLinkOperationVisitor(),
+																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleFirstOnComplexEntity(entity, context);
 			entity = null;
 		}

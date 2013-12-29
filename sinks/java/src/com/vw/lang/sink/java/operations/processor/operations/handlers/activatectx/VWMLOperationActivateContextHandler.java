@@ -37,8 +37,8 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 			// entity defines context which is activated
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
-																					   (String)context.getContext(),
-																					   (String)context.getContext(),
+																					   context,
+																					   context,
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_dontAddIfUnknown);

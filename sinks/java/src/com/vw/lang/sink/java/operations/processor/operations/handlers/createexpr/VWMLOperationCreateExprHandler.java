@@ -38,8 +38,8 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 			VWMLEntity entity = entities.get(entities.size() - 1);
 			VWMLEntity newComplexEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																											entities.size() - 2,
-																											(String)entity.getContext().getContext(),
-																											(String)entity.getContext().getContext(),
+																											entity.getContext(),
+																											entity.getContext(),
 																											context.getEntityInterpretationHistorySize(),
 																											context.getLinkOperationVisitor(),
 																											VWMLOperationUtils.s_dontAddIfUnknown);

@@ -41,10 +41,10 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 			result = handleJoinOnComplexEntity(entities.get(0), context);
 		}
 		else {
-			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
+			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack( entities,
 																								   entities.size() - 1,
-																								   context.getContext(),
-																								   context.getContext(),
+																								   context,
+																								   context,
 																								   context.getEntityInterpretationHistorySize(),
 																								   context.getLinkOperationVisitor(),
 																								   VWMLOperationUtils.s_dontAddIfUnknown);
@@ -65,9 +65,9 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		if (it == null) {
 			return emptyEntity;
 		}
-		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
+		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquireWithoutCheckingOnExistence(VWMLObjectType.COMPLEX_ENTITY,
 												 ComplexEntityNameBuilder.generateRandomName(),
-												 context.getContext(),
+												 context,
 												 entity.getInterpretationHistorySize(),
 												 VWMLObjectsRepository.notAsOriginal,
 												 entity.getLink().getLinkOperationVisitor());
