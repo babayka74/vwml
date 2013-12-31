@@ -175,10 +175,10 @@ module puzzleR1 {
 				(EndOfGame (Ew.FreePlaces~ ()) Ident)~ Exe
 			);
 			(EndOfGame true) ias (
-				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.PuzzleCompleted)^
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.PuzzleCompleted)^
 			);
 			(EndOfGame false) ias (
-				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.PuzzleNotCompleted)^
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.PuzzleNotCompleted)^
 			);
 			Play ias (
 				CorrespondenceStudy~ Exe
@@ -194,12 +194,12 @@ module puzzleR1 {
 				(CorrectChoice CorrectChoice~)
 			)^;
 			(CorrectChoice false) ias (
-				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.InvalidPair)^
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.InvalidPair)^
 			);
 			(CorrectChoice true) ias (
 				(Ew.FreePlaces (Ew.FreePlaces~ (Robby.CardPlace~))Substruct)^
 				(Ew.RestPuzzles (Ew.RestPuzzles~ (Robby.Card~))Substruct)^
-				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.Command.RightPair)^
+				(Robby.Actions.LogicGenerated.Command Robby.Actions.LogicGenerated.RightPair)^
 			);
 	);
 }

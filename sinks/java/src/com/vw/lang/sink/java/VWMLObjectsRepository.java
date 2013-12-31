@@ -275,38 +275,43 @@ public class VWMLObjectsRepository {
 		if (parent.getContextPath() != null) {
 			parent.setContextPath(VWMLJavaExportUtils.parseContext(parent.getContext()));
 		}
-		context = VWMLContextsRepository.instance().get(parent.getContext() + "." + contextId);
-		if (context != null) {
-			return context;
-		}
-		for(String pE : parent.getContextPath()) {
-			String partialPath = null;
-			if (contextId.startsWith(pE)) {
-				partialPath = contextId;
-				context = VWMLContextsRepository.instance().get(partialPath);
-				break;
+		String[] contextIdAsPath = VWMLJavaExportUtils.parseContext(contextId);
+		String[] p = parent.getContextPath();
+		VWMLContext root = VWMLContextsRepository.instance().getRootContext();
+		if (contextIdAsPath.length > 0) {
+			// find new root
+			root = VWMLContextsRepository.instance().getByParsedPath(root, p, 0, contextIdAsPath[0]);
+			if (root != null) {
+				context = VWMLContextsRepository.instance().getByParsedPath(root, contextIdAsPath, 1, null);
 			}
 		}
-		if (context != null) {
-			return context;
-		}
-		String p = parent.getContext();
-		String partialPath = null;
-		while(context == null) {
-			int l = p.lastIndexOf(".");
-			if (l == -1) {
-				partialPath = p + "." + contextId;
-				context = VWMLContextsRepository.instance().get(partialPath);
-				break;
-			}
-			p = p.substring(0, l);
-			partialPath = p + "." + contextId;
-			context = VWMLContextsRepository.instance().get(partialPath);
+		else {
+			context = VWMLContextsRepository.instance().getByParsedPath(root, p, 0, contextId);
 		}
 		return context;
 	}
-	
+
 	protected VWMLObject getByFullSpecifiedPath(Object id, VWMLContext context) throws Exception { 
+		String contextId = null;
+		String ids = (String)id;
+		int le = ids.lastIndexOf(".");
+		if (le == -1) {
+			throw new Exception("invalid full specified path '" + id + "'");
+		}
+		else {
+			contextId = ids.substring(0, le);
+		}
+		String lookupObject = ids.substring(le + 1);
+		VWMLContext effectiveContext = findInheritedContext(contextId, context);
+		if (effectiveContext == null) {
+			throw new Exception("couldn't find context identified by '" + id + "'");
+		}
+		VWMLObject obj = repo.get(buildAssociationKey(effectiveContext.getContext(), lookupObject));
+		return obj;
+	}
+	
+	
+	protected VWMLObject getByFullSpecifiedPath2(Object id, VWMLContext context) throws Exception { 
 		String ids = (String)id;
 		VWMLObject obj = null;
 		int le = 0;

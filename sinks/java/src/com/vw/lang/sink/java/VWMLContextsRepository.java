@@ -142,9 +142,36 @@ public class VWMLContextsRepository extends VWMLRepository {
 		if (root == null) {
 			return null;
 		}		
-		return find(root, contextPath, 1);
+		return find(root, contextPath, null, 1, -1);
 	}
 
+	/**
+	 * Returns main root context
+	 * @return
+	 */
+	public VWMLContext getRootContext() {
+		String rootContext = s_default_context;
+		VWMLContext root = contextsMap.get(rootContext);
+		return root;
+	}
+	
+	/**
+	 * Returns context identified by context path and path's element
+	 * @param root
+	 * @param contextPath
+	 * @param pos
+	 * @param contextElement
+	 * @return
+	 */
+	public VWMLContext getByParsedPath(VWMLContext root, String[] contextPath, int pos, String contextElement) {
+		int len = contextPath.length;
+		VWMLContext context = null;
+		for(int i = len; i >= 0 && context == null; i--) {
+			context = find(root, contextPath, contextElement, pos, i);
+		}
+		return context;
+	}
+	
 	protected VWMLContext create(VWMLContext parent, String[] contextPath, int pos) {
 		String actualContext = "";
 		for(int i = pos; i < contextPath.length; i++) {
@@ -169,10 +196,12 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}
 		return parent;
 	}
-	
-	protected VWMLContext find(VWMLContext parent, String[] contextPath, int pos) {
-		for(int i = pos; i < contextPath.length; i++) {
-			VWMLObject next = null;
+		
+	protected VWMLContext find(VWMLContext parent, String[] contextPath, String contextElement, int pos, int toPos) {
+		VWMLObject next = null;
+		int tillPos = (toPos == -1) ? contextPath.length : toPos;
+		for(int i = pos; i < tillPos; i++) {
+			next = null;
 			for(VWMLObject o : parent.getLink().getLinkedObjects()) {
 				if (((VWMLContext)o).getContextName().equals(contextPath[i])) {
 					next = o;
@@ -185,9 +214,19 @@ public class VWMLContextsRepository extends VWMLRepository {
 			}
 			parent = (VWMLContext)next;
 		}
+		if (contextElement != null && parent != null) {
+			next = null;
+			for(VWMLObject o : parent.getLink().getLinkedObjects()) {
+				if (((VWMLContext)o).getContextName().equals(contextElement)) {
+					next = o;
+					break;
+				}
+			}
+			parent = (VWMLContext)next;
+		}
 		return parent;
 	}
-	
+
 	protected String normalizeContext(String context) {
 		if (context == null || context.length() == 0 || context.equals(s_default_context)) {
 			return s_default_context;
