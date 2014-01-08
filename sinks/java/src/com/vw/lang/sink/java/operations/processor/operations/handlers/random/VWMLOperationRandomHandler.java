@@ -38,7 +38,6 @@ public class VWMLOperationRandomHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		stack.push(entity);
 	}
 	

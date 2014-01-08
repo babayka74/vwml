@@ -55,7 +55,6 @@ public class VWMLOperationRestHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		stack.push(result);
 	}
 	

@@ -37,7 +37,6 @@ public class VWMLOperationImplicitAssembleHandler extends VWMLOperationHandler {
 																							  VWMLOperationUtils.s_addIfUnknown);
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		stack.push(entity);
 	}
 }

@@ -283,9 +283,8 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			}
 			unmarkVWMLEntityAsProbableRecursion(context, frame.getTerm());
 			resetArtificialEntityProperty(context, frame.getAssociatedEntity(), propsOfEntity);
-			VWMLDynamicEntityProperties propsOfTerm = context.getEntityDynamicProperties(frame.getAssociatedEntity(), false);
-			if (propsOfTerm != null && propsOfTerm.isOperatesByExe()) {
-				propsOfTerm.setOperatesByExe(false);
+			if (propsOfEntity != null && propsOfEntity.isOperatesByExe()) {
+				propsOfEntity.setOperatesByExe(false);
 			}
 			if (le.equals(frame.getTerm())) {
 				found = true;

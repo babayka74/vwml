@@ -50,7 +50,6 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 	}
 
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {

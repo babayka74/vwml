@@ -51,7 +51,6 @@ public class VWMLOperationFirstHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		stack.push(result);
 	}
 

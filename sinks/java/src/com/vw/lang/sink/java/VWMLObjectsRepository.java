@@ -310,40 +310,6 @@ public class VWMLObjectsRepository {
 		return obj;
 	}
 	
-	
-	protected VWMLObject getByFullSpecifiedPath2(Object id, VWMLContext context) throws Exception { 
-		String ids = (String)id;
-		VWMLObject obj = null;
-		int le = 0;
-		String lookupObject = null;
-		while(obj == null && le != -1) {
-			String contextId = null;
-			le = ids.lastIndexOf(".");
-			if (le == -1) {
-				contextId = ids;
-			}
-			else {
-				contextId = ids.substring(0, le);
-			}
-			VWMLContext effectiveContext = VWMLContextsRepository.instance().get(contextId);
-			if (effectiveContext == null) {
-				effectiveContext = findInheritedContext(contextId, context);
-			}
-			if (effectiveContext == null) {
-				throw new Exception("couldn't find context identified by '" + contextId + "'");
-			}
-			if (lookupObject == null) {
-				lookupObject = ids.substring(le + 1);
-			}
-			obj = repo.get(buildAssociationKey(contextId, lookupObject));
-			if (obj == null) {
-				obj = repo.get(buildAssociationKey(effectiveContext.getContext(), lookupObject));
-			}
-			ids = contextId;
-		}
-		return obj;
-	}
-	
 	protected VWMLContext getEffectiveContextFromEntityId(Object id, String parentContext) {
 		String ids = (String)id;
 		int le = ids.lastIndexOf(".");

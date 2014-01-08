@@ -56,7 +56,6 @@ public class VWMLOperationIncludeHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		stack.push(result);
 	}
 

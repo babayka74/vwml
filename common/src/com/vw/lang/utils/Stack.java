@@ -17,6 +17,9 @@ public class Stack {
 		public boolean inspected(Object obj) {
 			return true;
 		}
+		public boolean popInspectedNode(Object obj) {
+			return false;
+		}
 	}
 	
 	protected static class Node {
@@ -112,6 +115,9 @@ public class Stack {
 				break;
 			}
 			t = t.getNext();
+			if (inspector.popInspectedNode(t)) {
+				pop();
+			}
 		}
 	}
 

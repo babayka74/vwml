@@ -21,6 +21,5 @@ public class VWMLOperationBreakPointHandler extends VWMLOperationHandler {
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
 		inspector.clear();
-		stack.popUntilEmptyMark();
 	}
 }

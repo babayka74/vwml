@@ -53,7 +53,6 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 	}
 	
 	protected void internalDelayImpl(int delay) throws Exception {

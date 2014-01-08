@@ -55,7 +55,6 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 		// clones current interpreter and runs lifeterm on it
 		exectuteLifeTerm(interpreter, lfTerm);
 		// clear stack
-		stack.popUntilEmptyMark();
 		entities.clear();
 		inspector.clear();
 	}

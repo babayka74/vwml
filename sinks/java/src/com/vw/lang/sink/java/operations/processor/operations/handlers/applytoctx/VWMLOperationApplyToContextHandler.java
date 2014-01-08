@@ -59,7 +59,6 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 	}
 
 	private void applyContext(VWMLEntity entity) throws Exception {

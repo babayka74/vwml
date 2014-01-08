@@ -53,7 +53,6 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		stack.push(result);
 	}
 	

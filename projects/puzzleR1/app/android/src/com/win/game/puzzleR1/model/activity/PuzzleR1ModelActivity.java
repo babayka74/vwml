@@ -46,6 +46,7 @@ public class PuzzleR1ModelActivity extends Thread {
 			VWML2JavaInterpreterBridge.instance().startInterpretationProcess();
 		} catch (Exception e) {
 			// activity should be notified
+			Log.d(TAG, "Game Thread finished by fault; exception is '" + e.getMessage() + "'");
 		}
 		reportAboutModelStopped();
 		Log.d(TAG, "Game Thread finished...");

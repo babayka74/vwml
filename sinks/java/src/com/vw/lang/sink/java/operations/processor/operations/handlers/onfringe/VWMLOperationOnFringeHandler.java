@@ -48,7 +48,6 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 		if (answerFromEW != null) {
 			stack.push(answerFromEW);
 		}

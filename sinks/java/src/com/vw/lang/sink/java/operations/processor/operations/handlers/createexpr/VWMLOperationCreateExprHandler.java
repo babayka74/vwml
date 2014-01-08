@@ -46,7 +46,6 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 			entity.setInterpreting(newComplexEntity);
 		}
 		// clear stack
-		stack.popUntilEmptyMark();
 		entities.clear();
 		inspector.clear();
 	}

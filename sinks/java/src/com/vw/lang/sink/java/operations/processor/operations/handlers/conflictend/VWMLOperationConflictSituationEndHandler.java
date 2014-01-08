@@ -47,7 +47,6 @@ public class VWMLOperationConflictSituationEndHandler extends VWMLOperationHandl
 		reportInterpreterInternalState((String)entity.getId(), interpreter);
 		inspector.clear();
 		entities.clear();
-		stack.popUntilEmptyMark();
 	}
 
 	/**

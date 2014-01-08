@@ -20,6 +20,10 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 		return true;
 	}
 	
+	public boolean popInspectedNode(Object obj) {
+		return true;
+	}
+
 	public List<VWMLEntity> getReversedStack() {
 		return reversedStack;
 	}
