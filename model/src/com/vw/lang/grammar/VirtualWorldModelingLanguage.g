@@ -34,15 +34,8 @@ tokens {
     OPBREAKPOINT = 'Bp';
     OPAPPLYTOCONTEXT='Context';
     OPCLONE='Clone';   
-    OPPROJECTION_1='Projection_1';
-    OPPROJECTION_2='Projection_2';
-    OPPROJECTION_3='Projection_3';
-    OPPROJECTION_4='Projection_4';
-    OPPROJECTION_5='Projection_5';
-    OPPROJECTION_6='Projection_6';
-    OPPROJECTION_7='Projection_7';
-    OPPROJECTION_8='Projection_8';
-    OPPROJECTION_9='Projection_9';
+    OPPROJECTION='Projection';
+    OPFOREACH='ForEach';
     
     // languages
     JAVA='__java__';
@@ -958,12 +951,6 @@ oplist
     				codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, vwmlContextBuilder.buildContext());
     			} 
     		    }
-    | opprojection  {
-    			if (lastProcessedEntity != null && codeGenerator != null) {
-    				lastProcessedEntityAsTerm = true;
-    				codeGenerator.associateOperation(lastProcessedEntity, $opprojection.text, vwmlContextBuilder.buildContext());
-    			}
-    		    }
     ;
 
 opclist
@@ -992,18 +979,8 @@ opclist
     | OPBREAKPOINT
     | OPAPPLYTOCONTEXT
     | OPCLONE
-    ;
-
-opprojection
-    : OPPROJECTION_1
-    | OPPROJECTION_2
-    | OPPROJECTION_3
-    | OPPROJECTION_4
-    | OPPROJECTION_5
-    | OPPROJECTION_6
-    | OPPROJECTION_7
-    | OPPROJECTION_8
-    | OPPROJECTION_9
+    | OPPROJECTION
+    | OPFOREACH
     ;
 
 termLanguages
@@ -1055,6 +1032,7 @@ LETTER
 	| '_'
 	| '!'
 	| '?'
+	| '$'
 	;
 
 /*

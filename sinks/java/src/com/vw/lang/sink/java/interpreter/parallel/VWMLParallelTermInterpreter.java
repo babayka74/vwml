@@ -54,4 +54,9 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		return null;
 	}
 
+	@Override
+	public void reset() {
+		// TODO Auto-generated method stub
+		
+	}
 }

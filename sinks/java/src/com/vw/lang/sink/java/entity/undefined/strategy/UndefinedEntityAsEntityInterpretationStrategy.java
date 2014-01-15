@@ -4,6 +4,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -22,8 +23,11 @@ public class UndefinedEntityAsEntityInterpretationStrategy extends UndefinedEnti
 			throw new Exception("couldn't find context idetntified by '" + context + "'");
 		}
 		// adds undefined entity to repository 
-		VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
-									  context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
+		VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id,
+									  				 			 context, linkage.getEntityHistorySize(), VWMLObjectsRepository.asOriginal, visitor);
+		if (e != null && isEntitySynthetic((String)id)) {
+			e.setSynthetic(true);
+		}
 		linkage.interpretAs(id, id, ctx);
 		return VWMLObjectsRepository.instance().get(id, ctx);
 	}

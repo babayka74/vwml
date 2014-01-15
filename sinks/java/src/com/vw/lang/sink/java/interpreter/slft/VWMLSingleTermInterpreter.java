@@ -60,6 +60,13 @@ public class VWMLSingleTermInterpreter extends VWMLInterpreterImpl {
 	}
 	
 	/**
+	 * Resets interpreter's data
+	 */
+	public void reset() {
+		
+	}
+	
+	/**
 	 * Starts interpretation logic
 	 * @throws Exception
 	 */
@@ -188,7 +195,7 @@ public class VWMLSingleTermInterpreter extends VWMLInterpreterImpl {
 			exeEntity = le = entity = defferredEntity;
 		}
 	}
-	
+
 	/**
 	 * Executes operation on top of stack and serves stack
 	 * @param linkage

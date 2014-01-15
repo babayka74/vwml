@@ -12,6 +12,17 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  */
 public abstract class UndefinedEntityInterpretationStrategy {
 	
+	private static String s_syntheticEntity = "$";
+	
+	/**
+	 * Returns 'true' if entity is synthetic (used in operation ForEach)
+	 * @param entityId
+	 * @return
+	 */
+	public boolean isEntitySynthetic(String entityId) {
+		return entityId.equals(s_syntheticEntity);
+	}
+	
 	/**
 	 * Defines concrete logic how to process undefined entity
 	 * @param context

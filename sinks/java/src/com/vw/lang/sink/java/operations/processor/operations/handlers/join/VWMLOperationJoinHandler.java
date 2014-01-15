@@ -2,7 +2,6 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.join;
 
 import java.util.List;
 
-import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -15,7 +14,6 @@ import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
-import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
  * Handler of 'OPJOIN' operation
@@ -64,14 +62,13 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		if (it == null) {
 			return emptyEntity;
 		}
-		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquireWithoutCheckingOnExistence(VWMLObjectType.COMPLEX_ENTITY,
-												 ComplexEntityNameBuilder.generateRandomName(),
-												 context,
-												 entity.getInterpretationHistorySize(),
-												 VWMLObjectsRepository.notAsOriginal,
-												 entity.getLink().getLinkOperationVisitor());
+		VWMLEntity result = null;
 		for(; it.isCorrect(); it.next()) {
 			VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());
+			if (result == null) {
+				result = e;
+				continue;
+			}
 			if (join(result, e) == nilEntity) {
 				break;
 			}
@@ -80,9 +77,6 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 	}
 	
 	private VWMLEntity join(VWMLEntity result, VWMLEntity e) {
-		if (!e.isMarkedAsComplexEntity()) {
-			return nilEntity;
-		}
 		for(VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)e).getLink().acquireLinkedObjectsIterator(); it.isCorrect(); it.next()) {
 			VWMLEntity r = (VWMLEntity)((VWMLComplexEntity)e).getLink().getConcreteLinkedEntity(it.getIt());
 			result.getLink().link(r);

@@ -40,7 +40,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		VWMLConflictRingNode master = null;
 		for(VWMLConflictRingNode n : group) {
 			if (!n.isClone()) {
-				if (n.getInterpreter() != null && !n.isGrouped()) {
+				if (n.peekInterpreter() != null && !n.isGrouped()) {
 					n.reset();
 				}
 				master = n;

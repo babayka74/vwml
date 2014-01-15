@@ -32,7 +32,10 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) {
-			interpretingEntity = interpretSingleEntity(entities.get(0), originalContext);
+			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entities.get(0));
+			if (interpretingEntity == null) {
+				interpretingEntity = interpretSingleEntity(entities.get(0), originalContext);
+			}
 		}
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
@@ -42,7 +45,10 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
-			interpretingEntity = entity.getInterpreting();
+			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
+			if (interpretingEntity == null) {
+				interpretingEntity = entity.getInterpreting();
+			}
 		}
 		inspector.clear();
 		entities.clear();
@@ -79,5 +85,12 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			initialEntity.setInterpreting(interpretingEntity);
 		}
 		return interpretingEntity;
+	}
+	
+	private VWMLEntity interpretationOfSyntheticEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity) {
+		if (entity.isSynthetic() && interpreter.getInterpretingEntityForSyntheticEntity() != null && entity.isRecursiveInterpretationOnOriginal()) {
+			return interpreter.getInterpretingEntityForSyntheticEntity();
+		}
+		return null;
 	}
 }

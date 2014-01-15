@@ -51,7 +51,11 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	// observer
 	private VWMLInterpreterObserver observer = new VWMLInterpreterObserver();
 	// reactive timer manager
-	private VWMLInterpreterTimerManager timerManager = VWMLInterpreterTimerManager.instance();	
+	private VWMLInterpreterTimerManager timerManager = VWMLInterpreterTimerManager.instance();
+	// interpreting entity (or component in terms of ForEach operation) of synthetic entity
+	private VWMLEntity interpretingEntityForSyntheticEntity = null;
+	// interpreter's state listener
+	private VWMLInterpreterListener listener = null;
 
 	/**
 	 * Starts interpretation logic
@@ -63,6 +67,30 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 * Clones current interpreter
 	 */
 	public abstract VWMLInterpreterImpl clone();
+	
+	/**
+	 * Resets interpreter's data
+	 */
+	public abstract void reset();
+	
+	/**
+	 * Adds term to the same interpreter in runtime; used for reactive and parallel interpreters only
+	 * @param term
+	 * @param listener
+	 * @throws Exception
+	 */
+	public void addLifeTermInRunTime(VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+	
+	/**
+	 * Runs interpreting loop until listener's decision to stop it (used by reactive and parallel interpreters, see operation ForEach as example and reactive interpreter)
+	 * @param listener
+	 * @throws Exception
+	 */
+	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
 	
 	public VWMLConflictRingNode getRtNode() {
 		return rtNode;
@@ -130,6 +158,22 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 		this.timerManager = timerManager;
 	}
 
+	public VWMLEntity getInterpretingEntityForSyntheticEntity() {
+		return interpretingEntityForSyntheticEntity;
+	}
+
+	public void setInterpretingEntityForSyntheticEntity(VWMLEntity interpretingEntityForSyntheticEntity) {
+		this.interpretingEntityForSyntheticEntity = interpretingEntityForSyntheticEntity;
+	}
+
+	public VWMLInterpreterListener getListener() {
+		return listener;
+	}
+
+	public void setListener(VWMLInterpreterListener listener) {
+		this.listener = listener;
+	}
+
 	public void pushInterpreterToChildStack(VWMLInterpreterImpl interpreter) {
 		childInterpreters.push(interpreter);
 	}
@@ -169,6 +213,9 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 */
 	public void setStatus(int status) {
 		this.status = status;
+		if (listener != null) {
+			listener.hanldeStatus(this);
+		}
 	}
 
 	public boolean isCloned() {

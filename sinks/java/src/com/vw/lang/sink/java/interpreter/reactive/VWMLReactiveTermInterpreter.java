@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
@@ -24,6 +25,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 
 	private VWMLConflictRing ring = VWMLConflictRing.instance();
+	private IVWMLGate timeFringeGate = null;
 	
 	private VWMLReactiveTermInterpreter() {
 	}
@@ -59,30 +61,55 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		getConfig().setStepByStepInterpretation(true);
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		for(VWMLEntity e : getTerms()) {
-			activateSourceLifeTerm(e);
+			activateSourceLifeTerm(e, null, false);
 		}
 		normalizeInterpreterData();
-		IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
+		timeFringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
 		setStatus(continueProcessingOfCurrentEntity);
-		while(true) {
-			VWMLConflictRingNode node = ring.next();
-			if (node == null) {
-				setStatus(stopProcessing);
-				break;
-			}
-			spinTimerManager(getTimerManager(), fringeGate);
-			node.operate();
-		}
-		getTimerManager().stop();
+		conditionalLoop(null);
 		setStatus(stopped);
+		getTimerManager().stop();
 	}
 
+	/**
+	 * Runs interpreting loop until listener's decision to stop it
+	 * @param listener
+	 * @throws Exception
+	 */
+	@Override
+	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
+		while((listener == null) ? true : listener.getInterpreterStatus() != VWMLInterpreterImpl.stopProcessing) {
+			VWMLConflictRingNode node = ring.next();
+			if (node == null) {
+				break;
+			}
+			spinTimerManager(getTimerManager(), timeFringeGate);
+			node.operate();
+		}
+	}
+	
+	/**
+	 * Resets interpreter's data
+	 */
+	public void reset() {
+		try {
+			ring.reset();
+		} catch (Exception e) {
+			// nothing interested...
+		}
+	}	
+	
 	@Override
 	public VWMLInterpreterImpl clone() {
 		VWMLInterpreterImpl cloned = instance(super.getLinkage(), null, null);
 		cloned.setConfig(this.getConfig());
 		return cloned;
+	}
+	
+	@Override
+	public void addLifeTermInRunTime(VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+		activateSourceLifeTerm(term, listener, true);
 	}
 	
 	protected void spinTimerManager(VWMLInterpreterTimerManager timerManager, IVWMLGate fringeGate) throws Exception {
@@ -97,23 +124,24 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		ring.normalize();
 	}
 	
-	protected boolean activateSourceLifeTerm(VWMLEntity term) throws Exception {
+	protected boolean activateSourceLifeTerm(VWMLEntity term, VWMLInterpreterListener listener, boolean addAdditionalInterpreterToNode) throws Exception {
 		// looking for ring node by source lifeterm's context 
 		VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(term.getContext().getContext());
 		if (g == null) {
 			throw new Exception("couldn't find ring group by context '" + term.getContext().getContext() + "'");
 		}
 		VWMLConflictRingNode n = g.findMasterNode();
-		if (n.getInterpreter() != null) { // already processed
+		if (n.peekInterpreter() != null && !addAdditionalInterpreterToNode) { // already processed
 			return false;
 		}
 		// instantiates new sequential interpreter
 		VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), term);
+		impl.setListener(listener);
 		impl.setConfig(getConfig());
 		impl.setTimerManager(getTimerManager());
 		impl.setRing(ring);
 		// associating interpreter and ring node
-		n.setInterpreter(impl);
+		n.pushInterpreter(impl);
 		// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
 		impl.start();
 		return true;

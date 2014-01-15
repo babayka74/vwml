@@ -76,7 +76,34 @@ public class VWMLContext extends VWMLObject {
 		}
 		return r;
 	}
-		
+	
+	/**
+	 * Clears context's resources
+	 */
+	public void clear() {
+		VWMLStack[] stacks = {contextsStack, stack, recurseStack, codeStack};
+		for(VWMLStack stack : stacks) {
+			if (stack != null) {
+				stack.unwindTill(null);
+			}
+		}
+		contextsStack = stack = recurseStack = codeStack = null;
+		nextProcessedEntity = null;
+		currentCodeStackFrame = null;
+		Map<?, ?>[] containers = {entitiesMarkedAsObservable, entitiesMarkedAsRecursive, entityDynamicProperties};
+		for(Map<?, ?> container : containers) {
+			if (container != null) {
+				container.clear();
+			}
+		}
+		removeAllAssociatedEntities();
+		entitiesMarkedAsObservable = null;
+		entitiesMarkedAsRecursive = null;
+		entityDynamicProperties = null;
+		lifeTermContext = false;
+		unwinding = false;
+	}
+	
 	/**
 	 * Returns stack's associated context
 	 * @return

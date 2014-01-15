@@ -73,6 +73,19 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	}
 		
 	/**
+	 * Resets interpreter's data
+	 */
+	public void reset() {
+		lastInterpretedTerm = null;
+		lastInterpretedEntity = null;
+		if (getContext() != null) {
+			getContext().setCurrentCodeStackFrame(null);
+			getContext().setNextProcessedEntity(null);
+			getContext().getStack().unwindTill(null);
+		}
+	}
+	
+	/**
 	 * Starts interpretation logic
 	 * @throws Exception
 	 */
@@ -126,7 +139,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		}
 		return stopped;
 	}	
-
+	
 	protected void startCompleteInterpretationProcess(VWMLLinkage linkage, VWMLContext context) throws Exception {
 		boolean stopped = false;
 		while(!stopped) {
@@ -384,5 +397,5 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	private void pushEntityToContextStack(VWMLEntity le, VWMLLinkage linkage, VWMLContext context) throws Exception {
 		// adds non-term to stack
 		context.getStack().push(le);
-	}	
+	}
 }

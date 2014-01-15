@@ -43,6 +43,8 @@ public class VWMLEntity extends VWMLObject {
 	private boolean isOperatesByExe = false;
 	// means that entity is created during initialization phase
 	private boolean isOriginal = false;
+	// entity is marked as synthetic
+	private boolean isSynthetic = false;
 	private int interpretationHistorySize;
 	// if entity is cloned this field is set to entity from which it was cloned 
 	private VWMLEntity clonedFrom = null;
@@ -165,6 +167,7 @@ public class VWMLEntity extends VWMLObject {
 			}
 		}
 		auxCache.add(this, cloned);
+		cloned.setSynthetic(isSynthetic());
 		cloned.setLifeTerm(isLifeTerm());
 		cloned.setLifeTermAsSource(isLifeTermAsSource());
 		cloned.setClonedFrom(this);
@@ -223,6 +226,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setSpecialLinkedEntity(VWMLEntity specialLinkedEntity) {
 		this.specialLinkedEntity = specialLinkedEntity;
+	}
+
+	public boolean isSynthetic() {
+		return isSynthetic;
+	}
+
+	public void setSynthetic(boolean isSynthetic) {
+		this.isSynthetic = isSynthetic;
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {

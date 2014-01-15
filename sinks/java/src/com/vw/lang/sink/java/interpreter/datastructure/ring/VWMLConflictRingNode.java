@@ -7,6 +7,7 @@ import com.vw.lang.sink.java.VWMLCloneFactory;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
@@ -32,6 +33,9 @@ public class VWMLConflictRingNode extends VWMLObject {
 	private VWMLConflictRingNode groupOwner = null;
 	// group of nodes (each node is considered as conflict fragment) which belong to the same source lifeterm
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
+	// the node can operate on more than 1 interpreter; more than 1 interpreters are used 
+	// by operations which require additional term interpretation in runtime (used by reactive and parallel interpreters)
+	private VWMLStack operationalInterpreters = VWMLStack.instance();
 	
 	public VWMLConflictRingNode() {
 		
@@ -70,7 +74,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 		}
 		n.setSigma(getSigma());
 		n.setExecutionGroup(getExecutionGroup());
-		n.setInterpreter(relatedInterpreter);
+		n.pushInterpreter(relatedInterpreter);
 		return n;
 	}
 	
@@ -96,7 +100,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 			group.get(i).reset();
 		}
 		if (!isGrouped() && interpreter != null && !interpreter.getConfig().isStepByStepInterpretation()) {
-			interpreter.start();
+			interpreter.reset();
 		}
 	}
 	
@@ -105,16 +109,20 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 * @throws Exception
 	 */
 	public void operate() throws Exception {
-		if (getInterpreter().getStatus() != VWMLInterpreterImpl.stopProcessing && getInterpreter().getStatus() != VWMLInterpreterImpl.stopped) {
-			getInterpreter().setRtNode(this);
+		VWMLInterpreterImpl i = peekInterpreter();
+		if (i == null) {
+			return;
+		}
+		if (i.getStatus() != VWMLInterpreterImpl.stopProcessing && i.getStatus() != VWMLInterpreterImpl.stopped) {
+			i.setRtNode(this);
 			operateOnNode();
 		}
-		if (getInterpreter().getStatus() == VWMLInterpreterImpl.stopProcessing) {
-			getInterpreter().setStatus(VWMLInterpreterImpl.stopped);
-			if (getInterpreter().isCloned()) {
-				for(VWMLEntity t : getInterpreter().getTerms()) {
+		if (i.getStatus() == VWMLInterpreterImpl.stopProcessing) {
+			i.setStatus(VWMLInterpreterImpl.stopped);
+			if (i.isCloned()) {
+				for(VWMLEntity t : i.getTerms()) {
 					if (t.getClonedFrom() != null) {
-						VWMLCloneFactory.releaseClonedContext(getInterpreter().getClonedFromEntity(), t.getContext());
+						VWMLCloneFactory.releaseClonedContext(i.getClonedFromEntity(), t.getContext());
 					}
 				}
 			}
@@ -133,20 +141,24 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 * Returns master (not cloned) interpreter
 	 * @return
 	 */
-	public VWMLInterpreterImpl getInterpreter() {
-		return interpreter;
+	public VWMLInterpreterImpl peekInterpreter() {
+		return (VWMLInterpreterImpl)operationalInterpreters.peek();
+	}
+
+	public void pushInterpreter(VWMLInterpreterImpl interpreter) {
+		operationalInterpreters.push(interpreter);
 	}
 	
+	public void popInterpeter() {
+		operationalInterpreters.pop();
+	}
+
 	/**
 	 * Returns 'true' in case if main and all cloned interpreters finished interpretation process
 	 * @return
 	 */
 	public boolean isStopped() {
 		return interpreter.getStatus() == VWMLInterpreterImpl.stopProcessing || interpreter.getStatus() == VWMLInterpreterImpl.stopped;
-	}
-
-	public void setInterpreter(VWMLInterpreterImpl interpreter) {
-		this.interpreter = interpreter;
 	}
 
 	public int getSigma() {

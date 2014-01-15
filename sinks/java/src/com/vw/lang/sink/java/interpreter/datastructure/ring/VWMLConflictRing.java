@@ -85,14 +85,14 @@ public class VWMLConflictRing {
 		}
 		List<VWMLConflictRingNode> toRemove = new ArrayList<VWMLConflictRingNode>();
 		for(VWMLConflictRingNode node : nodesConflictRing) {
-			if (node.getInterpreter() != null && !node.isGrouped()) {
+			if (node.peekInterpreter() != null && !node.isGrouped()) {
 				// node is grouping node
-				String nodeCtx = node.getInterpreter().getContext().getContext();				
+				String nodeCtx = node.peekInterpreter().getContext().getContext();				
 				// looking for candidate for group
 				for(VWMLConflictRingNode candidateNode : nodesConflictRing) {
-					if (candidateNode != node && candidateNode.getInterpreter() == null &&
+					if (candidateNode != node && candidateNode.peekInterpreter() == null &&
 						((String)candidateNode.getId()).startsWith(nodeCtx)) {
-						candidateNode.setInterpreter(node.getInterpreter());
+						candidateNode.pushInterpreter(node.peekInterpreter());
 						toRemove.add(candidateNode);
 						node.addToGroup(candidateNode);
 					}

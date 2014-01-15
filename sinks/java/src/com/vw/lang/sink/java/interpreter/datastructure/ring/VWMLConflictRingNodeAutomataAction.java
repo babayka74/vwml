@@ -60,8 +60,9 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 */
 	public boolean nextStep(VWMLConflictRingNode node) throws Exception {
 		boolean r = false;
-		if (node.getInterpreter() != null && node.getInterpreter().getStatus() != VWMLInterpreterImpl.stopProcessing) {
-			r = node.getInterpreter().step();
+		VWMLInterpreterImpl i = node.peekInterpreter();
+		if (i != null && i.getStatus() != VWMLInterpreterImpl.stopProcessing) {
+			r = i.step();
 		}		
 		return r;
 	}
@@ -71,9 +72,10 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 * @param node
 	 */
 	public void resetInput(VWMLConflictRingNode node) {
-		if (node.getInterpreter().getObserver() != null) {
-			node.getInterpreter().getObserver().setConflictOperationalState((String)node.getId(), VWMLConflictRingNodeAutomataInputs.IN_N);
-			node.getInterpreter().getObserver().setActiveConflictContext(null);
+		VWMLInterpreterImpl i = node.peekInterpreter();
+		if (i.getObserver() != null) {
+			i.getObserver().setConflictOperationalState((String)node.getId(), VWMLConflictRingNodeAutomataInputs.IN_N);
+			i.getObserver().setActiveConflictContext(null);
 		}
 	}
 	
@@ -82,8 +84,9 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 * @param node
 	 */
 	public void resetActiveConflictContext(VWMLConflictRingNode node) {
-		if (node.getInterpreter().getObserver() != null) {
-			node.getInterpreter().getObserver().setActiveConflictContext(null);
+		VWMLInterpreterImpl i = node.peekInterpreter();
+		if (i.getObserver() != null) {
+			i.getObserver().setActiveConflictContext(null);
 		}
 	}
 	
