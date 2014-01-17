@@ -69,7 +69,9 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 			if (ctx == null) {
 				throw new Exception("couldn't find context identified by '" + contextToFind + "'; operation 'OPAPPLYTOCONTEXT'");
 			}
+			e.getContext().unAssociateEntity(e);
 			e.setContext(ctx);
+			ctx.associateEntity(e);
 		}
 	}
 	

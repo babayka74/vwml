@@ -144,7 +144,7 @@ module puzzleR {
 				(Command (() Input~~) Do)^
 				/* applies 'Command' to given context */
 				(Command~ (ServiceCommandsProcessing (Command~ ServiceCommands~)In)) Context
-				(ServiceCommandsProcessing (Command~ ServiceCommands~)In)~ Exe 
+				(ServiceCommandsProcessing (ServiceCommands~ Command~)In)~ Exe 
 			);
 			Step ias (
 				Robby.Actions.CheckEndOfGame~ Exe
@@ -176,7 +176,7 @@ module puzzleR {
 			);
 	                CorrespondenceStudy ias (
 				CorrectChoice
-				((Puzzle.PlaceChoice~~ Puzzle.RandomCard~) Ew.Correspondence~) In
+				(Ew.Correspondence~ (Puzzle.PlaceChoice~~ Puzzle.RandomCard~)) In
 			)^;
 			GetCorrespondenceCase ias (
 				CorrespondenceCase

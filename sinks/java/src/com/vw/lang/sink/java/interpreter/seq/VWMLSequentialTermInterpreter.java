@@ -69,6 +69,9 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	public VWMLInterpreterImpl clone() {
 		VWMLInterpreterImpl cloned = instance(super.getLinkage(), null, null);
 		cloned.setConfig(this.getConfig());
+		cloned.setMasterInterpreter(getMasterInterpreter());
+		cloned.setTimerManager(getTimerManager());
+		cloned.setRing(getRing());
 		return cloned;
 	}
 		
@@ -79,10 +82,9 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		lastInterpretedTerm = null;
 		lastInterpretedEntity = null;
 		if (getContext() != null) {
-			getContext().setCurrentCodeStackFrame(null);
-			getContext().setNextProcessedEntity(null);
-			getContext().getStack().unwindTill(null);
+			getContext().clear();
 		}
+		setListener(null);
 	}
 	
 	/**

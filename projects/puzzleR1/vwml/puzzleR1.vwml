@@ -161,7 +161,7 @@ module puzzleR1 {
 				);
 				/* reads user input and pushes to internal stack */ 
 				(Command ((Robby.Card~ Robby.CardPlace~) Input~~) Do)^
-				(IsServiceCommand (Command~ ServiceCommands~)In)^
+				(IsServiceCommand (ServiceCommands~ Command~)In)^
 				/* applies 'Command' to given context */
 				(Command~ (ServiceCommandsProcessing IsServiceCommand~)) Context
 				(ServiceCommandsProcessing IsServiceCommand~)~ Exe 
@@ -194,7 +194,7 @@ module puzzleR1 {
 			);
 	                CorrespondenceStudy ias (
 				CorrectChoice
-				((Robby.CardPlace~ Robby.Card~) Ew.Correspondence~) In
+				(Ew.Correspondence~ (Robby.CardPlace~ Robby.Card~)) In
 			)^;
 			GetCorrespondenceCase ias (
 				CorrespondenceCase

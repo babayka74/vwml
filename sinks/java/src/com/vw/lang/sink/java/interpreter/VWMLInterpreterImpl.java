@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -56,6 +57,10 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLEntity interpretingEntityForSyntheticEntity = null;
 	// interpreter's state listener
 	private VWMLInterpreterListener listener = null;
+	// for example 'reactive' interpreter instantiates 'sequential' interpreters for each life term
+	// and sometimes (for 'ForEach') operations need to know master interpreter since it may
+	// implement specific logic which is needed for operation
+	private VWMLInterpreterImpl masterInterpreter = null;
 
 	/**
 	 * Starts interpretation logic
@@ -75,11 +80,22 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	
 	/**
 	 * Adds term to the same interpreter in runtime; used for reactive and parallel interpreters only
+	 * @param g
 	 * @param term
 	 * @param listener
 	 * @throws Exception
 	 */
-	public void addLifeTermInRunTime(VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+	
+	/**
+	 * Releases interpreter's allocated resources
+	 * @param g
+	 * @param interpreter
+	 * @param term
+	 */
+	public void releaseTermResourcesAfterInterpretationDone(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl interpreter, VWMLEntity term) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	
@@ -172,6 +188,14 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public void setListener(VWMLInterpreterListener listener) {
 		this.listener = listener;
+	}
+
+	public VWMLInterpreterImpl getMasterInterpreter() {
+		return masterInterpreter;
+	}
+
+	public void setMasterInterpreter(VWMLInterpreterImpl masterInterpreter) {
+		this.masterInterpreter = masterInterpreter;
 	}
 
 	public void pushInterpreterToChildStack(VWMLInterpreterImpl interpreter) {

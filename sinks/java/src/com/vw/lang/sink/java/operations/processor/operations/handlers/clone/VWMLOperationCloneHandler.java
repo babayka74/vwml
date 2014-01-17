@@ -91,8 +91,6 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		clonedInterpreter.setClonedFromEntity(cloned);
 		clonedInterpreter.setCloned(true);
 		clonedInterpreter.setTerms(tl);
-		clonedInterpreter.setTimerManager(interpreter.getTimerManager());
-		clonedInterpreter.setRing(interpreter.getRing());
 		clonedNode.setMasterNode(ringMasterNode);
 		clonedNode.setExecutionGroup(group);
 		group.add(clonedNode);

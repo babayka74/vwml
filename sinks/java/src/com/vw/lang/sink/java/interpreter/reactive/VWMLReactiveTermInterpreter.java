@@ -60,8 +60,13 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		}
 		getConfig().setStepByStepInterpretation(true);
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
+		// looking for ring node by source lifeterm's context 
 		for(VWMLEntity e : getTerms()) {
-			activateSourceLifeTerm(e, null, false);
+			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(e.getContext().getContext());
+			if (g == null) {
+				throw new Exception("couldn't find ring group by context '" + e.getContext().getContext() + "'");
+			}
+			activateSourceLifeTerm(g, e, null, false);
 		}
 		normalizeInterpreterData();
 		timeFringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
@@ -79,7 +84,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	 */
 	@Override
 	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
-		while((listener == null) ? true : listener.getInterpreterStatus() != VWMLInterpreterImpl.stopProcessing) {
+		while((listener == null) ? true : listener.getInterpreterStatus() != VWMLInterpreterImpl.stopped) {
 			VWMLConflictRingNode node = ring.next();
 			if (node == null) {
 				break;
@@ -108,8 +113,20 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	}
 	
 	@Override
-	public void addLifeTermInRunTime(VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
-		activateSourceLifeTerm(term, listener, true);
+	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+		return activateSourceLifeTerm(g, term, listener, true);
+	}
+
+	@Override
+	public void releaseTermResourcesAfterInterpretationDone(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl interpreter, VWMLEntity term) throws Exception {
+		interpreter.reset();
+		if (g != null) {
+			VWMLConflictRingNode n = g.findMasterNode();
+			if (n == null) {
+				throw new Exception("master node wasn't found for group '" + g + "'");
+			}
+			n.popInterpeter();
+		}
 	}
 	
 	protected void spinTimerManager(VWMLInterpreterTimerManager timerManager, IVWMLGate fringeGate) throws Exception {
@@ -124,15 +141,13 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		ring.normalize();
 	}
 	
-	protected boolean activateSourceLifeTerm(VWMLEntity term, VWMLInterpreterListener listener, boolean addAdditionalInterpreterToNode) throws Exception {
-		// looking for ring node by source lifeterm's context 
-		VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(term.getContext().getContext());
-		if (g == null) {
-			throw new Exception("couldn't find ring group by context '" + term.getContext().getContext() + "'");
-		}
-		VWMLConflictRingNode n = g.findMasterNode();
-		if (n.peekInterpreter() != null && !addAdditionalInterpreterToNode) { // already processed
-			return false;
+	protected VWMLInterpreterImpl activateSourceLifeTerm(VWMLConflictRingExecutionGroup g, VWMLEntity term, VWMLInterpreterListener listener, boolean addAdditionalInterpreterToNode) throws Exception {
+		VWMLConflictRingNode n = null;
+		if (g != null) {
+			n = g.findMasterNode();
+			if (n.peekInterpreter() != null && !addAdditionalInterpreterToNode) { // already processed
+				return null;
+			}
 		}
 		// instantiates new sequential interpreter
 		VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), term);
@@ -140,10 +155,16 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		impl.setConfig(getConfig());
 		impl.setTimerManager(getTimerManager());
 		impl.setRing(ring);
-		// associating interpreter and ring node
-		n.pushInterpreter(impl);
+		impl.setMasterInterpreter(this);
+		if (n != null) {
+			// associating interpreter and ring node
+			n.pushInterpreter(impl);
+		}
+		else {
+			getConfig().setStepByStepInterpretation(false);
+		}
 		// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
 		impl.start();
-		return true;
+		return impl;
 	}
 }

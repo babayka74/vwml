@@ -1,0 +1,258 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.puzzle.model.vwml.puzzleR2"
+  		path = "c:\var\vwml/puzzleR2/src"
+  		author = "Groozman M.Z."
+		project_name = "puzzleR2Proj"
+  		description = "Antagonistic puzzle game"
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+		conflictring {
+		}
+	}
+}
+
+module puzzleR2 {
+	/*
+		EW represents external world data which can be loaded during game's 
+		initialization phase
+	*/
+	Ew ias (
+		FreePlaces ias (
+			p1 p2 p3
+			p4 p5 p6
+			p7 p8 p9
+		);
+		RestPuzzles ias (
+			(c1 counter1) (c2 counter2) (c3 counter3)
+			(c4 counter4) (c5 counter5) (c6 counter6)
+			(c7 counter7) (c8 counter8) (c9 counter9)
+		);
+		Correspondence ias (
+			(p1 c1)(p2 c2)(p3 c3)
+			(p4 c4)(p5 c5)(p6 c6)
+			(p7 c7)(p8 c8)(p9 c9)
+		);
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+		IncNumberOfPlayers ias services.math.inc;
+		DecNumberOfPlayers ias services.math.dec;
+		PlayersOnAuction ias 2;
+		NoPlayers ias 0;
+	);
+
+	CroupierAssistant ias (
+		/* available commands which can be received from external world  */
+		Commands ias (leave join bet exit);
+		/* read command */
+		Command ias nil;
+		CommandId ias nil;
+		PlayerId ias nil;
+
+		CroupierAssistantLifeStep ias (
+			(AllPlayersLeft false) ias (
+				/* player exist, try again */
+				(PlayerExist false) ias (
+					/* notify about invalid or unknown player */
+					((Assistant reports that player PlayerId~ is unknown) Ew.Output~) Do
+					/* waiting for correct player id */
+					CroupierAssistantLifeStep~ Exe
+				);
+				/* new player  */
+				(PlayerExist true) ias (
+					NotifyPlayersLeftPlayer ias (
+						/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
+						Id ias $;
+						/* notifies player identified by complex entity '(Player Id~~) */
+						((Assistant notifies player Id~~ about left player PlayerId~) Ew.Output~) Do
+					);
+					((Assistant removes player PlayerId~ from auction) Ew.Output~) Do
+					LeavePlayer [
+						/* increments number of players */
+						(Auction.ActivePlayers ((Auction.ActivePlayers~) Ew.DecNumberOfPlayers~) Do)^
+						/* removes player from players group */
+						(Auction.Players (Auction.Players~ (PlayerId~)) Substruct)^
+						/* notifies all players in 'real world' about left player */
+						(Auction.Players~ NotifyPlayersLeftPlayer~) ForEach
+					LeavePlayer ]
+					/* notify Croupier; may be auction should be started */
+					Croupier.AssistantCommands.(StopAuction (Auction.ActivePlayers~ Ew.NoPlayers~) Ident Croupier.AssistantCommands.AuctionStarted~)~ Exe
+					/* next assistant's step */
+					CroupierAssistantLifeStep~ Exe
+				);
+				/* checks if player with such id has already been registered */
+				(PlayerExist (Auction.Players~ PlayerId~) In)~ Exe
+			);
+			/* here are no any player 'on board' */
+			(AllPlayersLeft true) ias (
+				((Assistant reports that all Ew.PlayersOnAuction~ players have left) Ew.Output~) Do
+				CroupierAssistantLifeStep~ Exe
+			);
+			/* waiting for required number of players */
+			(AllPlayersJoined false) ias (
+				/* player exist, try again */
+				(PlayerExist true) ias (
+					/* notify about duplicated id */
+					((Assistant reports that player PlayerId~ has already been registered) Ew.Output~) Do
+					/* waiting for correct player id */
+					CroupierAssistantLifeStep~ Exe
+				);
+				/* new player  */
+				(PlayerExist false) ias (
+					NotifyPlayersJoinPlayer ias (
+						/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
+						Id ias $;
+						/* notifies player identified by complex entity '(Player Id~~) */
+						((Assistant notifies player Id~~ about joined player PlayerId~) Ew.Output~) Do
+					);
+					((Assistant joins player PlayerId~ to auction) Ew.Output~) Do
+					JoinPlayer [
+						/* increments number of players */
+						(Auction.ActivePlayers ((Auction.ActivePlayers~) Ew.IncNumberOfPlayers~) Do)^
+						/* notifies all players in 'real world' about new player */
+						(Auction.Players~ NotifyPlayersJoinPlayer~) ForEach
+						/* join player to players group */
+						(Auction.Players (Auction.Players~ PlayerId~) Join)^
+						/* player joined to players group; now it should be cloned; cloned Player is run automaticaly */
+						/* (Player (Player PlayerId~)) Clone */
+					JoinPlayer ]
+					/* notify Croupier; may be auction should be started */
+					Croupier.AssistantCommands.(StartAuction (Auction.ActivePlayers~ Ew.PlayersOnAuction~)Ident Croupier.AssistantCommands.AuctionStarted~)~ Exe
+					/* next assistant's step */
+					CroupierAssistantLifeStep~ Exe
+				);
+				/* checks if player with such id has already been registered */
+				(PlayerExist (Auction.Players~ PlayerId~) In)~ Exe
+			);
+			/* all players 'on board' */
+			(AllPlayersJoined true) ias (
+				((Assistant reports that all Ew.PlayersOnAuction~ players have been registered and player PlayerId~ rejected) Ew.Output~) Do
+				CroupierAssistantLifeStep~ Exe
+			);
+			/* no available command; waiting */
+			(WaitForCommand true) ias (
+				CroupierAssistantLifeStep~ Exe
+			);
+			/* some command received and should be processed */
+			(WaitForCommand false) ias (
+				/* wrong command  */
+				(ProcessCommand false) ias (
+					CroupierAssistantLifeStep~ Exe
+				);
+				/* command is going to be processed */
+				(ProcessCommand true) ias (
+					leave ias (
+						(AllPlayersLeft (Auction.ActivePlayers~ Ew.NoPlayers~) Ident)~ Exe
+					);
+					join ias (
+						(AllPlayersJoined (Auction.ActivePlayers~ Ew.PlayersOnAuction~) Ident)~ Exe
+					);
+					bet ias (
+					);
+					exit ias (
+						/* prompt before exiting... */
+						((Assistant tells to Croupier to stop auction) Ew.Output~) Do
+						 Croupier.AssistantCommands.ForceToStopAuction~ Exe
+					);
+					CommandId~~ Exe
+				);
+				/* decompose command by getting command id; command is complex entity (commandId commandData ...) */
+				(CommandId (Command~) First)^
+				(PlayerId (Command~) Last)^
+				((Assistant reports about command CommandId~ for player PlayerId~) Ew.Output~) Do
+				/* check if command is in list of available commands */
+				(IsCommandInList (Commands~ CommandId~) In)^
+				/* CommandId should be applied to appropriate context */
+				(CommandId~ (ProcessCommand IsCommandInList~)) Context
+				/* executes actions depend on commandId */
+				(ProcessCommand IsCommandInList~)~ Exe
+			);
+			/* waiting for command, in non-blocking manner */ 
+			((Assistant waits for command) Ew.Output~) Do
+			(Command (() Ew.Input~) Do)^
+			(WaitForCommand (Command~ nil) Ident)~ Exe
+		);
+
+		/* Croupier assistant lifeterm */
+		lifeterm source = CroupierAssistantLifeStep~ Exe
+	);
+
+	Croupier ias (
+		/* Croupier selects puzzle's card which is put up to auction  */
+		PuzzleCard ias nil;
+		/* Assistant sends commands to Croupier */
+		AssistantCommands ias (
+			AuctionStarted ias false;
+			ForceToCloseAuction ias false;
+			/* Auction should be started */
+			(StartAuction true false) ias (
+				/* initializing puzzle */
+				InitializePuzzleCounter ias (
+					(($~)Last Auction.ActivePlayers~)^
+				);
+				(Ew.RestPuzzles~ InitializePuzzleCounter~) ForEach
+				(AuctionStarted true)^
+				((Croupier starts auction) Ew.Output~) Do
+			);
+			/* do not do anything */
+			(StartAuction true true) ias doNothing;
+			(StartAuction false false) ias doNothing;
+			/* Auction should be stopped */
+			(StopAuction true true) ias (
+				(AuctionStarted false)^
+				((Croupier stops auction) Ew.Output~) Do
+			);
+			/* do not do anything */
+			(StopAuction false false) ias doNothing;
+			(StopAuction false true) ias doNothing;	
+			/* Assistant asks to stop auction immidiately */
+			ForceToStopAuction ias (
+				NotifyPlayersAuctionIsClosed ias (
+					/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
+					Id ias $;
+					/* notifies player identified by complex entity '(Player Id~~) */
+					((Croupier closes auction and tells to player Id~~ to leave auction) Ew.Output~) Do
+				);
+				(Auction.Players~ NotifyPlayersAuctionIsClosed~) ForEach
+				(AuctionStarted false)^
+				(ForceToCloseAuction true)^ 
+			);
+		);
+		/* Croupier's life step */
+		CroupierLifeStep ias (
+			(ContinueAuction true) ias (
+				/* Croupier takes random puzzle's card */
+				(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
+				((Croupier selected card (PuzzleCardDescriptor~)First and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
+			);
+			(ContinueAuction false) ias (
+				(ForceToClose true) ias doNothing;
+				(ForceToClose false) ias (
+					CroupierLifeStep~ Exe
+				);
+				(ForceToClose AssistantCommands.ForceToCloseAuction~)~ Exe
+			);
+			(ContinueAuction AssistantCommands.AuctionStarted~)~ Exe
+		);
+		/* Croupier lifeterm */
+		lifeterm source = CroupierLifeStep~ Exe
+	);
+
+	Auction ias (
+		/* number of active players  */
+		ActivePlayers ias 0;
+		/* initial players' list  */
+		Players ias ();
+	);
+
+	Player ias (
+
+	);
+}

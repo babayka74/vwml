@@ -64,13 +64,15 @@ public class VWMLOperationInHandler extends VWMLOperationHandler {
 		}
 		VWMLEntity e1 = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(0);
 		VWMLEntity e2 = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(1);
-		if (!e1.isMarkedAsComplexEntity() && !e2.isMarkedAsComplexEntity()) {
+		if (!e1.isMarkedAsComplexEntity()) {
 			return nilEntity;
 		}
-		VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)e2).getLink().acquireLinkedObjectsIterator();
-		for(; it.isCorrect(); it.next()) {
-			if (e1.equals(e2.getLink().getConcreteLinkedEntity(it.getIt()))) {
-				return trueEntity;
+		VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)e1).getLink().acquireLinkedObjectsIterator();
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				if (e2.equals(e1.getLink().getConcreteLinkedEntity(it.getIt()))) {
+					return trueEntity;
+				}
 			}
 		}
 		return falseEntity;

@@ -17,8 +17,6 @@ import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
  */
 public class VWMLConflictRingNode extends VWMLObject {
 	
-	// node's controlled interpreter
-	private VWMLInterpreterImpl interpreter = null;
 	// node's automata
 	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build();
 	private boolean clone = false;
@@ -99,8 +97,9 @@ public class VWMLConflictRingNode extends VWMLObject {
 		for(int i = 0; i < group.size(); i++) {
 			group.get(i).reset();
 		}
-		if (!isGrouped() && interpreter != null && !interpreter.getConfig().isStepByStepInterpretation()) {
-			interpreter.reset();
+		VWMLInterpreterImpl i = peekInterpreter();
+		if (!isGrouped() && i != null && !i.getConfig().isStepByStepInterpretation()) {
+			i.reset();
 		}
 	}
 	
@@ -126,6 +125,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 					}
 				}
 			}
+			i.reset();
 		}
 	}
 	
@@ -158,7 +158,11 @@ public class VWMLConflictRingNode extends VWMLObject {
 	 * @return
 	 */
 	public boolean isStopped() {
-		return interpreter.getStatus() == VWMLInterpreterImpl.stopProcessing || interpreter.getStatus() == VWMLInterpreterImpl.stopped;
+		VWMLInterpreterImpl i = peekInterpreter();
+		if (i == null) {
+			return true;
+		}
+		return i.getStatus() == VWMLInterpreterImpl.stopProcessing || i.getStatus() == VWMLInterpreterImpl.stopped;
 	}
 
 	public int getSigma() {
@@ -276,11 +280,12 @@ public class VWMLConflictRingNode extends VWMLObject {
 		VWMLConflictRingNode operationalNode = null;
 		VWMLConflictRingNodeAutomataInputs input = null;
 		VWMLConflictRingNodeAutomataStates state = null;
+		VWMLInterpreterImpl i = peekInterpreter();
 		if (!isGroup()) {
 			operationalNode = this;
 		}
 		else {
-			String activeConflictContext = interpreter.getObserver().getActiveConflictContext();
+			String activeConflictContext = i.getObserver().getActiveConflictContext();
 			if (activeConflictContext == null) {
 				operationalNode = this;
 			}
@@ -303,7 +308,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 			}
 		}
 		if (operationalNode != null) {
-			input = interpreter.getObserver().getConflictOperationalState((String)operationalNode.getId());
+			input = i.getObserver().getConflictOperationalState((String)operationalNode.getId());
 			state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
 			if (operationalNode.getSigma() == 0) {
 				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;

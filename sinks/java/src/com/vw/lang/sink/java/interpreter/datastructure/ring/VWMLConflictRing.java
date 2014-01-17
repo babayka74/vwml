@@ -16,7 +16,7 @@ public class VWMLConflictRing {
 	// actual conflict ring data structure
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
-	private static int s_artificialNodeIdx = 0;
+	private static int s_artificialId = 0;
 	// singleton implementation
 	private static VWMLConflictRing s_conflictRing = null;
 	
@@ -162,22 +162,10 @@ public class VWMLConflictRing {
 		if (!isRingOperational()) {
 			initialyEmptyRing = true;
 		}
+		g = lookupGroupByContext(context);
 		if (initialyEmptyRing) {
-			String id = "artificialNode_" + s_artificialNodeIdx;
-			g = VWMLConflictRingExecutionGroup.build(id, id);
-			VWMLConflictRingNode f = VWMLConflictRingNode.build(id, id);
-			nodesConflictRing.add(f);
-			f.setExecutionGroup(g);
-			g.add(f);
-			groupsConflictRing.add(g);
-			s_artificialNodeIdx++;
-		}
-		else {
-			for (VWMLConflictRingExecutionGroup group : groupsConflictRing) {
-				if (((String)group.getId()).startsWith(context)) {
-					g = group;
-					break;
-				}
+			if (g == null) {
+				g = buildArtificialGroupAndAssociatedNode(context);
 			}
 		}
 		return g;
@@ -190,20 +178,22 @@ public class VWMLConflictRing {
 	 */
 	protected void link(String conflict, String[] linkedConflicts) {
 		VWMLConflictRingNode node = VWMLConflictRingNode.build(conflict, conflict);
-		node = addNode(node);
+		node = addNode(null, node);
 		for(String conflictName : linkedConflicts) {
 			VWMLConflictRingNode rNode = VWMLConflictRingNode.build(conflictName, conflictName);
-			rNode = addNode(rNode);
+			rNode = addNode(null, rNode);
 			if (!node.getLink().isLinked(rNode)) {
 				node.getLink().link(rNode);
 			}
 		}
 	}
 	
-	private VWMLConflictRingNode addNode(VWMLConflictRingNode node) {
+	private VWMLConflictRingNode addNode(VWMLConflictRingExecutionGroup g, VWMLConflictRingNode node) {
 		int i = nodesConflictRing.indexOf(node);
 		if (i == -1) {
-			VWMLConflictRingExecutionGroup g = VWMLConflictRingExecutionGroup.build(node.getId(), node.getReadableId());
+			if (g == null) {
+				g = VWMLConflictRingExecutionGroup.build(node.getId(), node.getReadableId());
+			}
 			g.add(node);
 			node.setExecutionGroup(g);
 			groupsConflictRing.add(g);
@@ -213,5 +203,26 @@ public class VWMLConflictRing {
 			node = nodesConflictRing.get(i);
 		}
 		return node;
+	}
+	
+	private VWMLConflictRingExecutionGroup lookupGroupByContext(String context) { 
+		VWMLConflictRingExecutionGroup g = null;
+		for (VWMLConflictRingExecutionGroup group : groupsConflictRing) {
+			if (((String)group.getId()).startsWith(context + ".")) {
+				g = group;
+				break;
+			}
+		}
+		return g;
+	}
+	
+	private VWMLConflictRingExecutionGroup buildArtificialGroupAndAssociatedNode(String context) {
+		VWMLConflictRingExecutionGroup g = null;
+		String id = context + "." + "artificialId_" + s_artificialId;
+		g = VWMLConflictRingExecutionGroup.build(id, id);
+		VWMLConflictRingNode n = VWMLConflictRingNode.build(id, id);
+		addNode(g, n);
+		s_artificialId++;
+		return g;
 	}
 }

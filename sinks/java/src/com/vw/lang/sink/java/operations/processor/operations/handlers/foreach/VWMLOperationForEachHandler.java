@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -70,9 +71,26 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 	}
 	
 	protected void forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
+		VWMLConflictRingExecutionGroup g = null;
 		VWMLInterpreterListener listener = new VWMLInterpreterListenerForOperationForEach();
-		interpreter.addLifeTermInRunTime(term, listener);
-		interpreter.conditionalLoop(listener);
-		term.getContext().clear();
+		if (interpreter.getRtNode() != null) {
+			g = interpreter.getRtNode().getExecutionGroup();
+		}
+		if (interpreter.getMasterInterpreter() != null) {
+			interpreter = interpreter.getMasterInterpreter();
+		}
+		// term is interpreted by own interpreter
+		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, term, listener);
+		if (i != null) {
+			// the synthetic entity '$' will be interpreted as component
+			i.setInterpretingEntityForSyntheticEntity(component);
+			if (i.getConfig().isStepByStepInterpretation()) {
+				interpreter.conditionalLoop(listener);
+			}
+			interpreter.releaseTermResourcesAfterInterpretationDone(g, i, term);
+		}
+		else {
+			throw new Exception("Couldn't activate interpreter for term '" + term + "'; operation 'ForEach'");
+		}
 	}
 }
