@@ -78,6 +78,19 @@ public class VWMLContext extends VWMLObject {
 	}
 	
 	/**
+	 * Constructs context name in run-time; used when dynamic context name is generated (see OPDYNCONTEXT)
+	 * @param contextNameBuf
+	 * @param part
+	 * @return
+	 */
+	public static String constructContextNameInRunTime(String contextNameBuf, String part) {
+		if (contextNameBuf != null) {
+			return contextNameBuf + "." + part;
+		}
+		return part;
+	}
+	
+	/**
 	 * Clears context's resources
 	 */
 	public void clear() {

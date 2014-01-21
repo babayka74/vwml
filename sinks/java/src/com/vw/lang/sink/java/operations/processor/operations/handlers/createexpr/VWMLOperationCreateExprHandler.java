@@ -11,6 +11,7 @@ import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationHandlerCreateExprFromEntity.VWMLOperationCreateExprStrategy;
 
 /**
  * Handler of 'OPCREATEEXPR' operation
@@ -26,13 +27,18 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) { // specific case where only one entity on stack
-			new VWMLOperationHandlerCreateExprFromEntity().handle(entities.get(0), linkage, entities.get(0).getContext(), operation);
+			new VWMLOperationHandlerCreateExprFromEntity().handle(interpreter, entities.get(0), linkage, entities.get(0).getContext(), operation);
 		}
 		else
 		if (entities.size() == 2) { // specific case where only 2 entities on stack
 			VWMLEntity interpretedEntity = (VWMLEntity)entities.get(1);
 			VWMLEntity interpretingEntity = (VWMLEntity)entities.get(0);
-			interpretedEntity.setInterpreting(interpretingEntity);
+			if (VWMLOperationCreateExprStrategy.isInterpretationShouldBeApplied(interpretedEntity, interpretingEntity)) {
+				interpretedEntity.setInterpreting(interpretingEntity);
+			}
+			else {
+				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);
+			}
 		}
 		else {
 			VWMLEntity entity = entities.get(entities.size() - 1);
@@ -43,7 +49,12 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 																											context.getEntityInterpretationHistorySize(),
 																											context.getLinkOperationVisitor(),
 																											VWMLOperationUtils.s_dontAddIfUnknown);
-			entity.setInterpreting(newComplexEntity);
+			if (VWMLOperationCreateExprStrategy.isInterpretationShouldBeApplied(entity, newComplexEntity)) {
+				entity.setInterpreting(newComplexEntity);
+			}
+			else {
+				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);
+			}
 		}
 		// clear stack
 		entities.clear();

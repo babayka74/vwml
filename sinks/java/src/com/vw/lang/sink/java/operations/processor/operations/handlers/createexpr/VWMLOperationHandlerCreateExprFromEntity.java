@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.createexp
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
@@ -19,7 +20,24 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 	private static int s_min_objects_for_complex_interpretation = 2;
 
 	protected static abstract class VWMLOperationCreateExprStrategy {
-		public abstract void run(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
+		public abstract void run(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception;
+	
+		public static boolean isInterpretationShouldBeApplied(VWMLEntity entity, VWMLEntity interpreting) {
+			if (entity.isSynthetic() && interpreting.getId().equals(VWMLEntity.s_doNothingEntityId)) {
+				return false;
+			}
+			return true;
+		}
+		
+		/**
+		 * Special construction ($ doNothing)^ allows to stop interpretation process during ForEach operation
+		 * @param interpreter
+		 */
+		public static void stopInterpretation(VWMLInterpreterImpl interpreter) {
+			if (interpreter.getListener() != null) {
+				interpreter.getListener().stopInterpretation();
+			}
+		}
 	}
 
 	/**
@@ -30,10 +48,9 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 	protected static class VWMLOperationCreateExprStrategy1EntityInLink extends VWMLOperationCreateExprStrategy {
 
 		@Override
-		public void run(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
+		public void run(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 			linkage.interpretUndefinedEntity(entity.getId());
 		}
-
 	}
 
 	/**
@@ -44,7 +61,7 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 	protected static class VWMLOperationCreateExprStrategy2EntitiesInLink extends VWMLOperationCreateExprStrategy {
 
 		@Override
-		public void run(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
+		public void run(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 			VWMLEntity e = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 			if (e == null) {
 				throw new Exception("inconsistence detected; expected at least 2 linked entities but found only '" + entity.getLink().getLinkedObjectsOnThisTime() + "'");
@@ -53,7 +70,12 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 			if (e1 == null) {
 				throw new Exception("inconsistence detected; expected at least 2 linked entities but found only '" + entity.getLink().getLinkedObjectsOnThisTime() + "'");
 			}
-			e.setInterpreting(e1);
+			if (isInterpretationShouldBeApplied(e, e1)) {
+				e.setInterpreting(e1);
+			}
+			else {
+				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);
+			}
 		}
 
 	}
@@ -66,7 +88,7 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 	protected static class VWMLOperationCreateExprStrategyForManyEntitiesInLink extends VWMLOperationCreateExprStrategy {
 
 		@Override
-		public void run(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
+		public void run(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
 			VWMLLinkIncrementalIterator it = entity.getLink().acquireLinkedObjectsIterator();
 			VWMLEntity le = null;
 			entity = (VWMLEntity)entity.getLink().peek(it);
@@ -83,7 +105,12 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 			for(; le != null; le = (VWMLEntity)entity.getLink().peek(it)) {
 				newComplexEntity.link(le);
 			}
-			entity.setInterpreting(newComplexEntity);
+			if (isInterpretationShouldBeApplied(entity, newComplexEntity)) {
+				entity.setInterpreting(newComplexEntity);
+			}
+			else {
+				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);
+			}
 		}
 	}
 
@@ -95,7 +122,7 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 	private VWMLOperationCreateExprStrategyForManyEntitiesInLink createExprStrategyForManyEntitiesInLink = new VWMLOperationCreateExprStrategyForManyEntitiesInLink();
 
 
-	public void handle(VWMLEntity entity, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
+	public void handle(VWMLInterpreterImpl interpreter, VWMLEntity entity, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		if (entity == null) {
 			throw new Exception("trying to execute 'CREATEEXPR' operation on empty stack");
 		}
@@ -110,10 +137,10 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 		// pops entity from stack
 		// runs separated strategies if number of linked objects less than 's_min_objects_for_complex_interpretation'
 		if (objects <= s_min_objects_for_complex_interpretation) {
-			createExprStrategyForLimitedNumberOfLinkedObjects[objects - 1].run(linkage, context, entity);
+			createExprStrategyForLimitedNumberOfLinkedObjects[objects - 1].run(interpreter, linkage, context, entity);
 		}
 		else {
-			createExprStrategyForManyEntitiesInLink.run(linkage, context, entity);
+			createExprStrategyForManyEntitiesInLink.run(interpreter, linkage, context, entity);
 		}
 	}
 }

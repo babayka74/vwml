@@ -50,6 +50,8 @@ public class VWMLEntity extends VWMLObject {
 	private VWMLEntity clonedFrom = null;
 	// entity linked entity; used when special entity __mark__ is pushed to stack
 	private VWMLEntity specialLinkedEntity = null;
+	// context may consist form terms
+	private boolean isPartOfDynamicContext = false;
 	
 	public VWMLEntity() {
 		super();
@@ -193,6 +195,14 @@ public class VWMLEntity extends VWMLObject {
 			}
 		}
 		return cloned;
+	}
+	
+	@Override
+	public String buildReadableId() {
+		if (getReadableId() == null) {
+			return (String)getId();
+		}
+		return getReadableId();
 	}
 	
 	public VWMLContext getContext() {
@@ -362,7 +372,19 @@ public class VWMLEntity extends VWMLObject {
 	public boolean isRecursiveInterpretationOnOriginal() {
 		return isRecursiveInterpretationOn(getOriginalInterpreting(), true);
 	}
-	
+
+	/**
+	 * Returns 'true' in case if entity is part of dynamic context (see operation OPDYNCONTEXT)
+	 * @return
+	 */
+	public boolean isPartOfDynamicContext() {
+		return isPartOfDynamicContext;
+	}
+
+	public void setPartOfDynamicContext(boolean isPartOfDynamicContext) {
+		this.isPartOfDynamicContext = isPartOfDynamicContext;
+	}
+
 	public void setOperateByExe(boolean isOperatesByExe) {
 		this.isOperatesByExe = isOperatesByExe;
 	}

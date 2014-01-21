@@ -34,6 +34,7 @@ public enum VWMLOperationsCode {
     OPPROJECTION("Projection"),
     OPFOREACH("ForEach"),
     OPNOP("Nop"),
+    OPDYNCONTEXT("->"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

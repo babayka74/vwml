@@ -121,6 +121,23 @@ public class VWMLObjectsRepository {
 	}	
 	
 	/**
+	 * Finds object on specified context (the context is represented by context name)
+	 * @param contextName
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLObject findObject(String contextName, Object id) throws Exception {
+		VWMLContext c = VWMLContextsRepository.instance().get(contextName);
+		if (c == null) {
+			throw new Exception("coudln't find context '" + contextName + "'");
+		}
+		// checks if object has been created before
+		VWMLObject obj = instance().checkObjectOnContext(id, c);
+		return obj;
+	}
+	
+	/**
 	 * Returns 'true' in case if entity should be swallowed. Usually checks on 'Exe' operation, when it is finished
 	 * @param e
 	 * @return

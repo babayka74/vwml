@@ -64,13 +64,16 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 			if (it != null) {
 				for(; it.isCorrect(); it.next()) {
 					VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)args).getLink().getConcreteLinkedEntity(it.getIt());
-					forEach(interpreter, e, term);
+					if (!forEach(interpreter, e, term)) {
+						break;
+					}
 				}
 			}
 		}
 	}
 	
-	protected void forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
+	protected boolean forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
+		boolean continueForEach = true;
 		VWMLConflictRingExecutionGroup g = null;
 		VWMLInterpreterListener listener = new VWMLInterpreterListenerForOperationForEach();
 		if (interpreter.getRtNode() != null) {
@@ -87,10 +90,13 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 			if (i.getConfig().isStepByStepInterpretation()) {
 				interpreter.conditionalLoop(listener);
 			}
+			continueForEach = listener.isForcedStop();
 			interpreter.releaseTermResourcesAfterInterpretationDone(g, i, term);
 		}
 		else {
+			continueForEach = false;
 			throw new Exception("Couldn't activate interpreter for term '" + term + "'; operation 'ForEach'");
 		}
+		return continueForEach;
 	}
 }

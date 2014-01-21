@@ -36,6 +36,7 @@ tokens {
     OPCLONE='Clone';   
     OPPROJECTION='Projection';
     OPFOREACH='ForEach';
+    OPDYNCONTEXT='->';
     
     // languages
     JAVA='__java__';
@@ -981,6 +982,7 @@ opclist
     | OPCLONE
     | OPPROJECTION
     | OPFOREACH
+    | OPDYNCONTEXT
     ;
 
 termLanguages

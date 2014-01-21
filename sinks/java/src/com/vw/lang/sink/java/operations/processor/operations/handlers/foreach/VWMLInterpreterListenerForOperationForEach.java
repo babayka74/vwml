@@ -18,6 +18,6 @@ public class VWMLInterpreterListenerForOperationForEach extends VWMLInterpreterL
 	}
 	
 	public int getInterpreterStatus() {
-		return status;
+		return isForcedStop() ? VWMLInterpreterImpl.stopped : status;
 	}
 }
