@@ -83,7 +83,7 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 			interpreter = interpreter.getMasterInterpreter();
 		}
 		// term is interpreted by own interpreter
-		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, term, listener);
+		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, interpreter, term, listener);
 		if (i != null) {
 			// the synthetic entity '$' will be interpreted as component
 			i.setInterpretingEntityForSyntheticEntity(component);

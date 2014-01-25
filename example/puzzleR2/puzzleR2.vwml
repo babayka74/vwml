@@ -7,8 +7,8 @@ options {
   		description = "Antagonistic puzzle game"
 		beyond {
 			fringe communication ias (
-				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
-				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				out ias "com.win.game.puzzleR2.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.puzzleR2.model.fringe.gate.async.console.AsyncConsole"
 			)
 			fringe services ias (
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
@@ -44,7 +44,7 @@ module puzzleR2 {
 		Output ias communication.in.write;
 		IncNumberOfPlayers ias services.math.inc;
 		DecNumberOfPlayers ias services.math.dec;
-		PlayersOnAuction ias 2;
+		PlayersOnAuction ias 3;
 		NoPlayers ias 0;
 	);
 
@@ -55,6 +55,24 @@ module puzzleR2 {
 		Command ias nil;
 		CommandId ias nil;
 		PlayerId ias nil;
+
+		/* check if player made bet */
+		FindPlayersBet ias (
+			HasPlayerAlreadyMadeBet ias false;
+			PlayerBet ias nil;
+			CheckIfPlayerHasAlreadyMadeBet ias (
+				B ias $;
+				(PlayerMadeBet false) ias doNothing;
+				(PlayerMadeBet true) ias (
+					(HasPlayerAlreadyMadeBet true)^
+					(PlayerBet B~~)^ 
+					/* signals to 'ForEach' to stop iteration */
+					($ doNothing)^
+				);
+				(PlayerMadeBet ((B~~)First PlayerId~) Ident)~ Exe
+			);
+			(Croupier.LastPlayersBets~ CheckIfPlayerHasAlreadyMadeBet~) ForEach
+		);		
 
 		CroupierAssistantLifeStep ias (
 			/* Auction should be started */
@@ -99,8 +117,10 @@ module puzzleR2 {
 					/* waiting for correct player id */
 					CroupierAssistantLifeStep~ Exe
 				);
-				/* new player  */
+				/* player leaves */
 				(PlayerExist true) ias (
+					/* lookups for player which left and removes its bet, if exist */
+					/* notifies rest players about left player */
 					NotifyPlayersLeftPlayer ias (
 						/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
 						Id ias $;
@@ -116,6 +136,11 @@ module puzzleR2 {
 						/* notifies all players in 'real world' about left player */
 						(Auction.Players~ NotifyPlayersLeftPlayer~) ForEach
 					LeavePlayer ]
+					/* removes user's bet */
+					RemoveBetWhenPlayerLeft [
+						FindPlayersBet~ Exe
+						(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ FindPlayersBet.PlayerBet~))Substruct)^
+					RemoveBetWhenPlayerLeft ]
 					/* notify Croupier; may be auction should be started */
 					(StopAuction (Auction.ActivePlayers~ Ew.NoPlayers~)Ident Croupier.AuctionStarted~)~ Exe
 					/* next assistant's step */
@@ -150,10 +175,10 @@ module puzzleR2 {
 						(Auction.ActivePlayers ((Auction.ActivePlayers~) Ew.IncNumberOfPlayers~) Do)^
 						/* notifies all players in 'real world' about new player */
 						(Auction.Players~ NotifyPlayersJoinPlayer~) ForEach
+						/* player joined to players group; now it should be cloned; cloned Player is run automaticaly */
+					        (Player (Player PlayerId~)) Clone
 						/* join player to players group */
 						(Auction.Players (Auction.Players~ PlayerId~) Join)^
-						/* player joined to players group; now it should be cloned; cloned Player is run automaticaly */
-						/* (Player (Player PlayerId~)) Clone */
 					JoinPlayer ]
 					/* notify Croupier; may be auction should be started */
 					(StartAuction (Auction.ActivePlayers~ Ew.PlayersOnAuction~)Ident Croupier.AuctionStarted~)~ Exe
@@ -188,35 +213,48 @@ module puzzleR2 {
 						(AllPlayersJoined (Auction.ActivePlayers~ Ew.PlayersOnAuction~) Ident)~ Exe
 					);
 					bet ias (
-						(PlayerExist true) ias (
-							(DoNotAcceptPlayerBet true) ias (
-								((Assistant reports that player PlayerId~ has already made bet) Ew.Output~) Do
-								(HasPlayerAlreadyMadeBet false)^
-							);
-							(DoNotAcceptPlayerBet false) ias (
-								(AcceptedBet (Command~)Last)^
-                                                		(Croupier.LastPlayersBets~ (PlayerId~ AcceptedBet~)) Join
-								((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
-							);
-							HasPlayerAlreadyMadeBet ias false;
-							CheckIfPlayerHasAlreadyMadeBet ias (
-								PlayersBet ias $;
-								(PlayerMadeBet false) ias doNothing;
-								(PlayerMadeBet true) ias (
-									(HasPlayerAlreadyMadeBet true)^
-									/* signals to 'ForEach' to stop iteration */
-									($ doNothing)^
+						BetReceivingPermitted ias false;
+						ReportAboutNonPermittedBetOperation ias (
+							((Assistant reports that player PlayerId~ can bet after auction has been started) Ew.Output~) Do
+						);
+						(BetPermitted true true) ias (
+							(PlayerExist true) ias (
+								(DoNotAcceptPlayerBet true) ias (
+									((Assistant reports that player PlayerId~ has already made bet) Ew.Output~) Do
+									(HasPlayerAlreadyMadeBet false)^
 								);
-								(PlayerMadeBet ((PlayersBet~~)First PlayerId~) Ident)~ Exe
+								(DoNotAcceptPlayerBet false) ias (
+									(AcceptedBet (Command~)Last)^
+									AcceptBet [
+                                                				(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ AcceptedBet~))Join)^
+									AcceptBet ]
+									((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
+								);
+								/* checks if player has made bet */
+								FindPlayersBet~ Exe
+								(DoNotAcceptPlayerBet FindPlayersBet.HasPlayerAlreadyMadeBet~)~ Exe
 							);
-							(Croupier.LastPlayersBets~ CheckIfPlayerHasAlreadyMadeBet~) ForEach
-							(DoNotAcceptPlayerBet HasPlayerAlreadyMadeBet~)~ Exe
+							(PlayerExist false) ias (
+								((Assistant reports that player PlayerId~ can not bet since it was not participates in auction) Ew.Output~) Do
+							);
+							/* Check if player has joined to auction */
+							(PlayerExist (Auction.Players~ PlayerId~)In)~ Exe
 						);
-						(PlayerExist false) ias (
-							((Assistant reports that player PlayerId~ can not bet since it was not participates in auction) Ew.Output~) Do
+						(BetPermitted false false) ias (
+							ReportAboutNonPermittedBetOperation~ Exe
 						);
-						/* Check if player has joined to auction */
-						(PlayerExist (Auction.Players~ PlayerId~) In)~ Exe
+						(BetPermitted false true) ias (
+							ReportAboutNonPermittedBetOperation~ Exe
+						);
+						(BetPermitted true false) ias (
+							ReportAboutNonPermittedBetOperation~ Exe
+						);
+						/* waiting for bet permission for bet processing (conflicts with BetPermitted) */
+						WaitForBetPermition [
+							(BetPermitted Croupier.PermitBet)^
+						WaitForBetPermition ]
+						/* Check if bet is allowed; bet is allowed in case if auction started */
+						(BetPermitted Croupier.AuctionStarted~ BetPermitted~~)~ Exe
 						/* waiting for correct player id */
 						CroupierAssistantLifeStep~ Exe
 					);
@@ -240,18 +278,22 @@ module puzzleR2 {
 				(ProcessCommand IsCommandInList~)~ Exe
 			);
 			/* waiting for command, in non-blocking manner */ 
-			((Assistant waits for command) Ew.Output~) Do
 			(Command (() Ew.Input~) Do)^
 			(WaitForCommand (Command~ nil) Ident)~ Exe
 		);
 
 		/* Croupier assistant lifeterm */
-		lifeterm source = CroupierAssistantLifeStep~ Exe
+		source lifeterm = CroupierAssistantLifeStep~ Exe
 	);
 
 	Croupier ias (
 		AuctionStarted ias false;
 		ForceToCloseAuction ias false;
+		PermitBet ias false;
+		/* available commands */
+		Commands ias (selectCard permitBetOperation waitForBetFromPlayers announceWinner);
+		/* current command  */
+		Command ias selectCard;
 		/* Last players' bet */
 		LastPlayersBets ias ();	
 		/* Croupier selects puzzle's card which is put up to auction  */
@@ -260,23 +302,63 @@ module puzzleR2 {
 		/* Croupier's life step */
 		CroupierLifeStep ias (
 			(ContinueAuction true) ias (
-				PublishedCard ias nil;
-				/* Croupier takes random puzzle's card */
-				(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
-				(PublishedCard (PuzzleCardDescriptor~)First)^
-				((Croupier selected card PublishedCard~ and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
-				/* selected card should be published to all players */
-				CardPublishing [
-					NotifyPlayersCardSelected ias (
-						Id ias $;
-						/* notifies player identified by complex entity '(Player Id~~) */
-						((Player Id~~)->Card PublishedCard~)^
+				(ActiveCommand selectCard) ias (
+					PublishedCard ias nil;
+					/* Croupier takes random puzzle's card */
+					(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
+					(PublishedCard (PuzzleCardDescriptor~)First)^
+					((Croupier selected card PublishedCard~ and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
+					/* selected card should be published to all players */
+					CardPublishing [
+						NotifyPlayersCardSelected ias (
+							Id ias $;
+							/* notifies player identified by complex entity '(Player Id~~) */
+							((Player Id~~)->Card PublishedCard~)^
+						);
+						(Auction.Players~ NotifyPlayersCardSelected~) ForEach
+					CardPublishing ]
+					/* card was published to all players and next command is wait for players' bet */
+					(Command permitBetOperation)^
+				);
+				(ActiveCommand permitBetOperation) ias (
+					/* conflicts with WaitForBetReceivingPermition */
+					BetPermitted [
+						(PermitBet true)^
+					BetPermitted ]
+					(Command waitForBetFromPlayers)^
+				);
+				(ActiveCommand waitForBetFromPlayers) ias (
+					(AllBetsCollected false) ias doNothing;
+					/* all bets collected, so winner should be announced */
+				        (AllBetsCollected true) ias (
+						(PermitBet false)^
+						(Command announceWinner)^
 					);
-					(Auction.Players~ NotifyPlayersCardSelected~) ForEach
-				CardPublishing ]
+					CheckStatusOfBetCollection [
+						(AllBetsCollected ((Croupier.LastPlayersBets~)Size Auction.ActivePlayers~) Ident)~ Exe
+					CheckStatusOfBetCollection ]
+				);
+                              	(ActiveCommand announceWinner) ias (
+					(RemoveCardFromStorage true) ias (
+						(Ew.RestPuzzles (Ew.RestPuzzles~ (PuzzleCardDescriptor~))Substruct)^
+					);
+					(RemoveCardFromStorage false) ias doNothing;
+					((Croupier announced winner for card PublishedCard~) Ew.Output~) Do
+					/* decrease card's counter which defines how many the same cards are in the pool */
+					(PublishedCardCounter (PuzzleCardDescriptor~)Last)^
+					(PublishedCardCounter~ ((PublishedCardCounter~~) Ew.DecNumberOfPlayers~) Do)^
+					/* checks whether card should be removed from storage or no */
+					(RemoveCardFromStorage (PublishedCardCounter~~ 0) Ident)~ Exe
+					(PublishedCard nil)^
+					(Command selectCard)^
+				);
+				(ActiveCommand Command~)~ Exe
+				(ContinueAuction AuctionStarted~)~ Exe
 			);
 			(ContinueAuction false) ias (
-				(ForceToClose true) ias doNothing;
+				(ForceToClose true) ias (
+					(PermitBet false)^
+				);
 				(ForceToClose false) ias (
 					CroupierLifeStep~ Exe
 				);
@@ -285,7 +367,7 @@ module puzzleR2 {
 			(ContinueAuction AuctionStarted~)~ Exe
 		);
 		/* Croupier lifeterm */
-		lifeterm source = CroupierLifeStep~ Exe
+		source lifeterm = CroupierLifeStep~ Exe
 	);
 
 	Auction ias (
@@ -296,10 +378,25 @@ module puzzleR2 {
 	);
 
 	Player ias (
+		Id ias nil;
 		Card ias nil;
 		Bet ias 0;
 		/* Player knows about joined and left players */
 		JoinedPlayer ias nil;
 		LeftPlayer ias nil;
+
+		PlayerLifeStep ias (
+			(NonActive true) ias doNothing;
+		        (NonActive false) ias (
+				500 Relax
+			);
+			(NonActive (Id~ nil)Ident)~ Exe
+			PlayerLifeStep~ Exe
+		);
+
+		source lifeterm = (	
+					(Id CroupierAssistant.PlayerId~)^
+					PlayerLifeStep~ Exe
+				) Exe
 	);
 }

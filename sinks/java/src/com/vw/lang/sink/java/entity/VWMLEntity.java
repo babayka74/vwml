@@ -103,9 +103,11 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public VWMLEntity clone(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache, boolean firstIteration) throws Exception {
 		// check if entity is in cloned context
-		if ((!firstIteration && !VWMLContext.isContextChildOf(initialContext.getContext(), getContext().getContext())) ||
-			(this.getContext() == VWMLContextsRepository.instance().getDefaultContext())) {
-			return this; // no need to clone entity which doesn't belong to cloned context
+		if (!firstIteration) {
+			if ((!VWMLContext.isContextChildOf(initialContext.getContext(), getContext().getContext())) ||
+				(this.getContext() == VWMLContextsRepository.instance().getDefaultContext())) {
+				return this; // no need to clone entity which doesn't belong to cloned context
+			}
 		}
 		if (auxCache != null && auxCache.check(this)) {
 			VWMLEntity cloned = auxCache.get(this);

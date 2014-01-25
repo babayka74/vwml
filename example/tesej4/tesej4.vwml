@@ -103,7 +103,7 @@ module tesej4 {
 							(TempPosition Position~~ Random)^
 							((Tesej Id~ analyzes position) Ew.say~) Do
 							/* Checks if position was taken before */
-							(PositionTaken (TempPosition~~ SpecialPositions~)In)~ Exe
+							(PositionTaken (SpecialPositions~ TempPosition~~)In)~ Exe
 							/* run actual actions */
 							(Action LogicGenerated.OnTakenPosition)^
 							((Tesej Id~ analyzed and took action Action~) Ew.say~) Do

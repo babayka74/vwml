@@ -66,7 +66,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			if (g == null) {
 				throw new Exception("couldn't find ring group by context '" + e.getContext().getContext() + "'");
 			}
-			activateSourceLifeTerm(g, e, null, false);
+			activateSourceLifeTerm(g, this, e, null, false);
 		}
 		normalizeInterpreterData();
 		timeFringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
@@ -113,8 +113,8 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	}
 	
 	@Override
-	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
-		return activateSourceLifeTerm(g, term, listener, true);
+	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl masterInterpreter, VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+		return activateSourceLifeTerm(g, masterInterpreter, term, listener, true);
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		ring.normalize();
 	}
 	
-	protected VWMLInterpreterImpl activateSourceLifeTerm(VWMLConflictRingExecutionGroup g, VWMLEntity term, VWMLInterpreterListener listener, boolean addAdditionalInterpreterToNode) throws Exception {
+	protected VWMLInterpreterImpl activateSourceLifeTerm(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl masterInterpreter, VWMLEntity term, VWMLInterpreterListener listener, boolean addAdditionalInterpreterToNode) throws Exception {
 		VWMLConflictRingNode n = null;
 		if (g != null) {
 			n = g.findMasterNode();
@@ -155,7 +155,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		impl.setConfig(getConfig());
 		impl.setTimerManager(getTimerManager());
 		impl.setRing(ring);
-		impl.setMasterInterpreter(this);
+		impl.setMasterInterpreter(masterInterpreter);
 		if (n != null) {
 			// associating interpreter and ring node
 			n.pushInterpreter(impl);

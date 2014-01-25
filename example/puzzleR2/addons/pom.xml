@@ -1,0 +1,6 @@
+<!-- external dependency -->
+		<dependency>
+			<groupId>com.vw.model.lang</groupId>
+			<artifactId>PuzzleR2IntegrationFringes</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>

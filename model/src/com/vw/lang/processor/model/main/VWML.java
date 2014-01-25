@@ -52,6 +52,7 @@ public final class VWML {
 				}
 				VWMLModelBuilder.instance().getProjectProps().addProperty(VWMLModelBuilder.s_TestModeProp, testMode);
 			}
+			processAddons(args);
 			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getProjectProps());
 		}
 		
@@ -70,6 +71,20 @@ public final class VWML {
 				}
 			}
 			return ip;
+		}
+		
+		private void processAddons(VWMLArgs args) {
+			if (args.getAddons() != null) {
+				String[] addons = args.getAddons().split(",");
+				if (addons != null) {
+					for(String addon : addons) {
+						String[] prop = addon.split("=");
+						if (prop != null && prop.length > 1 && VWMLModelBuilder.ADDONS.fromValue(prop[0]) != VWMLModelBuilder.ADDONS.NONE) {
+							VWMLModelBuilder.instance().getProjectProps().addProperty(prop[0], prop[1]);
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -177,10 +192,20 @@ public final class VWML {
 		private String entityInterpretationStrategy = new String(InterpretationOfUndefinedEntityStrategyId.STRICT.toValue());
 		@Option(name="-interpreter", usage="path to property file")
 		private String interpreterProps = null;
+		@Option(name="-addons", usage="comma separated properties list")
+		private String addons = null;
 		
 		 // receives other command line parameters than options
 	    @Argument
 	    private List<String> arguments = new ArrayList<String>();
+
+		public String getAddons() {
+			return addons;
+		}
+
+		public void setAddons(String addons) {
+			this.addons = addons;
+		}
 
 		public String getMode() {
 			return mode;

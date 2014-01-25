@@ -2,6 +2,7 @@ package com.vw.lang.processor.model.builder.specific;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -131,10 +132,15 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		File fLog = new File(jprops.getSrcPath() + "/../res/log4j.project");
 		String logFilePath = jprops.getSrcPath() + "/../log/" + getProjectName(jprops) + ".log";
 		logFilePath = logFilePath.replaceAll("\\\\", "/");
-		replace("-x-", logFilePath, fLog, new File(jprops.getSrcPath() + "/../res/log4j.xml"));
-		fLog.delete();		
+		replace(new String[] {"-x-"}, new String[] {logFilePath}, fLog, new File(jprops.getSrcPath() + "/../res/log4j.xml"));
+		fLog.delete();
+		String pomAddonPath = props.getProperty(VWMLModelBuilder.ADDONS.INTEGRATIONPOM.toValue());
+		String pomAddonContent = "";
+		if (pomAddonPath != null) {
+			pomAddonContent = file2Buf(pomAddonPath);
+		}
 		File fPom = new File(resourceDestPath);
-		replace("-x-", getProjectName(jprops), fPom, new File(jprops.getSrcPath() + "/../pom.xml"));
+		replace(new String[] {"-x-", "-y-"}, new String[] {getProjectName(jprops), pomAddonContent}, fPom, new File(jprops.getSrcPath() + "/../pom.xml"));
 		fPom.delete();
 		if (logger.isInfoEnabled()) {
 			logger.info(jprops.getSrcPath() + "/pom.xml processed - OK");
@@ -237,12 +243,18 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		}
 	}
 
-	public static void replace(String oldstring, String newstring, File in, File out) throws IOException {
+	public static void replace(String[] oldstring, String[] newstring, File in, File out) throws IOException {
+		if (oldstring.length != newstring.length) {
+			throw new IOException("lookup and replacement string arrayes must have the same size");
+		}
 		BufferedReader reader = new BufferedReader(new FileReader(in));
 		PrintWriter writer = new PrintWriter(new FileWriter(out));
 		String line = null;
 		while ((line = reader.readLine()) != null) {
-		    writer.println(line.replaceAll(oldstring, newstring));
+			for(int i = 0; i < oldstring.length; i++) {
+				line = line.replaceAll(oldstring[i], newstring[i]);
+			}
+			writer.println(line);
 		}
 	    reader.close();
 	    writer.close();
@@ -319,5 +331,18 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	  
 	  private String getProjectName(JavaModuleStartProps jprops) {
 		  return (jprops.getProjectName() == null) ? jprops.getModuleName() : jprops.getProjectName();
+	  }
+	  
+	  private String file2Buf(String path) {
+		  try {
+			  int l = (int)new File(path).length();
+			  byte[] buf = new byte[l];
+			  FileInputStream fis = new FileInputStream(path);
+			  fis.read(buf);
+			  return new String(buf);
+		  } catch (Exception e) {
+			  e.printStackTrace();
+		  }
+		  return null;
 	  }
 }

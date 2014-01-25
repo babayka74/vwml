@@ -35,6 +35,7 @@ public enum VWMLOperationsCode {
     OPFOREACH("ForEach"),
     OPNOP("Nop"),
     OPDYNCONTEXT("->"),
+    OPSIZE("Size"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

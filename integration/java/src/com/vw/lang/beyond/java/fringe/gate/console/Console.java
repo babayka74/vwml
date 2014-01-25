@@ -44,6 +44,14 @@ public class Console implements IVWMLGate {
 		return s_instance;
 	}
 	
+	public static String getInMethod() {
+		return s_exportedMethods[READ];
+	}
+
+	public static String getOutMethod() {
+		return s_exportedMethods[WRITE];
+	}
+	
 	@Override
 	public void init() throws Exception {
 	}

@@ -82,6 +82,41 @@ public class VWMLModelBuilder extends Debuggable {
 			 return TEST_MODE.STATIC;
 		 }
 	}
+
+	/**
+	 * Defines possible addons
+	 * @author Oleg
+	 *
+	 */
+	public static enum ADDONS {
+		INTEGRATIONPOM("integration_pom"),
+		NONE("none");
+		
+		private String value;
+		
+		private ADDONS(String value) {
+			this.value = value;
+		}
+		
+		 public static ADDONS fromValue(String value) {  
+			if (value != null) {  
+				 for (ADDONS tm : values()) {  
+					 if (tm.value.equals(value)) {  
+						 return tm;  
+					 }  
+				 }  
+			}  
+			return getDefault();  
+		 }
+		 
+		 public String toValue() {
+			 return value;
+		 }
+		 
+		 public static ADDONS getDefault() {
+			 return ADDONS.NONE;
+		 }
+	}
 	
 	public static class CodeGeneratorAux {
 		private ICodeGenerator generator;

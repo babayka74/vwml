@@ -38,6 +38,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.onfringe.V
 import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWMLOperationRelaxHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.rest.VWMLOperationRestHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.size.VWMLOperationSizeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.substruct.VWMLOperationSubstructHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
@@ -78,6 +79,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPCLONE),   				new VWMLOperationCloneHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPFOREACH),   				new VWMLOperationForEachHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPDYNCONTEXT),   			new VWMLOperationDynamicContextAddressingHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPSIZE),   				new VWMLOperationSizeHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());
