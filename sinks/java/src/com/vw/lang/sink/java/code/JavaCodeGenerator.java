@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -313,7 +314,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private boolean asSource = false;
 		private String uniqId = "VWMLLINK_" + UUID.randomUUID().toString();
 		private String[] contextPath = null; // associates with linkedId (its concrete context)
-		private String activeContext = null; // active context - CE's context
+		private String activeContext = null; // active context - CE's context (aka linked)
+		private String linkObjContext = null; // (aka linking)
 		
 		public VWMLLinkWrap(Object id, Object linkedId) {
 			super();
@@ -409,6 +411,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.activeContext = activeContext;
 		}
 
+		public String getLinkObjContext() {
+			return linkObjContext;
+		}
+
+		public void setLinkObjContext(String linkObjContext) {
+			this.linkObjContext = linkObjContext;
+		}
+
 		@Override
 		public String toString() {
 			return "VWMLLinkWrap [id=" + id + ", linkedId=" + linkedId
@@ -478,6 +488,31 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 	}
 	
+	public static class VWMLObjectTranslationElement {
+		private Object id;
+		private Object toId;
+		private String[] contexts;
+		
+		public VWMLObjectTranslationElement(Object id, Object toId, String[] contexts) {
+			super();
+			this.id = id;
+			this.toId = toId;
+			this.contexts = contexts;
+		}
+
+		public Object getId() {
+			return id;
+		}
+
+		public Object getToId() {
+			return toId;
+		}
+
+		public String[] getContexts() {
+			return contexts;
+		}
+	}
+	
 	// set of writers, for each file type
 	private FileWriter fws[] = new FileWriter[ModuleFiles.numValues()];
 	// used for debug purposes in order to visualize objects' linkage
@@ -497,7 +532,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	// associates object and operations
 	private Map<Object, VWMLOperationLink> operations = new HashMap<Object, VWMLOperationLink>();
 	// objects Id translation
-	private Map<Object, Object> idTranslationMap = new HashMap<Object, Object>();
+	private List<VWMLObjectTranslationElement> idTranslationMap = new ArrayList<VWMLObjectTranslationElement>();
 	// entities of the conflict ring
 	private Map<String, List<String>> entitiesOfConflictRing = new HashMap<String, List<String>>();
 	// currently processed conflict definition name
@@ -771,16 +806,24 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * Removes last declared complex entity; complex context detected
 	 * @param id (REL)
 	 */
-	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id) {
+	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id, String[] contexts) {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
-		removeFrom(linkage, rel);
-		removeFrom(interpret, rel);
-		for(VWMLObjWrap w : declaredObjects) {
+		removeFrom(linkage, rel, contexts);
+		removeFrom(interpret, rel, contexts);
+		Iterator<VWMLObjWrap> it = declaredObjects.iterator();
+		while(it.hasNext()) {
+			VWMLObjWrap w = it.next();
 			if (w.getObjId().equals(rel.getObj())) {
-				declaredObjects.remove(w);
+				for(String context : contexts) {
+					if (context.equals(w.getContext())) {
+						System.out.println("removed '" + w.getObjId() + "' on context '" + context + "'");
+						it.remove();
+					}
+				}
 				break;
 			}
 		}
+		
 		return true;
 	}
 	
@@ -788,20 +831,22 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * Changes object's id from 'id' to 'idTo'
 	 * @param id
 	 * @param idTo
+	 * @param contexts
 	 */
-	public void changeObjectIdTo(Object id, Object idTo) {
-		idTranslationMap.put(id, idTo);
+	public void changeObjectIdTo(Object id, Object idTo, String[] contexts) {
+		idTranslationMap.add(new VWMLObjectTranslationElement(id, idTo, contexts));
 	}
 
 	/**
 	 * Changes object's id from 'id' to 'idTo'
 	 * @param id
 	 * @param idTo
+	 * @param contexts
 	 */
-	public void changeObjectIdToImmidiatly(Object id, Object idTo) {
-		changeObjectIdToForDeclaredObjectsOnly(id, idTo);
-		changeObjectIdToIn(id, idTo, linkage);
-		changeObjectIdToIn(id, idTo, interpret);
+	public void changeObjectIdToImmidiatly(Object id, Object idTo, String[] contexts) {
+		changeObjectIdToForDeclaredObjectsOnly(id, idTo, contexts);
+		changeObjectIdToIn(id, idTo, linkage, contexts);
+		changeObjectIdToIn(id, idTo, interpret, contexts);
 	}
 	
 	/**
@@ -809,10 +854,15 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param id
 	 * @param idTo
 	 */
-	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo) {
+	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo, String[] contexts) {
 		for(VWMLObjWrap o : declaredObjects) {
 			if (o.getObjId().equals(id)) {
-				o.setObjId(idTo);
+				for(String context : contexts) {
+					if (context.equals(o.getContext())) {
+						System.out.println("changed '" + o.getObjId() + "' on context '" + context + "'; to '" + idTo + "'");
+						o.setObjId(idTo);
+					}
+				}
 			}
 		}		
 	}
@@ -821,11 +871,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * Links objects using their ids
 	 * @param id (ID)
 	 * @param linkedObjId
+	 * @param linkingContext
 	 * @param activeContext
 	 */
-	public void linkObjects(Object id, Object linkedObjId, String activeContext) {
+	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext) {
 		lastLink = new VWMLLinkWrap(id, linkedObjId);
 		lastLink.setActiveContext(activeContext);
+		lastLink.setLinkObjContext(linkingContext);
 		linkage.add(lastLink);
 	}
 	
@@ -857,11 +909,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * Set interpreting link between objects
 	 * @param id (ID)
 	 * @param interpretingObjId
+	 * @param linkingContext
 	 * @param activeContext
 	 */
-	public void interpretObjects(Object id, Object interpretingObjId, String activeContext) {
+	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext) {
 		lastLink = new VWMLLinkWrap(id, interpretingObjId);
 		lastLink.setActiveContext(activeContext);
+		lastLink.setLinkObjContext(linkingContext);
 		interpret.add(lastLink);
 	}
 	
@@ -941,11 +995,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}	
 
 	protected void normalizeCode() {
-		for(Object id : idTranslationMap.keySet()) {
-			Object idTo = idTranslationMap.get(id);
-			changeObjectIdToForDeclaredObjectsOnly(id, idTo);
-			changeObjectIdToIn(id, idTo, linkage);
-			changeObjectIdToIn(id, idTo, interpret);
+		for(VWMLObjectTranslationElement t : idTranslationMap) {
+			changeObjectIdToForDeclaredObjectsOnly(t.getId(), t.getToId(), t.getContexts());
+			changeObjectIdToIn(t.getId(), t.getToId(), linkage, t.getContexts());
+			changeObjectIdToIn(t.getId(), t.getToId(), interpret, t.getContexts());
 		}
 	}
 	
@@ -958,26 +1011,44 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		return imports;
 	}
 	
-	private void changeObjectIdToIn(Object id, Object idTo, List<VWMLLinkWrap> link) {
+	private void changeObjectIdToIn(Object id, Object idTo, List<VWMLLinkWrap> link, String[] contexts) {
 		for(VWMLLinkWrap w : link) {
 			if (w.getId().equals(id)) {
-				w.setId(idTo);
+				for(String context : contexts) {
+					if (context.equals(w.getLinkObjContext())) {
+						System.out.println("changed id '" + id + "' to '" + idTo + "' on context '" + context + "'");
+						w.setId(idTo);
+					}
+				}
 			}
 			if (w.getLinkedId().equals(id)) {
-				w.setLinkedId(idTo);
+				for(String context : contexts) {
+					if (context.equals(w.getActiveContext())) {
+						System.out.println("changed id '" + id + "' to '" + idTo + "' on context '" + context + "'");
+						w.setLinkedId(idTo);
+					}
+				}
 			}
 		}
 	}
 	
-	private void removeFrom(List<VWMLLinkWrap> from, EntityWalker.Relation rel) {
-		boolean next = true;
-		while(next) {
-			next = false;
-			for(VWMLLinkWrap lw : from) {
-				if (lw.getId().equals(rel.getObj()) || lw.getLinkedId().equals(rel.getObj())) {
-					from.remove(lw);
-					next = true;
-					break;
+	private void removeFrom(List<VWMLLinkWrap> from, EntityWalker.Relation rel, String[] contexts) {
+		Iterator<VWMLLinkWrap> it = from.iterator();
+		while(it.hasNext()) {
+			VWMLLinkWrap lw = it.next();
+			if (lw.getId().equals(rel.getObj())) {
+				for(String context : contexts) {
+					if (context.equals(lw.getLinkObjContext())) {
+						it.remove();
+					}
+				}
+			}
+			else
+			if (lw.getLinkedId().equals(rel.getObj())) {
+				for(String context : contexts) {
+					if (context.equals(lw.getActiveContext())) {
+						it.remove();
+					}
 				}
 			}
 		}

@@ -83,6 +83,34 @@ public class EntityWalker {
 		}
 	}
 	
+	public static class EntityDescriptor {
+		private Object id;
+		private Object contexts;
+		
+		private EntityDescriptor(Object id, Object contexts) {
+			this.id = id;
+			this.contexts = contexts;
+		}
+		
+		public static EntityDescriptor build(Object id, Object contexts) {
+			return new EntityDescriptor(id, contexts);
+		}
+
+		public Object getId() {
+			return id;
+		}
+
+		public Object getContexts() {
+			return contexts;
+		}
+
+		@Override
+		public String toString() {
+			return "EntityDescriptor [id=" + id + ", contexts=" + contexts
+					+ "]";
+		}
+	}
+	
 	public static class ComplexContextDescriptor {
 		private Object vwmlEffectiveContextBuilder = null;
 		private Object userData = null;

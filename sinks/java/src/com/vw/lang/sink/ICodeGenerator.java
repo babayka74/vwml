@@ -154,22 +154,25 @@ public interface ICodeGenerator {
 	/**
 	 * Removes last declared complex entity; complex context detected
 	 * @param id (REL)
+	 * @param contexts
 	 */
-	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id);
+	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id, String[] contexts);
 	
 	/**
 	 * Changes object's id from 'id' to 'idTo'
 	 * @param id
 	 * @param idTo
+	 * @param contexts
 	 */
-	public void changeObjectIdTo(Object id, Object idTo);
+	public void changeObjectIdTo(Object id, Object idTo, String[] contexts);
 	
 	/**
 	 * Changes object's id from 'id' to 'idTo'
 	 * @param id
 	 * @param idTo
+	 * @param contexts
 	 */
-	public void changeObjectIdToImmidiatly(Object id, Object idTo);
+	public void changeObjectIdToImmidiatly(Object id, Object idTo, String[] contexts);
 
 	
 	/**
@@ -177,7 +180,7 @@ public interface ICodeGenerator {
 	 * @param id
 	 * @param idTo
 	 */
-	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo);	
+	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo, String[] contexts);	
 	/**
 	 * Declares term
 	 * @param id
@@ -196,9 +199,10 @@ public interface ICodeGenerator {
 	 * Links objects using their ids
 	 * @param id
 	 * @param linkedObjId
+	 * @param linkingContext
 	 * @param activeContext
 	 */
-	public void linkObjects(Object id, Object linkedObjId, String activeContext);
+	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext);
 	
 	/**
 	 * Builds association between object and operation
@@ -212,9 +216,10 @@ public interface ICodeGenerator {
 	 * Set interpreting link between objects
 	 * @param id
 	 * @param interpretingObjId
+	 * @param linkingContext
 	 * @param activeContext
 	 */
-	public void interpretObjects(Object id, Object interpretingObjId, String activeContext);
+	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext);
 	
 	/**
 	 * Returns associated visitor; see {@link setVisitor}

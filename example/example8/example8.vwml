@@ -34,14 +34,28 @@ module example8 {
 				);
 				(c true) ias (o true).(c false);
 			);
-		(a true) ias (
+
+		(a true),(l true),(m false) ias (
+				b,x ias Robby.(a false).(c true);
+			     );
+
+/*
+		(a true),(l true) ias (
 				b ias Robby.(a false).(c true);
 				x ias Robby.(a false).(c true);
 			     );
-
+*/
+/*		
+		(l true) ias (
+				b ias Robby.(a false).(c true);
+				x ias Robby.(a false).(c true);
+			     );
+*/
 		source lifeterm = (
 				((a true).b (a false).(c true))^
 				(((a true).x~~~) ew.say~) Do
+				(((l true).x~~~) ew.say~) Do
+				(((m false).b~~~) ew.say~) Do
 				7000 Relax
 			   ) Exe
 

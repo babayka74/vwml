@@ -64,6 +64,7 @@ import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 import com.vw.lang.sink.utils.EntityWalker;
+import com.vw.lang.sink.utils.EntityWalker.EntityDescriptor;
 import com.vw.lang.sink.utils.EntityWalker.ComplexContextDescriptor;
 import com.vw.lang.sink.utils.GeneralUtils;
 
@@ -117,7 +118,7 @@ package com.vw.lang.grammar;
 	private String activeFringe = null;
 	private String lastDeclaredCreatureId = null;
 	private String lastDeclaredCreatureProps = null;
-	private String lastProcessedEntityId = null;
+	private String lastProcessedComplexEntityId = null;
 	private boolean lastProcessedEntityAsTerm = false;
 	private boolean sourceLifeTermDetectedFlag = false;
 	private boolean conflictDefinitionOnRingStarted = false;
@@ -181,12 +182,12 @@ package com.vw.lang.grammar;
     		else {
     			try {
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
-    		        	if (logger.isDebugEnabled()) {
-    		        		logger.debug("simple entity '" + id + "' is declared; contexts '" + contexts + "'");
-    		        	}
     				if (codeGenerator != null) {
-    					for(String c = contexts.next(); c != null; c = contexts.next()) {
+    					for(String c = contexts.first(); c != null; c = contexts.next()) {
     						codeGenerator.declareSimpleEntity(id, c);
+     		        			if (logger.isDebugEnabled()) {
+    		        				logger.debug("simple entity '" + id + "' is declared; context '" + c + "'");
+    		        			}
     					}
     				}
     			}
@@ -217,7 +218,7 @@ package com.vw.lang.grammar;
 		try {
 			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
 			if (codeGenerator != null) {
-				for(String c = contexts.next(); c != null; c = contexts.next()) {
+				for(String c = contexts.first(); c != null; c = contexts.next()) {
 					codeGenerator.declareComplexEntity(id, null, c);
 				}
 			}    	
@@ -243,7 +244,7 @@ package com.vw.lang.grammar;
     		}
     		if (codeGenerator != null) {
     			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
-    			for(String c = contexts.next(); c != null; c = contexts.next()) {
+    			for(String c = contexts.first(); c != null; c = contexts.next()) {
     				codeGenerator.declareContext(c);
     				if (logger.isDebugEnabled()) {
     					logger.debug("Context '" + c + "' was declared");
@@ -272,7 +273,7 @@ package com.vw.lang.grammar;
 
 	protected String unwindEffectiveContext() throws RecognitionException {
 		ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
-		Object entityId = null;
+		EntityWalker.EntityDescriptor entityDescr = null;
 		String c = "";
 		// top pushed entity's id should be changed on updated in case if its id is the same
 		EntityWalker.Relation rel = (EntityWalker.Relation)entityWalker.peek();		
@@ -280,10 +281,10 @@ package com.vw.lang.grammar;
 			logger.debug("Starting unwinding process of defferred effective context; top pushed entity is '" + rel.getObj() + "'");
 		}
 		while(contextDescriptor != null) {
-			if (entityId == null) {
-				entityId = contextDescriptor.getUserData();
+			if (entityDescr == null) {
+				entityDescr = (EntityWalker.EntityDescriptor)contextDescriptor.getUserData();
 				if (logger.isDebugEnabled()) {
-					logger.debug("creating effective context for entity '" + entityId + "'");
+					logger.debug("creating effective context for entity descriptor '" + entityDescr + "'");
 				}
 			}
 			// building context
@@ -296,18 +297,18 @@ package com.vw.lang.grammar;
 			contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
 		}
 		String newEntityId = null;
-		if (entityId != null) {
-			newEntityId = VWMLContextBuilder.buildFullEntityName(c, (String)entityId);
+		if (entityDescr != null) {
+			newEntityId = VWMLContextBuilder.buildFullEntityName(c, (String)entityDescr.getId());
 			if (codeGenerator != null) {
-				if (rel != null && rel.getObj().equals(entityId)) {
+				if (rel != null && rel.getObj().equals(entityDescr.getId())) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Top pushed entity '" + entityId + "' is changed to '" + newEntityId + "' also");
+						logger.debug("Top pushed entity '" + entityDescr.getId() + "' is changed to '" + newEntityId + "' also");
 					}
 					rel.setObj(newEntityId);
 				}
-				codeGenerator.changeObjectIdToImmidiatly(entityId, newEntityId);
+				codeGenerator.changeObjectIdToImmidiatly(entityDescr.getId(), newEntityId, (String[])entityDescr.getContexts());
 				if (logger.isDebugEnabled()) {
-					logger.debug("Entity '" + entityId + "' changed to '" + newEntityId + "'");
+					logger.debug("Entity '" + entityDescr.getId() + "' changed to '" + newEntityId + "'; contexts '" + entityDescr.getContexts() + "'");
 				}
 			}
 			if (logger.isDebugEnabled()) {
@@ -337,7 +338,8 @@ package com.vw.lang.grammar;
 	protected void processComplexContext(EntityWalker.Relation rel) throws RecognitionException {
 		if (codeGenerator != null) {
 			// removes entity from declaration and linkage storage; entity is interpreted as 'complex context'
-			codeGenerator.removeComplexEntityFromDeclarationAndLinkage(rel);
+			String[] contexts = vwmlContextBuilder.buildContext().asStrings();
+			codeGenerator.removeComplexEntityFromDeclarationAndLinkage(rel, contexts);
 			if (logger.isDebugEnabled()) {
 				logger.debug("entity '" + rel.getObj() + "' removed since it was recognized as complex context");
 			}
@@ -350,14 +352,14 @@ package com.vw.lang.grammar;
     				entityWalker.markFutureEntityAsIAS(fIAS);
 			}
    			// so entity is considered as effective context
-   			if (lastProcessedEntityId == null) {
+   			if (lastProcessedComplexEntityId == null) {
 				rethrowVWMLExceptionAsRecognitionException(new Exception("invalid context; single context indicator '.' detected"));
    			}
    			if (logger.isDebugEnabled()) {
-   				logger.debug("part of complex context '" + lastProcessedEntityId + "' detected");
+   				logger.debug("part of complex context '" + lastProcessedComplexEntityId + "' detected");
    			}
    			// adds effective context
-   			addEffectiveContext(lastProcessedEntityId);
+   			addEffectiveContext(lastProcessedComplexEntityId);
 		}
 	}
 
@@ -379,7 +381,8 @@ package com.vw.lang.grammar;
     			// standalone simple entity - chance to unwind defferred effective context
     			if (contextDescriptor != null && (relParent == null || !relParent.isParticipatesInComplexContextBuildingProcess())) {
     				if (contextDescriptor.getUserData() == null) {
-    					contextDescriptor.setUserData(id);
+    					String[] contexts = vwmlContextBuilder.buildContext().asStrings();
+    					contextDescriptor.setUserData(EntityDescriptor.build(id, contexts));
 					String newEntityId = unwindEffectiveContext();
 					if (newEntityId != null) {
 						id = newEntityId;
@@ -387,10 +390,16 @@ package com.vw.lang.grammar;
 				}
     			}    			
    			rel = buildRelation(id);
-   			lastProcessedEntityId = id;
     			if (logger.isDebugEnabled()) {
     				logger.debug("processed simple entity '" + rel + "'");
     			}
+    		}
+    		else {
+    			System.out.println("???????????????????????????????? " + id);
+    			// effective context on simple entity is equal '.' operator for complex entity
+   			// adds effective context
+   			addEffectiveContext(id);
+ 			
     		}
 		return rel;	
 	}
@@ -407,7 +416,8 @@ package com.vw.lang.grammar;
     				ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
     				if (contextDescriptor != null) {
     					if (contextDescriptor.getUserData() == null) {
-    						contextDescriptor.setUserData(ceId);
+    						String[] contextsAsStrings = vwmlContextBuilder.buildContext().asStrings();
+    						contextDescriptor.setUserData(EntityDescriptor.build(ceId, contextsAsStrings));
     						participatesInComplexContextBuildingProcess = true;
     					}
 					else {
@@ -415,7 +425,7 @@ package com.vw.lang.grammar;
 						unwindEffectiveContext();
 					}
     				}
-    				for(String c = contexts.next(); c != null; c = contexts.next()) {
+    				for(String c = contexts.first(); c != null; c = contexts.next()) {
     					codeGenerator.declareComplexEntity(ceId, null, c);
     				}
     			}
@@ -439,7 +449,7 @@ package com.vw.lang.grammar;
     		// builds complex entity readable name instead of generated
     		complexEntityNameBuilderDef = (ComplexEntityNameBuilder)rel.getData();
     		complexEntityNameBuilderDef.stopProgress();
-        	lastProcessedEntityId = complexEntityNameBuilderDef.build();
+        	lastProcessedComplexEntityId = complexEntityNameBuilderDef.build();
         	complexEntityNameBuilderDef.clear();    		
     		if (logger.isDebugEnabled()) {
     			logger.debug("processed complex entity '" + rel + "'");
@@ -454,17 +464,23 @@ package com.vw.lang.grammar;
        		// creates 'IAS' association
     		try {
     			// asking for current/active context
-    			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
     			if (codeGenerator != null) {
-    				VWMLContextBuilder.ContextBunchElement cbe = bunch.next();
-    				for(String c = contexts.next(); c != null; c = contexts.next(), cbe = bunch.next()) {
-    					codeGenerator.interpretObjects(cbe.getId(), objLinkedId, c);
+    				if (logger.isDebugEnabled()) {
+   					logger.debug("Interpreting bunch '" + bunch + "'");
+   				}
+   				VWMLContextBuilder.Contexts contexts = bunch.getContexts();
+    				for(VWMLContextBuilder.ContextBunchElement cbe = bunch.first(); cbe != null; cbe = bunch.next()) {
+    					for(String c = contexts.first(); c != null; c = contexts.next()) {
+    					        if (!c.endsWith((String)cbe.getId())) {
+    					        	continue;
+    					        }
+    						codeGenerator.interpretObjects(cbe.getId(), objLinkedId, c, c);
+    						if (logger.isDebugEnabled()) {
+   							logger.debug("Interpreting object '" + cbe.getId() + "' -> '" + objLinkedId + "'; on context '" + c + "'");
+   						}
+    					}
     				}
-    				bunch.resetIterator();
     			}
-    			if (logger.isDebugEnabled()) {
-   				logger.debug("Interpreting objects '" + bunch + "' -> '" + objLinkedId + "'; on contexts '" + contexts + "'");
-   			}
     		}
     		catch(Exception e) {
     			rethrowVWMLExceptionAsRecognitionException(e);
@@ -482,13 +498,12 @@ package com.vw.lang.grammar;
     				// asking for current/active context
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
     				Object linkingObjId = ((EntityWalker.Relation)rel).getObj();
+    				String c = contexts.first();
     				if (codeGenerator != null) {
-    					for(String c = contexts.next(); c != null; c = contexts.next()) {
-    						codeGenerator.linkObjects(linkingObjId, linkedObj, c);
-    					}
+    					codeGenerator.linkObjects(linkingObjId, linkedObj, c, c);
     				}
     				if (logger.isDebugEnabled()) {
-    					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'; on contexts '" + contexts + "'");
+    					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'; on context '" + c + "'");
     				}
     			}
     			catch(Exception e) {
@@ -821,7 +836,7 @@ body
 
  
 expression
-    : (entity_decl IAS) => entity_def
+    : (bunch_of_entity_decls IAS) => entity_def
     | check_term_def
     ;
 
@@ -914,19 +929,19 @@ entity_decl
 
 
 bunch_of_entity_decls
-    @init {
-    	lastProcessedContextBunch = VWMLContextBuilder.ContextBunch.instance();
-    	if (logger.isDebugEnabled()) {
-    		logger.debug("Created bunch");
-    	}
-    }
     @after {
+    	VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
         vwmlContextBuilder.push(lastProcessedContextBunch);
         if (logger.isDebugEnabled()) {
-        	logger.debug("Pushed '" + lastProcessedContextBunch + "'");
+        	logger.debug("Pushed '" + lastProcessedContextBunch + "'; parent contexts '" + contexts + "'");
         }
     }
-    : entity_decl (COMMA entity_decl)*
+    : 	{    	
+    		lastProcessedContextBunch = VWMLContextBuilder.ContextBunch.instance();
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("Created bunch");
+    		}
+	} entity_decl (COMMA entity_decl)*
     ;	
 
     
@@ -987,7 +1002,7 @@ oplist
     			if (lastProcessedEntity != null && codeGenerator != null) { 
     				lastProcessedEntityAsTerm = true;
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
-    				for(String c = contexts.next(); c != null; c = contexts.next()) {
+    				for(String c = contexts.first(); c != null; c = contexts.next()) {
     					codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, c);
     				}
     			} 
@@ -1040,7 +1055,7 @@ string
 COMMA
     : ','
     ;
-    
+  
 DQUOTE
     : '"'
     ;

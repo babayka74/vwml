@@ -1,7 +1,9 @@
 package com.vw.lang.processor.context.builder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.vw.lang.utils.Stack;
 
@@ -23,6 +25,7 @@ public class VWMLContextBuilder {
 
 	public static class ContextBunchElement {
 		private Object id;
+		private Map<Object, Object> associatedData = new HashMap<Object, Object>();
 
 		private ContextBunchElement(Object id) {
 			this.id = id;
@@ -40,6 +43,18 @@ public class VWMLContextBuilder {
 			this.id = id;
 		}
 
+		public void associate(Object key, Object data) {
+			associatedData.put(key, data);
+		}
+		
+		public void deAssociate(Object key) {
+			associatedData.remove(key);
+		}
+		
+		public Object getAssociatedData(Object key) {
+			return associatedData.get(key);
+		}
+		
 		@Override
 		public String toString() {
 			return "ContextBunchElement [id=" + id + "]";
@@ -55,6 +70,11 @@ public class VWMLContextBuilder {
 		
 		public void add(T e) {
 			container.add(e);
+		}
+
+		public T first() {
+			it = 0;
+			return next();
 		}
 		
 		public T next() {
@@ -93,6 +113,12 @@ public class VWMLContextBuilder {
 			return new Contexts();
 		}
 
+		public String[] asStrings() {
+			String[] contexts = new String[getContainer().size()];
+			getContainer().toArray(contexts);
+			return contexts;
+		}
+		
 		@Override
 		public String toString() {
 			return "Contexts [getContainer()=" + getContainer().toString() + "]";
@@ -120,7 +146,8 @@ public class VWMLContextBuilder {
 
 		@Override
 		public String toString() {
-			return "ContextBunch [contexts=" + contexts + "]";
+			return "ContextBunch [contexts=" + contexts + ", toString()="
+					+ super.toString() + "]";
 		}
 	}
 	
@@ -179,16 +206,14 @@ public class VWMLContextBuilder {
 		ContextBunch parent = (ContextBunch)stack.peek();
 		if (parent != null) {
 			Contexts contexts = parent.getContexts();
-			contexts.resetIterator();
-			for(String c = contexts.next(); c != null; c = contexts.next()) {
-				for(ContextBunchElement e = child.next(); e != null; e = child.next()) {
+			for(String c = contexts.first(); c != null; c = contexts.next()) {
+				for(ContextBunchElement e = child.first(); e != null; e = child.next()) {
 					child.getContexts().add(c + "." + (String)e.getId());
 				}
 			}
-			contexts.resetIterator();
 		}
 		else {
-			for(ContextBunchElement e = child.next(); e != null; e = child.next()) {
+			for(ContextBunchElement e = child.first(); e != null; e = child.next()) {
 				child.getContexts().add((String)e.getId());
 			}
 		}
