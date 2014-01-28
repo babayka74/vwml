@@ -468,18 +468,32 @@ package com.vw.lang.grammar;
     				if (logger.isDebugEnabled()) {
    					logger.debug("Interpreting bunch '" + bunch + "'");
    				}
-   				VWMLContextBuilder.Contexts contexts = bunch.getContexts();
+   				
+ 				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildReducedContextList();
     				for(VWMLContextBuilder.ContextBunchElement cbe = bunch.first(); cbe != null; cbe = bunch.next()) {
+    					String firstRelatedContext = contexts.first();
     					for(String c = contexts.first(); c != null; c = contexts.next()) {
-    					        if (!c.endsWith((String)cbe.getId())) {
-    					        	continue;
-    					        }
     						codeGenerator.interpretObjects(cbe.getId(), objLinkedId, c, c);
     						if (logger.isDebugEnabled()) {
    							logger.debug("Interpreting object '" + cbe.getId() + "' -> '" + objLinkedId + "'; on context '" + c + "'");
    						}
     					}
     				}
+   /*
+   				VWMLContextBuilder.Contexts contexts = bunch.getContexts();
+    				for(VWMLContextBuilder.ContextBunchElement cbe = bunch.first(); cbe != null; cbe = bunch.next()) {
+    					String firstRelatedContext = contexts.first();
+    					for(String c = contexts.first(); c != null; c = contexts.next()) {
+    					        if (!c.endsWith((String)cbe.getId())) {
+    					        	continue;
+    					        }
+    						codeGenerator.interpretObjects(cbe.getId(), objLinkedId, c, firstRelatedContext);
+    						if (logger.isDebugEnabled()) {
+   							logger.debug("Interpreting object '" + cbe.getId() + "' -> '" + objLinkedId + "'; on context '" + c + "'");
+   						}
+    					}
+    				}
+   */ 				
     			}
     		}
     		catch(Exception e) {
@@ -498,12 +512,21 @@ package com.vw.lang.grammar;
     				// asking for current/active context
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
     				Object linkingObjId = ((EntityWalker.Relation)rel).getObj();
-    				String c = contexts.first();
     				if (codeGenerator != null) {
-    					codeGenerator.linkObjects(linkingObjId, linkedObj, c, c);
-    				}
-    				if (logger.isDebugEnabled()) {
-    					logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'; on context '" + c + "'");
+    					String c = contexts.first();
+    					codeGenerator.linkObjects(linkingObjId, linkedObj, c, c, null);
+    					/*
+    					Object uniqId = null;
+    					for(String c = contexts.first(); c != null; c = contexts.next()) {
+    						codeGenerator.linkObjects(linkingObjId, linkedObj, c, c, uniqId);
+    						if (uniqId == null) {
+    							uniqId = codeGenerator.getLastLinksUniqId();
+    						}
+     						if (logger.isDebugEnabled()) {
+    							logger.debug("Linked objects '" + linkingObjId + "' -> '" + linkedObj + "'; on context '" + c + "'");
+    						}
+    					}
+    					*/
     				}
     			}
     			catch(Exception e) {
@@ -897,9 +920,10 @@ term_def
   	     {
   	       if (lastProcessedEntityAsTerm && codeGenerator != null) {
   	       		try {
-				codeGenerator.markEntityAsTerm(lastProcessedEntity);
+  	       			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
+				codeGenerator.markEntityAsTerm(lastProcessedEntity, contexts.asStrings());
 				if (logger.isDebugEnabled()) {
-					logger.debug("entity '" + lastProcessedEntity + "' marked as term");
+					logger.debug("entity '" + lastProcessedEntity + "' marked as term on contexts '" + contexts + "'");
 				}
 			}
 			catch(Exception e) {
@@ -1002,9 +1026,8 @@ oplist
     			if (lastProcessedEntity != null && codeGenerator != null) { 
     				lastProcessedEntityAsTerm = true;
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
-    				for(String c = contexts.first(); c != null; c = contexts.next()) {
-    					codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, c);
-    				}
+    				String c = contexts.first();
+    				codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, c);
     			} 
     		    }
     ;

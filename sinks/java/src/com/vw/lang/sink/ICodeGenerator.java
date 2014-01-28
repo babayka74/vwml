@@ -71,6 +71,12 @@ public interface ICodeGenerator {
 	public Object getLastLink();
 	
 	/**
+	 * Returns last link object's uniq Id
+	 * @return
+	 */
+	public Object getLastLinksUniqId();
+	
+	/**
 	 * Builds module's properties instance
 	 * @return
 	 */
@@ -106,9 +112,10 @@ public interface ICodeGenerator {
 	/**
 	 * Marks entity as term
 	 * @param id
+	 * @param contexts
 	 * @throws Exception
 	 */
-	public void markEntityAsTerm(Object id) throws Exception;
+	public void markEntityAsTerm(Object id, String[] contexts) throws Exception;
 	
 	/**
 	 * Marks entity as lifeterm; the entity had to added and marked as term before this method is called
@@ -201,8 +208,9 @@ public interface ICodeGenerator {
 	 * @param linkedObjId
 	 * @param linkingContext
 	 * @param activeContext
+	 * @param uniqId
 	 */
-	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext);
+	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext, Object uniqId);
 	
 	/**
 	 * Builds association between object and operation

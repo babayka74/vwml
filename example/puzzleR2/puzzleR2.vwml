@@ -86,17 +86,14 @@ module puzzleR2 {
 				((Croupier starts auction) Ew.Output~) Do
 			);
 			/* do not do anything */
-			(StartAuction true true) ias doNothing;
-			(StartAuction false false) ias doNothing;
+			(StartAuction true true),(StartAuction false false) ias doNothing;
 			/* Auction should be stopped */
 			(StopAuction true true) ias (
 				(Croupier.AuctionStarted false)^
 				((Croupier stops auction) Ew.Output~) Do
 			);
 			/* do not do anything */
-			(StopAuction false false) ias doNothing;
-			(StopAuction false true) ias doNothing;	
-			(StopAuction true false) ias doNothing;
+			(StopAuction false false),(StopAuction false true),(StopAuction true false) ias doNothing;
 			/* Assistant asks to stop auction immidiately */
 			ForceToStopAuction ias (
 				NotifyPlayersAuctionIsClosed ias (
@@ -240,13 +237,7 @@ module puzzleR2 {
 							/* Check if player has joined to auction */
 							(PlayerExist (Auction.Players~ PlayerId~)In)~ Exe
 						);
-						(BetPermitted false false) ias (
-							ReportAboutNonPermittedBetOperation~ Exe
-						);
-						(BetPermitted false true) ias (
-							ReportAboutNonPermittedBetOperation~ Exe
-						);
-						(BetPermitted true false) ias (
+						(BetPermitted false false),(BetPermitted false true),(BetPermitted true false) ias (
 							ReportAboutNonPermittedBetOperation~ Exe
 						);
 						/* waiting for bet permission for bet processing (conflicts with BetPermitted) */
@@ -388,6 +379,7 @@ module puzzleR2 {
 		PlayerLifeStep ias (
 			(NonActive true) ias doNothing;
 		        (NonActive false) ias (
+				((Activated player Id~) Ew.Output~) Do
 				500 Relax
 			);
 			(NonActive (Id~ nil)Ident)~ Exe
@@ -395,7 +387,6 @@ module puzzleR2 {
 		);
 
 		source lifeterm = (	
-					(Id CroupierAssistant.PlayerId~)^
 					PlayerLifeStep~ Exe
 				) Exe
 	);

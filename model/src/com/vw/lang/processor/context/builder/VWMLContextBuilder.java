@@ -127,7 +127,9 @@ public class VWMLContextBuilder {
 	
 	public static class ContextBunch extends IteratableContainer<ContextBunchElement> {
 		
+		private boolean root = false;
 		private Contexts contexts = Contexts.instance();
+		private Contexts reducedContextList = null;
 		
 		private ContextBunch() {
 		}
@@ -142,6 +144,22 @@ public class VWMLContextBuilder {
 		
 		public Contexts getContexts() {
 			return contexts;
+		}
+
+		public boolean isRoot() {
+			return root;
+		}
+
+		public void setRoot(boolean root) {
+			this.root = root;
+		}
+
+		public Contexts getReducedContextList() {
+			return reducedContextList;
+		}
+
+		public void setReducedContextList(Contexts reducedContextList) {
+			this.reducedContextList = reducedContextList;
 		}
 
 		@Override
@@ -216,6 +234,7 @@ public class VWMLContextBuilder {
 			for(ContextBunchElement e = child.first(); e != null; e = child.next()) {
 				child.getContexts().add((String)e.getId());
 			}
+			child.setRoot(true);
 		}
 		child.resetIterator();
 		stack.push(child);
@@ -251,6 +270,37 @@ public class VWMLContextBuilder {
 			contexts.add("");
 		}
 		contexts.resetIterator();
+		return contexts;
+	}
+
+	/**
+	 * Reduced contexts' list means that contexts are built by using first element starting from next bunch
+	 * @return
+	 */
+	public Contexts buildReducedContextList() {
+		Contexts contexts = Contexts.instance();
+		ContextBunch cb = (ContextBunch)stack.peek();
+		if (cb != null) {
+			if (cb.isRoot()) {
+				contexts = cb.getContexts();
+				cb.setReducedContextList(contexts);
+			}
+			else {
+				ContextBunch cbChild = (ContextBunch)stack.pop();
+				ContextBunch cbParent = (ContextBunch)stack.pop();
+				Contexts parentContexts = cbParent.getContexts();
+				ContextBunchElement childFirstContext = cbChild.first();
+				for(String pc = parentContexts.first(); pc != null; pc = parentContexts.next()) {
+					contexts.add(pc + "." + (String)childFirstContext.getId());
+				}
+				cbChild.setReducedContextList(contexts);
+				stack.push(cbParent);
+				stack.push(cbChild);
+			}
+		}
+		else {
+			contexts.add("");
+		}
 		return contexts;
 	}
 	

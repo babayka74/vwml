@@ -553,6 +553,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		return lastLink;
 	}
 
+	public Object getLastLinksUniqId() {
+		Object o = null;
+		if (lastLink != null) {
+			o = lastLink.getUniqId();
+		}
+		return o;
+	}
+	
 	/**
 	 * Builds module's properties instance
 	 * @return
@@ -713,13 +721,22 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	/**
 	 * Marks entity as term
 	 * @param id (REL)
+	 * @param contexts
 	 * @throws Exception
 	 */
-	public void markEntityAsTerm(Object id) throws Exception {
+	public void markEntityAsTerm(Object id, String[] contexts) throws Exception {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
 		markedAsTerm.add(rel.getObj());
-		if (rel.getLastLink() != null) {
-			((VWMLLinkWrap)rel.getLastLink()).setAsTerm(true);
+		Iterator<VWMLLinkWrap> it = linkage.iterator();
+		while(it.hasNext()) {
+			VWMLLinkWrap lw = it.next();
+			if (lw.getLinkedId().equals(rel.getObj())) {
+				for(String context : contexts) {
+					if (context.equals(lw.getActiveContext())) {
+						lw.setAsTerm(true);
+					}
+				}
+			}
 		}
 	}
 
@@ -873,11 +890,15 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param linkedObjId
 	 * @param linkingContext
 	 * @param activeContext
+	 * @param uniqId
 	 */
-	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext) {
+	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext, Object uniqId) {
 		lastLink = new VWMLLinkWrap(id, linkedObjId);
 		lastLink.setActiveContext(activeContext);
 		lastLink.setLinkObjContext(linkingContext);
+		if (uniqId != null) {
+			lastLink.setUniqId((String)uniqId);
+		}
 		linkage.add(lastLink);
 	}
 	
