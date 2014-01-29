@@ -21,6 +21,7 @@ import com.vw.lang.sink.java.code.repository.JavaCodeGeneratorRepository;
 import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.utils.EntityWalker;
+import com.vw.lang.sink.utils.EntityWalker.REL;
 
 /**
  * Used by VWMLProcessor for code generation
@@ -727,11 +728,20 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public void markEntityAsTerm(Object id, String[] contexts) throws Exception {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
 		markedAsTerm.add(rel.getObj());
-		Iterator<VWMLLinkWrap> it = linkage.iterator();
+		Iterator<VWMLLinkWrap> it = null;
+		if (rel.getRelation() == REL.ASSOCIATION) {
+			it = interpret.iterator();
+		}
+		else {
+			it = linkage.iterator();
+		}
 		while(it.hasNext()) {
 			VWMLLinkWrap lw = it.next();
-			if (lw.getLinkedId().equals(rel.getObj())) {
+			if (lw.getLinkedId().equals(rel.getObj()) && rel.getLastLink() != null && lw.getUniqId().equals(((VWMLLinkWrap)rel.getLastLink()).getUniqId())) {
 				for(String context : contexts) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("entity '" + rel.getObj() + "' candidate to term on context '" + context + "'; active context '" + lw.getActiveContext() + "'");
+					}
 					if (context.equals(lw.getActiveContext())) {
 						lw.setAsTerm(true);
 					}

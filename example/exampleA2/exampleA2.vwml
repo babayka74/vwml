@@ -21,6 +21,7 @@ options {
 include "../general/logicWorld.vwml"
 
 module exampleA2 {
+
 	Robby ias (
 		ew ias (
 			say ias communication.out.write;

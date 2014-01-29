@@ -128,6 +128,32 @@ public class Math implements IVWMLGate {
 		}
 	}
 	
+	public static class CompareHandler extends GateCommandHandler {
+		
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			EWEntity e = EWEntityBuilder.buildSimpleEntity("error", null);
+			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == 2) {
+				EWEntity e1 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+				EWEntity e2 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(1);
+				int ie1 = Math.convertString2Int((String)e1.getId());
+				int ie2 = Math.convertString2Int((String)e2.getId());
+				if (ie1 > ie2) {
+					e = EWEntityBuilder.buildSimpleEntity("1", null);
+				}
+				else
+				if (ie1 < ie2) {
+					e = EWEntityBuilder.buildSimpleEntity("-1", null);
+				}
+				else
+				if (ie1 == ie2) {
+					e = EWEntityBuilder.buildSimpleEntity("0", null);
+				}
+			}
+			return e;
+		}		
+	}
+	
 	@SuppressWarnings("serial")
 	private static Map<String, GateCommandHandler> s_methods = new HashMap<String, GateCommandHandler>() {
 		{
@@ -137,6 +163,7 @@ public class Math implements IVWMLGate {
 			put("div", new DivHandler());
 			put("inc", new IncHandler());
 			put("dec", new DecHandler());
+			put("compare", new CompareHandler());
 		}
 	};
 	

@@ -68,13 +68,9 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
 		// needed when resources should be released
 		ii.setClonedFromEntity(interpreter.getClonedFromEntity());
-		ii.setCloned(interpreter.isCloned());
-		ii.setTimerManager(interpreter.getTimerManager());
-		ii.setRing(interpreter.getRing());
+		ii.setCloned(true);
+		ii.getConfig().setStepByStepInterpretation(false);
 		ii.start();
-		if (interpreter.getConfig().isStepByStepInterpretation()) {
-			interpreter.pushInterpreterToChildStack(ii);
-		}
 		terms = null; // marks all elements to be garbage collected
 	}
 }

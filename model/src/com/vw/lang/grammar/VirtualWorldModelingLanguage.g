@@ -917,10 +917,13 @@ term_def
     			logger.debug(">> '" + lastProcessedEntity.getObj() + "' <<");
     		}
     	     } (oplist)* 
-  	     {
+  	     {  	     
   	       if (lastProcessedEntityAsTerm && codeGenerator != null) {
   	       		try {
   	       			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
+				if (logger.isDebugEnabled()) {
+					logger.debug("entity '" + lastProcessedEntity + "' checking term prop on contexts '" + contexts + "'");
+				}  	       						
 				codeGenerator.markEntityAsTerm(lastProcessedEntity, contexts.asStrings());
 				if (logger.isDebugEnabled()) {
 					logger.debug("entity '" + lastProcessedEntity + "' marked as term on contexts '" + contexts + "'");

@@ -44,8 +44,11 @@ module puzzleR2 {
 		Output ias communication.in.write;
 		IncNumberOfPlayers ias services.math.inc;
 		DecNumberOfPlayers ias services.math.dec;
+		Compare ias services.math.compare;
+		Substruct ias services.math.substr;
 		PlayersOnAuction ias 3;
 		NoPlayers ias 0;
+		PlayerCredit ias 100;
 	);
 
 	CroupierAssistant ias (
@@ -126,7 +129,7 @@ module puzzleR2 {
 					);
 					((Assistant removes player PlayerId~ from auction) Ew.Output~) Do
 					LeavePlayer [
-						/* increments number of players */
+						/* decrements number of players */
 						(Auction.ActivePlayers ((Auction.ActivePlayers~) Ew.DecNumberOfPlayers~) Do)^
 						/* removes player from players group */
 						(Auction.Players (Auction.Players~ (PlayerId~)) Substruct)^
@@ -221,11 +224,21 @@ module puzzleR2 {
 									(HasPlayerAlreadyMadeBet false)^
 								);
 								(DoNotAcceptPlayerBet false) ias (
+									/* checks player credit */
+									(BetCheckingResult 0),(BetCheckingResult 1) ias (
+										AcceptBet [
+                                                					(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ AcceptedBet~))Join)^
+											((Player PlayerId~)->Credit ((CurrentPlayerCredit~ AcceptedBet~) Ew.Substruct~) Do)^
+										AcceptBet ]
+										((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
+									);
+									(BetCheckingResult -1) ias (
+										((Assistant reports that player PlayerId~ does not have enough credits) Ew.Output~) Do
+									);
+									/* checks whether player has enough resources (credit) */
+									(CurrentPlayerCredit (Player PlayerId~)->Credit~)^
 									(AcceptedBet (Command~)Last)^
-									AcceptBet [
-                                                				(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ AcceptedBet~))Join)^
-									AcceptBet ]
-									((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
+									(BetCheckingResult ((CurrentPlayerCredit~ AcceptedBet~) Ew.Compare~) Do)~ Exe
 								);
 								/* checks if player has made bet */
 								FindPlayersBet~ Exe
@@ -335,7 +348,7 @@ module puzzleR2 {
 					);
 					(RemoveCardFromStorage false) ias doNothing;
 					((Croupier announced winner for card PublishedCard~) Ew.Output~) Do
-					/* decrease card's counter which defines how many the same cards are in the pool */
+					/* decrease card's counter which defines how many the cards, of this type, keep in the pool */
 					(PublishedCardCounter (PuzzleCardDescriptor~)Last)^
 					(PublishedCardCounter~ ((PublishedCardCounter~~) Ew.DecNumberOfPlayers~) Do)^
 					/* checks whether card should be removed from storage or no */
@@ -371,6 +384,7 @@ module puzzleR2 {
 	Player ias (
 		Id ias nil;
 		Card ias nil;
+		Credit ias 0;
 		Bet ias 0;
 		/* Player knows about joined and left players */
 		JoinedPlayer ias nil;
@@ -386,7 +400,9 @@ module puzzleR2 {
 			PlayerLifeStep~ Exe
 		);
 
-		source lifeterm = (	
+		source lifeterm = (
+					(Id CroupierAssistant.PlayerId~)^
+					(Credit Ew.PlayerCredit~)^	
 					PlayerLifeStep~ Exe
 				) Exe
 	);
