@@ -15,6 +15,10 @@ import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 public class VWMLOperations extends VWMLObject {
 	private List<VWMLOperation> operations = Collections.synchronizedList(new ArrayList<VWMLOperation>());
 
+	public VWMLOperations(Object hashId) {
+		super(hashId);
+	}
+	
 	/**
 	 * Associates VWML's operation with current entity; so entity is considered as term
 	 * @param op

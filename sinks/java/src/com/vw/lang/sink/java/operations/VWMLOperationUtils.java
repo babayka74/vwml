@@ -51,7 +51,7 @@ public class VWMLOperationUtils {
 		}
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		if (entities.size() > 0) {
-			newComplexEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, cen, null, 0, null);
+			newComplexEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, cen, cen, null, 0, null);
 			for(int i = fromPos; i >= 0; i--) {
 				newComplexEntity.getLink().link(entities.get(i));
 			}
@@ -182,6 +182,7 @@ public class VWMLOperationUtils {
 		if (entities.size() > 0) {
 			// acquire new complex entity with random name
 			newEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
+															cen,
 															cen,
 															ctx,
 															interpretationHistorySize,

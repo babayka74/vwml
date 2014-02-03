@@ -46,7 +46,7 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 				id = entity.buildReadableId();
 				type = VWMLObjectType.COMPLEX_ENTITY;
 			}
-			entity = (VWMLEntity)VWMLObjectBuilder.build(type, id, null, 0, null);
+			entity = (VWMLEntity)VWMLObjectBuilder.build(type, id, id, null, 0, null);
 		}
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
@@ -60,7 +60,7 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		}
 		// this entity, can be considered as phantom, since it isn't used for interpreting purposes (can't be interpreted, etc),
 		// is used for creating dynamic context only, where context is formed from terms
-		entity.setReadableId((String)entity.getId());
+		entity.setReadableId((String)entity.buildReadableId());
 		entity.setPartOfDynamicContext(true);
 		// clear stack
 		entities.clear();

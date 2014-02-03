@@ -12,12 +12,12 @@ public class VWMLTerm extends VWMLEntity {
 	private VWMLEntity associatedEntity;
 	private VWMLEntity originalAssociatedEntity;
 	
-	public VWMLTerm() {
-		super();
+	public VWMLTerm(Object hashId) {
+		super(hashId);
 	}
 
-	public VWMLTerm(Object id, String readableId) {
-		super(id, readableId);
+	public VWMLTerm(Object hashId, Object id, String readableId) {
+		super(hashId, id, readableId);
 	}
 
 	public boolean isTerm() {

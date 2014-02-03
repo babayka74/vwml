@@ -43,7 +43,7 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	// interpreter's conflict ring
 	private VWMLConflictRing ring = null;
 	// internal worker thread
-	private VWMLContext context = VWMLContext.instance();
+	private VWMLContext context = VWMLContext.instance("interpreter_context");
 	// stack of child interpreters; the interpreter is interpreted as child when it is instantiated during
 	// 'activate context' operation
 	private VWMLStack childInterpreters = VWMLStack.instance();
@@ -61,6 +61,10 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	// and sometimes (for 'ForEach') operations need to know master interpreter since it may
 	// implement specific logic which is needed for operation
 	private VWMLInterpreterImpl masterInterpreter = null;
+	
+	public VWMLInterpreterImpl() {
+		super("interpreter");
+	}
 
 	/**
 	 * Starts interpretation logic

@@ -32,7 +32,7 @@ public class VWMLInterpreterStackUnitTest {
 		obj = s.pop();
 		Assert.assertNull(obj);
 		for(int i = 0; i < 7; i++) {
-			obj = new VWMLObject(i, Integer.toString(i));
+			obj = new VWMLObject(i, i, Integer.toString(i));
 			s.push(obj);
 			System.out.println("pushed object '" + obj + "'");
 		}
@@ -50,7 +50,7 @@ public class VWMLInterpreterStackUnitTest {
 		VWMLObject obj = null;
 		VWMLStack s = VWMLStack.instance();
 		for(int i = 0; i < 7; i++) {
-			obj = new VWMLObject(i, Integer.toString(i));
+			obj = new VWMLObject(i, i, Integer.toString(i));
 			s.push(obj);
 			System.out.println("pushed object '" + obj + "'");
 		}

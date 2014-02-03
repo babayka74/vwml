@@ -116,7 +116,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}
 		VWMLContext root = contextsMap.get(rootContext);
 		if (root == null) {
-			root = VWMLContext.instance();
+			root = VWMLContext.instance(rootContext);
 			root.setContext(rootContext);
 			contextsMap.put(rootContext, root);
 		}
@@ -187,7 +187,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 			}
 			actualContext += contextPath[i];
 			if (next == null) {
-				next = VWMLContext.instance();
+				next = VWMLContext.instance(actualContext);
 				((VWMLContext)next).setContext(actualContext);
 				((VWMLContext)next).setContextName(contextPath[i]);
 				parent.getLink().link(next);
@@ -243,6 +243,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 				if (!e.isOriginal()) {
 					continue; // passing entities which were created in runtime
 				}
+				//System.out.println("Copy '" + e.buildReadableId() + "' from '" + contextFrom + "' to '" + contextTo + "'");
 				e.clone(null, initialEntityId, newEntityId, contextTo, initial, auxCache, false);
 			}
 		}

@@ -17,10 +17,12 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  *
  */
 public class VWMLContext extends VWMLObject {
+
+	private static String contexts_fake_object = "__fake_object__";
 	
 	private String[] contextPath;
 	private String context;
-	
+
 	private VWMLStack stack = null;	
 	// processed contexts placed here; used only if current context belongs to lifeterm
 	// we need it in order to restore entity's context after 'assemble' operation;
@@ -49,16 +51,16 @@ public class VWMLContext extends VWMLObject {
 	private int entityInterpretationHistorySize = 0;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	
-	private VWMLContext() {
-		
+	private VWMLContext(Object hashId) {
+		super(hashId);
 	}
 	
 	/**
 	 * Simple stack's factory
 	 * @return
 	 */
-	public static VWMLContext instance() {
-		return new VWMLContext();
+	public static VWMLContext instance(Object hashId) {
+		return new VWMLContext(hashId);
 	}
 	
 	/**
@@ -354,7 +356,7 @@ public class VWMLContext extends VWMLObject {
 	public void markEntityAsRecursiveInsideContext(VWMLEntity entity) {
 		VWMLEntity e = (VWMLEntity)this.getStack().peek();
 		if (e == null) {
-			e = new VWMLEntity(); // fake object
+			e = new VWMLEntity(contexts_fake_object); // fake object
 		}
 		getEntitiesMarkedAsRecursive().put(entity, e);
 	}
@@ -374,7 +376,7 @@ public class VWMLContext extends VWMLObject {
 	public void markEntityAsObservableInsideContext(VWMLEntity entity) {
 		VWMLEntity e = (VWMLEntity)this.getStack().peek();
 		if (e == null) {
-			e = new VWMLEntity(); // fake object
+			e = new VWMLEntity(contexts_fake_object); // fake object
 		}
 		getEntitiesMarkedAsObservable().put(entity, e);
 	}

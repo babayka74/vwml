@@ -90,7 +90,7 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 			if (i.getConfig().isStepByStepInterpretation()) {
 				interpreter.conditionalLoop(listener);
 			}
-			continueForEach = listener.isForcedStop();
+			continueForEach = !listener.isForcedStop();
 			interpreter.releaseTermResourcesAfterInterpretationDone(g, i, term);
 		}
 		else {

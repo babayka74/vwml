@@ -16,12 +16,12 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// all cloned terms have the same properties and associated with master node
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
 	
-	public VWMLConflictRingExecutionGroup() {
-		
+	public VWMLConflictRingExecutionGroup(Object hashId) {
+		super(hashId);
 	}
 	
 	public VWMLConflictRingExecutionGroup(Object id, String readableId) {
-		super(id, readableId);
+		super(id, id, readableId);
 	}
 	
 	public static VWMLConflictRingExecutionGroup build(Object id, String readableId) {

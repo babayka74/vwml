@@ -10,12 +10,12 @@ import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
  */
 public class VWMLComplexEntity extends VWMLEntity {
 
-	public VWMLComplexEntity() {
-		super();
+	public VWMLComplexEntity(Object hashId) {
+		super(hashId);
 	}
 
-	public VWMLComplexEntity(Object id, String readableId) {
-		super(id, readableId);
+	public VWMLComplexEntity(Object hashId, Object id, String readableId) {
+		super(hashId, id, readableId);
 		setMarkedAsComplexEntity(true);
 	}
 
@@ -68,7 +68,7 @@ public class VWMLComplexEntity extends VWMLEntity {
 					assembleReadableId(ce, le);
 				}
 				else {
-					ce.addObjectId(le.getId());
+					ce.addObjectId(le.buildReadableId());
 				}
 			}
 		}

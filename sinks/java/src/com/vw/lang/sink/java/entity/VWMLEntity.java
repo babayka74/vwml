@@ -33,7 +33,7 @@ public class VWMLEntity extends VWMLObject {
 	private VWMLEntity originalInterpreting;
 	private VWMLEntity interpreting;
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
-	private VWMLOperations associatedOperations = new VWMLOperations();
+	private VWMLOperations associatedOperations = new VWMLOperations("__associated_operation__" + this);
 	private boolean isLifeTerm = false;
 	private boolean isLifeTermAsSource = false;
 	private boolean isMarkedAsComplexEntity = false;
@@ -48,17 +48,23 @@ public class VWMLEntity extends VWMLObject {
 	private int interpretationHistorySize;
 	// if entity is cloned this field is set to entity from which it was cloned 
 	private VWMLEntity clonedFrom = null;
+	// entity which was not declared as context is declared as recursive entity (interpreted as is) on context
+	// where compiler found it, this process is called 'autodeclaration.
+	// Operation ^ creates new interpreting entity, this process is called - implicit declaration.
+	// So in order to use implicit declared entity on context where entity is auto-declared field resolvedInRuntime is used
+	// (not cloned)
+	private VWMLEntity resolvedInRuntime = null;
 	// entity linked entity; used when special entity __mark__ is pushed to stack
 	private VWMLEntity specialLinkedEntity = null;
 	// context may consist form terms
 	private boolean isPartOfDynamicContext = false;
 	
-	public VWMLEntity() {
-		super();
+	public VWMLEntity(Object hashId) {
+		super(hashId);
 	}
 
-	public VWMLEntity(Object id, String readableId) {
-		super(id, readableId);
+	public VWMLEntity(Object hashId, Object id, String readableId) {
+		super(hashId, id, readableId);
 	}
 
 	/**
@@ -202,7 +208,12 @@ public class VWMLEntity extends VWMLObject {
 	@Override
 	public String buildReadableId() {
 		if (getReadableId() == null) {
-			return (String)getId();
+			if (isTerm()) {
+				return ((VWMLTerm)this).getAssociatedEntity().buildReadableId();
+			}
+			else {
+				return (String)getId();
+			}
 		}
 		return getReadableId();
 	}
@@ -401,6 +412,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setOriginal(boolean isOriginal) {
 		this.isOriginal = isOriginal;
+	}
+
+	public VWMLEntity getResolvedInRuntime() {
+		return resolvedInRuntime;
+	}
+
+	public void setResolvedInRuntime(VWMLEntity resolvedInRuntime) {
+		this.resolvedInRuntime = resolvedInRuntime;
 	}
 
 	@Override

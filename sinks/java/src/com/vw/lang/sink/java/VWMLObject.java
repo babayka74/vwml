@@ -11,6 +11,7 @@ import com.vw.lang.sink.java.link.VWMLLink;
  */
 public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private Object id;
+	private Object hashId;
 	private String readableId;
 	private String simpleName;
 	private String[] parsedName;
@@ -24,12 +25,14 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	// simple ref. counter
 	private int refCounter = 0;
 	
-	public VWMLObject() {
+	public VWMLObject(Object hashId) {
 		super();
+		setHashId(hashId);
 	}
 
-	public VWMLObject(Object id, String readableId) {
+	public VWMLObject(Object hashId, Object id, String readableId) {
 		super();
+		setHashId(hashId);
 		setId(id);
 		setReadableId(readableId);
 	}
@@ -44,18 +47,23 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		VWMLObject other = (VWMLObject) obj;
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
-		} else if (!id.equals(other.id))
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
+		}
 		return true;
 	}
 
@@ -195,5 +203,20 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 
 	protected void setCompoundName(boolean compoundName) {
 		this.compoundName = compoundName;
+	}
+
+	protected Object getHashId() {
+		return hashId;
+	}
+
+	protected void setHashId(Object hashId) {
+		this.hashId = hashId;
+	}
+	
+	protected Object buildCompleteHashId() {
+		if (getId() != null && getHashId() != null) {
+			return getHashId() + "." + getId();
+		}
+		return (getId() == null) ? getHashId() : getId();
 	}
 }

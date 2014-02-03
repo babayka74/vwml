@@ -14,11 +14,21 @@ public class Stack {
 	 *
 	 */
 	public static class Inspector {
+		
 		public boolean inspected(Object obj) {
 			return true;
 		}
+
 		public boolean popInspectedNode(Object obj) {
 			return false;
+		}
+		
+		public boolean future(Stack stack, Object obj) {
+			return false;
+		}
+		
+		public Object toStack() {
+			return null;
 		}
 	}
 	
@@ -112,9 +122,19 @@ public class Stack {
 		Node t = top;
 		while (t.getNext() != null) {
 			if (!inspector.inspected(t.getData())) {
-				break;
+				t = t.getNext();
+				if (t != null) {
+					if (!inspector.future(this, t.getData())) {
+						break;
+					}
+				}
+				else {
+					break;
+				}
 			}
-			t = t.getNext();
+			else {
+				t = t.getNext();
+			}
 			if (inspector.popInspectedNode(t)) {
 				pop();
 			}

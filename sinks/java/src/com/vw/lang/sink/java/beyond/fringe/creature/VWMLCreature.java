@@ -23,13 +23,13 @@ public class VWMLCreature extends VWMLEntity {
 	// used by transformToEW && transformToVWML
 	public static boolean s_transformAsIs = false;
 	
-	public VWMLCreature() {
-		super();
+	public VWMLCreature(Object hashId) {
+		super(hashId);
 		markAsCreature();
 	}
 	
-	public VWMLCreature(Object id, String readableId) {
-		super(id, readableId);
+	public VWMLCreature(Object hashId, Object id, String readableId) {
+		super(hashId, id, readableId);
 		markAsCreature();
 	}
 	

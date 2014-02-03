@@ -45,8 +45,8 @@ module puzzleR2 {
 		IncNumberOfPlayers ias services.math.inc;
 		DecNumberOfPlayers ias services.math.dec;
 		Compare ias services.math.compare;
-		Substruct ias services.math.substr;
-		PlayersOnAuction ias 3;
+		DecreaseCredit ias services.math.substr;
+		PlayersOnAuction ias 2;
 		NoPlayers ias 0;
 		PlayerCredit ias 100;
 	);
@@ -103,9 +103,12 @@ module puzzleR2 {
 					/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
 					Id ias $;
 					/* notifies player identified by complex entity '(Player Id~~) */
+					((Player Id~~)->AuctionStoppedByAssistantCommand true)^
 					((Croupier closes auction and tells to player Id~~ to leave auction) Ew.Output~) Do
 				);
 				(Auction.Players~ NotifyPlayersAuctionIsClosed~) ForEach
+				/* master player, with id == null, (other players are cloned from it) should be stopped also */
+				((Player)->AuctionStoppedByAssistantCommand true)^
 				(Croupier.AuctionStarted false)^
 				(Croupier.ForceToCloseAuction true)^ 
 			);
@@ -221,14 +224,14 @@ module puzzleR2 {
 							(PlayerExist true) ias (
 								(DoNotAcceptPlayerBet true) ias (
 									((Assistant reports that player PlayerId~ has already made bet) Ew.Output~) Do
-									(HasPlayerAlreadyMadeBet false)^
+									(FindPlayersBet.HasPlayerAlreadyMadeBet false)^
 								);
 								(DoNotAcceptPlayerBet false) ias (
 									/* checks player credit */
 									(BetCheckingResult 0),(BetCheckingResult 1) ias (
 										AcceptBet [
-                                                					(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ AcceptedBet~))Join)^
-											((Player PlayerId~)->Credit ((CurrentPlayerCredit~ AcceptedBet~) Ew.Substruct~) Do)^
+                                                					(Croupier.LastPlayersBets (1025 Bp Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
+											((Player PlayerId~)->Credit ((CurrentPlayerCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
 										AcceptBet ]
 										((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
 									);
@@ -339,7 +342,7 @@ module puzzleR2 {
 						(Command announceWinner)^
 					);
 					CheckStatusOfBetCollection [
-						(AllBetsCollected ((Croupier.LastPlayersBets~)Size Auction.ActivePlayers~) Ident)~ Exe
+//						(AllBetsCollected ((Croupier.LastPlayersBets~)Size Auction.ActivePlayers~) Ident)~ Exe
 					CheckStatusOfBetCollection ]
 				);
                               	(ActiveCommand announceWinner) ias (
@@ -389,15 +392,32 @@ module puzzleR2 {
 		/* Player knows about joined and left players */
 		JoinedPlayer ias nil;
 		LeftPlayer ias nil;
+		/* sets by croupier assistant to 'true' when auction should be stopped */
+		AuctionStoppedByAssistantCommand ias false;
 
 		PlayerLifeStep ias (
-			(NonActive true) ias doNothing;
+			(NonActive true) ias (
+				(AuctionStopped true) ias (
+					((Player Id~ left auction) Ew.Output~) Do
+				);
+				(AuctionStopped false) ias (
+					((Player master is alive) Ew.Output~) Do
+					500 Relax
+					PlayerLifeStep~ Exe
+				);
+				(AuctionStopped AuctionStoppedByAssistantCommand~)~ Exe
+			);
 		        (NonActive false) ias (
-				((Activated player Id~) Ew.Output~) Do
-				500 Relax
+				(AuctionStopped true) ias (
+					((Player Id~ left auction) Ew.Output~) Do
+				);
+				(AuctionStopped false) ias (
+					500 Relax
+					PlayerLifeStep~ Exe
+				);
+				(AuctionStopped AuctionStoppedByAssistantCommand~)~ Exe
 			);
 			(NonActive (Id~ nil)Ident)~ Exe
-			PlayerLifeStep~ Exe
 		);
 
 		source lifeterm = (

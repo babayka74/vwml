@@ -22,31 +22,31 @@ public class VWMLObjectsRepository {
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
 		VWMLEntity e = null;
 		// built-in complex entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// built-in simple entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId2, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId2, VWMLEntity.s_doNothingEntityId2, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId3, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId3, VWMLEntity.s_doNothingEntityId3, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// built-in logical 'false' entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, VWMLEntity.s_falseEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 		// built-in logical 'true' entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, defaultContext, 0, null);
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, VWMLEntity.s_trueEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
 	}
@@ -64,7 +64,7 @@ public class VWMLObjectsRepository {
 	public static VWMLObjectsRepository instance() {
 		return s_repo;
 	}
-	
+
 	/**
 	 * Acquires object identified by type and id and puts it to repository in case if it isn't found there
 	 * @param type
@@ -91,7 +91,7 @@ public class VWMLObjectsRepository {
 				}
 				contextChanged = true;
 			}
-			obj = VWMLObjectBuilder.build(type, id, c, entityHistorySize, visitor);
+			obj = VWMLObjectBuilder.build(type, c.getContext(), id, c, entityHistorySize, visitor);
 			((VWMLEntity)obj).setOriginal(asOriginalOnCreation);
 			if (!contextChanged) {
 				instance().add((VWMLEntity)obj);
@@ -114,7 +114,7 @@ public class VWMLObjectsRepository {
 	 * @return
 	 */
 	public static VWMLObject acquireWithoutCheckingOnExistence(VWMLObjectBuilder.VWMLObjectType type, Object id, VWMLContext context, Integer entityHistorySize, boolean asOriginalOnCreation, AbstractVWMLLinkVisitor visitor) throws Exception {
-		VWMLObject obj = VWMLObjectBuilder.build(type, id, context, entityHistorySize, visitor);
+		VWMLObject obj = VWMLObjectBuilder.build(type, context.getContext(), id, context, entityHistorySize, visitor);
 		((VWMLEntity)obj).setOriginal(asOriginalOnCreation);
 		instance().addByEntityKey((VWMLEntity)obj, context);
 		return obj;

@@ -55,8 +55,8 @@ public class VWMLObjectBuilder {
 	
 	public static abstract class Builder {
 		
-		public VWMLObject objectBuilder(Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
-			VWMLEntity obj = (VWMLEntity)build(id);
+		public VWMLObject objectBuilder(Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
+			VWMLEntity obj = (VWMLEntity)build(hashId, id);
 			obj.setContext(context);
 			setInterpretationHistorySize(obj, entityHistorySize);
 			if (visitor != null) {			
@@ -65,7 +65,7 @@ public class VWMLObjectBuilder {
 			return obj;
 		}
 		
-		protected abstract VWMLObject build(Object id);
+		protected abstract VWMLObject build(Object hashId, Object id);
 		protected abstract void setInterpretationHistorySize(VWMLObject o, int size);
 		
 		protected void addVisitor(VWMLObject obj, AbstractVWMLLinkVisitor visitor) {
@@ -76,8 +76,8 @@ public class VWMLObjectBuilder {
 	public static class ObjectBuilder extends Builder {
 
 		@Override
-		public VWMLObject build(Object id) {
-			return new VWMLObject(id, null);
+		public VWMLObject build(Object hashId, Object id) {
+			return new VWMLObject(hashId, id, null);
 		}
 
 		@Override
@@ -88,8 +88,8 @@ public class VWMLObjectBuilder {
 	public static class SimpleEntityBuilder extends Builder {
 
 		@Override
-		public VWMLObject build(Object id) {
-			return new VWMLSimpleEntity(id, null);
+		public VWMLObject build(Object hashId, Object id) {
+			return new VWMLSimpleEntity(hashId, id, null);
 		}
 
 		@Override
@@ -101,8 +101,8 @@ public class VWMLObjectBuilder {
 	public static class ComplexEntityBuilder extends Builder {
 
 		@Override
-		public VWMLObject build(Object id) {
-			return new VWMLComplexEntity(id, null);
+		public VWMLObject build(Object hashId, Object id) {
+			return new VWMLComplexEntity(hashId, id, null);
 		}
 		
 		@Override
@@ -114,8 +114,8 @@ public class VWMLObjectBuilder {
 	public static class TermBuilder extends Builder {
 
 		@Override
-		public VWMLObject build(Object id) {
-			return new VWMLTerm(id, null);
+		public VWMLObject build(Object hashId, Object id) {
+			return new VWMLTerm(hashId, id, null);
 		}
 		
 		@Override
@@ -127,8 +127,8 @@ public class VWMLObjectBuilder {
 	public static class CreatureBuilder extends Builder {
 
 		@Override
-		public VWMLObject build(Object id) {
-			return new VWMLCreature(id, null);
+		public VWMLObject build(Object hashId, Object id) {
+			return new VWMLCreature(hashId, id, null);
 		}
 		
 		@Override
@@ -161,7 +161,7 @@ public class VWMLObjectBuilder {
 	 * @param visitor
 	 * @return
 	 */
-	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
-		return s_builders.get(builderType).objectBuilder(id, context, entityHistorySize, visitor);
+	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
+		return s_builders.get(builderType).objectBuilder(hashId, id, context, entityHistorySize, visitor);
 	}
 }

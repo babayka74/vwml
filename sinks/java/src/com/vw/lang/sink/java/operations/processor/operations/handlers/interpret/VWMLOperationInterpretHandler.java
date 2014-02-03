@@ -59,6 +59,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 	}
 	
 	protected VWMLEntity interpretSingleEntity(VWMLEntity entity, VWMLContext originalContext) throws Exception {
+		VWMLEntity initialEntity = entity;
 		if (entity == null) {
 			throw new Exception("trying to execute 'INTERPRET' operation on empty stack");
 		}
@@ -69,9 +70,32 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 				throw new Exception("inconsistency found for term '" + entity + "'; please check initial state initialization");
 			}
 		}
+		// if entity wasn't defined using IAS operator and its interpretation was setup using 
+		// undefined interpetation strategy then interpretation 
+		// should be considered in more complicated way
+		if (entity.isRecursiveInterpretationOnOriginal()) {
+			if (entity.getResolvedInRuntime() == null) {
+				// looking for entities for which interpreting expression ^ was applied
+				String contextId = entity.getContext().getContext();
+				int le = contextId.lastIndexOf(".");
+				if (le != -1) {
+					contextId = contextId.substring(0, le);
+					String fullEntityId = contextId + "." + entity.buildReadableId();
+					entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
+					if (entity == null) {
+						entity = initialEntity;
+					}
+					else {
+						entity.setResolvedInRuntime(entity);
+					}
+				}
+			}
+			else {
+				entity = entity.getResolvedInRuntime();
+			}
+		}
 		interpretingEntity = entity.getInterpreting();
 		if (interpretingEntity == null) {
-			VWMLEntity initialEntity = entity;
 			String fullEntityId = entity.getContext().getContext() + "." + entity.buildReadableId();
 			entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
 			if (entity == null) {

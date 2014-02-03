@@ -35,12 +35,12 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// by operations which require additional term interpretation in runtime (used by reactive and parallel interpreters)
 	private VWMLStack operationalInterpreters = VWMLStack.instance();
 	
-	public VWMLConflictRingNode() {
-		
+	public VWMLConflictRingNode(Object hashId) {
+		super(hashId);
 	}
 	
 	public VWMLConflictRingNode(Object id, String readableId) {
-		super(id, readableId);
+		super(id, id, readableId);
 	}
 	
 	public static VWMLConflictRingNode build(Object id, String readableId) {

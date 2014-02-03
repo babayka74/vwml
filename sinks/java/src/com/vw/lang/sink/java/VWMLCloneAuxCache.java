@@ -11,7 +11,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
  *
  */
 public class VWMLCloneAuxCache {
-	private Map<VWMLEntity, VWMLEntity> cached = new HashMap<VWMLEntity, VWMLEntity>();
+	private Map<String, VWMLEntity> cached = new HashMap<String, VWMLEntity>();
 	
 	private VWMLCloneAuxCache() {
 		
@@ -27,7 +27,8 @@ public class VWMLCloneAuxCache {
 	 * @param cloned
 	 */
 	public void add(VWMLEntity orig, VWMLEntity cloned) {
-		cached.put(orig, cloned);
+		String key = buildAssociatingKey(orig);
+		cached.put(key, cloned);
 	}
 	
 	/**
@@ -36,7 +37,8 @@ public class VWMLCloneAuxCache {
 	 * @return
 	 */
 	public VWMLEntity get(VWMLEntity e) {
-		return cached.get(e);
+		String key = buildAssociatingKey(e);
+		return cached.get(key);
 	}
 	
 	/**
@@ -45,7 +47,8 @@ public class VWMLCloneAuxCache {
 	 * @return
 	 */
 	public boolean check(VWMLEntity e) {
-		return cached.containsKey(e);
+		String key = buildAssociatingKey(e);
+		return cached.containsKey(key);
 	}
 	
 	/**
@@ -53,7 +56,8 @@ public class VWMLCloneAuxCache {
 	 * @param e
 	 */
 	public void remove(VWMLEntity e) {
-		cached.remove(e);
+		String key = buildAssociatingKey(e);
+		cached.remove(key);
 	}
 	
 	/**
@@ -61,5 +65,9 @@ public class VWMLCloneAuxCache {
 	 */
 	public void reset() {
 		cached.clear();
+	}
+	
+	private String buildAssociatingKey(VWMLEntity e) {
+		return e.getContext().getContext() + "." + e.getSimpleName();
 	}
 }

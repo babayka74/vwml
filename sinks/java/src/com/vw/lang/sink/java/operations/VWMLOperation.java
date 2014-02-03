@@ -11,11 +11,11 @@ public class VWMLOperation extends VWMLObject {
 	private VWMLOperationsCode opCode;
 
 	public VWMLOperation() {
-		super(VWMLOperationsCode.getDefault(), null);
+		super(VWMLOperationsCode.getDefault(), VWMLOperationsCode.getDefault(), null);
 	}
 
 	public VWMLOperation(VWMLOperationsCode opCode) {
-		super(opCode.toValue(), null);
+		super(opCode.toValue(),opCode.toValue(), null);
 		this.opCode = opCode;
 	}
 

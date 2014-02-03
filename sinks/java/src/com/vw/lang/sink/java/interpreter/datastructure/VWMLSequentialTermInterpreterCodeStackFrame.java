@@ -16,15 +16,19 @@ public class VWMLSequentialTermInterpreterCodeStackFrame extends VWMLObject {
 	// (__assemble__)
 	private VWMLOperation opImplicitlyAdded;
 	
+	private static long s_stackFrameNum = 0;
+	
 	public VWMLSequentialTermInterpreterCodeStackFrame() {
-		
+		super("stack_frame_" + s_stackFrameNum);
+		s_stackFrameNum++;
 	}
 	
 	public VWMLSequentialTermInterpreterCodeStackFrame(	VWMLEntity term,
 														VWMLEntity associatedEntity,
 														VWMLLinkIncrementalIterator itEntity,
 														VWMLOperation opImplicitlyAdded) {
-		super();
+		super("stack_frame_" + s_stackFrameNum);
+		s_stackFrameNum++;
 		this.associatedEntity = associatedEntity;
 		this.term = term;
 		this.itEntity = itEntity;

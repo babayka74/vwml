@@ -65,7 +65,7 @@ public class VWMLLink {
 	 * @return
 	 */
 	public boolean isLinked(VWMLObject obj) {
-		return itself.getLink().getLinkedObjects().contains(obj);
+		return (itself != null && itself.getLink() != null) ? itself.getLink().getLinkedObjects().contains(obj) : false;
 	}
 	
 	/**
@@ -86,7 +86,7 @@ public class VWMLLink {
 	 * @param obj
 	 */
 	public void unlinkFrom(VWMLObject obj) {
-		if (obj != null && isLinked(obj)) {
+		if (itself != null && obj != null && isLinked(obj)) {
 			itself.getLink().getLinkedObjects().remove(obj);
 			obj.getLink().setParent(itself.getLink().getParent());
 			if (getLinkOperationVisitor() != null) {
@@ -99,9 +99,9 @@ public class VWMLLink {
 	 * Unlinks from all linked entities
 	 */
 	public void unlinkFromAll() {
-		if (itself != null) {
+		if (itself != null && itself.getLink() != null) {
 			itself.getLink().getLinkedObjects().clear();
-			if (itself.getLink().getParent() != null) {
+			if (itself.getLink().getParent() != null && itself.getLink().getParent().getLink() != null) {
 				itself.getLink().getParent().getLink().unlinkFrom(itself);
 			}
 			itself.getLink().setParent(null);

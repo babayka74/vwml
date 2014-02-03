@@ -55,6 +55,6 @@ public class VWMLOperationSizeHandler extends VWMLOperationHandler {
 
 	protected VWMLEntity handleSizeOnComplexEntity(VWMLEntity entity, VWMLContext context) {
 		String size = String.valueOf(((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime());
-		return (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, size, context, 0, null);
+		return (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, context.getContext(), size, context, 0, null);
 	}
 }
