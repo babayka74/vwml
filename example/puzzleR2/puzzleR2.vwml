@@ -12,6 +12,7 @@ options {
 			)
 			fringe services ias (
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+				config ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
 			)
 		}
 		conflictring {
@@ -25,6 +26,7 @@ module puzzleR2 {
 		initialization phase
 	*/
 	Ew ias (
+		Commands ias (loadConfig reloadConfig wait);
 		FreePlaces ias (
 			p1 p2 p3
 			p4 p5 p6
@@ -40,8 +42,11 @@ module puzzleR2 {
 			(p4 c4)(p5 c5)(p6 c6)
 			(p7 c7)(p8 c8)(p9 c9)
 		);
+		Command ias wait;
+		ReadyToStart ias false;
 		Input ias communication.in.read;
 		Output ias communication.in.write;
+		ConfigLoader ias services.config.load;
 		IncNumberOfPlayers ias services.math.inc;
 		DecNumberOfPlayers ias services.math.dec;
 		Compare ias services.math.compare;
@@ -49,11 +54,32 @@ module puzzleR2 {
 		PlayersOnAuction ias 2;
 		NoPlayers ias 0;
 		PlayerCredit ias 100;
+
+		EwLifeStep ias (
+			/* waiting for command from assistant or croupier */
+			Commands.wait ias doNothing;
+			/* load configuration */
+			Commands.loadConfig, Commands.reloadConfig ias (
+				(FreePlaces ((freePlaces 1) ConfigLoader~) Do)^
+				(RestPuzzles ((restPuzzles 1) ConfigLoader~) Do)^
+				(Correspondence ((correspondence PlayersOnAuction~) ConfigLoader~) Do)^
+				((Configuration loaded) Ew.Output~) Do
+				(ReadyToStart true)^
+				(Command wait)^
+			);
+			Command~ Exe
+			EwLifeStep~ Exe
+		);
+		/* Croupier assistant lifeterm */
+		source lifeterm = EwLifeStep~ Exe
 	);
 
 	CroupierAssistant ias (
 		/* available commands which can be received from external world  */
 		PlayerCommands ias (leave join bet exit);
+		/* available commands which can be received from internal world */
+		InternalCommands ias (startNewAuction);
+		InternalCommand ias none;
 		/* read command */
 		Command ias nil;
 		CommandId ias nil;
@@ -76,8 +102,31 @@ module puzzleR2 {
 			);
 			(Croupier.LastPlayersBets~ CheckIfPlayerHasAlreadyMadeBet~) ForEach
 		);		
-
-		CroupierAssistantLifeStep ias (
+		/* Stops auction - all players should leave auction */
+		StopAuctionButNotClose ias (
+			NotifyPlayersAuctionIsClosed ias (
+				/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
+				Id ias $;
+				/* notifies player identified by complex entity '(Player Id~~) */
+				((Player Id~~)->AuctionStoppedByAssistantCommand true)^
+				((Croupier closes auction and tells to player Id~~ to leave auction) Ew.Output~) Do
+			);
+			(Auction.Players~ NotifyPlayersAuctionIsClosed~) ForEach
+			/* master player, with id == null, (other players are cloned from it) should be stopped also */
+			((Player)->AuctionStoppedByAssistantCommand true)^
+			(Croupier.AuctionStarted false)^
+		);
+		/* Assistant asks to stop auction immidiately */
+		ForceToStopAuction ias (
+			StopAuctionButNotClose~ Exe
+			(Croupier.ForceToCloseAuction true)^ 
+		);
+		/* Starts auction according to conditions */
+		StartAuctionByCondition ias (
+			DefaultActionOnAuctionNotStarted ias (
+		        	((Assistant reports that auction can not be started due to lack of players) Ew.Output~) Do
+			);
+			ActionOnAuctionNotStarted ias doNothing;
 			/* Auction should be started */
 			(StartAuction true false) ias (
 				/* initializing puzzle */
@@ -89,29 +138,25 @@ module puzzleR2 {
 				((Croupier starts auction) Ew.Output~) Do
 			);
 			/* do not do anything */
-			(StartAuction true true),(StartAuction false false) ias doNothing;
+			(StartAuction true true),(StartAuction false false) ias ActionOnAuctionNotStarted~;
+
+			(StartAuction (Auction.ActivePlayers~ Ew.PlayersOnAuction~)Ident Croupier.AuctionStarted~)~ Exe
+			(ActionOnAuctionNotStarted doNothing)^
+		);
+		/* Stops auction according to conditions */
+		StopAuctionByCondition ias (
 			/* Auction should be stopped */
 			(StopAuction true true) ias (
 				(Croupier.AuctionStarted false)^
+				Croupier.ResetAuctionProps~ Exe
 				((Croupier stops auction) Ew.Output~) Do
 			);
 			/* do not do anything */
 			(StopAuction false false),(StopAuction false true),(StopAuction true false) ias doNothing;
-			/* Assistant asks to stop auction immidiately */
-			ForceToStopAuction ias (
-				NotifyPlayersAuctionIsClosed ias (
-					/* $ is synthetic entity which is interpreted as iterated component of complex entity on operation ForEach */
-					Id ias $;
-					/* notifies player identified by complex entity '(Player Id~~) */
-					((Player Id~~)->AuctionStoppedByAssistantCommand true)^
-					((Croupier closes auction and tells to player Id~~ to leave auction) Ew.Output~) Do
-				);
-				(Auction.Players~ NotifyPlayersAuctionIsClosed~) ForEach
-				/* master player, with id == null, (other players are cloned from it) should be stopped also */
-				((Player)->AuctionStoppedByAssistantCommand true)^
-				(Croupier.AuctionStarted false)^
-				(Croupier.ForceToCloseAuction true)^ 
-			);
+			
+			(StopAuction (Auction.ActivePlayers~ Ew.NoPlayers~)Ident Croupier.AuctionStarted~)~ Exe
+		);
+		CroupierAssistantLifeStep ias (
 			(AllPlayersLeft false) ias (
 				/* player exist, try again */
 				(PlayerExist false) ias (
@@ -143,9 +188,11 @@ module puzzleR2 {
 					RemoveBetWhenPlayerLeft [
 						FindPlayersBet~ Exe
 						(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ FindPlayersBet.PlayerBet~))Substruct)^
+						((Assistant reports about bets Croupier.LastPlayersBets~) Ew.Output~) Do
 					RemoveBetWhenPlayerLeft ]
-					/* notify Croupier; may be auction should be started */
-					(StopAuction (Auction.ActivePlayers~ Ew.NoPlayers~)Ident Croupier.AuctionStarted~)~ Exe
+					((Player PlayerId~)->AuctionStoppedByAssistantCommand true)^
+					/* notify Croupier; may be auction should be stopped */
+					StopAuctionByCondition~ Exe
 					/* next assistant's step */
 					CroupierAssistantLifeStep~ Exe
 				);
@@ -184,7 +231,7 @@ module puzzleR2 {
 						(Auction.Players (Auction.Players~ PlayerId~) Join)^
 					JoinPlayer ]
 					/* notify Croupier; may be auction should be started */
-					(StartAuction (Auction.ActivePlayers~ Ew.PlayersOnAuction~)Ident Croupier.AuctionStarted~)~ Exe
+					StartAuctionByCondition~ Exe
 				);
 				/* checks if player with such id has already been registered */
 				(PlayerExist (Auction.Players~ PlayerId~) In)~ Exe
@@ -230,7 +277,7 @@ module puzzleR2 {
 									/* checks player credit */
 									(BetCheckingResult 0),(BetCheckingResult 1) ias (
 										AcceptBet [
-                                                					(Croupier.LastPlayersBets (1025 Bp Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
+                                                					(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
 											((Player PlayerId~)->Credit ((CurrentPlayerCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
 										AcceptBet ]
 										((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
@@ -258,10 +305,10 @@ module puzzleR2 {
 						);
 						/* waiting for bet permission for bet processing (conflicts with BetPermitted) */
 						WaitForBetPermition [
-							(BetPermitted Croupier.PermitBet)^
+							(BetPermitted Croupier.PermitBet~)^
 						WaitForBetPermition ]
 						/* Check if bet is allowed; bet is allowed in case if auction started */
-						(BetPermitted Croupier.AuctionStarted~ BetPermitted~~)~ Exe
+						(BetPermitted Croupier.AuctionStarted~ BetPermitted~)~ Exe
 						/* waiting for correct player id */
 						CroupierAssistantLifeStep~ Exe
 					);
@@ -284,18 +331,40 @@ module puzzleR2 {
 				/* executes actions depend on commandId */
 				(ProcessCommand IsCommandInList~)~ Exe
 			);
-			/* waiting for command, in non-blocking manner */ 
-			(Command (() Ew.Input~) Do)^
-			(WaitForCommand (Command~ nil) Ident)~ Exe
+			(Ready true) ias (
+				/* waiting for command, in non-blocking manner */ 
+				(Command (() Ew.Input~) Do)^
+				(WaitForCommand (Command~ nil) Ident)~ Exe
+			);
+			(Ready false) ias (
+				CroupierAssistantLifeStep~ Exe
+			);
+			/* internal commands initiated by croupier or other entity have to be processed before any other commands */
+			(ProcessInternalCommand true) ias (
+				InternalCommands.startNewAuction ias (
+					(StartAuctionByCondition.ActionOnAuctionNotStarted StartAuctionByCondition.DefaultActionOnAuctionNotStarted)^
+					StartAuctionByCondition~ Exe
+					(InternalCommand none)^
+				);
+				InternalCommand~ Exe
+			);
+			(ProcessInternalCommand false) ias doNothing;
+			(ProcessInternalCommand (InternalCommands~ InternalCommand~) In)~ Exe
+			(Ready Ew.ReadyToStart~)~ Exe // TODO: should be sync
 		);
 
 		/* Croupier assistant lifeterm */
-		source lifeterm = CroupierAssistantLifeStep~ Exe
+		source lifeterm = (
+			((Assistant loads configuration of the auction) Ew.Output~) Do
+			(Ew.Command Ew.Commands.loadConfig)^
+			CroupierAssistantLifeStep~ Exe
+		) Exe
 	);
 
 	Croupier ias (
 		AuctionStarted ias false;
 		ForceToCloseAuction ias false;
+		AskAssistantAboutContinueAuction ias false;
 		PermitBet ias false;
 		/* available commands */
 		Commands ias (selectCard permitBetOperation waitForBetFromPlayers announceWinner);
@@ -305,27 +374,56 @@ module puzzleR2 {
 		LastPlayersBets ias ();	
 		/* Croupier selects puzzle's card which is put up to auction  */
 		PuzzleCard ias nil;
+		/* last published card and its descriptor */
+		PuzzleCardDescriptor ias nil;
+		PublishedCard ias nil;
+		/* Winner */
+		Winner ias nil;
+		/* Resets auction's properties */
+		ResetAuctionProps ias (
+			(PermitBet false)^
+			(PublishedCard nil)^
+			(Command selectCard)^
+		);
 		/* Croupier processes Assistant's commands */
 		/* Croupier's life step */
 		CroupierLifeStep ias (
 			(ContinueAuction true) ias (
 				(ActiveCommand selectCard) ias (
-					PublishedCard ias nil;
-					/* Croupier takes random puzzle's card */
-					(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
-					(PublishedCard (PuzzleCardDescriptor~)First)^
-					((Croupier selected card PublishedCard~ and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
-					/* selected card should be published to all players */
-					CardPublishing [
-						NotifyPlayersCardSelected ias (
-							Id ias $;
-							/* notifies player identified by complex entity '(Player Id~~) */
-							((Player Id~~)->Card PublishedCard~)^
-						);
-						(Auction.Players~ NotifyPlayersCardSelected~) ForEach
-					CardPublishing ]
-					/* card was published to all players and next command is wait for players' bet */
-					(Command permitBetOperation)^
+					(AllCardsSold true) ias (
+						/* All cards have been sold */
+						/* Resets auction's dynamic properties  */
+						ResetAuctionProps~ Exe
+						/* All users' bets should be reset also */
+						(Croupier.LastPlayersBets ())^
+						/* Auction stopped */
+						(AuctionStarted false)^
+						/* Croupier asks whether auction should be continued or no */
+						((Croupier continues auction with new puzzle set) Ew.Output~) Do
+						/* tells to Ew that configuration should be reloaded */
+						(Ew.ReadyToStart false)^
+						(Ew.Command Ew.Commands.reloadConfig)^
+						/* this action will be executed in case if auction can't be started by some causes */
+						(CroupierAssistant.InternalCommand CroupierAssistant.InternalCommands.startNewAuction)^
+					);
+					(AllCardsSold false) ias (
+						/* Croupier takes random puzzle's card */
+						(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
+						(PublishedCard (PuzzleCardDescriptor~)First)^
+						((Croupier selected card PublishedCard~ and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
+						/* selected card should be published to all players */
+						CardPublishing [
+							NotifyPlayersCardSelected ias (
+								Id ias $;
+								/* notifies player identified by complex entity '(Player Id~~) */
+								((Player Id~~)->Card PublishedCard~)^
+							);
+							(Auction.Players~ NotifyPlayersCardSelected~) ForEach
+						CardPublishing ]
+						/* card was published to all players and next command is wait for players' bet */
+						(Command permitBetOperation)^
+					);
+					(AllCardsSold (Ew.RestPuzzles~ ()) Ident)~ Exe
 				);
 				(ActiveCommand permitBetOperation) ias (
 					/* conflicts with WaitForBetReceivingPermition */
@@ -342,29 +440,38 @@ module puzzleR2 {
 						(Command announceWinner)^
 					);
 					CheckStatusOfBetCollection [
-//						(AllBetsCollected ((Croupier.LastPlayersBets~)Size Auction.ActivePlayers~) Ident)~ Exe
+						(AllBetsCollected ((Croupier.LastPlayersBets~)Size Auction.ActivePlayers~) Ident)~ Exe
 					CheckStatusOfBetCollection ]
 				);
                               	(ActiveCommand announceWinner) ias (
 					(RemoveCardFromStorage true) ias (
+						((Card PuzzleCardDescriptor~ will be removed from puzzle set) Ew.Output~) Do
 						(Ew.RestPuzzles (Ew.RestPuzzles~ (PuzzleCardDescriptor~))Substruct)^
 					);
-					(RemoveCardFromStorage false) ias doNothing;
-					((Croupier announced winner for card PublishedCard~) Ew.Output~) Do
+					(RemoveCardFromStorage false) ias (
+						((PublishedCard~ will be available for PublishedCardCounter~~ times) Ew.Output~) Do
+					);
+					(OnePlayerStayesOnAuction true) ias (
+						(Winner (Croupier.LastPlayersBets~)First First)^
+						((Croupier announced winner Winner~ for card PublishedCard~) Ew.Output~) Do
+					);
+					(OnePlayerStayesOnAuction false) ias (
+						
+					);
+					(OnePlayerStayesOnAuction ((Croupier.LastPlayersBets~)Size 1) Ident)~ Exe
 					/* decrease card's counter which defines how many the cards, of this type, keep in the pool */
 					(PublishedCardCounter (PuzzleCardDescriptor~)Last)^
 					(PublishedCardCounter~ ((PublishedCardCounter~~) Ew.DecNumberOfPlayers~) Do)^
 					/* checks whether card should be removed from storage or no */
 					(RemoveCardFromStorage (PublishedCardCounter~~ 0) Ident)~ Exe
-					(PublishedCard nil)^
-					(Command selectCard)^
+					ResetAuctionProps~ Exe
 				);
 				(ActiveCommand Command~)~ Exe
 				(ContinueAuction AuctionStarted~)~ Exe
 			);
 			(ContinueAuction false) ias (
 				(ForceToClose true) ias (
-					(PermitBet false)^
+					ResetAuctionProps~ Exe
 				);
 				(ForceToClose false) ias (
 					CroupierLifeStep~ Exe
@@ -401,8 +508,6 @@ module puzzleR2 {
 					((Player Id~ left auction) Ew.Output~) Do
 				);
 				(AuctionStopped false) ias (
-					((Player master is alive) Ew.Output~) Do
-					500 Relax
 					PlayerLifeStep~ Exe
 				);
 				(AuctionStopped AuctionStoppedByAssistantCommand~)~ Exe
