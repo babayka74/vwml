@@ -29,6 +29,10 @@ public class VWMLObjectsRepository {
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
 		add(e);
+		// built-in simple entity id
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NullEntityId, VWMLEntity.s_NullEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
@@ -233,6 +237,19 @@ public class VWMLObjectsRepository {
 		}
 	}
 
+	/**
+	 * Returns pre-created default 'null' entity
+	 * @return
+	 */
+	public VWMLEntity getNullEntity() {
+		try {
+			return (VWMLEntity)get(VWMLEntity.s_NullEntityId, VWMLContextsRepository.instance().getDefaultContext());
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
+	
 	/**
 	 * Returns pre-created default 'true' entity
 	 * @return

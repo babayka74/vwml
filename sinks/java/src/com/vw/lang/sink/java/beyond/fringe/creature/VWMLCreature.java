@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
@@ -35,17 +36,18 @@ public class VWMLCreature extends VWMLEntity {
 	
 	/**
 	 * Transforms EW entity to VWML entity
+	 * @param context
 	 * @param ewEntity
 	 * @return
 	 * @throws Exception
 	 */
-	public static VWMLEntity transformToVWML(EWEntity ewEntity, boolean transformationFlag) throws Exception {
+	public static VWMLEntity transformToVWML(VWMLContext context, EWEntity ewEntity, boolean transformationFlag) throws Exception {
 		VWMLEntity e = null;
 		if (transformationFlag == s_transformAlwaysAsSimple || !ewEntity.isMarkedAsComplexEntity()) {
-			e = transformSimpleEWEntityToVWML(null, ewEntity);
+			e = transformSimpleEWEntityToVWML(context, null, ewEntity);
 		}
 		else {
-			e = transformComplexEWEntityToVWML(null, ewEntity);
+			e = transformComplexEWEntityToVWML(context, null, ewEntity);
 		}
 		return e; 
 	}
@@ -73,10 +75,10 @@ public class VWMLCreature extends VWMLEntity {
 		this.isCreature = true;
 	}
 	
-	private static VWMLEntity transformSimpleEWEntityToVWML(VWMLEntity parent, EWEntity ewEntity) throws Exception {
+	private static VWMLEntity transformSimpleEWEntityToVWML(VWMLContext context, VWMLEntity parent, EWEntity ewEntity) throws Exception {
 		VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.SIMPLE_ENTITY,
 											   ewEntity.getId(),
-											   ewEntity.getContext(),
+											   context.getContext(),
 											   0,
 											   VWMLObjectsRepository.notAsOriginal,
 											   null);
@@ -86,27 +88,21 @@ public class VWMLCreature extends VWMLEntity {
 		return e;
 	}
 	
-	private static VWMLEntity transformComplexEWEntityToVWML(VWMLEntity parent, EWEntity ewEntity) throws Exception {
+	private static VWMLEntity transformComplexEWEntityToVWML(VWMLContext context, VWMLEntity parent, EWEntity ewEntity) throws Exception {
 		VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
 				   ewEntity.getId(),
-				   ewEntity.getContext(),
+				   context.getContext(),
 				   0,
 				   VWMLObjectsRepository.notAsOriginal,
 				   null);
 		for(EWObject ewo : ewEntity.getLink().getLinkedObjects()) {
 			EWEntity ewe = (EWEntity)ewo;
 			if (!ewe.isMarkedAsComplexEntity()) {
-				transformSimpleEWEntityToVWML(e, ewe);
+				transformSimpleEWEntityToVWML(context, e, ewe);
 			}
 			else {
-				if (parent != null) {
-					parent.getLink().link(e);
-				}
-				VWMLEntity r = transformComplexEWEntityToVWML(e, ewe);
-				if (parent == null) {
-					parent = e;
-					parent.getLink().link(r);
-				}									
+				VWMLEntity r = transformComplexEWEntityToVWML(context, e, ewe);
+				e.getLink().link(r);
 			}
 		}
 		if (ewEntity.getLink().getLinkedObjects().size() == 0) {

@@ -65,7 +65,7 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 			EWEntity ewEntity = VWMLCreature.transformToEW(msg, VWMLCreature.s_transformAsIs);
 			EWEntity ewResponseEntity = fringeGate.invokeEW(getActionOnFringe(onFringe), ewEntity);
 			if (ewResponseEntity != null) {
-				answerFromEW = VWMLCreature.transformToVWML(ewResponseEntity, VWMLCreature.s_transformAsIs);
+				answerFromEW = VWMLCreature.transformToVWML(resContext, ewResponseEntity, VWMLCreature.s_transformAsIs);
 				answerFromEW.setContext(resContext);
 			}
 		}

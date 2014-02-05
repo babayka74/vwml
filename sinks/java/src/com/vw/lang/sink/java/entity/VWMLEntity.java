@@ -18,6 +18,7 @@ import com.vw.lang.sink.java.operations.VWMLOperations;
 public class VWMLEntity extends VWMLObject {
 
 	public static final String s_NilEntityId       = "nil";
+	public static final String s_NullEntityId      = "null";
 	public static final String s_EmptyEntityId     = "()";
 	public static final String s_doNothingEntityId = "doNothing";
 	public static final String s_doNothingEntityId2 = "DoNothing";
@@ -260,10 +261,13 @@ public class VWMLEntity extends VWMLObject {
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {
+		this.interpreting = interpreting;
 		if (interpreting != null) {
 			interpretationHistory.store(interpreting);
+			if (interpreting.equals(VWMLObjectsRepository.instance().getNullEntity())) {
+				interpreting = null;
+			}
 		}
-		this.interpreting = interpreting;
 		if (originalInterpreting == null) {
 			originalInterpreting = interpreting;
 		}

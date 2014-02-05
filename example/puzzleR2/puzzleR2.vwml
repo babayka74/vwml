@@ -12,7 +12,7 @@ options {
 			)
 			fringe services ias (
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
-				config ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+				config ias "com.win.game.puzzleR2.model.fringe.gate.config.ConfigurationLoader"
 			)
 		}
 		conflictring {
@@ -26,7 +26,7 @@ module puzzleR2 {
 		initialization phase
 	*/
 	Ew ias (
-		Commands ias (loadConfig reloadConfig wait);
+/*
 		FreePlaces ias (
 			p1 p2 p3
 			p4 p5 p6
@@ -42,6 +42,10 @@ module puzzleR2 {
 			(p4 c4)(p5 c5)(p6 c6)
 			(p7 c7)(p8 c8)(p9 c9)
 		);
+*/
+		FreePlaces ias ();
+                RestPuzzles ias ();
+                Correspondence ias ();
 		Command ias wait;
 		ReadyToStart ias false;
 		Input ias communication.in.read;
@@ -57,17 +61,17 @@ module puzzleR2 {
 
 		EwLifeStep ias (
 			/* waiting for command from assistant or croupier */
-			Commands.wait ias doNothing;
+			(ew wait) ias doNothing;
 			/* load configuration */
-			Commands.loadConfig, Commands.reloadConfig ias (
-				(FreePlaces ((freePlaces 1) ConfigLoader~) Do)^
-				(RestPuzzles ((restPuzzles 1) ConfigLoader~) Do)^
-				(Correspondence ((correspondence PlayersOnAuction~) ConfigLoader~) Do)^
+			(ew loadConfig),(ew reloadConfig) ias (
+				(FreePlaces ((freePlaces) ConfigLoader~) Do)^
+				(RestPuzzles ((restPuzzles) ConfigLoader~) Do)^
+				(Correspondence ((correspondence) ConfigLoader~) Do)^
 				((Configuration loaded) Ew.Output~) Do
 				(ReadyToStart true)^
 				(Command wait)^
 			);
-			Command~ Exe
+			(ew Command~)~ Exe
 			EwLifeStep~ Exe
 		);
 		/* Croupier assistant lifeterm */
@@ -341,12 +345,12 @@ module puzzleR2 {
 			);
 			/* internal commands initiated by croupier or other entity have to be processed before any other commands */
 			(ProcessInternalCommand true) ias (
-				InternalCommands.startNewAuction ias (
+				(internal startNewAuction) ias (
 					(StartAuctionByCondition.ActionOnAuctionNotStarted StartAuctionByCondition.DefaultActionOnAuctionNotStarted)^
 					StartAuctionByCondition~ Exe
 					(InternalCommand none)^
-				);
-				InternalCommand~ Exe
+				); 
+				(internal InternalCommand~)~ Exe
 			);
 			(ProcessInternalCommand false) ias doNothing;
 			(ProcessInternalCommand (InternalCommands~ InternalCommand~) In)~ Exe
@@ -356,7 +360,7 @@ module puzzleR2 {
 		/* Croupier assistant lifeterm */
 		source lifeterm = (
 			((Assistant loads configuration of the auction) Ew.Output~) Do
-			(Ew.Command Ew.Commands.loadConfig)^
+			(Ew.Command loadConfig)^
 			CroupierAssistantLifeStep~ Exe
 		) Exe
 	);
@@ -402,9 +406,10 @@ module puzzleR2 {
 						((Croupier continues auction with new puzzle set) Ew.Output~) Do
 						/* tells to Ew that configuration should be reloaded */
 						(Ew.ReadyToStart false)^
-						(Ew.Command Ew.Commands.reloadConfig)^
+						/* loads new puzzle */
+						(Ew.Command reloadConfig)^
 						/* this action will be executed in case if auction can't be started by some causes */
-						(CroupierAssistant.InternalCommand CroupierAssistant.InternalCommands.startNewAuction)^
+						(CroupierAssistant.InternalCommand startNewAuction)^
 					);
 					(AllCardsSold false) ias (
 						/* Croupier takes random puzzle's card */
