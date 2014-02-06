@@ -201,6 +201,8 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 				resolveVWMLRecursion(context, defferredEntity);
 			}
 			else {
+				VWMLSequentialTermInterpreterCodeStackFrame f = (VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame();
+				unmarkVWMLEntityAsProbableRecursion(context, f.getTerm());
 				context.popStackFrame();
 			}
 			context.getEntityDynamicProperties(defferredEntity, true).setOperatesByExe(true);

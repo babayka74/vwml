@@ -163,10 +163,8 @@ public class VWMLConflictRing {
 			initialyEmptyRing = true;
 		}
 		g = lookupGroupByContext(context);
-		if (initialyEmptyRing) {
-			if (g == null) {
-				g = buildArtificialGroupAndAssociatedNode(context);
-			}
+		if (g == null) {
+			g = buildArtificialGroupAndAssociatedNode(context);
 		}
 		return g;
 	}

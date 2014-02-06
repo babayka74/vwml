@@ -813,15 +813,15 @@ conflictring
     ;	
 
 conflictdef
-    : name_of_conflict_on_ring { startConflictDefinitionOnRing($name_of_conflict_on_ring.id); } 'conflicts' '(' name_of_related_conflict_on_ring? ')' { endConflictDefinitionOnRing(); }
+    : name_of_conflict_on_ring { startConflictDefinitionOnRing(GeneralUtils.trimQuotes($name_of_conflict_on_ring.id)); } 'conflicts' '(' name_of_related_conflict_on_ring? ')' { endConflictDefinitionOnRing(); }
     ;
     
 name_of_conflict_on_ring returns [String id]
-    : ID { id = $ID.getText(); }	
+    : string { id = $string.text; }	
     ;	
 
 name_of_related_conflict_on_ring
-    : ID { addConflictDefinitionOnRing($ID.getText()); }
+    : string { addConflictDefinitionOnRing(GeneralUtils.trimQuotes($string.text)); }
     ;
 
 module

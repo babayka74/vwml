@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-02-05 14:51:10
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-02-06 11:23:04
 
 package com.vw.lang.grammar;
 
@@ -2134,7 +2134,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                 int alt17=2;
                 int LA17_0 = input.LA(1);
 
-                if ( (LA17_0==ID) ) {
+                if ( (LA17_0==STRING_LITERAL) ) {
                     alt17=1;
                 }
 
@@ -2193,22 +2193,22 @@ public class VirtualWorldModelingLanguageParser extends Parser {
             state._fsp--;
             if (state.failed) return ;
 
-            if ( state.backtracking==0 ) { startConflictDefinitionOnRing(name_of_conflict_on_ring14); }
+            if ( state.backtracking==0 ) { startConflictDefinitionOnRing(GeneralUtils.trimQuotes(name_of_conflict_on_ring14)); }
 
             match(input,57,FOLLOW_57_in_conflictdef1168); if (state.failed) return ;
 
             match(input,49,FOLLOW_49_in_conflictdef1170); if (state.failed) return ;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:113: ( name_of_related_conflict_on_ring )?
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:138: ( name_of_related_conflict_on_ring )?
             int alt18=2;
             int LA18_0 = input.LA(1);
 
-            if ( (LA18_0==ID) ) {
+            if ( (LA18_0==STRING_LITERAL) ) {
                 alt18=1;
             }
             switch (alt18) {
                 case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:113: name_of_related_conflict_on_ring
+                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:138: name_of_related_conflict_on_ring
                     {
                     pushFollow(FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1172);
                     name_of_related_conflict_on_ring();
@@ -2244,20 +2244,25 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "name_of_conflict_on_ring"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:819:1: name_of_conflict_on_ring returns [String id] : ID ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:819:1: name_of_conflict_on_ring returns [String id] : string ;
     public final String name_of_conflict_on_ring() throws RecognitionException {
         String id = null;
 
 
-        Token ID15=null;
+        VirtualWorldModelingLanguageParser.string_return string15 =null;
+
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:820:5: ( ID )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:820:7: ID
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:820:5: ( string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:820:7: string
             {
-            ID15=(Token)match(input,ID,FOLLOW_ID_in_name_of_conflict_on_ring1202); if (state.failed) return id;
+            pushFollow(FOLLOW_string_in_name_of_conflict_on_ring1202);
+            string15=string();
 
-            if ( state.backtracking==0 ) { id = ID15.getText(); }
+            state._fsp--;
+            if (state.failed) return id;
+
+            if ( state.backtracking==0 ) { id = (string15!=null?input.toString(string15.start,string15.stop):null); }
 
             }
 
@@ -2277,17 +2282,22 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "name_of_related_conflict_on_ring"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:823:1: name_of_related_conflict_on_ring : ID ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:823:1: name_of_related_conflict_on_ring : string ;
     public final void name_of_related_conflict_on_ring() throws RecognitionException {
-        Token ID16=null;
+        VirtualWorldModelingLanguageParser.string_return string16 =null;
+
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:824:5: ( ID )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:824:7: ID
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:824:5: ( string )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:824:7: string
             {
-            ID16=(Token)match(input,ID,FOLLOW_ID_in_name_of_related_conflict_on_ring1223); if (state.failed) return ;
+            pushFollow(FOLLOW_string_in_name_of_related_conflict_on_ring1223);
+            string16=string();
 
-            if ( state.backtracking==0 ) { addConflictDefinitionOnRing(ID16.getText()); }
+            state._fsp--;
+            if (state.failed) return ;
+
+            if ( state.backtracking==0 ) { addConflictDefinitionOnRing(GeneralUtils.trimQuotes((string16!=null?input.toString(string16.start,string16.stop):null))); }
 
             }
 
@@ -3675,16 +3685,16 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     public static final BitSet FOLLOW_IAS_in_creature1117 = new BitSet(new long[]{0x0000800000000000L});
     public static final BitSet FOLLOW_string_in_creature1119 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_56_in_conflictring1139 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
-    public static final BitSet FOLLOW_71_in_conflictring1141 = new BitSet(new long[]{0x0000000000000400L,0x0000000000000100L});
-    public static final BitSet FOLLOW_conflictdef_in_conflictring1143 = new BitSet(new long[]{0x0000000000000400L,0x0000000000000100L});
+    public static final BitSet FOLLOW_71_in_conflictring1141 = new BitSet(new long[]{0x0000800000000000L,0x0000000000000100L});
+    public static final BitSet FOLLOW_conflictdef_in_conflictring1143 = new BitSet(new long[]{0x0000800000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_72_in_conflictring1146 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_name_of_conflict_on_ring_in_conflictdef1164 = new BitSet(new long[]{0x0200000000000000L});
     public static final BitSet FOLLOW_57_in_conflictdef1168 = new BitSet(new long[]{0x0002000000000000L});
-    public static final BitSet FOLLOW_49_in_conflictdef1170 = new BitSet(new long[]{0x0004000000000400L});
+    public static final BitSet FOLLOW_49_in_conflictdef1170 = new BitSet(new long[]{0x0004800000000000L});
     public static final BitSet FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1172 = new BitSet(new long[]{0x0004000000000000L});
     public static final BitSet FOLLOW_50_in_conflictdef1175 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_name_of_conflict_on_ring1202 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_name_of_related_conflict_on_ring1223 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_string_in_name_of_conflict_on_ring1202 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_string_in_name_of_related_conflict_on_ring1223 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_64_in_module1242 = new BitSet(new long[]{0x0000000000000400L});
     public static final BitSet FOLLOW_ID_in_module1244 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
     public static final BitSet FOLLOW_body_in_module1248 = new BitSet(new long[]{0x0000000000000002L});

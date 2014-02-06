@@ -16,6 +16,7 @@ options {
 			)
 		}
 		conflictring {
+			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersLeft false).(PlayerExist true).LeavePlayer" conflicts ("Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).CheckStatusOfBetCollection")
 		}
 	}
 }
@@ -26,23 +27,6 @@ module puzzleR2 {
 		initialization phase
 	*/
 	Ew ias (
-/*
-		FreePlaces ias (
-			p1 p2 p3
-			p4 p5 p6
-			p7 p8 p9
-		);
-		RestPuzzles ias (
-			(c1 counter1) (c2 counter2) (c3 counter3)
-			(c4 counter4) (c5 counter5) (c6 counter6)
-			(c7 counter7) (c8 counter8) (c9 counter9)
-		);
-		Correspondence ias (
-			(p1 c1)(p2 c2)(p3 c3)
-			(p4 c4)(p5 c5)(p6 c6)
-			(p7 c7)(p8 c8)(p9 c9)
-		);
-*/
 		FreePlaces ias ();
                 RestPuzzles ias ();
                 Correspondence ias ();
@@ -61,7 +45,9 @@ module puzzleR2 {
 
 		EwLifeStep ias (
 			/* waiting for command from assistant or croupier */
-			(ew wait) ias doNothing;
+			(ew wait) ias (
+ 				EwLifeStep~ Exe
+			);
 			/* load configuration */
 			(ew loadConfig),(ew reloadConfig) ias (
 				(FreePlaces ((freePlaces) ConfigLoader~) Do)^
@@ -70,9 +56,10 @@ module puzzleR2 {
 				((Configuration loaded) Ew.Output~) Do
 				(ReadyToStart true)^
 				(Command wait)^
+				EwLifeStep~ Exe
 			);
+			(ew exit) ias doNothing;
 			(ew Command~)~ Exe
-			EwLifeStep~ Exe
 		);
 		/* Croupier assistant lifeterm */
 		source lifeterm = EwLifeStep~ Exe
@@ -123,14 +110,17 @@ module puzzleR2 {
 		/* Assistant asks to stop auction immidiately */
 		ForceToStopAuction ias (
 			StopAuctionButNotClose~ Exe
-			(Croupier.ForceToCloseAuction true)^ 
+			(Croupier.ForceToCloseAuction true)^
+			(Ew.Command exit)^ 
 		);
 		/* Starts auction according to conditions */
 		StartAuctionByCondition ias (
 			DefaultActionOnAuctionNotStarted ias (
 		        	((Assistant reports that auction can not be started due to lack of players) Ew.Output~) Do
+				1025 Bp
 			);
-			ActionOnAuctionNotStarted ias doNothing;
+			DoNotDoAnyActionOnAuctionNotStarted ias doNothing;
+			ActionOnAuctionNotStarted ias DoNotDoAnyActionOnAuctionNotStarted;
 			/* Auction should be started */
 			(StartAuction true false) ias (
 				/* initializing puzzle */
@@ -142,10 +132,10 @@ module puzzleR2 {
 				((Croupier starts auction) Ew.Output~) Do
 			);
 			/* do not do anything */
-			(StartAuction true true),(StartAuction false false) ias ActionOnAuctionNotStarted~;
+			(StartAuction true true),(StartAuction false false) ias ActionOnAuctionNotStarted~~ Exe;
 
 			(StartAuction (Auction.ActivePlayers~ Ew.PlayersOnAuction~)Ident Croupier.AuctionStarted~)~ Exe
-			(ActionOnAuctionNotStarted doNothing)^
+			(ActionOnAuctionNotStarted DoNotDoAnyActionOnAuctionNotStarted)^
 		);
 		/* Stops auction according to conditions */
 		StopAuctionByCondition ias (
@@ -187,13 +177,10 @@ module puzzleR2 {
 						(Auction.Players (Auction.Players~ (PlayerId~)) Substruct)^
 						/* notifies all players in 'real world' about left player */
 						(Auction.Players~ NotifyPlayersLeftPlayer~) ForEach
-					LeavePlayer ]
-					/* removes user's bet */
-					RemoveBetWhenPlayerLeft [
 						FindPlayersBet~ Exe
 						(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ FindPlayersBet.PlayerBet~))Substruct)^
 						((Assistant reports about bets Croupier.LastPlayersBets~) Ew.Output~) Do
-					RemoveBetWhenPlayerLeft ]
+					LeavePlayer ]
 					((Player PlayerId~)->AuctionStoppedByAssistantCommand true)^
 					/* notify Croupier; may be auction should be stopped */
 					StopAuctionByCondition~ Exe
@@ -341,6 +328,7 @@ module puzzleR2 {
 				(WaitForCommand (Command~ nil) Ident)~ Exe
 			);
 			(Ready false) ias (
+				((waiting for ready state) Ew.Output~) Do
 				CroupierAssistantLifeStep~ Exe
 			);
 			/* internal commands initiated by croupier or other entity have to be processed before any other commands */
@@ -396,8 +384,6 @@ module puzzleR2 {
 				(ActiveCommand selectCard) ias (
 					(AllCardsSold true) ias (
 						/* All cards have been sold */
-						/* Resets auction's dynamic properties  */
-						ResetAuctionProps~ Exe
 						/* All users' bets should be reset also */
 						(Croupier.LastPlayersBets ())^
 						/* Auction stopped */
