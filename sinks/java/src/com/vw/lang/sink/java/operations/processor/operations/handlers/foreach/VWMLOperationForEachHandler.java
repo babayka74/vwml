@@ -75,6 +75,7 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 	protected boolean forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
 		boolean continueForEach = true;
 		VWMLConflictRingExecutionGroup g = null;
+		VWMLInterpreterImpl activeInterpreter = interpreter;
 		VWMLInterpreterListener listener = new VWMLInterpreterListenerForOperationForEach();
 		if (interpreter.getRtNode() != null) {
 			g = interpreter.getRtNode().getExecutionGroup();
@@ -83,7 +84,9 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 			interpreter = interpreter.getMasterInterpreter();
 		}
 		// term is interpreted by own interpreter
-		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, interpreter, term, listener);
+		VWMLContext forcedContext = VWMLContext.instance("forEach_" + term.getContext().getContext());
+		forcedContext.setContext(term.getContext().getContext());
+		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener);
 		if (i != null) {
 			// the synthetic entity '$' will be interpreted as component
 			i.setInterpretingEntityForSyntheticEntity(component);

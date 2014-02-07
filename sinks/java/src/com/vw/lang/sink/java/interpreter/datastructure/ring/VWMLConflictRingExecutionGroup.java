@@ -15,6 +15,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// cloned source lifeterms' nodes which correspond to given node
 	// all cloned terms have the same properties and associated with master node
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
+	private List<VWMLConflictRingNode> removedNodes = new ArrayList<VWMLConflictRingNode>();
 	
 	public VWMLConflictRingExecutionGroup(Object hashId) {
 		super(hashId);
@@ -83,9 +84,24 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			if (!n.isStopped()) {
 				r = n;
 			}
+			else {
+				removedNodes.add(n);
+			}
 			rIndex++;
 			rIndex = rIndex % group.size();
 		}
+		for(VWMLConflictRingNode n : removedNodes) {
+			for(int i = 0; i < group.size(); i++) {
+				if (n == group.get(i)) {
+					if (rIndex >= i) {
+						if (rIndex > 0) rIndex--;
+					}
+					group.remove(i);
+					break;
+				}
+			}
+		}
+		removedNodes.clear();
 		return r;
 	}
 	

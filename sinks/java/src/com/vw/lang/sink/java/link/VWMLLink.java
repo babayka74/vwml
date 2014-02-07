@@ -88,7 +88,7 @@ public class VWMLLink {
 	public void unlinkFrom(VWMLObject obj) {
 		if (itself != null && obj != null && isLinked(obj)) {
 			itself.getLink().getLinkedObjects().remove(obj);
-			obj.getLink().setParent(itself.getLink().getParent());
+			obj.getLink().setParent(null);
 			if (getLinkOperationVisitor() != null) {
 				getLinkOperationVisitor().unlink(itself, obj);
 			}

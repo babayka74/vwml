@@ -87,10 +87,11 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 * @param g
 	 * @param masterInterpreter
 	 * @param term
+	 * @param forcedContext
 	 * @param listener
 	 * @throws Exception
 	 */
-	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl masterInterpreter, VWMLEntity term, VWMLInterpreterListener listener) throws Exception {
+	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl masterInterpreter, VWMLEntity term, VWMLContext forcedContext, VWMLInterpreterListener listener) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	

@@ -155,6 +155,10 @@ public class VWMLEntity extends VWMLObject {
 														 auxCache,
 														 false);	
 		}
+		else
+		if (getOriginalInterpreting() != null && getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
+			interpretingEntity = getOriginalInterpreting();
+		}
 		// new entity is registered on repository
 		Object eId = getId();
 		if (firstIteration) {

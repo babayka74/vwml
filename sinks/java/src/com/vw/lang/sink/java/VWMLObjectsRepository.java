@@ -180,12 +180,18 @@ public class VWMLObjectsRepository {
 	}
 	
 	public void remove(VWMLEntity obj) {
+		if (removeWithoutContextCleaning(obj)) {
+			obj.getContext().unAssociateEntity(obj);
+		}
+	}
+
+	public boolean removeWithoutContextCleaning(VWMLEntity obj) {
 		if (obj.getContext() == null) {
-			return; // temporary entity
+			return false; // temporary entity
 		}
 		String key = buildAssociatingKeyOnContext(obj);
 		repo.remove(key);
-		obj.getContext().unAssociateEntity(obj);
+		return true;
 	}
 	
 	public VWMLObject get(Object id, VWMLContext context) throws Exception {

@@ -76,6 +76,8 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		if (ringMasterNode == null) {
 			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
+		//
+		interpreter = (VWMLInterpreterImpl)ringMasterNode.peekInterpreter();
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);

@@ -271,6 +271,9 @@ public class VWMLContextsRepository extends VWMLRepository {
 				}
 			}
 		}
+		if (context.getLink().getParent() != null) {
+			context.getLink().setParent(null);
+		}
 		context.getLink().clear();
 		context.removeAllAssociatedEntities();
 	}

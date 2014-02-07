@@ -8,6 +8,7 @@ import java.util.Set;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
@@ -346,6 +347,9 @@ public class VWMLContext extends VWMLObject {
 	}
 	
 	public void removeAllAssociatedEntities() {
+		for(VWMLEntity e : associatedEntities) {
+			VWMLObjectsRepository.instance().removeWithoutContextCleaning(e);
+		}
 		associatedEntities.clear();
 	}
 
