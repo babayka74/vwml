@@ -61,6 +61,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	// and sometimes (for 'ForEach') operations need to know master interpreter since it may
 	// implement specific logic which is needed for operation
 	private VWMLInterpreterImpl masterInterpreter = null;
+	// forced context is used on child interpreters, which are activated during some types of operations like forEach and ':'
+	private VWMLContext forcedContext = null;
 	
 	public VWMLInterpreterImpl() {
 		super("interpreter");
@@ -81,6 +83,14 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 * Resets interpreter's data
 	 */
 	public abstract void reset();
+	
+	public void setForcedContext(VWMLContext context) {
+		forcedContext = context;
+	}
+
+	public VWMLContext getForcedContext() {
+		return forcedContext;
+	}
 	
 	/**
 	 * Adds term to the same interpreter in runtime; used for reactive and parallel interpreters only

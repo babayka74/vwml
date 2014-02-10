@@ -29,10 +29,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 	// last term
 	private VWMLEntity lastInterpretedTerm = null;
 	// last assoociated term's entity
-	private VWMLEntity lastInterpretedEntity = null;
-	
-	private VWMLContext forcedContext = null;
-	
+	private VWMLEntity lastInterpretedEntity = null;	
 	
 	private VWMLSequentialTermInterpreter() {
 	}
@@ -63,10 +60,6 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			tl.add(term);
 			super.setTerms(tl);
 		}
-	}
-	
-	public void setForcedContext(VWMLContext context) {
-		forcedContext = context;
 	}
 	
 	/**
@@ -106,7 +99,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			throw new Exception("term should be set before method is called");
 		}
 		VWMLEntity entity = getTerms().get(0);
-		setContext(forcedContext == null ? entity.getContext() : forcedContext);
+		setContext(getForcedContext() == null ? entity.getContext() : getForcedContext());
 		// marks context as lifeterm's context. It activates special behavior when entity's context
 		// is pushed into special stack in order to guarantee entity's context after 'assemble' operation
 		getContext().setLifeTermContext(true);

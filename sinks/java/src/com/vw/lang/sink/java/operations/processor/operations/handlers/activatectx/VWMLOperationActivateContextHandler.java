@@ -60,9 +60,12 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 	}
 	
 	protected void exectuteLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity lfTerm) throws Exception {
+		VWMLContext forcedContext = VWMLContext.instance("apllyCtx_" + lfTerm.getContext().getContext());
+		forcedContext.setContext(lfTerm.getContext().getContext());
 		VWMLInterpreterImpl ii = interpreter.clone();
 		List<VWMLEntity> terms = new ArrayList<VWMLEntity>();
 		terms.add(lfTerm);
+		ii.setForcedContext(forcedContext);
 		ii.setTerms(terms);
 		ii.setRtNode(interpreter.getRtNode());
 		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
