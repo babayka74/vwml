@@ -2,7 +2,9 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.join;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -14,6 +16,7 @@ import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
+import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
  * Handler of 'OPJOIN' operation
@@ -62,13 +65,28 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		if (it == null) {
 			return emptyEntity;
 		}
-		VWMLEntity result = null;
+		VWMLEntity result = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
+															      entity.getContext().getContext(),
+																  ComplexEntityNameBuilder.generateRandomName(),
+																  entity.getContext(),
+																  entity.getInterpretationHistorySize(),
+																  entity.getLink().getLinkOperationVisitor());
+		VWMLEntity r = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());
+		if (!r.isMarkedAsComplexEntity()) {
+			return nilEntity;
+		}
+		VWMLLinkIncrementalIterator itR = ((VWMLComplexEntity)r).getLink().acquireLinkedObjectsIterator();
+		if (itR != null) {
+			joinFrom(result, r, itR);
+		}
+		it.next();
+		joinFrom(result, entity, it);
+		return result;
+	}
+	
+	private VWMLEntity joinFrom(VWMLEntity result, VWMLEntity r, VWMLLinkIncrementalIterator it) {
 		for(; it.isCorrect(); it.next()) {
-			VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());
-			if (result == null) {
-				result = e;
-				continue;
-			}
+			VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)r).getLink().getConcreteLinkedEntity(it.getIt());
 			if (join(result, e) == nilEntity) {
 				break;
 			}

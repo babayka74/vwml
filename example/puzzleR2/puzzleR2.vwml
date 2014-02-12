@@ -17,16 +17,19 @@ options {
 		}
 		conflictring {
 			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersLeft false).(PlayerExist true).LeavePlayer" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).CheckStatusOfBetCollection"
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
 			)
 			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersJoined false).(PlayerExist false).JoinPlayer" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).CheckStatusOfBetCollection"
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
 			)
-			"CroupierAssistant.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).(DoNotAcceptPlayerBet false).(BetCheckingResult 0).AcceptBet" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).CheckStatusOfBetCollection"
+			"CroupierAssistant.AcceptPlayerBet.(BetCheckingResult 0).AcceptBet" conflicts (
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
 			)
-			"CroupierAssistant.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).(DoNotAcceptPlayerBet false).(BetCheckingResult 1).AcceptBet" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).CheckStatusOfBetCollection"
+			"CroupierAssistant.AcceptPlayerBet.(BetCheckingResult 1).AcceptBet" conflicts (
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
+			)
+			"CroupierAssistant.UpdatePlayerBet.UpdateBet" conflicts (
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
 			)
 		}
 	}
@@ -50,9 +53,11 @@ module puzzleR2 {
 		DecNumberOfPlayers ias services.math.dec;
 		Compare ias services.math.compare;
 		DecreaseCredit ias services.math.substr;
+		IncreaseCredit ias services.math.sum;
 		PlayersOnAuction ias 2;
 		NoPlayers ias 0;
 		PlayerCredit ias 100;
+		BetTimeout ias 7000;
 
 		EwLifeStep ias (
 			/* waiting for command from assistant or croupier */
@@ -78,7 +83,7 @@ module puzzleR2 {
 
 	CroupierAssistant ias (
 		/* available commands which can be received from external world  */
-		PlayerCommands ias (leave join bet exit);
+		PlayerCommands ias (leave join bet bets credit exit);
 		/* available commands which can be received from internal world */
 		InternalCommands ias (startNewAuction);
 		InternalCommand ias none;
@@ -86,6 +91,49 @@ module puzzleR2 {
 		Command ias nil;
 		CommandId ias nil;
 		PlayerId ias nil;
+
+		/* Updates player's bet */
+		UpdatePlayerBet ias (
+			RollbackBet ias (
+                        	(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ CurrentPlayerBet~)Join)^
+				((Player PlayerId~)->Credit (((Player PlayerId~)->Credit~ (CurrentPlayerBet~) Last) Ew.DecreaseCredit~) Do)^
+			);
+			UpdatedBet ias 0;
+			CurrentPlayerBet ias nil;
+			PlayerCurrentCredit ias 0;
+			UpdateBet [
+				(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (CurrentPlayerBet~))Substruct)^
+				((Player PlayerId~)->Credit (((Player PlayerId~)->Credit~ (CurrentPlayerBet~) Last) Ew.IncreaseCredit~) Do)^
+				(AcceptPlayerBet.AcceptedBet UpdatedBet~)^
+				(AcceptPlayerBet.RollbackBet RollbackBet~)^
+				AcceptPlayerBet~ Exe
+			UpdateBet ]
+		);
+
+		/* Accepts player's bet */
+		AcceptPlayerBet ias (
+			AcceptedBet ias 0;
+			RollbackBet ias nil;
+			PlayerCurrentCredit ias 0;
+			/* checks player credit */
+			(BetCheckingResult 0),(BetCheckingResult 1) ias (
+				AcceptBet [
+                        		(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
+					((Player PlayerId~)->Credit ((PlayerCurrentCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
+					(PlayerCurrentCredit (Player PlayerId~)->Credit~)^
+				AcceptBet ]
+				((Assistant reports that player PlayerId~ made bet AcceptedBet~ credit PlayerCurrentCredit~) Ew.Output~) Do
+			);
+			(BetCheckingResult -1) ias (
+				(doNotDoRollback false) ias RollbackBet~ Exe;
+				(doNotDoRollback true) ias doNothing;
+				(doNotDoRollback (RollbackBet~ nil) Ident)~ Exe
+				((Assistant reports that player PlayerId~ does not have enough credits) Ew.Output~) Do
+			);
+			/* checks whether player has enough resources (credit) */
+			(PlayerCurrentCredit (Player PlayerId~)->Credit~)^
+			(BetCheckingResult ((PlayerCurrentCredit~ AcceptedBet~) Ew.Compare~) Do)~ Exe
+		);
 
 		/* check if player made bet */
 		FindPlayersBet ias (
@@ -104,7 +152,6 @@ module puzzleR2 {
 			);
 			(HasPlayerAlreadyMadeBet false)^
 			(Croupier.LastPlayersBets~ CheckIfPlayerHasAlreadyMadeBet~) ForEach
-			((Assistant bets Croupier.LastPlayersBets~ HasPlayerAlreadyMadeBet~) Ew.Output~) Do
 		);		
 		/* Stops auction - all players should leave auction */
 		StopAuctionButNotClose ias (
@@ -124,6 +171,7 @@ module puzzleR2 {
 		ForceToStopAuction ias (
 			StopAuctionButNotClose~ Exe
 			(Croupier.ForceToCloseAuction true)^
+			(WiseClock.Command stop)^
 			(Ew.Command exit)^ 
 		);
 		/* Starts auction according to conditions */
@@ -186,8 +234,7 @@ module puzzleR2 {
 						/* decrements number of players */
 						(Auction.ActivePlayers ((Auction.ActivePlayers~) Ew.DecNumberOfPlayers~) Do)^
 						FindPlayersBet~ Exe
-						(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~ FindPlayersBet.PlayerBet~))Substruct)^
-						((Assistant reports about bets Croupier.LastPlayersBets~) Ew.Output~) Do
+						(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (FindPlayersBet.PlayerBet~))Substruct)^
 					LeavePlayer ]
 					/* removes player from players group */
 					(Auction.Players (Auction.Players~ (PlayerId~)) Substruct)^
@@ -268,34 +315,23 @@ module puzzleR2 {
 					bet ias (
 						BetReceivingPermitted ias false;
 						ReportAboutNonPermittedBetOperation ias (
-							((Assistant reports that player PlayerId~ can bet after auction has been started) Ew.Output~) Do
+							((Assistant reports that player PlayerId~ can not bet after auction has been started) Ew.Output~) Do
 						);
 						(BetPermitted true true) ias (
 							(PlayerExist true) ias (
-								(DoNotAcceptPlayerBet true) ias (
-									((Assistant reports that player PlayerId~ has already made bet) Ew.Output~) Do
+								(UpdatePlayerBet true) ias (
+									(UpdatePlayerBet.UpdatedBet (Command~)Last)^
+									(UpdatePlayerBet.CurrentPlayerBet FindPlayersBet.PlayerBet~)^
+									UpdatePlayerBet~ Exe
 								);
-								(DoNotAcceptPlayerBet false) ias (
-									/* checks player credit */
-									(BetCheckingResult 0),(BetCheckingResult 1) ias (
-										AcceptBet [
-                                                					(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
-											((Player PlayerId~)->Credit ((CurrentPlayerCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
-										AcceptBet ]
-										((Assistant reports that player PlayerId~ made bet AcceptedBet~) Ew.Output~) Do
-									);
-									(BetCheckingResult -1) ias (
-										((Assistant reports that player PlayerId~ does not have enough credits) Ew.Output~) Do
-									);
-									/* checks whether player has enough resources (credit) */
-									1025 Bp
-									(CurrentPlayerCredit (Player PlayerId~)->Credit~)^
-									(AcceptedBet (Command~)Last)^
-									(BetCheckingResult ((CurrentPlayerCredit~ AcceptedBet~) Ew.Compare~) Do)~ Exe
+								(UpdatePlayerBet false) ias (
+									/* accepts player credit */
+									(AcceptPlayerBet.AcceptedBet (Command~)Last)^
+									AcceptPlayerBet~ Exe
 								);
 								/* checks if player has made bet */
 								FindPlayersBet~ Exe
-								(DoNotAcceptPlayerBet FindPlayersBet.HasPlayerAlreadyMadeBet~)~ Exe
+								(UpdatePlayerBet FindPlayersBet.HasPlayerAlreadyMadeBet~)~ Exe
 							);
 							(PlayerExist false) ias (
 								((Assistant reports that player PlayerId~ can not bet since it was not participates in auction) Ew.Output~) Do
@@ -311,6 +347,18 @@ module puzzleR2 {
 						/* Check if bet is allowed; bet is allowed in case if auction started */
 						(BetPermitted Croupier.AuctionStarted~ BetPermitted~)~ Exe
 						/* waiting for correct player id */
+						CroupierAssistantLifeStep~ Exe
+					);
+					bets ias (
+						((Assistant bets Croupier.LastPlayersBets~) Ew.Output~) Do
+						CroupierAssistantLifeStep~ Exe
+					);
+					credit ias (
+						(PlayerExist true) ias (
+							((Credit of player PlayerId~ is (Player PlayerId~)->Credit~) Ew.Output~) Do
+						);
+						(PlayerExist false) ias doNothing;
+						(PlayerExist (Auction.Players~ PlayerId~) In)~ Exe
 						CroupierAssistantLifeStep~ Exe
 					);
 					exit ias (
@@ -385,6 +433,8 @@ module puzzleR2 {
 		ResetAuctionProps ias (
 			(PermitBet false)^
 			(PublishedCard nil)^
+			1025 Bp
+			(LastPlayersBets ())^
 			(Command selectCard)^
 		);
 		/* Croupier processes Assistant's commands */
@@ -425,25 +475,35 @@ module puzzleR2 {
 					(AllCardsSold (Ew.RestPuzzles~ ()) Ident)~ Exe
 				);
 				(ActiveCommand permitBetOperation) ias (
-					/* conflicts with WaitForBetReceivingPermition */
-					(PermitBet true)^
+					/* activates wise clock */
+					(WiseClock.Command betsTimeout)^
 					(Command waitForBetFromPlayers)^
 				);
 				(ActiveCommand waitForBetFromPlayers) ias (
-					(AllBetsCollected false) ias doNothing;
-					/* all bets collected, so winner should be announced */
-				        (AllBetsCollected true) ias (
-						(PermitBet false)^
-						(Command announceWinner)^
+					(BetsInProgress true) ias doNothing;
+					(BetsInProgress false) ias (
+						((Croupier reports that bets have already been made) Ew.Output~) Do
+						((Croupier reports that no bets allowed) Ew.Output~) Do
+						(Command analyzeBets)^
+					);
+					(BetsInProgress PermitBet~)~ Exe
+				);
+				(ActiveCommand analyzeBets) ias (
+					/* bets collected, so winner should be announced */
+					(NoBets false) ias (Command announceWinner)^;
+				        (NoBets true) ias (
+						((No bets for PublishedCard~ were made) Ew.Output~) Do
+						ResetAuctionProps~ Exe
 					);
 					CheckStatusOfBetCollection [
-						(AllBetsCollected ((Croupier.LastPlayersBets~)Size Auction.ActivePlayers~) Ident)~ Exe
+						(NoBets ((LastPlayersBets~)Size 0) Ident)~ Exe
 					CheckStatusOfBetCollection ]
 				);
                               	(ActiveCommand announceWinner) ias (
+					Winner ias nil;
 					(RemoveCardFromStorage true) ias (
-						((Card PuzzleCardDescriptor~ will be removed from puzzle set) Ew.Output~) Do
 						(Ew.RestPuzzles (Ew.RestPuzzles~ (PuzzleCardDescriptor~))Substruct)^
+						((Card PuzzleCardDescriptor~ was removed from puzzle set) Ew.Output~) Do
 					);
 					(RemoveCardFromStorage false) ias (
 						((PublishedCard~ will be available for PublishedCardCounter~~ times) Ew.Output~) Do
@@ -455,6 +515,7 @@ module puzzleR2 {
 					(OnePlayerStayesOnAuction false) ias (
 						
 					);
+					((Bets for PublishedCard~ are Croupier.LastPlayersBets~) Ew.Output~) Do
 					(OnePlayerStayesOnAuction ((Croupier.LastPlayersBets~)Size 1) Ident)~ Exe
 					/* decrease card's counter which defines how many the cards, of this type, keep in the pool */
 					(PublishedCardCounter (PuzzleCardDescriptor~)Last)^
@@ -479,6 +540,33 @@ module puzzleR2 {
 		);
 		/* Croupier lifeterm */
 		source lifeterm = CroupierLifeStep~ Exe
+	);
+
+	WiseClock ias (
+		Command ias none;
+
+		WiseClockLifeStep ias (
+			(clock none) ias (
+				WiseClockLifeStep~ Exe
+			);
+			(clock stop) ias (
+				((Wise clock deactivated) Ew.Output~) Do
+			);
+			(clock betsTimeout) ias (
+				(Croupier.PermitBet true)^
+				((Wise clock got signal to start bets timeout) Ew.Output~) Do
+				Ew.BetTimeout~ Relax
+				(Croupier.PermitBet false)^
+				(Command none)^
+				WiseClockLifeStep~ Exe
+			);
+			(clock Command~)~ Exe
+		);
+		/* WiseClock lifeterm */
+		source lifeterm = (
+					((Wise clock activated) Ew.Output~) Do
+					WiseClockLifeStep~ Exe
+				) Exe
 	);
 
 	Auction ias (
