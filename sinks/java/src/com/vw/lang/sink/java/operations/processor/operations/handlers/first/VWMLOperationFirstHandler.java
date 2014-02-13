@@ -32,7 +32,7 @@ public class VWMLOperationFirstHandler extends VWMLOperationHandler {
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 0) {
-			throw new Exception("operation 'Include' requires at least 2 arguments; check code");
+			throw new Exception("operation 'First' requires at least 2 arguments; check code");
 		}
 		if (entities.size() == 1) {
 			result = handleFirstOnComplexEntity(entities.get(0), context);

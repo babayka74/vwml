@@ -62,6 +62,28 @@ public class VWMLInterpreterTimerManager {
 			}
 		}
 	}
+	
+	/**
+	 * Removes timer and activates its termination handler
+	 * @param id
+	 */
+	public void removeTimer(Object id) {
+		for(int i = 0; i < timers.size(); i++) {
+			VWMLInterpreterTimer t = timers.get(i);
+			if (t.getId().equals(id)) {
+				// start removing procedure
+				if (i != timers.size() - 1) {
+					VWMLInterpreterTimer tNext = timers.get(i + 1);
+					tNext.setTime(tNext.getTime() + t.getTime());
+				}
+				timers.remove(i);
+				if (t.getCallback() != null) {
+					t.getCallback().interruptedTimerCbk(t);
+				}
+				break;
+			}
+		}
+	}
 
 	/**
 	 * Runs timer manager in reactive manner

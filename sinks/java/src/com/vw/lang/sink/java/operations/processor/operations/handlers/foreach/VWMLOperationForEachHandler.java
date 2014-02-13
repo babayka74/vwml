@@ -5,10 +5,8 @@ import java.util.List;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
-import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
@@ -73,33 +71,6 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 	}
 	
 	protected boolean forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
-		boolean continueForEach = true;
-		VWMLConflictRingExecutionGroup g = null;
-		VWMLInterpreterImpl activeInterpreter = interpreter;
-		VWMLInterpreterListener listener = new VWMLInterpreterListenerForOperationForEach();
-		if (interpreter.getRtNode() != null) {
-			g = interpreter.getRtNode().getExecutionGroup();
-		}
-		if (interpreter.getMasterInterpreter() != null) {
-			interpreter = interpreter.getMasterInterpreter();
-		}
-		// term is interpreted by own interpreter
-		VWMLContext forcedContext = VWMLContext.instance("forEach_" + term.getContext().getContext());
-		forcedContext.setContext(term.getContext().getContext());
-		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener);
-		if (i != null) {
-			// the synthetic entity '$' will be interpreted as component
-			i.setInterpretingEntityForSyntheticEntity(component);
-			if (i.getConfig().isStepByStepInterpretation()) {
-				interpreter.conditionalLoop(listener);
-			}
-			continueForEach = !listener.isForcedStop();
-			interpreter.releaseTermResourcesAfterInterpretationDone(g, i, term);
-		}
-		else {
-			continueForEach = false;
-			throw new Exception("Couldn't activate interpreter for term '" + term + "'; operation 'ForEach'");
-		}
-		return continueForEach;
+		return VWMLOperationUtils.activateTerm(interpreter, component, term, "forEach_", "ForEach");
 	}
 }

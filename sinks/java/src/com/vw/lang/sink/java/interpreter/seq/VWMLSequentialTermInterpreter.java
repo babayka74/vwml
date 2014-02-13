@@ -7,6 +7,7 @@ import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterDeferredTask;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLDynamicEntityProperties;
@@ -126,6 +127,13 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 
 	public boolean step() throws Exception {
 		boolean stopped = false;
+		if (getConfig().isStepByStepInterpretation()) {
+			VWMLInterpreterDeferredTask task = getDeferredTask();
+			if (task != null) {
+				setDeferredTask(null);
+				task.execute();
+			}
+		}
 		VWMLInterpreterImpl ii = peekInterpreterFromChildStack();
 		if (ii != null) {
 			ii.setRtNode(getRtNode());

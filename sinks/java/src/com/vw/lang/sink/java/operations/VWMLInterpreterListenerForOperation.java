@@ -1,14 +1,14 @@
-package com.vw.lang.sink.java.operations.processor.operations.handlers.foreach;
+package com.vw.lang.sink.java.operations;
 
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 
 /**
- * Called by interpreter when iteration step, of operation ForEach, has finished
+ * Called by interpreter when iteration step, of operation, has finished
  * @author Oleg
  *
  */
-public class VWMLInterpreterListenerForOperationForEach extends VWMLInterpreterListener {
+public class VWMLInterpreterListenerForOperation extends VWMLInterpreterListener {
 
 	private int status = VWMLInterpreterImpl.continueProcessingOfCurrentEntity;
 	

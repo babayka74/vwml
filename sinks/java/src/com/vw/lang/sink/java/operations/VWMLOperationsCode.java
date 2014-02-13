@@ -36,6 +36,7 @@ public enum VWMLOperationsCode {
     OPNOP("Nop"),
     OPDYNCONTEXT("->"),
     OPSIZE("Size"),
+    OPINTERRUPT("Interrupt"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

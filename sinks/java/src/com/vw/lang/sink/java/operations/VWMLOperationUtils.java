@@ -7,7 +7,10 @@ import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
@@ -110,6 +113,52 @@ public class VWMLOperationUtils {
 		}
 		return rebuiltEntity;
 	}
+	
+	/**
+	 * Activates term on separated interpreter
+	 * @param interpreter
+	 * @param component
+	 * @param term
+	 * @param contextPrefix
+	 * @param onOperation
+	 * @return
+	 * @throws Exception
+	 */
+	public static boolean activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term, String contextPrefix, String onOperation) throws Exception {
+		boolean continueCycle = true;
+		if (onOperation == null) {
+			throw new Exception("The parameter 'onOperation' must be specified on activateTerm");
+		}
+		VWMLConflictRingExecutionGroup g = null;
+		VWMLInterpreterImpl activeInterpreter = interpreter;
+		VWMLInterpreterListener listener = new VWMLInterpreterListenerForOperation();
+		if (interpreter.getRtNode() != null) {
+			g = interpreter.getRtNode().getExecutionGroup();
+		}
+		if (interpreter.getMasterInterpreter() != null) {
+			interpreter = interpreter.getMasterInterpreter();
+		}
+		// term is interpreted by own interpreter
+		VWMLContext forcedContext = VWMLContext.instance((contextPrefix != null) ? "contextPrefix" : onOperation + term.getContext().getContext());
+		forcedContext.setContext(term.getContext().getContext());
+		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener);
+		if (i != null) {
+			// the synthetic entity '$' will be interpreted as component
+			i.setInterpretingEntityForSyntheticEntity(component);
+			if (i.getConfig().isStepByStepInterpretation()) {
+				interpreter.conditionalLoop(listener);
+			}
+			continueCycle = !listener.isForcedStop();
+			interpreter.releaseTermResourcesAfterInterpretationDone(g, i, term);
+		}
+		else {
+			continueCycle = false;
+			throw new Exception("Couldn't activate interpreter for term '" + term + "'; operation '" + onOperation + "'");
+		}
+		return continueCycle;
+		
+	}
+	
 	
 	private static void addToRepository(VWMLContext context, VWMLEntity newComplexEntity) throws Exception {
 		VWMLObjectsRepository.instance().remove(newComplexEntity);

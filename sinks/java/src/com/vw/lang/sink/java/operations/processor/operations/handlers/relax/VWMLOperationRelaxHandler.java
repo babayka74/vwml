@@ -24,9 +24,12 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
  */
 public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 
+	private static final int s_extended_num_args = 3;
+	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		int timeToRelax = 0;
+		VWMLEntity runOnRegularCompletition = null, runOnTerminatedCompletition = null;
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
 		stack.inspect(inspector);
@@ -36,8 +39,12 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		if (entities.size() != 0) {
 			// get first entity which indicates rest time
 			VWMLEntity relaxEntity = entities.get(0);
-			if (relaxEntity.isMarkedAsComplexEntity()) {
-				relaxEntity = (VWMLEntity)relaxEntity.getLink().getConcreteLinkedEntity(0);
+			if (entities.size() == s_extended_num_args) { // extended version
+				relaxEntity = (VWMLEntity)entities.get(2);
+				// activated on independent interpreter delay completed
+				runOnRegularCompletition = (VWMLEntity)entities.get(1);
+				// activated on independent interpreter when delay terminated
+				runOnTerminatedCompletition = (VWMLEntity)entities.get(0);
 			}
 			try {
 				timeToRelax = Integer.parseInt((String)relaxEntity.getId());
@@ -48,7 +55,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 				internalDelayImpl(timeToRelax);
 			}
 			else { // reactive implementation
-				reactiveDelayImpl(originalContext, interpreter, timeToRelax);
+				reactiveDelayImpl(originalContext, interpreter, timeToRelax, runOnRegularCompletition, runOnTerminatedCompletition);
 			}
 		}
 		inspector.clear();
@@ -59,16 +66,21 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		Thread.sleep(delay);
 	}
 	
-	protected void reactiveDelayImpl(VWMLContext activeContext, VWMLInterpreterImpl interpreter, int delay) throws Exception {
+	protected void reactiveDelayImpl(VWMLContext activeContext,
+									 VWMLInterpreterImpl interpreter,
+									 int delay,
+									 VWMLEntity runOnRegularCompletition,
+									 VWMLEntity runOnTerminatedCompletition) throws Exception {
 		if (delay != 0) {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
-			VWMLOperationRelaxTimerCallback callback = new VWMLOperationRelaxTimerCallback();
+			VWMLOperationRelaxTimerCallback callback = new VWMLOperationRelaxTimerCallback(runOnRegularCompletition, runOnTerminatedCompletition);
 			if (interpreter.getObserver() != null) {
 				interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
 			}
 			if (interpreter.getTimerManager() != null) {
 				interpreter.getTimerManager().addTimer(e.getId(), delay, Long.valueOf((String)e.getId()), interpreter, callback);
+				interpreter.getObserver().associateTimerWithContext(VWMLInterpreterObserver.getWaitContext(), e.getId());
 			}
 		}
 	}

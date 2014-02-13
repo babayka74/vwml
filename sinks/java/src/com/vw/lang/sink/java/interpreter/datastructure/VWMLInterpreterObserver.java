@@ -11,9 +11,31 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode
  *
  */
 public class VWMLInterpreterObserver {
+	
+	public static class VWMLInterpreterObserverData {
+		private VWMLConflictRingNodeAutomataInputs automataInputs;
+		private Object associatedTimer;
+		
+		protected VWMLConflictRingNodeAutomataInputs getAutomataInputs() {
+			return automataInputs;
+		}
+		
+		protected void setAutomataInputs(VWMLConflictRingNodeAutomataInputs automataInputs) {
+			this.automataInputs = automataInputs;
+		}
+		
+		protected Object getAssociatedTimer() {
+			return associatedTimer;
+		}
+
+		protected void setAssociatedTimer(Object associatedTimer) {
+			this.associatedTimer = associatedTimer;
+		}
+	}
+	
 	public static String s_waitContext = "__waitContext__";
 	// interpreter is in active state, so no operation OPCONFLICTSITUATIONSTART or OPCONFLICTSITUATIONEND is executed
-	private Map<String, VWMLConflictRingNodeAutomataInputs> observed = new HashMap<String, VWMLConflictRingNodeAutomataInputs>();
+	private Map<String, VWMLInterpreterObserverData> observed = new HashMap<String, VWMLInterpreterObserverData>();
 	private String activeConflictContext = null;
 	
 	public static String getWaitContext() {
@@ -21,13 +43,19 @@ public class VWMLInterpreterObserver {
 	}
 	
 	public VWMLConflictRingNodeAutomataInputs getConflictOperationalState(String context) {
+		VWMLConflictRingNodeAutomataInputs input = null;	
 		if (observed.get(s_waitContext) != null) {
 			return VWMLConflictRingNodeAutomataInputs.IN_W;
 		}
-		VWMLConflictRingNodeAutomataInputs input = observed.get(context);
-		if (input == null) {
+		VWMLInterpreterObserverData data = observed.get(context);
+		if (data == null) {
+			data = new VWMLInterpreterObserverData();
 			input = VWMLConflictRingNodeAutomataInputs.IN_N;
-			observed.put(context, input);
+			data.setAutomataInputs(input);
+			observed.put(context, data);
+		}
+		else {
+			input = data.getAutomataInputs();
 		}
 		return input;
 	}
@@ -47,7 +75,25 @@ public class VWMLInterpreterObserver {
 			observed.remove(context);
 		}
 		else {
-			observed.put(context, conflictOperationalState);
+			VWMLInterpreterObserverData data = new VWMLInterpreterObserverData();
+			data.setAutomataInputs(conflictOperationalState);
+			observed.put(context, data);
 		}
+	}
+	
+	public void associateTimerWithContext(String context, Object timerId) {
+		VWMLInterpreterObserverData data = observed.get(context);
+		if (data != null) {
+			data.setAssociatedTimer(timerId);
+		}
+	}
+	
+	public Object getAssociatedTimerWithContext(String context) {
+		Object timerId = null;
+		VWMLInterpreterObserverData data = observed.get(context);
+		if (data != null) {
+			timerId = data.getAssociatedTimer();
+		}
+		return timerId;
 	}
 }

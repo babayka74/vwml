@@ -63,6 +63,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLInterpreterImpl masterInterpreter = null;
 	// forced context is used on child interpreters, which are activated during some types of operations like forEach and ':'
 	private VWMLContext forcedContext = null;
+	// delayed task can be executed by interpreter on next iteration step
+	private VWMLInterpreterDeferredTask delayedTask = null;
 	
 	public VWMLInterpreterImpl() {
 		super("interpreter");
@@ -212,6 +214,14 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public void setMasterInterpreter(VWMLInterpreterImpl masterInterpreter) {
 		this.masterInterpreter = masterInterpreter;
+	}
+
+	public VWMLInterpreterDeferredTask getDeferredTask() {
+		return delayedTask;
+	}
+
+	public void setDeferredTask(VWMLInterpreterDeferredTask delayedTask) {
+		this.delayedTask = delayedTask;
 	}
 
 	public void pushInterpreterToChildStack(VWMLInterpreterImpl interpreter) {

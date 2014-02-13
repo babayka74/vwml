@@ -7,4 +7,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.timer;
  */
 public abstract class VWMLInterpreterTimerCallback {
 	public abstract void timerCbk(VWMLInterpreterTimer timer);
+	public void interruptedTimerCbk(VWMLInterpreterTimer timer) {
+		
+	}
 }

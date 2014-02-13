@@ -172,6 +172,7 @@ module puzzleR2 {
 			StopAuctionButNotClose~ Exe
 			(Croupier.ForceToCloseAuction true)^
 			(WiseClock.Command stop)^
+			WiseClock Interrupt
 			(Ew.Command exit)^ 
 		);
 		/* Starts auction according to conditions */
@@ -553,11 +554,18 @@ module puzzleR2 {
 				((Wise clock deactivated) Ew.Output~) Do
 			);
 			(clock betsTimeout) ias (
+				DeactivateClockOnInterruption ias (
+					((Wise clock interrupted) Ew.Output~) Do
+					(Command stop)^
+				);
+				DisableBetsWhenTimerExpired ias (
+					((Wise clock disables bets) Ew.Output~) Do
+					(Croupier.PermitBet false)^
+					(Command none)^
+				);
 				(Croupier.PermitBet true)^
 				((Wise clock got signal to start bets timeout) Ew.Output~) Do
-				Ew.BetTimeout~ Relax
-				(Croupier.PermitBet false)^
-				(Command none)^
+				(Ew.BetTimeout~ DisableBetsWhenTimerExpired~ DeactivateClockOnInterruption~) Relax
 				WiseClockLifeStep~ Exe
 			);
 			(clock Command~)~ Exe

@@ -38,6 +38,7 @@ tokens {
     OPFOREACH='ForEach';
     OPDYNCONTEXT='->';
     OPSIZE='Size';
+    OPINTERRUPT='Interrupt';
     
     // languages
     JAVA='__java__';
@@ -1065,6 +1066,7 @@ opclist
     | OPFOREACH
     | OPDYNCONTEXT
     | OPSIZE
+    | OPINTERRUPT
     ;
 
 termLanguages

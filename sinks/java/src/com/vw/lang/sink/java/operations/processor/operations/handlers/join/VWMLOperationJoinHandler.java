@@ -77,14 +77,14 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		}
 		VWMLLinkIncrementalIterator itR = ((VWMLComplexEntity)r).getLink().acquireLinkedObjectsIterator();
 		if (itR != null) {
-			joinFrom(result, r, itR);
+			joinWith(result, r, itR);
 		}
 		it.next();
-		joinFrom(result, entity, it);
+		joinWith(result, entity, it);
 		return result;
 	}
 	
-	private VWMLEntity joinFrom(VWMLEntity result, VWMLEntity r, VWMLLinkIncrementalIterator it) {
+	private VWMLEntity joinWith(VWMLEntity result, VWMLEntity r, VWMLLinkIncrementalIterator it) {
 		for(; it.isCorrect(); it.next()) {
 			VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)r).getLink().getConcreteLinkedEntity(it.getIt());
 			if (join(result, e) == nilEntity) {

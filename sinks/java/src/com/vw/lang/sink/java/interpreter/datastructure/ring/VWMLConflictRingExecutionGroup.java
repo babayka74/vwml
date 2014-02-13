@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 
 /**
  * Ring's execution group
@@ -35,6 +36,19 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	
 	public void remove(VWMLConflictRingNode n) {
 		group.remove(n);
+	}
+	
+	public VWMLInterpreterImpl findInterpreterByContext(String context) {
+		VWMLInterpreterImpl interpreter = null;
+		for(VWMLConflictRingNode n : group) {
+			interpreter = n.peekInterpreter();
+			if (interpreter != null && interpreter.getContext() != null) {
+				if (interpreter.getContext().getContext().startsWith(context)) {
+					break;
+				}
+			}
+		}
+		return interpreter;
 	}
 	
 	public void reset() throws Exception {
