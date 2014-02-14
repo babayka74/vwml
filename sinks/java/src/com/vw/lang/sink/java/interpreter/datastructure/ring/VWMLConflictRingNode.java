@@ -34,6 +34,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// the node can operate on more than 1 interpreter; more than 1 interpreters are used 
 	// by operations which require additional term interpretation in runtime (used by reactive and parallel interpreters)
 	private VWMLStack operationalInterpreters = VWMLStack.instance();
+	private int activeInterpreters = 0;
 	
 	public VWMLConflictRingNode(Object hashId) {
 		super(hashId);
@@ -146,11 +147,13 @@ public class VWMLConflictRingNode extends VWMLObject {
 	}
 
 	public void pushInterpreter(VWMLInterpreterImpl interpreter) {
+		activeInterpreters++;
 		operationalInterpreters.push(interpreter);
 	}
 	
 	public void popInterpeter() {
 		operationalInterpreters.pop();
+		activeInterpreters--;
 	}
 
 	/**
@@ -162,7 +165,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 		if (i == null) {
 			return true;
 		}
-		return i.getStatus() == VWMLInterpreterImpl.stopProcessing || i.getStatus() == VWMLInterpreterImpl.stopped;
+		return activeInterpreters == 1 && (i.getStatus() == VWMLInterpreterImpl.stopProcessing || i.getStatus() == VWMLInterpreterImpl.stopped);
 	}
 
 	public int getSigma() {

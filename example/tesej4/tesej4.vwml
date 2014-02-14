@@ -23,7 +23,7 @@ options {
 		}
 		conflictring {
 			"GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select" conflicts ("GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select")
-			"GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers" conflicts ("GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers")
+			"GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers" conflicts ("GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers" "GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select")
 		}
 	}
 }
@@ -78,25 +78,25 @@ module tesej4 {
 					Action ias nil;
 					/* makes decision  */				
 					SelectNewPosition ias (
+						(PositionTaken true) ias (
+							(PositionTakenBy TempPosition~~)^
+							((Taken position is PositionTakenBy~) Ew.say~) Do
+						);
+						(PositionTaken false) ias (
+							/* store former position in 'PrevPosition' */
+							(PrevPosition Position~)^
+							/* Position is interpreted as new position (interpretation of TempPosition) generated during SelectNewPosition */
+							(Position TempPosition~)^
+							/* on each movenet current position is marked as Tesej's position; so interpretation of current position
+						   	should be stored in separate entity */
+							(K Position~~)^
+							((Tesej Id~ moved from PrevPosition~ to Position~) Ew.say~) Do	
+							/* Marks current position as taken over by Tesej */
+							(Position~ Tesej)^
+							(PositionTakenBy TesejItself)^
+							((Taken position is PositionTakenBy~) Ew.say~) Do	
+						);
 						Select [
-							(PositionTaken true) ias (
-								(PositionTakenBy TempPosition~~)^
-								((Taken position is PositionTakenBy~) Ew.say~) Do
-							);
-							(PositionTaken false) ias (
-								/* store former position in 'PrevPosition' */
-								(PrevPosition Position~)^
-								/* Position is interpreted as new position (interpretation of TempPosition) generated during SelectNewPosition */
-								(Position TempPosition~)^
-								/* on each movenet current position is marked as Tesej's position; so interpretation of current position
-						   		should be stored in separate entity */
-								(K Position~~)^
-								((Tesej Id~ moved from PrevPosition~ to Position~) Ew.say~) Do	
-								/* Marks current position as taken over by Tesej */
-								(Position~ Tesej)^
-								(PositionTakenBy TesejItself)^
-								((Taken position is PositionTakenBy~) Ew.say~) Do	
-							);
 							((Tesej Id~ selects position) Ew.say~) Do
 							/* Restores position's interpretetion */
 							(Position~ K~)^
@@ -113,15 +113,15 @@ module tesej4 {
 					);
 					/* Tesej is cloned */
 					ToClone ias (
+						(DoNotCloneTesej true) ias (
+							((Tesej Id~ coud not be cloned since MaxNumberOfClonedTesejs~ tesejs have been reached) Ew.say~) Do
+						);
+						(DoNotCloneTesej false) ias (
+							((Tesej Id~ is going to be cloned) Ew.say~) Do
+							(TesejIds ((TesejIds~) Ew.inc~) Do)^
+							(Tesej (Tesej TesejIds~)) Clone
+						);
 						IncTesejNumbers [
-							(DoNotCloneTesej true) ias (
-								((Tesej Id~ coud not be cloned since MaxNumberOfClonedTesejs~ tesejs have been reached) Ew.say~) Do
-							);
-							(DoNotCloneTesej false) ias (
-								((Tesej Id~ is going to be cloned) Ew.say~) Do
-								(TesejIds ((TesejIds~) Ew.inc~) Do)^
-								(Tesej (Tesej TesejIds~)) Clone
-							);
 							(DoNotCloneTesej (MaxNumberOfClonedTesejs~ TesejIds~)Ident)~ Exe
 						IncTesejNumbers ]
 						(Action SelectNewPosition)^

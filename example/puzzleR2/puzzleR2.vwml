@@ -22,15 +22,10 @@ options {
 			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersJoined false).(PlayerExist false).JoinPlayer" conflicts (
 				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
 			)
-			"CroupierAssistant.AcceptPlayerBet.(BetCheckingResult 0).AcceptBet" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
+			"CroupierAssistant.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).BetsAccepting" conflicts (
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).LockBetsProgress"
 			)
-			"CroupierAssistant.AcceptPlayerBet.(BetCheckingResult 1).AcceptBet" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
-			)
-			"CroupierAssistant.UpdatePlayerBet.UpdateBet" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
-			)
+			"Ew.ProcessDPCommand.FetchDPCommand" conflicts ("Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap")
 		}
 	}
 }
@@ -45,6 +40,9 @@ module puzzleR2 {
                 RestPuzzles ias ();
                 Correspondence ias ();
 		Command ias wait;
+		DPCommands ias ();
+		DPCommand ias nil;
+		PlayerId ias nil;
 		ReadyToStart ias false;
 		Input ias communication.in.read;
 		Output ias communication.in.write;
@@ -59,18 +57,43 @@ module puzzleR2 {
 		PlayerCredit ias 100;
 		BetTimeout ias 7000;
 
+		ProcessDPCommand ias (
+			FetchDPCommand [
+				(emptyQ false) ias (
+					(DPCommand (DPCommands~) First)^
+					((Processed DP command DPCommand~) Ew.Output~) Do
+					(Command (DPCommand~) First)^
+					(PlayerId (DPCommand~) Last)^
+					(DPCommands (DPCommands~ (DPCommand~))Substruct)^
+					((Available DP commands DPCommands~) Ew.Output~) Do
+				);
+				(emptyQ true) ias doNothing;
+				(emptyQ (DPCommands~ ()) Ident)~ Exe 	
+			FetchDPCommand ]
+		);
+
 		EwLifeStep ias (
 			/* waiting for command from assistant or croupier */
 			(ew wait) ias (
+				ProcessDPCommand~ Exe
  				EwLifeStep~ Exe
 			);
 			/* load configuration */
 			(ew loadConfig),(ew reloadConfig) ias (
 				(FreePlaces ((freePlaces) ConfigLoader~) Do)^
 				(RestPuzzles ((restPuzzles) ConfigLoader~) Do)^
-				(Correspondence ((correspondence) ConfigLoader~) Do)^
 				((Configuration loaded) Ew.Output~) Do
 				(ReadyToStart true)^
+				(Command wait)^
+				EwLifeStep~ Exe
+			);
+			(ew loadCorrespondence) ias (
+				(notForConcretePlayer true) ias doNothing;
+				(notForConcretePlayer false) ias (
+					((Player PlayerId~)->Correspondence ((correspondence) ConfigLoader~) Do)^
+					((Player PlayerId~)->Command loadedCorrespondenceMap)^
+				);
+				(notForConcretePlayer (PlayerId~ nil)Ident)~ Exe
 				(Command wait)^
 				EwLifeStep~ Exe
 			);
@@ -101,13 +124,12 @@ module puzzleR2 {
 			UpdatedBet ias 0;
 			CurrentPlayerBet ias nil;
 			PlayerCurrentCredit ias 0;
-			UpdateBet [
-				(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (CurrentPlayerBet~))Substruct)^
-				((Player PlayerId~)->Credit (((Player PlayerId~)->Credit~ (CurrentPlayerBet~) Last) Ew.IncreaseCredit~) Do)^
-				(AcceptPlayerBet.AcceptedBet UpdatedBet~)^
-				(AcceptPlayerBet.RollbackBet RollbackBet~)^
-				AcceptPlayerBet~ Exe
-			UpdateBet ]
+			(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (CurrentPlayerBet~))Substruct)^
+			((Player PlayerId~)->Credit (((Player PlayerId~)->Credit~ (CurrentPlayerBet~) Last) Ew.IncreaseCredit~) Do)^
+			(AcceptPlayerBet.AcceptedBet UpdatedBet~)^
+			(AcceptPlayerBet.RollbackBet RollbackBet~)^
+			AcceptPlayerBet~ Exe
+			(AcceptPlayerBet.RollbackBet nil)^
 		);
 
 		/* Accepts player's bet */
@@ -117,11 +139,9 @@ module puzzleR2 {
 			PlayerCurrentCredit ias 0;
 			/* checks player credit */
 			(BetCheckingResult 0),(BetCheckingResult 1) ias (
-				AcceptBet [
-                        		(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
-					((Player PlayerId~)->Credit ((PlayerCurrentCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
-					(PlayerCurrentCredit (Player PlayerId~)->Credit~)^
-				AcceptBet ]
+                        	(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
+				((Player PlayerId~)->Credit ((PlayerCurrentCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
+				(PlayerCurrentCredit (Player PlayerId~)->Credit~)^
 				((Assistant reports that player PlayerId~ made bet AcceptedBet~ credit PlayerCurrentCredit~) Ew.Output~) Do
 			);
 			(BetCheckingResult -1) ias (
@@ -331,8 +351,10 @@ module puzzleR2 {
 									AcceptPlayerBet~ Exe
 								);
 								/* checks if player has made bet */
-								FindPlayersBet~ Exe
-								(UpdatePlayerBet FindPlayersBet.HasPlayerAlreadyMadeBet~)~ Exe
+								BetsAccepting [
+									FindPlayersBet~ Exe
+									(UpdatePlayerBet FindPlayersBet.HasPlayerAlreadyMadeBet~)~ Exe
+								BetsAccepting ]
 							);
 							(PlayerExist false) ias (
 								((Assistant reports that player PlayerId~ can not bet since it was not participates in auction) Ew.Output~) Do
@@ -434,7 +456,6 @@ module puzzleR2 {
 		ResetAuctionProps ias (
 			(PermitBet false)^
 			(PublishedCard nil)^
-			1025 Bp
 			(LastPlayersBets ())^
 			(Command selectCard)^
 		);
@@ -487,7 +508,9 @@ module puzzleR2 {
 						((Croupier reports that no bets allowed) Ew.Output~) Do
 						(Command analyzeBets)^
 					);
-					(BetsInProgress PermitBet~)~ Exe
+					LockBetsProgress [
+						(BetsInProgress PermitBet~)~ Exe
+					LockBetsProgress ]
 				);
 				(ActiveCommand analyzeBets) ias (
 					/* bets collected, so winner should be announced */
@@ -512,6 +535,8 @@ module puzzleR2 {
 					(OnePlayerStayesOnAuction true) ias (
 						(Winner (Croupier.LastPlayersBets~)First First)^
 						((Croupier announced winner Winner~ for card PublishedCard~) Ew.Output~) Do
+						((Player Winner~)->WonCard PublishedCard~)^
+						((Player Winner~)->Command win)^
 					);
 					(OnePlayerStayesOnAuction false) ias (
 						
@@ -558,14 +583,14 @@ module puzzleR2 {
 					((Wise clock interrupted) Ew.Output~) Do
 					(Command stop)^
 				);
-				DisableBetsWhenTimerExpired ias (
-					((Wise clock disables bets) Ew.Output~) Do
+				DisableBetsRegistrationWhenTimerExpired ias (
+					((Wise clock tells to croupier to stop make bets) Ew.Output~) Do
 					(Croupier.PermitBet false)^
 					(Command none)^
 				);
 				(Croupier.PermitBet true)^
 				((Wise clock got signal to start bets timeout) Ew.Output~) Do
-				(Ew.BetTimeout~ DisableBetsWhenTimerExpired~ DeactivateClockOnInterruption~) Relax
+				(Ew.BetTimeout~ DisableBetsRegistrationWhenTimerExpired~ DeactivateClockOnInterruption~) Relax
 				WiseClockLifeStep~ Exe
 			);
 			(clock Command~)~ Exe
@@ -587,6 +612,7 @@ module puzzleR2 {
 	Player ias (
 		Id ias nil;
 		Card ias nil;
+		WonCard ias nil;
 		Credit ias 0;
 		Bet ias 0;
 		/* Player knows about joined and left players */
@@ -594,6 +620,16 @@ module puzzleR2 {
 		LeftPlayer ias nil;
 		/* sets by croupier assistant to 'true' when auction should be stopped */
 		AuctionStoppedByAssistantCommand ias false;
+		Command ias none;
+		/* Puzzle's correspondence map  */
+		Correspondence ias ();
+
+		AskToLoadCorrespondenceMap ias (
+			LoadCorrespondenceMap [
+				((Player Id~ asks to load correspondence map) Ew.Output~) Do
+				(Ew.DPCommands (Ew.DPCommands~ (loadCorrespondence Id~))Join)^
+			LoadCorrespondenceMap ]
+		);
 
 		PlayerLifeStep ias (
 			(NonActive true) ias (
@@ -610,7 +646,34 @@ module puzzleR2 {
 					((Player Id~ left auction) Ew.Output~) Do
 				);
 				(AuctionStopped false) ias (
-					500 Relax
+					(command none) ias doNothing;
+					(command askToLoadCorrespondenceMap) ias (
+						AskToLoadCorrespondenceMap~ Exe
+						(Command none)^
+					);
+					(command loadedCorrespondenceMap) ias (
+						((Player Id~ loaded correspondence map Correspondence~) Ew.Output~) Do
+						(Command none)^
+					);
+					(command win) ias (
+						Place ias nil;
+						FindCardPlace ias (
+							B ias $;
+							(FoundPlace false) ias doNothing;
+							(FoundPlace true) ias (
+								(Place B~~)^
+								($ doNothing)^
+							);
+							(Place nil)^
+							(FoundPlace ((B~~)Last WonCard~)Ident)~ Exe
+						);
+						(Correspondence~ FindCardPlace~) ForEach
+						(Correspondence (Correspondence~ (Place~))Substruct)^
+						((Player Id~ puts card WonCard~ to place (Place~) Last and map is Correspondence~) Ew.Output~) Do
+						(WonCard nil)^
+						(Command none)^
+					);
+					(command Command~)~ Exe
 					PlayerLifeStep~ Exe
 				);
 				(AuctionStopped AuctionStoppedByAssistantCommand~)~ Exe
@@ -621,6 +684,7 @@ module puzzleR2 {
 		source lifeterm = (
 					(Id CroupierAssistant.PlayerId~)^
 					(Credit Ew.PlayerCredit~)^
+					(Command askToLoadCorrespondenceMap)^
 					((Player Id~ activated and its credit is Credit~) Ew.Output~) Do	
 					PlayerLifeStep~ Exe
 				) Exe

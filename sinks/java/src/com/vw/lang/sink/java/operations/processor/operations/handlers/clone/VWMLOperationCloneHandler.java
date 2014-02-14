@@ -79,7 +79,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);
-		VWMLConflictRingNode clonedNode = interpreter.getRtNode().clone(clonedInterpreter);
+		VWMLConflictRingNode clonedNode = ringMasterNode.clone(clonedInterpreter);
 		clonedNode.markAsClone(true);
 		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
 		// needed when resources should be released
@@ -91,9 +91,9 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		group.add(clonedNode);
 		clonedInterpreter.start();
 		// get real operated node (not - master)
-		if (interpreter.getRtNode() != null) {
+		if (ringMasterNode != null) {
 			// sigma's should be cloned also
-			interpreter.getRtNode().cloneSigmaFor(clonedNode);
+			ringMasterNode.cloneSigmaFor(clonedNode);
 		}
 	}
 	

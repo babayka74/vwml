@@ -109,11 +109,11 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	
 	/**
 	 * Releases interpreter's allocated resources
-	 * @param g
+	 * @param node
 	 * @param interpreter
 	 * @param term
 	 */
-	public void releaseTermResourcesAfterInterpretationDone(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl interpreter, VWMLEntity term) throws Exception {
+	public void releaseTermResourcesAfterInterpretationDone(VWMLConflictRingNode node, VWMLInterpreterImpl interpreter, VWMLEntity term) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	

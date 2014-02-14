@@ -119,14 +119,10 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	}
 
 	@Override
-	public void releaseTermResourcesAfterInterpretationDone(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl interpreter, VWMLEntity term) throws Exception {
+	public void releaseTermResourcesAfterInterpretationDone(VWMLConflictRingNode node, VWMLInterpreterImpl interpreter, VWMLEntity term) throws Exception {
 		interpreter.reset();
-		if (g != null) {
-			VWMLConflictRingNode n = g.findMasterNode();
-			if (n == null) {
-				throw new Exception("master node wasn't found for group '" + g + "'");
-			}
-			n.popInterpeter();
+		if (node != null) {
+			node.popInterpeter();
 		}
 	}
 	

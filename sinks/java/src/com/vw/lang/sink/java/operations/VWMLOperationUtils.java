@@ -149,7 +149,7 @@ public class VWMLOperationUtils {
 				interpreter.conditionalLoop(listener);
 			}
 			continueCycle = !listener.isForcedStop();
-			interpreter.releaseTermResourcesAfterInterpretationDone(g, i, term);
+			interpreter.releaseTermResourcesAfterInterpretationDone(i.getRtNode(), i, term);
 		}
 		else {
 			continueCycle = false;
