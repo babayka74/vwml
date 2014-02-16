@@ -13,6 +13,7 @@ options {
 			fringe services ias (
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
 				config ias "com.win.game.puzzleR2.model.fringe.gate.config.ConfigurationLoader"
+				winner ias "com.win.game.puzzleR2.model.fringe.gate.ext.strategy.WinnerSelector"
 			)
 		}
 		conflictring {
@@ -25,7 +26,12 @@ options {
 			"CroupierAssistant.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).BetsAccepting" conflicts (
 				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).LockBetsProgress"
 			)
-			"Ew.ProcessDPCommand.FetchDPCommand" conflicts ("Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap")
+			"Ew.ProcessDPCommand.FetchDPCommand" conflicts (
+				"Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap" "Croupier.LoadAdditionalPuzzleElements.LoadPuzzleElements"
+			)
+			"Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap" conflicts (
+				"Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap"
+			)
 		}
 	}
 }
@@ -52,10 +58,11 @@ module puzzleR2 {
 		Compare ias services.math.compare;
 		DecreaseCredit ias services.math.substr;
 		IncreaseCredit ias services.math.sum;
+		WinnerSelector ias services.winner.select;
 		PlayersOnAuction ias 2;
 		NoPlayers ias 0;
 		PlayerCredit ias 100;
-		BetTimeout ias 7000;
+		BetTimeout ias 10000;
 
 		ProcessDPCommand ias (
 			FetchDPCommand [
@@ -94,6 +101,13 @@ module puzzleR2 {
 					((Player PlayerId~)->Command loadedCorrespondenceMap)^
 				);
 				(notForConcretePlayer (PlayerId~ nil)Ident)~ Exe
+				(Command wait)^
+				EwLifeStep~ Exe
+			);
+			(ew loadPuzzleElements) ias (
+				(RestPuzzles ((restPuzzles) ConfigLoader~) Do)^
+				((The same elements of the same puzzle have been reloaded) Ew.Output~) Do
+				(Croupier.AuctionStarted true)^
 				(Command wait)^
 				EwLifeStep~ Exe
 			);
@@ -412,7 +426,7 @@ module puzzleR2 {
 				((waiting for ready state) Ew.Output~) Do
 				CroupierAssistantLifeStep~ Exe
 			);
-			/* internal commands initiated by croupier or other entity have to be processed before any other commands */
+			/* internal commands initiated by croupier or other entity; should be processed before any other commands */
 			(ProcessInternalCommand true) ias (
 				(internal startNewAuction) ias (
 					(StartAuctionByCondition.ActionOnAuctionNotStarted StartAuctionByCondition.DefaultActionOnAuctionNotStarted)^
@@ -450,8 +464,18 @@ module puzzleR2 {
 		/* last published card and its descriptor */
 		PuzzleCardDescriptor ias nil;
 		PublishedCard ias nil;
-		/* Winner */
+		/* Winner (for current card) */
 		Winner ias nil;
+		/* Winner (auction) */
+		AuctionWinner ias nil;
+
+		/* Loads additional puzzle's elements */
+		LoadAdditionalPuzzleElements ias (
+			LoadPuzzleElements [
+				((Croupier asks to load additional puzzle elements) Ew.Output~) Do
+				(Ew.DPCommands (Ew.DPCommands~ (loadPuzzleElements Croupier))Join)^
+			LoadPuzzleElements ]
+		);
 		/* Resets auction's properties */
 		ResetAuctionProps ias (
 			(PermitBet false)^
@@ -459,42 +483,58 @@ module puzzleR2 {
 			(LastPlayersBets ())^
 			(Command selectCard)^
 		);
+		/* starts new session */
+		CroupierStartsNewAuctionSession ias (
+			/* All cards have been sold */
+			/* All users' bets should be reset also */
+			(Croupier.LastPlayersBets ())^
+			(Croupier.AuctionWinner nil)^
+			/* Auction stopped */
+			(AuctionStarted false)^
+			/* Croupier asks whether auction should be continued or no */
+			((Croupier continues auction with new puzzle set) Ew.Output~) Do
+			/* tells to Ew that configuration should be reloaded */
+			(Ew.ReadyToStart false)^
+			/* loads new puzzle */
+			(Ew.Command reloadConfig)^
+			NotifyPlayersReloadConfig ias (
+				Id ias $;
+				/* notifies player identified by complex entity '(Player Id~~) */
+				((Player Id~~)->Command askToLoadCorrespondenceMap)^
+			);
+			(Auction.Players~ NotifyPlayersReloadConfig~) ForEach
+			/* this action will be executed in case if auction can't be started by some causes */
+			(CroupierAssistant.InternalCommand startNewAuction)^
+		);
+		/* selects and publishes card */
+		CroupierSelectsCard ias (
+			/* Croupier takes random puzzle's card */
+			(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
+			(PublishedCard (PuzzleCardDescriptor~)First)^
+			((Croupier selected card PublishedCard~ and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
+			/* selected card should be published to all players */
+			NotifyPlayersCardSelected ias (
+				Id ias $;
+				/* notifies player identified by complex entity '(Player Id~~) */
+				((Player Id~~)->Card PublishedCard~)^
+			);
+			(Auction.Players~ NotifyPlayersCardSelected~) ForEach
+		);
 		/* Croupier processes Assistant's commands */
 		/* Croupier's life step */
 		CroupierLifeStep ias (
 			(ContinueAuction true) ias (
 				(ActiveCommand selectCard) ias (
-					(AllCardsSold true) ias (
-						/* All cards have been sold */
-						/* All users' bets should be reset also */
-						(Croupier.LastPlayersBets ())^
-						/* Auction stopped */
-						(AuctionStarted false)^
-						/* Croupier asks whether auction should be continued or no */
-						((Croupier continues auction with new puzzle set) Ew.Output~) Do
-						/* tells to Ew that configuration should be reloaded */
-						(Ew.ReadyToStart false)^
-						/* loads new puzzle */
-						(Ew.Command reloadConfig)^
-						/* this action will be executed in case if auction can't be started by some causes */
-						(CroupierAssistant.InternalCommand startNewAuction)^
+					(WinnerIsNotAccepted false) ias (
+						CroupierStartsNewAuctionSession~ Exe
+						(Command selectCard)^
 					);
-					(AllCardsSold false) ias (
-						/* Croupier takes random puzzle's card */
-						(PuzzleCardDescriptor Ew.RestPuzzles~ Random)^
-						(PublishedCard (PuzzleCardDescriptor~)First)^
-						((Croupier selected card PublishedCard~ and it available for (PuzzleCardDescriptor~)Last~ times) Ew.Output~) Do
-						/* selected card should be published to all players */
-						NotifyPlayersCardSelected ias (
-							Id ias $;
-							/* notifies player identified by complex entity '(Player Id~~) */
-							((Player Id~~)->Card PublishedCard~)^
-						);
-						(Auction.Players~ NotifyPlayersCardSelected~) ForEach
+					(WinnerIsNotAccepted true) ias (
+						CroupierSelectsCard~ Exe
 						/* card was published to all players and next command is wait for players' bet */
 						(Command permitBetOperation)^
 					);
-					(AllCardsSold (Ew.RestPuzzles~ ()) Ident)~ Exe
+					(WinnerIsNotAccepted (AuctionWinner~ nil) Ident)~ Exe
 				);
 				(ActiveCommand permitBetOperation) ias (
 					/* activates wise clock */
@@ -525,21 +565,34 @@ module puzzleR2 {
 				);
                               	(ActiveCommand announceWinner) ias (
 					Winner ias nil;
+					AnnounceWinner ias (
+						((Croupier announced winner Winner~ for card PublishedCard~) Ew.Output~) Do
+						((Player Winner~)->WonCard PublishedCard~)^
+						((Player Winner~)->Command win)^
+					);
 					(RemoveCardFromStorage true) ias (
-						(Ew.RestPuzzles (Ew.RestPuzzles~ (PuzzleCardDescriptor~))Substruct)^
-						((Card PuzzleCardDescriptor~ was removed from puzzle set) Ew.Output~) Do
+						(NoPuzzleElements false) ias (
+							(Ew.RestPuzzles (Ew.RestPuzzles~ (PuzzleCardDescriptor~))Substruct)^
+							((Card PuzzleCardDescriptor~ was removed from puzzle set) Ew.Output~) Do
+						);
+						(NoPuzzleElements true) ias (
+							((Croupier reports that all puzzle elements were sold) Ew.Output~) Do
+							(AuctionStarted false)^
+							ResetAuctionProps~ Exe
+							LoadAdditionalPuzzleElements~ Exe
+						);
+						(NoPuzzleElements (Ew.RestPuzzles~ ())Ident)~ Exe
 					);
 					(RemoveCardFromStorage false) ias (
 						((PublishedCard~ will be available for PublishedCardCounter~~ times) Ew.Output~) Do
 					);
 					(OnePlayerStayesOnAuction true) ias (
 						(Winner (Croupier.LastPlayersBets~)First First)^
-						((Croupier announced winner Winner~ for card PublishedCard~) Ew.Output~) Do
-						((Player Winner~)->WonCard PublishedCard~)^
-						((Player Winner~)->Command win)^
+						AnnounceWinner~ Exe
 					);
 					(OnePlayerStayesOnAuction false) ias (
-						
+						(Winner (Croupier.LastPlayersBets~ Ew.WinnerSelector~) Do First)^
+						AnnounceWinner~ Exe
 					);
 					((Bets for PublishedCard~ are Croupier.LastPlayersBets~) Ew.Output~) Do
 					(OnePlayerStayesOnAuction ((Croupier.LastPlayersBets~)Size 1) Ident)~ Exe
@@ -662,14 +715,19 @@ module puzzleR2 {
 							(FoundPlace false) ias doNothing;
 							(FoundPlace true) ias (
 								(Place B~~)^
+								(Correspondence (Correspondence~ (Place~))Substruct)^
+								((Player Id~ puts card WonCard~ to place (Place~) Last and map is Correspondence~) Ew.Output~) Do
 								($ doNothing)^
 							);
 							(Place nil)^
 							(FoundPlace ((B~~)Last WonCard~)Ident)~ Exe
 						);
+						(AuctionWinner false) ias doNothing;
+						(AuctionWinner true) ias (
+							(Croupier.AuctionWinner Id~)^
+						);
 						(Correspondence~ FindCardPlace~) ForEach
-						(Correspondence (Correspondence~ (Place~))Substruct)^
-						((Player Id~ puts card WonCard~ to place (Place~) Last and map is Correspondence~) Ew.Output~) Do
+						(AuctionWinner (Correspondence~ ())Ident)~ Exe
 						(WonCard nil)^
 						(Command none)^
 					);

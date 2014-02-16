@@ -814,7 +814,7 @@ conflictring
     ;	
 
 conflictdef
-    : name_of_conflict_on_ring { startConflictDefinitionOnRing(GeneralUtils.trimQuotes($name_of_conflict_on_ring.id)); } 'conflicts' '(' name_of_related_conflict_on_ring? ')' { endConflictDefinitionOnRing(); }
+    : name_of_conflict_on_ring { startConflictDefinitionOnRing(GeneralUtils.trimQuotes($name_of_conflict_on_ring.id)); } 'conflicts' '(' name_of_related_conflict_on_ring+ ')' { endConflictDefinitionOnRing(); }
     ;
     
 name_of_conflict_on_ring returns [String id]

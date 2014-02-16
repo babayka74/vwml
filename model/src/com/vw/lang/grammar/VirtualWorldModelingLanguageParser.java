@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-02-14 16:29:02
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-02-16 09:40:45
 
 package com.vw.lang.grammar;
 
@@ -2179,14 +2179,14 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
 
     // $ANTLR start "conflictdef"
-    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:1: conflictdef : name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')' ;
+    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:816:1: conflictdef : name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )+ ')' ;
     public final void conflictdef() throws RecognitionException {
         String name_of_conflict_on_ring14 =null;
 
 
         try {
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:5: ( name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')' )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:7: name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )? ')'
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:5: ( name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )+ ')' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:7: name_of_conflict_on_ring 'conflicts' '(' ( name_of_related_conflict_on_ring )+ ')'
             {
             pushFollow(FOLLOW_name_of_conflict_on_ring_in_conflictdef1173);
             name_of_conflict_on_ring14=name_of_conflict_on_ring();
@@ -2200,27 +2200,40 @@ public class VirtualWorldModelingLanguageParser extends Parser {
 
             match(input,50,FOLLOW_50_in_conflictdef1179); if (state.failed) return ;
 
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:138: ( name_of_related_conflict_on_ring )?
-            int alt18=2;
-            int LA18_0 = input.LA(1);
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:138: ( name_of_related_conflict_on_ring )+
+            int cnt18=0;
+            loop18:
+            do {
+                int alt18=2;
+                int LA18_0 = input.LA(1);
 
-            if ( (LA18_0==STRING_LITERAL) ) {
-                alt18=1;
-            }
-            switch (alt18) {
-                case 1 :
-                    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:138: name_of_related_conflict_on_ring
-                    {
-                    pushFollow(FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1181);
-                    name_of_related_conflict_on_ring();
+                if ( (LA18_0==STRING_LITERAL) ) {
+                    alt18=1;
+                }
 
-                    state._fsp--;
-                    if (state.failed) return ;
 
-                    }
-                    break;
+                switch (alt18) {
+            	case 1 :
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:817:138: name_of_related_conflict_on_ring
+            	    {
+            	    pushFollow(FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1181);
+            	    name_of_related_conflict_on_ring();
 
-            }
+            	    state._fsp--;
+            	    if (state.failed) return ;
+
+            	    }
+            	    break;
+
+            	default :
+            	    if ( cnt18 >= 1 ) break loop18;
+            	    if (state.backtracking>0) {state.failed=true; return ;}
+                        EarlyExitException eee =
+                            new EarlyExitException(18, input);
+                        throw eee;
+                }
+                cnt18++;
+            } while (true);
 
 
             match(input,51,FOLLOW_51_in_conflictdef1184); if (state.failed) return ;
@@ -3691,8 +3704,8 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     public static final BitSet FOLLOW_73_in_conflictring1155 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_name_of_conflict_on_ring_in_conflictdef1173 = new BitSet(new long[]{0x0400000000000000L});
     public static final BitSet FOLLOW_58_in_conflictdef1177 = new BitSet(new long[]{0x0004000000000000L});
-    public static final BitSet FOLLOW_50_in_conflictdef1179 = new BitSet(new long[]{0x0009000000000000L});
-    public static final BitSet FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1181 = new BitSet(new long[]{0x0008000000000000L});
+    public static final BitSet FOLLOW_50_in_conflictdef1179 = new BitSet(new long[]{0x0001000000000000L});
+    public static final BitSet FOLLOW_name_of_related_conflict_on_ring_in_conflictdef1181 = new BitSet(new long[]{0x0009000000000000L});
     public static final BitSet FOLLOW_51_in_conflictdef1184 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_string_in_name_of_conflict_on_ring1211 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_string_in_name_of_related_conflict_on_ring1232 = new BitSet(new long[]{0x0000000000000002L});

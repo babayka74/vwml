@@ -17,19 +17,22 @@ public class ConfigurationLoader implements IVWMLGate {
 	
 	private static class LoadFreePlacesConfParamHandler extends LoadParamHandler {
 		public String load(String paramId) {
-			return "(p1 p2 p3 p4 p5 p6 p7 p8 p9)";
+			// return "(p1 p2 p3 p4 p5 p6 p7 p8 p9)";
+			return "(p1 p2 p3)";
 		}
 	}
 	
 	private static class RestPuzzlesConfParamHandler extends LoadParamHandler {
 		public String load(String paramId) {
-			return "((c1 counter1) (c2 counter2) (c3 counter3)(c4 counter4) (c5 counter5) (c6 counter6)(c7 counter7) (c8 counter8) (c9 counter9))";
+			// return "((c1 counter1) (c2 counter2) (c3 counter3)(c4 counter4) (c5 counter5) (c6 counter6)(c7 counter7) (c8 counter8) (c9 counter9))";
+			return "((c1 counter1) (c2 counter2) (c3 counter3))";
 		}
 	}
 	
 	private static class CorrespondenceConfParamHandler extends LoadParamHandler {
 		public String load(String paramId) {
-			return "((p1 c1)(p2 c2)(p3 c3)(p4 c4)(p5 c5)(p6 c6)(p7 c7)(p8 c8)(p9 c9))";
+			// return "((p1 c1)(p2 c2)(p3 c3)(p4 c4)(p5 c5)(p6 c6)(p7 c7)(p8 c8)(p9 c9))";
+			return "((p1 c1)(p2 c2)(p3 c3))";
 		}
 	}
 	

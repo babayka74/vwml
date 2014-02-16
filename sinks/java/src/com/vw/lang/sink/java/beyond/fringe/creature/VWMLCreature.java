@@ -6,8 +6,8 @@ import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.entity.EWObject;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
-import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
@@ -76,12 +76,12 @@ public class VWMLCreature extends VWMLEntity {
 	}
 	
 	private static VWMLEntity transformSimpleEWEntityToVWML(VWMLContext context, VWMLEntity parent, EWEntity ewEntity) throws Exception {
-		VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.SIMPLE_ENTITY,
-											   ewEntity.getId(),
-											   context.getContext(),
-											   0,
-											   VWMLObjectsRepository.notAsOriginal,
-											   null);
+		VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY,
+														   context.getContext(),
+														   ewEntity.getId(),
+														   context,
+														   0,
+														   null);
 		if (parent != null) {
 			parent.getLink().link(e);
 		}
@@ -89,12 +89,12 @@ public class VWMLCreature extends VWMLEntity {
 	}
 	
 	private static VWMLEntity transformComplexEWEntityToVWML(VWMLContext context, VWMLEntity parent, EWEntity ewEntity) throws Exception {
-		VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.acquire(VWMLObjectType.COMPLEX_ENTITY,
-				   ewEntity.getId(),
-				   context.getContext(),
-				   0,
-				   VWMLObjectsRepository.notAsOriginal,
-				   null);
+		VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
+														   context.getContext(),
+														   ewEntity.getId(),
+														   context,
+														   0,
+														   null);
 		for(EWObject ewo : ewEntity.getLink().getLinkedObjects()) {
 			EWEntity ewe = (EWEntity)ewo;
 			if (!ewe.isMarkedAsComplexEntity()) {
@@ -132,20 +132,9 @@ public class VWMLCreature extends VWMLEntity {
 					transformSimpleVWMLEntityToEW(ewe, e);
 				}
 				else {
-					if (parent != null) {
-						parent.getLink().link(ewe);
-					}
 					EWEntity r = transformComplexVWMLEntityToEW(ewe, e);
-					if (parent == null) {
-						parent = ewe;
-						parent.getLink().link(r);
-					}					
+					ewe.getLink().link(r);
 				}
-			}
-		}
-		else {
-			if (parent != null) {
-				parent.getLink().link(ewe);
 			}
 		}
 		return ewe;
