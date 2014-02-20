@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.rest;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
@@ -65,13 +66,12 @@ public class VWMLOperationRestHandler extends VWMLOperationHandler {
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_num_args) {
 			return emptyEntity;
 		}
-		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquireWithoutCheckingOnExistence(VWMLObjectType.COMPLEX_ENTITY,
-				  ComplexEntityNameBuilder.generateRandomName(),
-				  entity.getContext(),
-				  entity.getInterpretationHistorySize(),
-				  VWMLObjectsRepository.notAsOriginal,
-				  entity.getLink().getLinkOperationVisitor());
-	
+		VWMLEntity result = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
+																entity.getContext().getContext(),  
+																ComplexEntityNameBuilder.generateRandomName(),
+																entity.getContext(),
+																entity.getInterpretationHistorySize(),
+																entity.getLink().getLinkOperationVisitor());
 		VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)entity).getLink().acquireLinkedObjectsIterator();
 		it.setIt(1);
 		for(; it.isCorrect(); it.next()) {

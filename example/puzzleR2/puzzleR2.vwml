@@ -19,9 +19,11 @@ options {
 		conflictring {
 			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersLeft false).(PlayerExist true).LeavePlayer" conflicts (
 				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand announceWinner).SelectWinner"
 			)
 			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersJoined false).(PlayerExist false).JoinPlayer" conflicts (
 				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
+				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand announceWinner).SelectWinner"
 			)
 			"CroupierAssistant.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).BetsAccepting" conflicts (
 				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).LockBetsProgress"
@@ -594,8 +596,10 @@ module puzzleR2 {
 						(Winner (Croupier.LastPlayersBets~ Ew.WinnerSelector~) Do First)^
 						AnnounceWinner~ Exe
 					);
-					((Bets for PublishedCard~ are Croupier.LastPlayersBets~) Ew.Output~) Do
-					(OnePlayerStayesOnAuction ((Croupier.LastPlayersBets~)Size 1) Ident)~ Exe
+					SelectWinner [
+						((Bets for PublishedCard~ are Croupier.LastPlayersBets~) Ew.Output~) Do
+						(OnePlayerStayesOnAuction ((Croupier.LastPlayersBets~)Size 1) Ident)~ Exe
+					SelectWinner ]
 					/* decrease card's counter which defines how many the cards, of this type, keep in the pool */
 					(PublishedCardCounter (PuzzleCardDescriptor~)Last)^
 					(PublishedCardCounter~ ((PublishedCardCounter~~) Ew.DecNumberOfPlayers~) Do)^

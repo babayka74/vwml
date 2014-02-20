@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.intersect
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
@@ -101,12 +102,12 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		if (!e1.isMarkedAsComplexEntity() || !e2.isMarkedAsComplexEntity()) {
 			return nilEntity;
 		}
-		VWMLEntity result = (VWMLEntity)VWMLObjectsRepository.acquireWithoutCheckingOnExistence(VWMLObjectType.COMPLEX_ENTITY,
-																	  ComplexEntityNameBuilder.generateRandomName(),
-																	  ownerEntity.getContext(),
-																	  ownerEntity.getInterpretationHistorySize(),
-																	  VWMLObjectsRepository.notAsOriginal,
-																	  ownerEntity.getLink().getLinkOperationVisitor());
+		VWMLEntity result = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
+																ownerEntity.getContext().getContext(),
+																ComplexEntityNameBuilder.generateRandomName(),
+																ownerEntity.getContext(),
+																ownerEntity.getInterpretationHistorySize(),
+																ownerEntity.getLink().getLinkOperationVisitor());
 		VWMLLinkIncrementalIterator itE1 = ((VWMLComplexEntity)e1).getLink().acquireLinkedObjectsIterator();
 		VWMLLinkIncrementalIterator itE2 = ((VWMLComplexEntity)e2).getLink().acquireLinkedObjectsIterator();
 		if (itE1 == null && itE2 != null) {
