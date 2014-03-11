@@ -779,6 +779,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}
 	
 	/**
+	 * Not implemented for VWML
+	 */
+	public void markEntityAsLifeTermOnContexts(Object id, boolean asSource, String[] contexts) throws Exception {
+		throw new Exception("not implemented for VWML");
+	}
+	
+	/**
 	 * Declares simple entity
 	 * @param id (ID)
 	 * @param context

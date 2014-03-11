@@ -34,7 +34,7 @@ public class VWMLModelBuilder extends Debuggable {
 	 *
 	 */
 	public static enum SINK_TYPE {
-		JAVA, CPP, C, OBJECTIVE_C
+		JAVA, CPP, C, OBJECTIVE_C, RAW
 	}
 
 	/**
@@ -167,6 +167,7 @@ public class VWMLModelBuilder extends Debuggable {
 		{ put(SINK_TYPE.CPP,         null);                        }
 		{ put(SINK_TYPE.C,           null);                        }
 		{ put(SINK_TYPE.OBJECTIVE_C, null);                        }
+		{ put(SINK_TYPE.RAW,         new CodeGeneratorAux(JavaCodeGenerator.instance(), null));}
 	};
 	
 	/**

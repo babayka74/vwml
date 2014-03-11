@@ -47,7 +47,8 @@
 					<forceCreation>true</forceCreation>
 					<excludes>
 						<exclude>com/vw/common/*</exclude>
-						<exclude>com/vw/lang/sink/*</exclude>
+						<exclude>com/vw/sink/*</exclude>
+						<exclude>com/vw/lang/processor/context/builder/*</exclude>
 					</excludes>
         			</configuration>
 				<executions>

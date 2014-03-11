@@ -64,6 +64,7 @@ public class Stack {
 	}
 	
 	private Node top = new Node();
+	private int depth = 0;
 	private IStackVisualizer stackVisualizer = null;
 	
 	private Stack() {
@@ -85,6 +86,7 @@ public class Stack {
 	public void push(Object data) {
 		Node n = new Node(data, top);
 		top = n;
+		depth++;
 		if (stackVisualizer != null) {
 			stackVisualizer.objectPushed(data);
 		}
@@ -100,6 +102,9 @@ public class Stack {
 		if (n != null) {
 			top = n;
 		}
+		if (depth > 0) {
+			depth--;
+		}
 		if (stackVisualizer != null) {
 			stackVisualizer.objectPopped(data);
 		}
@@ -112,6 +117,14 @@ public class Stack {
 	 */
 	public Object peek() {
 		return top.getData();
+	}
+	
+	/**
+	 * Returns active stack's depth
+	 * @return
+	 */
+	public int depth() {
+		return depth;
 	}
 	
 	/**
