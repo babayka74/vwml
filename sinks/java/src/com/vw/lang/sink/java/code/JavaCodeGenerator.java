@@ -837,6 +837,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}
 	
 	/**
+	 * Links context and bunch to which context belongs
+	 * @param contextId
+	 * @param bunch
+	 * @param bunch
+	 */
+	public void linkContextAndBunch(Object contextId, Object bunch) {
+		
+	}
+	
+	/**
 	 * Removes last declared complex entity; complex context detected
 	 * @param id (REL)
 	 */

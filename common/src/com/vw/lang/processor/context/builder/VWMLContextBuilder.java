@@ -162,10 +162,19 @@ public class VWMLContextBuilder {
 			this.reducedContextList = reducedContextList;
 		}
 
+		public String bunchAsString() {
+			String delimiter = ",";
+			String bunchAsStr = "";
+			for(ContextBunchElement e = first(); e != null; e = next()) {
+				bunchAsStr += e.getId() + delimiter;
+			}
+			return bunchAsStr.substring(0, bunchAsStr.length() - delimiter.length());
+		}
+		
 		@Override
 		public String toString() {
 			return "ContextBunch [contexts=" + contexts + ", toString()="
-					+ super.toString() + "]";
+					+ bunchAsString() + "]";
 		}
 	}
 	
@@ -213,6 +222,16 @@ public class VWMLContextBuilder {
 	 */
 	public static String buildFullEntityName(String context, String entityId) {
 		return normalizeContext(context) + "." + entityId;
+	}
+	
+	/**
+	 * Returns bunch's string representation
+	 * @param bunchAsObj
+	 * @return
+	 */
+	public static String bunchAsString(Object bunchAsObj) {
+		ContextBunch bunch = (ContextBunch)bunchAsObj;
+		return bunch.bunchAsString();
 	}
 	
 	/**

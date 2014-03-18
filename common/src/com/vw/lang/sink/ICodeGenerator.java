@@ -212,6 +212,14 @@ public interface ICodeGenerator {
 	public void declareContext(Object contextId);
 	
 	/**
+	 * Links context and bunch to which context belongs
+	 * @param contextId
+	 * @param bunch
+	 * @param bunch
+	 */
+	public void linkContextAndBunch(Object contextId, Object bunch);
+	
+	/**
 	 * Links objects using their ids
 	 * @param id
 	 * @param linkedObjId

@@ -16,7 +16,7 @@ options {
 			)
 		}
 		conflictring {
-			Example3.Robby.Creation.OnShelfSituation conflicts (Example3.Bob.Creation.OnShelfSituation)
+			"Example3.Robby.Creation.OnShelfSituation" conflicts ("Example3.Bob.Creation.OnShelfSituation")
 		}
 	}
 }

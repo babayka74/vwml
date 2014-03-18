@@ -19,9 +19,9 @@ options {
 			)
 		}
 		conflictring {
-			Example5.Robby.GetContCase.Study conflicts (Example5.Bob.Creation.PutOnShelf)
-			Example5.Robby.Creation.PutOnShelf conflicts (Example5.Bob.GetContCase.Study)
-			Example5.Robby.Creation.PutOnShelf conflicts (Example5.Bob.Creation.PutOnShelf)
+			"Example5.Robby.GetContCase.Study" conflicts ("Example5.Bob.Creation.PutOnShelf")
+			"Example5.Robby.Creation.PutOnShelf" conflicts ("Example5.Bob.GetContCase.Study")
+			"Example5.Robby.Creation.PutOnShelf" conflicts ("Example5.Bob.Creation.PutOnShelf")
 		}
 	}
 }
