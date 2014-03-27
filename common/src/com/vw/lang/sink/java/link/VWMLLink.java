@@ -152,6 +152,15 @@ public class VWMLLink {
 	}
 	
 	/**
+	 * Returns true in case if previous element's index is correct
+	 * @param it
+	 * @return
+	 */
+	public boolean hasPrev(VWMLLinkIncrementalIterator it) {
+		return it.hasPrev();
+	}
+	
+	/**
 	 * Returns number of linked objects on given VWMLObject 
 	 * @return
 	 */

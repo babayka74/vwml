@@ -1,0 +1,48 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.magic.model.vwml.magicBalls"
+  		path = "c:\var\vwml/magicBalls/src"
+  		author = "Groozman M.Z."
+		project_name = "MagicBallsProj"
+  		description = "Simple magic balls"
+		beyond {
+			fringe Robby ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+	}
+}
+
+module MagicBallsWorld {
+	Ew ias (
+		AppDraw ias Robby.out.write;
+		ToBasketDraw ias Robby.out.write;
+		PressButton ias Robby.in.read;
+	);
+	Robby ias (
+		Button ias nil;
+		(Blue Basket) ias ();
+		(Green Basket) ias ();
+		(Red Basket) ias ();
+
+		(Stop true) ias doNothing;
+		(Stop false) ias (
+			(BallOnGrass ((Red Green Green Blue Red Red Blue Green) Random Ball))^
+			(Color (BallOnGrass~) First)^
+			((ball on grass with color Color~) Ew.AppDraw~) Do
+			((Color~ Basket) ((Color~ Basket)~ (Color~ Ball)) Join)^
+			((Robby puts ball colored by Color~ to basket (Color~ Basket)) Ew.AppDraw~) Do
+			((Basket colored by Color~ contains following items (Color~ Basket)~) Ew.ToBasketDraw~) Do
+			Bhv~ Exe
+		);
+		Pressing ias (Button (() Ew.PressButton~) Do)^;
+		Bhv ias (
+			((waiting for pressed button) Ew.AppDraw~) Do
+			Pressing~ Exe
+			(Stop (Button~ Stop) Ident)~ Exe
+		);
+		source lifeterm = Bhv~ Exe
+	);
+}
+                                  

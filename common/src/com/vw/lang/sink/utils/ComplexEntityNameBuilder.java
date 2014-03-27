@@ -134,7 +134,7 @@ public class ComplexEntityNameBuilder {
 		if (rootComplexEntity == null) {
 			return s_empty_name;
 		}
-		return build(rootComplexEntity, "", true).trim();
+		return build(rootComplexEntity, "").trim();
 	}
 	
 	/**
@@ -181,26 +181,12 @@ public class ComplexEntityNameBuilder {
 		walker.clear();
 	}
 	
-	public String build(ComplexEntity ce, String name, boolean firstTime) {
-		String injectOnStart = "";
-		if (getNameBuilderVisitor() != null && getNameBuilderVisitor().injectionOnStart() != null) {
-			injectOnStart = getNameBuilderVisitor().injectionOnStart();
-		}
-		String str = name + injectOnStart + "(";
-		if (firstTime) {
-			if (getNameBuilderVisitor() != null && getNameBuilderVisitor().injectionOnParentStart() != null) {
-				str += getNameBuilderVisitor().injectionOnParentStart();
-			}
-		}
-		else {
-			if (getNameBuilderVisitor() != null && getNameBuilderVisitor().injectionOnChildStart() != null) {
-				str += getNameBuilderVisitor().injectionOnChildStart();
-			}
-		}
+	public String build(ComplexEntity ce, String name) {
+		String str = name + "(";
 		List<Entity> entities = ce.getEntities();
 		for(Entity e : entities) {
 			if (e instanceof ComplexEntity) {
-				str = build((ComplexEntity)e, str, false);
+				str = build((ComplexEntity)e, str);
 			}
 			else {
 				str += e.getId() + " ";
@@ -208,20 +194,7 @@ public class ComplexEntityNameBuilder {
 		}
 		ce.clear();
 		str = str.trim();
-		if (firstTime) {
-			if (getNameBuilderVisitor() != null && getNameBuilderVisitor().injectionOnParentFinish() != null) {
-				str += getNameBuilderVisitor().injectionOnParentFinish();
-			}
-		}
-		else {
-			if (getNameBuilderVisitor() != null && getNameBuilderVisitor().injectionOnChildStart() != null) {
-				str += getNameBuilderVisitor().injectionOnChildFinish();
-			}
-		}
 		str += ") ";
-		if (getNameBuilderVisitor() != null && getNameBuilderVisitor().injectionOnFinish() != null) {
-			str += getNameBuilderVisitor().injectionOnFinish();
-		}
 		return str;
 	}
 	

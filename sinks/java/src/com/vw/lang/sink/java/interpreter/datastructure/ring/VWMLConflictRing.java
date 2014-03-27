@@ -206,7 +206,12 @@ public class VWMLConflictRing {
 	private VWMLConflictRingExecutionGroup lookupGroupByContext(String context) { 
 		VWMLConflictRingExecutionGroup g = null;
 		for (VWMLConflictRingExecutionGroup group : groupsConflictRing) {
-			if (((String)group.getId()).startsWith(context + ".")) {
+			int i = ((String)group.getId()).lastIndexOf(".");
+			String s = ((String)group.getId());
+			if (i != -1) {
+				s = ((String)group.getId()).substring(0, i);
+			}
+			if (s.equals(context)) {
 				g = group;
 				break;
 			}

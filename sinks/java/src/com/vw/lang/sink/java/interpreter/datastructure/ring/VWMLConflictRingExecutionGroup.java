@@ -87,6 +87,16 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		}
 		return master;
 	}
+
+	public VWMLConflictRingNode findMasterInAnyCase() {
+		VWMLConflictRingNode master = null;
+		if (group.size() != 0) {
+			VWMLConflictRingNode n = group.get(0);
+			n.markAsClone(false);
+			master = n;
+		}
+		return master;
+	}
 	
 	public VWMLConflictRingNode schedule() {
 		if (group.size() == 0) {

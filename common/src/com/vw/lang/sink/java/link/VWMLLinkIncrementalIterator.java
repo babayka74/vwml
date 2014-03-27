@@ -32,6 +32,14 @@ public class VWMLLinkIncrementalIterator {
 		return it;
 	}
 	
+	public boolean hasPrev() {
+		int p = it;
+		it--;
+		boolean b = isCorrect();
+		it = p;
+		return b;
+	}
+	
 	public int getIt() {
 		return it;
 	}

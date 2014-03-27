@@ -31,6 +31,7 @@ public class EntityWalker {
 		private Object obj;
 		private REL relation;
 		private Object lastLink;
+		private Object parentLink; // for SHL only
 		private Object data;
 		private boolean participatesInComplexContextBuildingProcess = false;
 
@@ -61,6 +62,14 @@ public class EntityWalker {
 			return lastLink;
 		}
 		
+		public Object getParentLink() {
+			return parentLink;
+		}
+
+		public void setParentLink(Object parentLink) {
+			this.parentLink = parentLink;
+		}
+
 		public Object getData() {
 			return data;
 		}

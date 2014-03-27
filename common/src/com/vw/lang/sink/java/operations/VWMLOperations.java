@@ -65,6 +65,15 @@ public class VWMLOperations extends VWMLObject {
 	}
 	
 	/**
+	 * Returns 'true' in case if operation is in active list
+	 * @param op
+	 * @return
+	 */
+	public boolean inList(VWMLOperation op) {
+		return operations.contains(op);
+	}
+	
+	/**
 	 * Returns instance of iterator of container of operations
 	 * @return
 	 */

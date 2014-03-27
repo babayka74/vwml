@@ -59,6 +59,13 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 			if (clonedSourceLft != null) {
 				activateSourceLifeTerm(interpreter, cloned, clonedSourceLft);
 			}
+			else {
+				VWMLEntity clonedLft = cloned.getInterpreting().getContext().findLifeTerm();
+				if (clonedLft != null) {
+					clonedLft.setLifeTermAsSource(true);
+					activateSourceLifeTerm(interpreter, cloned, clonedLft);
+				}
+			}
 		}
 	}
 	
@@ -74,7 +81,10 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		}
 		VWMLConflictRingNode ringMasterNode = group.findMasterNode();
 		if (ringMasterNode == null) {
-			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
+			ringMasterNode = group.findMasterInAnyCase();
+			if (ringMasterNode == null) {
+				throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
+			}
 		}
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();

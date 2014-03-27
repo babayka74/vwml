@@ -1,0 +1,55 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.magic.model.vwml.robandbob"
+  		path = "c:\var\vwml/robandbob/src"
+  		author = "Groozman M.Z."
+		project_name = "RobAndBobProj"
+  		description = "Simple clone example"
+		beyond {
+			fringe ias communication (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+	}
+}
+
+module RobCreatesBob {
+	Ew ias (
+		out ias communication.out.write;
+		in ias communication.in.read;
+	);
+	World ias (
+		Basket ias ();
+		QBobs ias 0;
+		BallSet ias ((Green Ball) (Blue Ball) (Blue Ball) (Green Ball) (Red Ball) (Green Ball) (Blue Ball));
+		(0 inc) ias 1;
+		(1 inc) ias end;
+		Id ias Robby;
+
+		Robby ias (
+			BallToBasket ias (
+						(Basket (Basket~ (BallSet~ Random)) Join)^
+						((Id~ puts ball to basket Basket~) Ew.out~) Do
+					);
+			(end true) ias (
+						20000 Relax
+					);
+			(end false) ias (
+					        (Id Bob)^
+						(Robby Id~) Clone
+					);
+			CreateBob ias (
+				(QBobs (QBobs~ inc)~)^
+				(end (QBobs~ end) Ident)~ Exe
+			);
+			source lifeterm = (
+				((Id~ was born) Ew.out~) Do
+				BallToBasket~ Exe
+				BallToBasket~ Exe
+				CreateBob~ Exe
+			) Exe
+		);
+	);
+}
+                                  
