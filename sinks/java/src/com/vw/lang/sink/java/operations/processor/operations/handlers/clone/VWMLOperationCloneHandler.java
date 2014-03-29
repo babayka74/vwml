@@ -79,31 +79,32 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		if (group == null) {
 			throw new Exception("couldn't ring find group by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
-		VWMLConflictRingNode ringMasterNode = group.findMasterNode();
-		if (ringMasterNode == null) {
-			ringMasterNode = group.findMasterInAnyCase();
-			if (ringMasterNode == null) {
+		VWMLConflictRingNode ringGroupMasterNode = group.findMasterNode();
+		if (ringGroupMasterNode == null) {
+			ringGroupMasterNode = group.findMasterInAnyCase();
+			if (ringGroupMasterNode == null) {
 				throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 			}
 		}
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);
-		VWMLConflictRingNode clonedNode = ringMasterNode.clone(clonedInterpreter);
+		VWMLConflictRingNode clonedNode = ringGroupMasterNode.clone(clonedInterpreter);
 		clonedNode.markAsClone(true);
 		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
 		// needed when resources should be released
 		clonedInterpreter.setClonedFromEntity(cloned);
 		clonedInterpreter.setCloned(true);
 		clonedInterpreter.setTerms(tl);
-		clonedNode.setMasterNode(ringMasterNode);
+		clonedNode.setMasterNode(ringGroupMasterNode);
 		clonedNode.setExecutionGroup(group);
 		group.add(clonedNode);
 		clonedInterpreter.start();
 		// get real operated node (not - master)
-		if (ringMasterNode != null) {
+		if (ringGroupMasterNode != null) {
 			// sigma's should be cloned also
-			ringMasterNode.cloneSigmaFor(clonedNode);
+			ringGroupMasterNode.cloneSigmaFor(clonedNode);
+			
 		}
 	}
 	

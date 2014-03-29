@@ -114,8 +114,12 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	
 	@Override
 	public VWMLInterpreterImpl addTermInRunTime(VWMLConflictRingExecutionGroup g, VWMLInterpreterImpl masterInterpreter,
-			                                    VWMLEntity term, VWMLContext forcedContext, VWMLInterpreterListener listener) throws Exception {
-		return activateSourceLifeTerm(g, masterInterpreter, term, forcedContext, listener, true);
+			                                    VWMLEntity term, VWMLContext forcedContext, VWMLInterpreterListener listener,
+			                                    boolean considerTermAsLifeTerm) throws Exception {
+		term.setLifeTermAsSource(true);
+		VWMLInterpreterImpl impl = activateSourceLifeTerm(g, masterInterpreter, term, forcedContext, listener, true);
+		term.setLifeTermAsSource(false);
+		return impl;
 	}
 
 	@Override
@@ -146,23 +150,29 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 				return null;
 			}
 		}
-		// instantiates new sequential interpreter
-		VWMLSequentialTermInterpreter impl = VWMLSequentialTermInterpreter.instance(getLinkage(), term);
-		impl.setForcedContext(forcedContext);
-		impl.setListener(listener);
-		impl.setConfig(getConfig());
-		impl.setTimerManager(getTimerManager());
-		impl.setRing(ring);
-		impl.setMasterInterpreter(this);
-		if (n != null) {
-			// associating interpreter and ring node
-			n.pushInterpreter(impl);
+		VWMLSequentialTermInterpreter impl = null;
+		if (!term.isLifeTermAsSource()) {
+			n.setMarkAsCandidatOnClone(true);
 		}
 		else {
-			getConfig().setStepByStepInterpretation(false);
+			// instantiates new sequential interpreter
+			impl = VWMLSequentialTermInterpreter.instance(getLinkage(), term);
+			impl.setForcedContext(forcedContext);
+			impl.setListener(listener);
+			impl.setConfig(getConfig());
+			impl.setTimerManager(getTimerManager());
+			impl.setRing(ring);
+			impl.setMasterInterpreter(this);
+			if (n != null) {
+				// associating interpreter and ring node
+				n.pushInterpreter(impl);
+			}
+			else {
+				getConfig().setStepByStepInterpretation(false);
+			}
+			// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
+			impl.start();
 		}
-		// 'lazy' start (initializes interpreter's internal structures only; the execution phase is managed by ring)
-		impl.start();
 		return impl;
 	}
 }

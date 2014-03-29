@@ -22,6 +22,7 @@ import com.vw.lang.sink.java.code.utils.JavaCodeGeneratorUtils;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.utils.EntityWalker;
 import com.vw.lang.sink.utils.EntityWalker.REL;
+import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * Used by VWMLProcessor for code generation
@@ -972,12 +973,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param conflictDefinitionName
 	 */
 	public void startConflictDefinitionOnRing(String conflictDefinitionName) throws Exception {
-		String context = stripContextFrom(conflictDefinitionName);
-		if (!checkIfSimpleEntityDeclared(conflictDefinitionName, context)) {
-			declareSimpleEntity(conflictDefinitionName, context);
+		String rawConflictDefinitionName = parseBoundTerm2ConflictAssociation(conflictDefinitionName);
+		String context = stripContextFrom(rawConflictDefinitionName);
+		if (!checkIfSimpleEntityDeclared(rawConflictDefinitionName, context)) {
+			declareSimpleEntity(rawConflictDefinitionName, context);
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("conflict definition on ring '" + conflictDefinitionName + "' defined on context '" + context + "'");
+			logger.debug("conflict definition on ring '" + rawConflictDefinitionName + "' defined on context '" + context + "'");
 		}
 		if (entitiesOfConflictRing.get(conflictDefinitionName) == null) {
 			entitiesOfConflictRing.put(conflictDefinitionName, new ArrayList<String>());
@@ -1003,9 +1005,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		if (!conflicts.contains(conflictDefinitionName)) {
 			conflicts.add(conflictDefinitionName);
 		}
-		String context = stripContextFrom(conflictDefinitionName);
-		if (!checkIfSimpleEntityDeclared(conflictDefinitionName, context)) {
-			declareSimpleEntity(conflictDefinitionName, context);
+		String rawConflictDefinitionName = parseBoundTerm2ConflictAssociation(conflictDefinitionName);
+		String context = stripContextFrom(rawConflictDefinitionName);
+		if (!checkIfSimpleEntityDeclared(rawConflictDefinitionName, context)) {
+			declareSimpleEntity(rawConflictDefinitionName, context);
 		}
 		// reversing include...
 		List<String> reversingConflicts = entitiesOfConflictRing.get(conflictDefinitionName);
@@ -1113,4 +1116,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		VWMLObjWrap v = new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, context);
 		return declaredObjects.contains(v);
 	}	
+	
+	private String parseBoundTerm2ConflictAssociation(String conflictDefinitionName) {
+		String parsedAssociation = conflictDefinitionName;
+		String boundTerm = GeneralUtils.getConflictBoundTerm(conflictDefinitionName);
+		if (boundTerm != null) {
+			String suffix = conflictDefinitionName.substring(conflictDefinitionName.lastIndexOf("}") + 1);
+			parsedAssociation = boundTerm + suffix;
+		}
+		return parsedAssociation;
+	}
 }

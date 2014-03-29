@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
@@ -87,9 +88,16 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (!modulesBuilt) {
 			build();
 		}
-		List<VWMLEntity> terms = VWMLLinkage.getSourceLifeTerms();
-		if (terms.size() == 0) {
-			terms = VWMLLinkage.getLifeTerms();
+		List<VWMLEntity> slftTerms = VWMLLinkage.getSourceLifeTerms();
+		List<VWMLEntity> lftTerms = VWMLLinkage.getLifeTerms();
+		List<VWMLEntity> terms = new ArrayList<VWMLEntity>();
+		for(VWMLEntity e : slftTerms) {
+			terms.add(e);
+		}
+		for(VWMLEntity e : lftTerms) {
+			if (!slftTerms.contains(e)) {
+				terms.add(e);
+			}
 		}
 		VWMLInterpreterImpl impl = getConcreteInterpreterAccordingToConfiguration(getMainLinkage(), terms);
 		if (impl == null) {

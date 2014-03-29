@@ -141,7 +141,7 @@ public class VWMLOperationUtils {
 		// term is interpreted by own interpreter
 		VWMLContext forcedContext = VWMLContext.instance((contextPrefix != null) ? "contextPrefix" : onOperation + term.getContext().getContext());
 		forcedContext.setContext(term.getContext().getContext());
-		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener);
+		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
 			// the synthetic entity '$' will be interpreted as component
 			i.setInterpretingEntityForSyntheticEntity(component);

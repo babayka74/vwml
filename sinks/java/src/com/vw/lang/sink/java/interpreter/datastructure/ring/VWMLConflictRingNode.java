@@ -20,6 +20,12 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// node's automata
 	private VWMLConflictRingNodeAutomata nodeAutomata = VWMLConflictRingNodeAutomata.build();
 	private boolean clone = false;
+	// marked when node is created due to conflict definition + lifeterm, but initially it is not
+	// placed to ring, so we may guess about its ability to be cloned
+	private boolean markAsCandidatOnClone = false;
+	// sets 'true' when node is inside conflict area, used during clone operation when new node's sigma
+	// should be set in explicit way (without involving ring's sigma updater)
+	private boolean inConflictAreaNow = false;
 	// index of conflict fragment 
 	private int sigma = 0;
 	// true in case if node belongs to any group
@@ -88,6 +94,9 @@ public class VWMLConflictRingNode extends VWMLObject {
 			g2.setSigma(g1.getSigma());
 		}
 		clonedNode.setSigma(getSigma());
+		if (isInConflictAreaNow() && group.size() == 0) {
+			clonedNode.setSigma(getSigma() + 1);
+		}
 	}
 	
 	/**
@@ -136,6 +145,22 @@ public class VWMLConflictRingNode extends VWMLObject {
 
 	public void markAsClone(boolean clone) {
 		this.clone = clone;
+	}
+
+	public boolean isMarkAsCandidatOnClone() {
+		return markAsCandidatOnClone;
+	}
+
+	public void setMarkAsCandidatOnClone(boolean markAsCandidatOnClone) {
+		this.markAsCandidatOnClone = markAsCandidatOnClone;
+	}
+
+	public boolean isInConflictAreaNow() {
+		return inConflictAreaNow;
+	}
+
+	public void setInConflictAreaNow(boolean inConflictAreaNow) {
+		this.inConflictAreaNow = inConflictAreaNow;
 	}
 
 	/**

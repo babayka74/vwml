@@ -17,22 +17,22 @@ options {
 			)
 		}
 		conflictring {
-			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersLeft false).(PlayerExist true).LeavePlayer" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand announceWinner).SelectWinner"
+			"{CroupierAssistant}.CroupierAssistantLifeStep.(AllPlayersLeft false).(PlayerExist true).LeavePlayer" conflicts (
+				"{Croupier}.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
+				"{Croupier}.CroupierLifeStep.(ContinueAuction true).(ActiveCommand announceWinner).SelectWinner"
 			)
-			"CroupierAssistant.CroupierAssistantLifeStep.(AllPlayersJoined false).(PlayerExist false).JoinPlayer" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand announceWinner).SelectWinner"
+			"{CroupierAssistant}.CroupierAssistantLifeStep.(AllPlayersJoined false).(PlayerExist false).JoinPlayer" conflicts (
+				"{Croupier}.CroupierLifeStep.(ContinueAuction true).(ActiveCommand analyzeBets).CheckStatusOfBetCollection"
+				"{Croupier}.CroupierLifeStep.(ContinueAuction true).(ActiveCommand announceWinner).SelectWinner"
 			)
-			"CroupierAssistant.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).BetsAccepting" conflicts (
-				"Croupier.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).LockBetsProgress"
+			"{CroupierAssistant}.CroupierAssistantLifeStep.(WaitForCommand false).(ProcessCommand true).bet.(BetPermitted true true).(PlayerExist true).BetsAccepting" conflicts (
+				"{Croupier}.CroupierLifeStep.(ContinueAuction true).(ActiveCommand waitForBetFromPlayers).LockBetsProgress"
 			)
-			"Ew.ProcessDPCommand.FetchDPCommand" conflicts (
-				"Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap" "Croupier.LoadAdditionalPuzzleElements.LoadPuzzleElements"
+			"{Ew}.ProcessDPCommand.FetchDPCommand" conflicts (
+				"{Player}.AskToLoadCorrespondenceMap.LoadCorrespondenceMap" "{Croupier}.LoadAdditionalPuzzleElements.LoadPuzzleElements"
 			)
-			"Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap" conflicts (
-				"Player.AskToLoadCorrespondenceMap.LoadCorrespondenceMap"
+			"{Player}.AskToLoadCorrespondenceMap.LoadCorrespondenceMap" conflicts (
+				"{Player}.AskToLoadCorrespondenceMap.LoadCorrespondenceMap"
 			)
 		}
 	}

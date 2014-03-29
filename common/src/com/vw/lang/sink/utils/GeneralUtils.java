@@ -2,6 +2,8 @@ package com.vw.lang.sink.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Set of helper methods which are used by both code generators and parsers
@@ -111,4 +113,20 @@ public class GeneralUtils {
 	public List<Object> getObjContainer() {
 		return s_objContainer;
 	}	
+	
+	/**
+	 * Conflict definition may define conflict's bound term. The syntax is {...}.<conflict>
+	 * Example: {Tom.RobbyProject}.BallToBasket.CommonBasket
+	 * @param conflictDefinition
+	 * @return
+	 */
+	public static String getConflictBoundTerm(String conflictDefinitionName) {
+		String boundTerm = null;
+		Pattern pattern = Pattern.compile("\\{([^\"]*)\\}");
+		Matcher matcher = pattern.matcher(conflictDefinitionName);
+        if (matcher.find()) {
+            boundTerm = matcher.group(1);
+        }
+        return boundTerm;
+	}
 }

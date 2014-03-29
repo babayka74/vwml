@@ -17,6 +17,9 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// all cloned terms have the same properties and associated with master node
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
 	private List<VWMLConflictRingNode> removedNodes = new ArrayList<VWMLConflictRingNode>();
+	// set when node without interpreter and marked as candidate for clone is removed from group by scheduler
+	// but this node has all conflicts' links which can be used during clone operation
+	private VWMLConflictRingNode implicitMaster = null;
 	
 	public VWMLConflictRingExecutionGroup(Object hashId) {
 		super(hashId);
@@ -95,6 +98,16 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			n.markAsClone(false);
 			master = n;
 		}
+		else {
+			if (implicitMaster != null) {
+				master = implicitMaster;
+			}
+			else {
+				VWMLConflictRingNode n = VWMLConflictRingNode.build(getId(), getReadableId());
+				add(n);
+				master = n;
+			}
+		}
 		return master;
 	}
 	
@@ -110,6 +123,9 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			}
 			else {
 				removedNodes.add(n);
+				if (implicitMaster == null && n.isMarkAsCandidatOnClone()) {
+					implicitMaster = n;
+				}
 			}
 			rIndex++;
 			rIndex = rIndex % group.size();

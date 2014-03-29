@@ -56,6 +56,9 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 	@Override
 	protected void reportInterpreterInternalState(String context, VWMLInterpreterImpl interpreter) {
 		if (interpreter.getObserver() !=  null) {
+			if (interpreter.getRtNode() != null) {
+				interpreter.getRtNode().setInConflictAreaNow(true);
+			}
 			interpreter.getObserver().setActiveConflictContext(context);
 			interpreter.getObserver().setConflictOperationalState(context, VWMLConflictRingNodeAutomataInputs.IN_B);
 		}

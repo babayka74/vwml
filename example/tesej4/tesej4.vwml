@@ -22,8 +22,8 @@ options {
 			)
 		}
 		conflictring {
-			"GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select" conflicts ("GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select")
-			"GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers" conflicts ("GameTesej.Tesej.Actions.LogicGenerated.ToClone.IncTesejNumbers" "GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select")
+			"{GameTesej.Tesej}.Actions.LogicGenerated.SelectNewPosition.Select" conflicts ("{GameTesej.Tesej}.Actions.LogicGenerated.SelectNewPosition.Select")
+			"{GameTesej.Tesej}.Actions.LogicGenerated.ToClone.IncTesejNumbers" conflicts ("{GameTesej.Tesej}.Actions.LogicGenerated.ToClone.IncTesejNumbers" "GameTesej.Tesej.Actions.LogicGenerated.SelectNewPosition.Select")
 		}
 	}
 }

@@ -1,0 +1,49 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.magic.model.vwml.robbyproj2"
+  		path = "c:\var\vwml/robbyproj2/src"
+  		author = "Groozman M.Z."
+		project_name = "RobbyProject2"
+  		description = "More complex clone example"
+		beyond {
+			fringe ias communication (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+	}
+}
+
+module RobbyProjectModule {
+	Ew ias (
+		out ias communication.out.write;
+		in ias communication.in.read;
+	);
+
+	Tom ias (
+		RobbyId ias 1;
+		RobbyProject ias (
+			Basket ias ();
+			BallSet ias (
+				(Blue Ball) (Green Ball) (Red Ball)
+			);
+			BallToBasket ias (
+						(Basket (Basket~ (BallSet~ Random)) Join)^
+						((Robby Tom.RobbyId~ puts ball to basket Basket~) Ew.out~) Do
+					);
+			lifeterm = (
+				BallToBasket~ Exe
+			) Exe
+		);
+		source lifeterm = (
+			((Tom started) Ew.out~) Do
+			(RobbyProject (RobbyProject 1)) Clone
+			2000 Relax
+			(RobbyId 2)^
+			(RobbyProject (RobbyProject 2)) Clone
+			20000 Relax
+			((Tom finished) Ew.out~) Do
+		) Exe
+	);
+}
+                                  

@@ -1,8 +1,12 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * Conflict ring is used for resolving conflict situations during active interpretation phases
@@ -16,6 +20,7 @@ public class VWMLConflictRing {
 	// actual conflict ring data structure
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
+	private Map<String, String> conflictDef2TermAssociation = new HashMap<String, String>();
 	private static int s_artificialId = 0;
 	// singleton implementation
 	private static VWMLConflictRing s_conflictRing = null;
@@ -90,7 +95,7 @@ public class VWMLConflictRing {
 				String nodeCtx = node.peekInterpreter().getContext().getContext();				
 				// looking for candidate for group
 				for(VWMLConflictRingNode candidateNode : nodesConflictRing) {
-					if (candidateNode != node && candidateNode.peekInterpreter() == null &&
+					if (!candidateNode.isMarkAsCandidatOnClone() && candidateNode != node && candidateNode.peekInterpreter() == null &&
 						((String)candidateNode.getId()).startsWith(nodeCtx)) {
 						candidateNode.pushInterpreter(node.peekInterpreter());
 						toRemove.add(candidateNode);
@@ -175,15 +180,28 @@ public class VWMLConflictRing {
 	 * @param linkedConflicts
 	 */
 	protected void link(String conflict, String[] linkedConflicts) {
-		VWMLConflictRingNode node = VWMLConflictRingNode.build(conflict, conflict);
+		String c = associateBoundTermAndConflictDefinition(conflict);
+		VWMLConflictRingNode node = VWMLConflictRingNode.build(c, c);
 		node = addNode(null, node);
 		for(String conflictName : linkedConflicts) {
-			VWMLConflictRingNode rNode = VWMLConflictRingNode.build(conflictName, conflictName);
+			c = associateBoundTermAndConflictDefinition(conflictName);
+			VWMLConflictRingNode rNode = VWMLConflictRingNode.build(c, c);
 			rNode = addNode(null, rNode);
 			if (!node.getLink().isLinked(rNode)) {
 				node.getLink().link(rNode);
 			}
 		}
+	}
+	
+	private String associateBoundTermAndConflictDefinition(String conflict) {
+		String parsedAssociation = conflict;
+		String boundTermCtx = GeneralUtils.getConflictBoundTerm(conflict);
+		if (boundTermCtx != null) {
+			String suffix = conflict.substring(conflict.lastIndexOf("}") + 1);
+			parsedAssociation = boundTermCtx + suffix;
+			conflictDef2TermAssociation.put(parsedAssociation, boundTermCtx);
+		}
+		return parsedAssociation;
 	}
 	
 	private VWMLConflictRingNode addNode(VWMLConflictRingExecutionGroup g, VWMLConflictRingNode node) {
@@ -206,14 +224,18 @@ public class VWMLConflictRing {
 	private VWMLConflictRingExecutionGroup lookupGroupByContext(String context) { 
 		VWMLConflictRingExecutionGroup g = null;
 		for (VWMLConflictRingExecutionGroup group : groupsConflictRing) {
-			int i = ((String)group.getId()).lastIndexOf(".");
-			String s = ((String)group.getId());
-			if (i != -1) {
-				s = ((String)group.getId()).substring(0, i);
+			String s = conflictDef2TermAssociation.get(group.getId());
+			if (s == null) {
+				if (((String)group.getId()).startsWith(context + ".")) {
+					g = group;
+					return g;
+				}
 			}
-			if (s.equals(context)) {
-				g = group;
-				break;
+			else {
+				if (s.equals(context)) {
+					g = group;
+					break;
+				}
 			}
 		}
 		return g;
@@ -222,6 +244,7 @@ public class VWMLConflictRing {
 	private VWMLConflictRingExecutionGroup buildArtificialGroupAndAssociatedNode(String context) {
 		VWMLConflictRingExecutionGroup g = null;
 		String id = context + "." + "artificialId_" + s_artificialId;
+		conflictDef2TermAssociation.put(id, context);
 		g = VWMLConflictRingExecutionGroup.build(id, id);
 		VWMLConflictRingNode n = VWMLConflictRingNode.build(id, id);
 		addNode(g, n);

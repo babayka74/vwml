@@ -12,5 +12,7 @@ public class VWMLConflictRingNode_B_PAS_Action extends VWMLConflictRingNodeAutom
 
 	@Override
 	public void action(VWMLConflictRingNode node) throws Exception {
+		int h = 0;
+		h++;
 	}
 }
