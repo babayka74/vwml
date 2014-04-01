@@ -331,7 +331,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 					}
 				}
 				if (operationalNode == null) {
-					throw new Exception("couldn't find conflic fragment (node) by active conflict context '" + activeConflictContext + "'");
+					operationalNode = this;
 				}
 			}
 		}

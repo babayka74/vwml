@@ -1,0 +1,126 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.magic.model.vwml.tomrobbybob"
+  		path = "c:\var\vwml/tomrobbybob/src"
+  		author = "Groozman M.Z."
+		project_name = "TomRobbyBob"
+  		description = "Tom Robby and Bob are playing"
+		beyond {
+			fringe ias communication (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+		}
+		conflictring {
+			"{Tom}.Check.CommonPlace" conflicts ("{Tom.Robby}.Check.CommonPlace" "{Tom.Robby}.(IsCube true).CommonPlace")
+			"{Tom}.Check.CommonPlace" conflicts ("{Tom.Bob}.Check.CommonPlace" "{Tom.Bob}.(IsBall true).CommonPlace")
+			"{Tom.Bob}.Check.CommonPlace" conflicts ("{Tom.Robby}.Check.CommonPlace" "{Tom.Robby}.(IsCube true).CommonPlace")
+			"{Tom.Bob}.Check.CommonPlace" conflicts ("{Tom.Robby}.Check.CommonPlace")
+			"{Tom.Robby}.(IsCube true).CommonPlace" conflicts ("{Tom.Bob}.(IsBall true).CommonPlace")
+		}
+	}
+}
+
+module TomRobbyBobModule {
+	Ew ias (
+		out ias communication.out.write;
+		in ias communication.in.read;
+	);
+
+	Tom ias (
+	        Pressing ias Ew.in;
+		RBasket ias ();
+		BBasket ias ();
+		Place ias nil;
+		RPlace ias NearFigure;
+		BPlace ias NearFigure;
+		GoHome ias false;
+		
+		Check ias (NoFigure (
+					CommonPlace [ 
+						Place~ 
+					CommonPlace ]
+					nil
+				) Ident
+		)~ Exe;
+
+		(NoFigure false) ias (
+			((Tom waits that Bob or Robby takes figure and frees place) Ew.out~) Do
+			1000 Relax
+			Check~ Exe
+		);
+
+		(NoFigure true) ias (
+			((Tom waits for command appear to continue game or stop in case end of game) Ew.out~) Do
+			(Button (() Pressing~~) Do)^
+			(End (Button~ stop) Ident)~ Exe
+		);
+
+		(End true) ias (
+			(GoHome true)^	
+			(Bob.GoHome true)^
+			(Robby.GoHome true)^
+		);
+		(End false) ias (
+			(Place (Cube Cube Ball Cube Ball Ball Cube Ball Ball) Random)^
+			1000 Relax
+			Check~ Exe
+		);
+
+		source lifeterm = Check~ Exe
+
+		Robby ias (
+			GoHome ias false;
+			(GoHome true) ias doNothing;
+			(GoHome false) ias Check~ Exe;
+			Check ias (IsCube (
+					CommonPlace [ 
+						Place~ 
+					CommonPlace ]
+					Cube
+				) Ident
+			)~ Exe;
+			(IsCube true) ias (
+				(RBasket (RBasket~ (Cube)) Join)^
+				CommonPlace [
+					(Place nil)^
+				CommonPlace ]
+				((Robby took Cube and placed to basket RBasket~) Ew.out~) Do
+				Check~ Exe
+			);
+			(IsCube false) ias (
+				(GoHome GoHome~)~ Exe
+			);
+
+			source lifeterm = Robby.Check~ Exe
+		);
+
+		Bob ias (
+			GoHome ias false;
+			(GoHome true) ias doNothing;
+			(GoHome false) ias Check~ Exe;
+			Check ias (IsBall (
+					CommonPlace [ 
+						Place~ 
+					CommonPlace ]
+					Ball
+				) Ident
+			)~ Exe;
+			(IsBall true) ias (
+				(BBasket (BBasket~ (Ball)) Join)^
+				CommonPlace [
+					(Place nil)^
+				CommonPlace ]
+				((Bob took Ball and placed to basket BBasket~) Ew.out~) Do
+				Check~ Exe
+			);
+			(IsBall false) ias (
+				(GoHome GoHome~)~ Exe
+			);
+
+			source lifeterm = Bob.Check~ Exe
+		);
+	);
+
+}
+                                  
