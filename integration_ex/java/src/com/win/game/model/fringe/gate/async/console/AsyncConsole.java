@@ -1,4 +1,4 @@
-package com.win.game.puzzleR2.model.fringe.gate.async.console;
+package com.win.game.model.fringe.gate.async.console;
 
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;

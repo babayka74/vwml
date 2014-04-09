@@ -30,7 +30,7 @@ public class Time implements IVWMLGate {
 	}
 	
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
 	}
 
@@ -39,9 +39,9 @@ public class Time implements IVWMLGate {
 	}
 
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
-		if (((String)commandId).equalsIgnoreCase(IVWMLGate.builtInTimeCommandId)) {
+		if (commandId.equalsIgnoreCase(IVWMLGate.builtInTimeCommandId)) {
 			e = EWEntityBuilder.buildSimpleEntity(String.valueOf(System.currentTimeMillis()), null);
 		}
 		else

@@ -31,7 +31,7 @@ public class WinnerSelector implements IVWMLGate {
 	}
 	
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
 	}
 
@@ -40,7 +40,7 @@ public class WinnerSelector implements IVWMLGate {
 	}
 
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		try {
 			if (commandArgs == null) {
 				return EWEntityBuilder.buildFromString(EWEntity.s_NilEntityId);

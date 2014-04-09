@@ -69,14 +69,14 @@ public class Console implements IVWMLGate {
 	}
 	
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
 	}
 
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
-		if (((String)commandId).intern() == s_exportedMethods[READ]) {
+		if (commandId.intern() == s_exportedMethods[READ]) {
 			String data = null;
 			while (data == null) {
 				data = read();

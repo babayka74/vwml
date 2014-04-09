@@ -1,0 +1,60 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.magic.model.vwml.euklid"
+  		path = "c:\var\vwml/evklid/src"
+  		author = "Groozman M.Z."
+		project_name = "EuklidProj"
+  		description = "simple for each example"
+		beyond {
+			fringe communication ias (
+				out ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+				in ias "com.vw.lang.beyond.java.fringe.gate.console.Console"
+			)
+			fringe math ias (
+				greater ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+				minus ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+module Euklid {
+	Ew ias (
+		a ias nil;
+		b ias nil;
+	
+		Init ias (
+			(a (() communication.in.read) Do)^
+			(b (() communication.in.read) Do)^
+		);
+	
+		End ias (
+			((a~) communication.out.write) Do
+		);
+	
+		Bhv ias (
+			(AeqB (a~ b~) Ident)~ Exe
+		);
+	
+		(AeqB true) ias End~ Exe;
+
+		(AeqB false) ias (
+			(AgtB ((a~ b~) math.greater.compare) Do)~ Exe
+		);
+	
+		(AgtB 1) ias (
+			(a ((a~ b~) math.minus.substr) Do)^ 
+			Bhv~ Exe
+		);
+	
+		(AgtB -1) ias (
+			(b ((b~ a~) math.minus.substr) Do)^
+			Bhv~ Exe
+		);
+
+		source lifeterm = (
+			Init~ Exe
+			Bhv~ Exe
+			5000 Relax
+		) Exe;
+	); 
+}

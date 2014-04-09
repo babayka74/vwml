@@ -70,7 +70,7 @@ public class ConfigurationLoader implements IVWMLGate {
 	}
 	
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -82,7 +82,7 @@ public class ConfigurationLoader implements IVWMLGate {
 	}
 
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
 		if (((String)commandId).equals(s_exportedMethods[LOAD])) {
 			e = loadConfiguration(commandArgs);

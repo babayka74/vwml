@@ -203,7 +203,7 @@ public class Math implements IVWMLGate {
 	}
 	
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
 		GateCommandHandler gh = s_methods.get(commandId);
 		if (gh != null) {
@@ -213,7 +213,7 @@ public class Math implements IVWMLGate {
 	}
 
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
 	}
 	

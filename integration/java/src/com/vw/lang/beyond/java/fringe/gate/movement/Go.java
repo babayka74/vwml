@@ -43,12 +43,12 @@ public class Go implements IVWMLGate {
 	}
 	
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
 	}
 
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
 		if (commandArgs != null && commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() >= 2) {
 			Object from = commandArgs.getLink().getConcreteLinkedEntity(0).getId();

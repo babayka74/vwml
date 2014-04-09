@@ -13,5 +13,5 @@ public interface IVWML2EWGate {
 	 * @param commandId
 	 * @param commandArgs
 	 */
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs);
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs);
 }

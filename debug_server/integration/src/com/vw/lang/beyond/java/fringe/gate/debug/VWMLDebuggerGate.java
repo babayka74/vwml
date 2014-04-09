@@ -121,12 +121,12 @@ public class VWMLDebuggerGate implements IVWMLGate, IVWMLDebuggerCommandInterfac
 	}
 	
 	@Override
-	public EWEntity invokeVW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
 	}
 
 	@Override
-	public EWEntity invokeEW(Object commandId, EWEntity commandArgs) {
+	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
 		VWML2DebuggerCommandHandler ch = s_vwml2DebuggerInternalCommands.get((String)commandId);
 		if (ch != null) {
