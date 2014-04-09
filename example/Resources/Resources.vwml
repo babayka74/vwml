@@ -15,7 +15,7 @@ options {
 			)
 		}
 		conflictring {
-			"{P1}.(GoalAchieved -1).CommonD" conflicts ("{P2}.(GoalAchieved -1).(WaitForIntention false).(Wish true).CommonD")
+			"{Ew.P1}.(GoalAchieved -1).CommonD" conflicts ("{Ew.P2}.(GoalAchieved -1).(WaitForIntention false).(Wish true).CommonD")
 		}
 	}
 }
@@ -31,45 +31,47 @@ module Resources {
 		S ias 0;
 		Sgoal ias 200;
 		dt ias 500;
-	);
-	P1 ias (
-		Life ias (GoalAchieved ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)~ Exe;
-		(GoalAchieved 0),(GoalAchieved 1) ias ((Ew.S~) Ew.out~) Do;
-		(GoalAchieved -1) ias (
-			(Ew.S ((Ew.S~  CommonD [ 
-					Ew.D~ 
-				 CommonD ]) Ew.plus~) Do)^
-			((The S is Ew.S~) Ew.out~) Do
-			Ew.dt~ Relax
-			Life~ Exe
-		);
-		
-		source lifeterm = Life~ Exe
-	);
 
-	P2 ias (
-		Intention ias no;
-		Life ias (GoalAchieved ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)~ Exe;
-		(GoalAchieved 0),(GoalAchieved 1) ias doNothing;
-		(GoalAchieved -1) ias (
-			(WaitForIntention true) ias doNothing;
-			(WaitForIntention false) ias (
-				(Wish false) ias doNothing;
-				(Wish true) ias (
-					CommonD [
-						(Ew.D ((Ew.D~) Ew.inc~) Do)^
-					CommonD ]
-					(Intention no)^
-					((The D increased to Ew.D~) Ew.out~) Do
-				);
-				(Wish (Intention~ yes) Ident)~ Exe
+		P1 ias (
+			Life ias (GoalAchieved ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)~ Exe;
+			(GoalAchieved 0),(GoalAchieved 1) ias ((Ew.S~) Ew.out~) Do;
+			(GoalAchieved -1) ias (
+				(Ew.S ((Ew.S~  CommonD [ 
+						Ew.D~ 
+					 CommonD ]) Ew.plus~) Do)^
+				((The S is Ew.S~) Ew.out~) Do
+				Ew.dt~ Relax
+				Life~ Exe
 			);
-			(Intention (() Ew.in~) Do)^
-			(WaitForIntention (Intention~ nil) Ident)~ Exe 
-			Life~ Exe
+		
+			source lifeterm = Life~ Exe
 		);
 
-		source lifeterm = Life~ Exe
+		P2 ias (
+			Intention ias no;
+			Life ias (GoalAchieved ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)~ Exe;
+			(GoalAchieved 0),(GoalAchieved 1) ias doNothing;
+			(GoalAchieved -1) ias (
+				(WaitForIntention true) ias doNothing;
+				(WaitForIntention false) ias (
+					(Wish false) ias doNothing;
+					(Wish true) ias (
+						CommonD [
+							(Ew.D ((Ew.D~) Ew.inc~) Do)^
+						CommonD ]
+						(Intention no)^
+						((The D increased to Ew.D~) Ew.out~) Do
+					);
+					(Wish (Intention~ yes) Ident)~ Exe
+				);
+				(Intention (() Ew.in~) Do)^
+				(WaitForIntention (Intention~ nil) Ident)~ Exe 
+				Life~ Exe
+			);
+
+			source lifeterm = Life~ Exe
+		);
+
 	);
 }
                                   
