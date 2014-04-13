@@ -1,0 +1,72 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.cloning.model.vwml.cloning"
+  		path = "c:\var\vwml/cloning/src"
+  		author = "Groozman M.Z."
+		project_name = "Resources"
+  		description = "Cloning simulation"
+		beyond {
+			fringe ias communication (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+		conflictring {
+			"{Ew.P1}.ItemCloned" conflicts ("{Ew}.Life.(StopClone false).ItemCloned")
+		}
+	}
+}
+
+module Cloning {
+	Ew ias (
+		out ias communication.out.write;
+		in ias communication.in.read;
+		inc ias services.math.inc;
+		Id ias 0;
+		AllowClone ias true;
+
+		P1 ias (
+			Id ias 0;
+			Life ias (
+				((I am here Id~) Ew.out~) Do
+				500 Relax
+			);		
+			lifeterm = (
+				(Id Ew.Id~)^
+				ItemCloned [
+					(AllowClone true)^
+				ItemCloned ]
+				Life~ Exe
+				((Id~ says bye) Ew.out~) Do
+			) Exe
+		);
+
+		Life ias (
+			(StopClone true) ias (
+				((Cloner stops) Ew.out~) Do
+			);
+			(StopClone false) ias (
+				(NextToClone true) ias (
+					(Ew.Id ((Ew.Id~) Ew.inc~) Do)^
+					(P1 (P1 Ew.Id~)) Clone
+					(AllowClone false)^
+					Life~ Exe
+				);
+				(NextToClone false) ias (
+					Life~ Exe
+				);
+				(NextToClone ItemCloned [ AllowClone~ ItemCloned ])~ Exe
+			);
+			(StopClone (Ew.Id~ 100) Ident)~ Exe
+		);
+
+		source lifeterm = (
+			Life~ Exe
+			10000 Relax
+		) Exe
+	);
+}
+                                  
