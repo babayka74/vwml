@@ -1,6 +1,12 @@
 package com.win.game.model.fringe.gate.async.console;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
@@ -16,6 +22,8 @@ public class AsyncConsole implements IVWMLGate {
 		private Console console = Console.instance();
 		private Thread activity = null;
 		private boolean stop = false;
+		private AsyncConsole gate = null;
+		private List<DispatcherPairs> dispatchedQueues = null;
 
 		public void start() {
 			stop = false;
@@ -38,6 +46,22 @@ public class AsyncConsole implements IVWMLGate {
 		public boolean isStop() {
 			return stop;
 		}
+
+		public List<DispatcherPairs> getDispatchedQueues() {
+			return dispatchedQueues;
+		}
+
+		public void setDispatchedQueues(List<DispatcherPairs> dispatchedQueues) {
+			this.dispatchedQueues = dispatchedQueues;
+		}
+
+		public AsyncConsole getGate() {
+			return gate;
+		}
+
+		public void setGate(AsyncConsole gate) {
+			this.gate = gate;
+		}
 	}
 	
 	/**
@@ -46,9 +70,17 @@ public class AsyncConsole implements IVWMLGate {
 	 *
 	 */
 	protected static class ConsoleInActivity extends ConsoleActivity implements Runnable {
-		private ConcurrentLinkedQueue<EWEntity> in = new ConcurrentLinkedQueue<EWEntity>();
+		private ConcurrentLinkedQueue<EWEntity> inDefault = new ConcurrentLinkedQueue<EWEntity>();
+		private ConcurrentLinkedQueue<EWEntity> in = null;
 
-		public EWEntity read() {
+		public EWEntity read(String qName) {
+			in = inDefault;
+			if (getGate() != null && qName != null && !qName.equals(EWEntity.s_EmptyEntityId)) {
+				in = getGate().getQueueByName(qName);
+				if (in == null) {
+					in = inDefault;
+				}
+			}
 			EWEntity e = in.poll();
 			if (e == null) {
 				e = EWEntityBuilder.buildSimpleEntity(EWEntity.s_NilEntityId, EWEntity.s_NilEntityId);
@@ -62,6 +94,13 @@ public class AsyncConsole implements IVWMLGate {
 				EWEntity e = getConsole().invokeEW(Console.getInMethod(), null);
 				if (e == null) {
 					e = EWEntityBuilder.buildSimpleEntity(EWEntity.s_NilEntityId, EWEntity.s_NilEntityId);
+				}
+				in = inDefault;
+				if (getGate() != null) {
+					in = getGate().getQueueByExpectedValue((String)e.getId());
+					if (in == null) {
+						in = inDefault;
+					}
 				}
 				in.add(e);
 			}
@@ -103,7 +142,36 @@ public class AsyncConsole implements IVWMLGate {
  		}
 	}
 
+	protected static class DispatcherPairs {
+		private ConcurrentLinkedQueue<EWEntity> queue = null;
+		private String qName = null;
+		private String value = null;
+
+		public DispatcherPairs(ConcurrentLinkedQueue<EWEntity> queue, String qName, String value) {
+			super();
+			this.queue = queue;
+			this.qName = qName;
+			this.value = value;
+		}
+
+		public ConcurrentLinkedQueue<EWEntity> getQueue() {
+			return queue;
+		}
+
+		public String getqName() {
+			return qName;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+	
 	private static AsyncConsole s_instance = null;
+	private static String s_initMethod = "init";
+	private static int s_initialized_entities = 2;
+	private List<DispatcherPairs> dispatchedQueues = new ArrayList<DispatcherPairs>();
+	private Map<String, ConcurrentLinkedQueue<EWEntity>> availableQueues = new HashMap<String, ConcurrentLinkedQueue<EWEntity>>();
 	private ConsoleInActivity cin = new ConsoleInActivity();
 	private ConsoleOutActivity cout = new ConsoleOutActivity();
 	
@@ -124,6 +192,10 @@ public class AsyncConsole implements IVWMLGate {
 		return s_instance;
 	}
 	
+	public static String getInitMethod() {
+		return s_initMethod;
+	}
+	
 	@Override
 	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
@@ -136,11 +208,19 @@ public class AsyncConsole implements IVWMLGate {
 	@Override
 	public EWEntity invokeEW(String commandId, EWEntity commandArgs) {
 		EWEntity e = null;
-		if (((String)commandId).equals(Console.getInMethod())) {
-			e = cin.read();
+		if (commandId.equals(s_initMethod)) {
+			dispatcherInit(commandArgs);
 		}
 		else
-		if (((String)commandId).equals(Console.getOutMethod())) {
+		if (commandId.equals(Console.getInMethod())) {
+			String fromQ = null;
+			if (commandArgs != null) {
+				fromQ = (String)commandArgs.getId();
+			}
+			e = cin.read(fromQ);
+		}
+		else
+		if (commandId.equals(Console.getOutMethod())) {
 			cout.write(commandArgs);
 		}		
 		return e;
@@ -148,6 +228,10 @@ public class AsyncConsole implements IVWMLGate {
 
 	@Override
 	public void init() throws Exception {
+		cin.setGate(this);
+		cout.setGate(this);
+		cin.setDispatchedQueues(dispatchedQueues);
+		cout.setDispatchedQueues(dispatchedQueues);
 		cin.start();
 		cout.start();
 	}
@@ -156,9 +240,51 @@ public class AsyncConsole implements IVWMLGate {
 	public void done() throws Exception {
 		cin.stop();
 		cout.stop();
+		dispatchedQueues.clear();
+		availableQueues.clear();
 	}
 
 	@Override
 	public void activateConfiguration(Properties props) throws Exception {
 	}
+	
+	protected void dispatcherInit(EWEntity commandArgs) {
+		if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == s_initialized_entities) {
+			EWEntity eQName = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+			EWEntity eRightValues = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(1);
+			if (eRightValues.isMarkedAsComplexEntity()) {
+				ConcurrentLinkedQueue<EWEntity> queue = availableQueues.get((String)eQName.getId());
+				if (queue == null) {
+					queue = new ConcurrentLinkedQueue<EWEntity>();
+					availableQueues.put((String)eQName.getId(), queue);
+				}
+				for(int i = 0; i < eRightValues.getLink().getLinkedObjectsOnThisTime(); i++) {
+					EWEntity e = (EWEntity)eRightValues.getLink().getConcreteLinkedEntity(i);
+					DispatcherPairs p = new DispatcherPairs(queue, (String)eQName.getId(), (String)e.getId());
+					dispatchedQueues.add(p);
+				}
+			}
+		}
+	}
+	
+	protected ConcurrentLinkedQueue<EWEntity> getQueueByExpectedValue(String expectedValue) {
+		ConcurrentLinkedQueue<EWEntity> q = null;
+		for(DispatcherPairs pair : dispatchedQueues) {
+			if (pair.getValue().equals(expectedValue)) {
+				q = pair.getQueue();
+			}
+		}
+		return q;
+	}
+	
+	protected ConcurrentLinkedQueue<EWEntity> getQueueByName(String name) {
+		ConcurrentLinkedQueue<EWEntity> q = null;
+		for(DispatcherPairs pair : dispatchedQueues) {
+			if (pair.getqName().equals(name)) {
+				q = pair.getQueue();
+			}
+		}
+		return q;
+	}
+	
 }

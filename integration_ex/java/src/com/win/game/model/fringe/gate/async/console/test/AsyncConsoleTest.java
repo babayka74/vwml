@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.gate.console.Console;
 import com.win.game.model.fringe.gate.async.console.AsyncConsole;
 
@@ -16,9 +17,12 @@ public class AsyncConsoleTest {
 	}
 	
 	@Test
-	public void test1() {
+	public void test1() throws Exception {
+		EWEntity eColor = EWEntityBuilder.buildFromString("colors");
+		EWEntity eInit = EWEntityBuilder.buildFromString("(colors (red green blue))");
+		console.invokeEW(AsyncConsole.getInitMethod(), eInit);
 		while(true) {
-			EWEntity e = console.invokeEW(Console.getInMethod(), null);
+			EWEntity e = console.invokeEW(Console.getInMethod(), eColor);
 			if (e != null && !e.getId().equals(EWEntity.s_NilEntityId)) {
 				console.invokeEW(Console.getOutMethod(), e);
 			}

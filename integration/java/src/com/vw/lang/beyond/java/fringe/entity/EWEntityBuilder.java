@@ -171,6 +171,7 @@ public class EWEntityBuilder {
 			}
 		}
 		lwr = -1;
+		lastProcessedEntity.setReadableId(data);
 		return lastProcessedEntity;
 	}
 	

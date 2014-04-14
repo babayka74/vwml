@@ -32,7 +32,7 @@ module Cloning {
 			Id ias 0;
 			Life ias (
 				((I am here Id~) Ew.out~) Do
-				500 Relax
+				1000 Relax
 			);		
 			lifeterm = (
 				(Id Ew.Id~)^
@@ -60,7 +60,7 @@ module Cloning {
 				);
 				(NextToClone ItemCloned [ AllowClone~ ItemCloned ])~ Exe
 			);
-			(StopClone (Ew.Id~ 100) Ident)~ Exe
+			(StopClone (Ew.Id~ 500) Ident)~ Exe
 		);
 
 		source lifeterm = (
