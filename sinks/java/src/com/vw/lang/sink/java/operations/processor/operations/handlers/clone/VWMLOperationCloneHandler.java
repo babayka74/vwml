@@ -29,11 +29,11 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 0 || entities.size() > 2) {
-			throw new Exception("arguments != 2 for operation 'OPCLONE'");
+			throw new Exception("arguments != 2 for operation 'OPCLONE/OPBORN'");
 		}
 		if (entities.size() == 1) {
 			if (!entities.get(0).isMarkedAsComplexEntity()) {
-				throw new Exception("at least one entity should be complex; operation 'OPCLONE'");
+				throw new Exception("at least one entity should be complex; operation 'OPCLONE/OPBORN'");
 			}
 			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == 2) {
 				handleCloneOperation(interpreter,
@@ -41,7 +41,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1));
 			}
 			else {
-				throw new Exception("arguments != 2 for operation 'OPCLONE'");
+				throw new Exception("arguments != 2 for operation 'OPCLONE/OPBORN'");
 			}
 		}
 		else
@@ -50,6 +50,10 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
+	}
+
+	public VWMLEntity clone(VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
+		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId(), false);
 	}
 
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
@@ -106,9 +110,5 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 			ringGroupMasterNode.cloneSigmaFor(clonedNode);
 			
 		}
-	}
-	
-	private VWMLEntity clone(VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
-		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId());
-	}
+	}	
 }

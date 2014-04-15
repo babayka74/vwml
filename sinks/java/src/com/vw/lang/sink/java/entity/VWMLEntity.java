@@ -69,6 +69,34 @@ public class VWMLEntity extends VWMLObject {
 	}
 
 	/**
+	 * New entity was born
+	 * @param proto
+	 * @param id (new entity's id)
+	 * @param initialContext
+	 * @param auxCache
+	 * @return
+	 * @throws Exception
+	 */
+	public VWMLEntity born(VWMLEntity proto, Object id, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
+		VWMLEntity cloned = born(proto, (String)getId(), (String)id, getContext(), initialContext, auxCache);
+		return cloned;
+	}
+
+	/**
+	 * Born new entity based on current entity, the Id is changed to newId
+	 * (usually used by operation 'Born' when new source lifeterm is created in runtime)
+	 * @param oldId
+	 * @param newId
+	 * @param context
+	 * @param initialContext
+	 * @param auxCache
+	 * @return
+	 */
+	public VWMLEntity born(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
+		return clone(proto, oldId, newId, context, initialContext, auxCache, true, true);
+	}
+	
+	/**
 	 * Clones entity
 	 * @param proto
 	 * @param id (new entity's id)
@@ -81,7 +109,7 @@ public class VWMLEntity extends VWMLObject {
 		VWMLEntity cloned = clone(proto, (String)getId(), (String)id, getContext(), initialContext, auxCache);
 		return cloned;
 	}
-
+	
 	/**
 	 * Clones current entity, the Id is changed to newId
 	 * (usually used by operation 'Clone' when new source lifeterm is created in runtime)
@@ -93,7 +121,7 @@ public class VWMLEntity extends VWMLObject {
 	 * @return
 	 */
 	public VWMLEntity clone(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
-		return clone(proto, oldId, newId, context, initialContext, auxCache, true);
+		return clone(proto, oldId, newId, context, initialContext, auxCache, true, false);
 	}
 
 	/**
@@ -105,10 +133,11 @@ public class VWMLEntity extends VWMLObject {
 	 * @param initialContext
 	 * @param auxCache
 	 * @param firstIteration
+	 * @param bornMode
 	 * @return
 	 * @throws Exception
 	 */
-	public VWMLEntity clone(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache, boolean firstIteration) throws Exception {
+	public VWMLEntity clone(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache, boolean firstIteration, boolean bornMode) throws Exception {
 		// check if entity is in cloned context
 		if (!firstIteration) {
 			if ((!VWMLContext.isContextChildOf(initialContext.getContext(), getContext().getContext())) ||
@@ -143,21 +172,36 @@ public class VWMLEntity extends VWMLObject {
 															  termAssociatedEntity.getContext(),
 															  initialContext,
 															  auxCache,
-															  false);	
+															  false,
+															  bornMode);	
 		}
-		VWMLEntity interpretingEntity = null;
-		if (getOriginalInterpreting() != null && !getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
-			interpretingEntity = getOriginalInterpreting().clone(null,
-														 oldId,
-														 newId,
-														 getOriginalInterpreting().getContext(),
-														 initialContext,
-														 auxCache,
-														 false);	
+		VWMLEntity interpretingEntity = null, eIAS = null;
+		boolean recursion = false;
+		if (!bornMode) {
+			eIAS = getOriginalInterpreting();
+			if (eIAS != null) {
+				recursion = eIAS.isRecursiveInterpretationOnOriginal();
+			}
+		}
+		else {
+			eIAS = getInterpreting();
+			if (eIAS != null) {
+				recursion = eIAS.isRecursiveInterpretationOnRuntime();
+			}
+		}
+		if (eIAS != null && !recursion) {
+			interpretingEntity = eIAS.clone( null,
+											 oldId,
+											 newId,
+											 eIAS.getContext(),
+											 initialContext,
+											 auxCache,
+											 false,
+											 bornMode);	
 		}
 		else
-		if (getOriginalInterpreting() != null && getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
-			interpretingEntity = getOriginalInterpreting();
+		if (eIAS != null && recursion) {
+			interpretingEntity = eIAS;
 		}
 		// new entity is registered on repository
 		Object eId = getId();
@@ -202,7 +246,8 @@ public class VWMLEntity extends VWMLObject {
 							              linked.getContext(),
 							              initialContext,
 							              auxCache,
-							              false);
+							              false,
+							              bornMode);
 					cloned.getLink().link(linked);
 				}
 			}

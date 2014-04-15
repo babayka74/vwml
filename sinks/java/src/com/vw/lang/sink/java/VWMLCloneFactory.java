@@ -15,17 +15,24 @@ public class VWMLCloneFactory {
 	 * @param origEntity
 	 * @param protoClonedEntity
 	 * @param clonedObjectId
+	 * @param bornMode
 	 * @return
 	 * @throws Exception
 	 */
-	public static VWMLEntity cloneContext(VWMLEntity origEntity, VWMLEntity protoClonedEntity, Object clonedObjectId) throws Exception {
+	public static VWMLEntity cloneContext(VWMLEntity origEntity, VWMLEntity protoClonedEntity, Object clonedObjectId, boolean bornMode) throws Exception {
 		VWMLEntity clonedEntity = null;
 		if (origEntity.getInterpreting() != null) {
 			VWMLCloneAuxCache auxCache = VWMLCloneAuxCache.instance();
-			// clones entity itself and all entities which can be accessed directly
-			clonedEntity = origEntity.clone(protoClonedEntity, clonedObjectId, origEntity.getInterpreting().getContext(), auxCache);
+			if (!bornMode) {
+				// clones entity itself and all entities which can be accessed directly
+				clonedEntity = origEntity.clone(protoClonedEntity, clonedObjectId, origEntity.getInterpreting().getContext(), auxCache);
+			}
+			else {
+				// clones entity itself and all entities which can be accessed directly
+				clonedEntity = origEntity.born(protoClonedEntity, clonedObjectId, origEntity.getInterpreting().getContext(), auxCache);
+			}
 			// clones rest contexts and linked entities
-			VWMLContextsRepository.clone(clonedObjectId, origEntity.getInterpreting().getContext(), auxCache);
+			VWMLContextsRepository.clone(clonedObjectId, origEntity.getInterpreting().getContext(), auxCache, bornMode);
 			auxCache.reset();
 		}
 		return clonedEntity;

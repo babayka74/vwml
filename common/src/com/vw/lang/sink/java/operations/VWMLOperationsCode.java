@@ -31,6 +31,7 @@ public enum VWMLOperationsCode {
     OPBREAKPOINT("Bp"),
     OPAPPLYTOCONTEXT("Context"),
     OPCLONE("Clone"),
+    OPBORN("Born"),
     OPPROJECTION("Projection"),
     OPFOREACH("ForEach"),
     OPNOP("Nop"),

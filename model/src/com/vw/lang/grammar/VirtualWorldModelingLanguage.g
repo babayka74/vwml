@@ -33,7 +33,8 @@ tokens {
     OPENDCONFLICTGROUP = ']';
     OPBREAKPOINT = 'Bp';
     OPAPPLYTOCONTEXT='Context';
-    OPCLONE='Clone';   
+    OPCLONE='Clone';
+    OPBORN='Born';   
     OPPROJECTION='Projection';
     OPFOREACH='ForEach';
     OPDYNCONTEXT='->';
@@ -1062,6 +1063,7 @@ opclist
     | OPBREAKPOINT
     | OPAPPLYTOCONTEXT
     | OPCLONE
+    | OPBORN
     | OPPROJECTION
     | OPFOREACH
     | OPDYNCONTEXT

@@ -743,7 +743,7 @@ module puzzleR2 {
 			(NonActive (Id~ nil)Ident)~ Exe
 		);
 
-		source lifeterm = (
+		lifeterm = (
 					(Id CroupierAssistant.PlayerId~)^
 					(Credit Ew.PlayerCredit~)^
 					(Command askToLoadCorrespondenceMap)^

@@ -41,14 +41,15 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * Clones context identified by id
 	 * @param asContext
 	 * @param newContextId
+	 * @param bornMode
 	 * @return
 	 */
-	public static VWMLContext clone(Object newContextId, VWMLContext context, VWMLCloneAuxCache auxCache) throws Exception {
+	public static VWMLContext clone(Object newContextId, VWMLContext context, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
 		context = VWMLContextsRepository.instance().get(VWMLContextsRepository.instance().normalizeContext(context.getContext()));
 		String[] clonedContextFullPath = context.getContextPath().clone();
 		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
 		VWMLContext newContext = VWMLContextsRepository.instance().createFromContextPath(clonedContextFullPath);
-		copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, context, auxCache);
+		copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, context, auxCache, bornMode);
 		return newContext;
 	}
 	
@@ -237,14 +238,14 @@ public class VWMLContextsRepository extends VWMLRepository {
 		return s_default_context + "." + context; 
 	}
 	
-	protected static void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLContext initial, VWMLCloneAuxCache auxCache) throws Exception {
+	protected static void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLContext initial, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
 		if (initialEntityId != null && newEntityId != null) {
 			for(VWMLEntity e : contextFrom.getAssociatedEntities()) {
 				if (!e.isOriginal()) {
 					continue; // passing entities which were created in runtime
 				}
 				//System.out.println("Copy '" + e.buildReadableId() + "' from '" + contextFrom + "' to '" + contextTo + "'");
-				e.clone(null, initialEntityId, newEntityId, contextTo, initial, auxCache, false);
+				e.clone(null, initialEntityId, newEntityId, contextTo, initial, auxCache, false, bornMode);
 			}
 		}
 		VWMLLinkIncrementalIterator it = contextFrom.getLink().acquireLinkedObjectsIterator();
@@ -252,7 +253,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 			for(; it.isCorrect(); it.next()) {
 				VWMLContext c = (VWMLContext)contextFrom.getLink().getConcreteLinkedEntity(it.getIt());
 				VWMLContext n = instance().createContextIfNotExists(contextTo.getContext() + "." + c.getId());
-				copyFrom(initialEntityId, newEntityId, c, n, initial, auxCache);
+				copyFrom(initialEntityId, newEntityId, c, n, initial, auxCache, bornMode);
 			}
 		}
 	}

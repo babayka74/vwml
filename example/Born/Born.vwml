@@ -1,12 +1,12 @@
 options {
 	language=__java__ {
-  		package = "com.win.game.cloning.model.vwml.cloning"
-  		path = "c:\var\vwml/cloning/src"
+  		package = "com.win.game.born.model.vwml.born"
+  		path = "c:\var\vwml/born/src"
   		author = "Groozman M.Z."
 		project_name = "Resources"
-  		description = "Cloning simulation, synchronized"
+  		description = "Born simulation"
 		beyond {
-			fringe ias communication (
+			fringe communication ias (
 				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
 				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
 			)
@@ -14,19 +14,15 @@ options {
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
 			)
 		}
-		conflictring {
-			"{Ew.P1}.ItemCloned" conflicts ("{Ew}.Life.(StopClone false).ItemCloned")
-		}
 	}
 }
 
-module Cloning {
+module BornSimulation {
 	Ew ias (
 		out ias communication.out.write;
 		in ias communication.in.read;
 		inc ias services.math.inc;
 		Id ias 0;
-		AllowClone ias true;
 
 		P1 ias (
 			Id ias 0;
@@ -35,32 +31,22 @@ module Cloning {
 				1000 Relax
 			);		
 			lifeterm = (
-				(Id Ew.Id~)^
-				ItemCloned [
-					(AllowClone true)^
-				ItemCloned ]
 				Life~ Exe
 				((Id~ says bye) Ew.out~) Do
 			) Exe
 		);
 
 		Life ias (
-			(StopClone true) ias (
+			(StopBorn true) ias (
 				((Cloner stops) Ew.out~) Do
 			);
-			(StopClone false) ias (
-				(NextToClone true) ias (
-					(Ew.Id ((Ew.Id~) Ew.inc~) Do)^
-					(P1 (P1 Ew.Id~)) Clone
-					(AllowClone false)^
-					Life~ Exe
-				);
-				(NextToClone false) ias (
-					Life~ Exe
-				);
-				(NextToClone ItemCloned [ AllowClone~ ItemCloned ])~ Exe
+			(StopBorn false) ias (
+				(Ew.Id ((Ew.Id~) Ew.inc~) Do)^
+				(P1.Id Ew.Id~)^
+				(P1 (P1 Ew.Id~)) Born
+				Life~ Exe
 			);
-			(StopClone (Ew.Id~ 500) Ident)~ Exe
+			(StopBorn (Ew.Id~ 100) Ident)~ Exe
 		);
 
 		source lifeterm = (
