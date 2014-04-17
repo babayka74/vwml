@@ -15,7 +15,8 @@ options {
 			)
 		}
 		conflictring {
-			"{Ew.P1}.(GoalAchieved -1).CommonD" conflicts ("{Ew.P2}.(GoalAchieved -1).(WaitForIntention false).(Wish true).CommonD")
+			"{Ew.P1}.(Goal (GoalAchieved -1)).CommonD" conflicts ("{Ew.P2}.(Goal (GoalAchieved -1)).(WaitForIntention false).(Wish true).CommonD")
+			"{Ew.P1}.GetAchieved.CommonAchieved" conflicts ("{Ew.P2}.Life.CommonAchieved")
 		}
 	}
 }
@@ -29,16 +30,28 @@ module Resources {
 		compare ias services.math.compare;
 		D ias 1;
 		S ias 0;
-		Sgoal ias 200;
+		Sgoal ias 100;
 		dt ias 500;
+		GoalAchieved ias P2.(GoalAchieved -1);
+		CR ias nil;
 
 		P1 ias (
-			Life ias (GoalAchieved ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)~ Exe;
-			(GoalAchieved 0),(GoalAchieved 1) ias ((Ew.S~) Ew.out~) Do;
-			(GoalAchieved -1) ias (
-				(Ew.S ((Ew.S~  CommonD [ 
-						Ew.D~ 
-					 CommonD ]) Ew.plus~) Do)^
+			Life ias (
+				Comparing~ Exe
+				GetAchieved~ Exe
+				(Goal GoalAchieved~)~ Exe
+			);
+			Comparing ias (CR ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)^;
+			GetAchieved ias (
+				CommonAchieved [
+					(GoalAchieved (GoalAchieved CR~))^
+				CommonAchieved ]				
+			);
+			(Goal (GoalAchieved 0)),(Goal (GoalAchieved 1)) ias ((Ew.S~) Ew.out~) Do;
+			(Goal (GoalAchieved -1)) ias (
+				(Ew.S ((Ew.S~ CommonD [ 
+						       	Ew.D~ 
+					      CommonD ]) Ew.plus~) Do)^
 				((The S is Ew.S~) Ew.out~) Do
 				Ew.dt~ Relax
 				Life~ Exe
@@ -49,9 +62,14 @@ module Resources {
 
 		P2 ias (
 			Intention ias no;
-			Life ias (GoalAchieved ((Ew.S~ Ew.Sgoal~) Ew.compare~) Do)~ Exe;
-			(GoalAchieved 0),(GoalAchieved 1) ias doNothing;
-			(GoalAchieved -1) ias (
+			Life ias (
+				CommonAchieved [
+					(ActualGoal GoalAchieved~)^
+				CommonAchieved ]
+				(Goal ActualGoal~)~ Exe
+			);
+			(Goal (GoalAchieved 0)),(Goal (GoalAchieved 1)) ias doNothing;
+			(Goal (GoalAchieved -1)) ias (
 				(WaitForIntention true) ias doNothing;
 				(WaitForIntention false) ias (
 					(Wish false) ias doNothing;

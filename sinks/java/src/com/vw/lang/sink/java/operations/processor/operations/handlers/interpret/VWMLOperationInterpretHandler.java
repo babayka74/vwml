@@ -96,10 +96,15 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		}
 		interpretingEntity = entity.getInterpreting();
 		if (interpretingEntity == null) {
-			String fullEntityId = entity.getContext().getContext() + "." + entity.buildReadableId();
+			VWMLContext onContext = entity.getContext();
+			String readableId = entity.buildReadableId();
+			String fullEntityId = onContext.getContext() + "." + readableId;
 			entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
 			if (entity == null) {
-				throw new Exception("couldn't find entity '" + fullEntityId + "'");
+				entity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(readableId, onContext);
+				if (entity == null) {
+					throw new Exception("couldn't find entity '" + fullEntityId + "'");
+				}
 			}
 			interpretingEntity = entity.getInterpreting();
 			if (interpretingEntity == null) {

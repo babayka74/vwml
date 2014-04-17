@@ -201,6 +201,24 @@ public class VWMLObjectsRepository {
 	public VWMLObject checkObjectOnContext(Object id, VWMLContext context) throws Exception {
 		return getByContext(id, context, true);
 	}
+
+	/**
+	 * Searches entity on concrete context (no ascending lookup is performed) by readable id
+	 * @param id
+	 * @param context
+	 * @return
+	 */
+	public VWMLObject findOnConcreteContextByReadableId(Object id, VWMLContext context) {
+		for(VWMLEntity e : context.getAssociatedEntities()) {
+			if (e.getReadableId() == null) {
+				e.buildReadableId();
+			}
+			if (id.equals(e.getReadableId())) {
+				return e;
+			}
+		}
+		return null;
+	}
 	
 	/**
 	 * Adds created entity to storage

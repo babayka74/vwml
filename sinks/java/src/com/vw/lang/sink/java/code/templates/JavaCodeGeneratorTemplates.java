@@ -127,7 +127,7 @@ public final class JavaCodeGeneratorTemplates {
 	"\t}\r\n\r\n" +
 	"\tprotected void buildOperationsAssociationFor(VWMLEntity entity, Object uniqId, String context) throws Exception {\r\n" +
 	"\t\tVWMLOperationLink link = appliedOperations.get(uniqId);\r\n" +
-	"\t\tif (link != null) {\r\n" +
+	"\t\tif (link != null && entity.acquireOperationsIterator() == null) {\r\n" +
 	"\t\t\tString[] ops = link.getAssociatedOperations();\r\n" +
 	"\t\t\tfor(String op : ops) {\r\n" +
 	"\t\t\t\tVWMLOperationsCode opCode = VWMLOperationsCode.fromValue(op);\r\n" +

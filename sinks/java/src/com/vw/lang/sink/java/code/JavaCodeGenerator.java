@@ -960,11 +960,15 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param interpretingObjId
 	 * @param linkingContext
 	 * @param activeContext
+	 * @param uniqId
 	 */
-	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext) {
+	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext, Object uniqId) {
 		lastLink = new VWMLLinkWrap(id, interpretingObjId);
 		lastLink.setActiveContext(activeContext);
 		lastLink.setLinkObjContext(linkingContext);
+		if (uniqId != null) {
+			lastLink.setUniqId((String)uniqId);
+		}
 		interpret.add(lastLink);
 	}
 	

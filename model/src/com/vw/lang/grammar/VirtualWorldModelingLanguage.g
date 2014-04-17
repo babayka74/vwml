@@ -470,14 +470,15 @@ package com.vw.lang.grammar;
     				if (logger.isDebugEnabled()) {
    					logger.debug("Interpreting bunch '" + bunch + "'");
    				}
-   				
+   				Object lastUniqId = null;
  				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildReducedContextList();
     				for(VWMLContextBuilder.ContextBunchElement cbe = bunch.first(); cbe != null; cbe = bunch.next()) {
     					String firstRelatedContext = contexts.first();
     					for(String c = contexts.first(); c != null; c = contexts.next()) {
-    						codeGenerator.interpretObjects(cbe.getId(), objLinkedId, c, c);
+    						codeGenerator.interpretObjects(cbe.getId(), objLinkedId, c, c, lastUniqId);
+    						lastUniqId = codeGenerator.getLastLinksUniqId();
     						if (logger.isDebugEnabled()) {
-   							logger.debug("Interpreting object '" + cbe.getId() + "' -> '" + objLinkedId + "'; on context '" + c + "'");
+   							logger.debug("Interpreting object '" + cbe.getId() + "' -> '" + objLinkedId + "'; on context '" + c + "'; uniq id '" + lastUniqId + "'");
    						}
     					}
     				}
@@ -925,7 +926,7 @@ term_def
   	       			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
 				if (logger.isDebugEnabled()) {
 					logger.debug("entity '" + lastProcessedEntity + "' checking term prop on contexts '" + contexts + "'");
-				}  	       						
+				}
 				codeGenerator.markEntityAsTerm(lastProcessedEntity, contexts.asStrings());
 				if (logger.isDebugEnabled()) {
 					logger.debug("entity '" + lastProcessedEntity + "' marked as term on contexts '" + contexts + "'");
@@ -948,10 +949,12 @@ entity_decl
     				}
     			  }
     | complex_entity_decl {
-    				Object id = complexEntityDeclarationPhase3();
-    				lastProcessedContextBunch.add(ContextBunchElement.build(id));
-     				if (logger.isDebugEnabled()) {
-    					logger.debug("+++++++++++++++++++++++ " + id);
+    				if (complexEntityNameBuilderDecl.isRootEntityFinishedProgress()) {
+  					Object id = complexEntityDeclarationPhase3();
+    					lastProcessedContextBunch.add(ContextBunchElement.build(id));
+     					if (logger.isDebugEnabled()) {
+    						logger.debug("+++++++++++++++++++++++ " + id);
+    					}
     				}
     			  }
     ;

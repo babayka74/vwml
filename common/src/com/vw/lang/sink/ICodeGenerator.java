@@ -243,8 +243,9 @@ public interface ICodeGenerator {
 	 * @param interpretingObjId
 	 * @param linkingContext
 	 * @param activeContext
+	 * @param uniqId
 	 */
-	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext);
+	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext, Object uniqId);
 	
 	/**
 	 * Returns associated visitor; see {@link setVisitor}

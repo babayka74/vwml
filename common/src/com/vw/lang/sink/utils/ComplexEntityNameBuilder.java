@@ -165,6 +165,10 @@ public class ComplexEntityNameBuilder {
 		return currentComplexEntity != null;
 	}
 	
+	public boolean isRootEntityFinishedProgress() {
+		return (walker.peek() == null);
+	}
+	
 	/**
 	 * Returns 'true' in case if build operation is allowed
 	 * @return
