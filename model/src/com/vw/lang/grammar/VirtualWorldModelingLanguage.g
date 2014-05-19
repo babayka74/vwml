@@ -40,6 +40,7 @@ tokens {
     OPDYNCONTEXT='->';
     OPSIZE='Size';
     OPINTERRUPT='Interrupt';
+    OPSHORTPATH='ShortPath';
     
     // languages
     JAVA='__java__';
@@ -1072,6 +1073,7 @@ opclist
     | OPDYNCONTEXT
     | OPSIZE
     | OPINTERRUPT
+    | OPSHORTPATH
     ;
 
 termLanguages

@@ -2,11 +2,9 @@ package com.win.game.model.fringe.gate.async.console;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
@@ -249,9 +247,17 @@ public class AsyncConsole implements IVWMLGate {
 	}
 	
 	protected void dispatcherInit(EWEntity commandArgs) {
-		if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == s_initialized_entities) {
-			EWEntity eQName = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
-			EWEntity eRightValues = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(1);
+		if (commandArgs.isMarkedAsComplexEntity()) {
+			for(int i = 0; i < commandArgs.getLink().getLinkedObjectsOnThisTime(); i++) {
+				queueInitialization((EWEntity)commandArgs.getLink().getConcreteLinkedEntity(i));
+			}
+		}
+	}
+	
+	protected void queueInitialization(EWEntity queueArgs) {
+		if (queueArgs.isMarkedAsComplexEntity() && queueArgs.getLink().getLinkedObjectsOnThisTime() == s_initialized_entities) {
+			EWEntity eQName = (EWEntity)queueArgs.getLink().getConcreteLinkedEntity(0);
+			EWEntity eRightValues = (EWEntity)queueArgs.getLink().getConcreteLinkedEntity(1);
 			if (eRightValues.isMarkedAsComplexEntity()) {
 				ConcurrentLinkedQueue<EWEntity> queue = availableQueues.get((String)eQName.getId());
 				if (queue == null) {
