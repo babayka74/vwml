@@ -1,6 +1,10 @@
 package com.vw.lang.sink.java.entity.undefined.strategy;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.entity.ArgPair;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
@@ -11,7 +15,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  *
  */
 public abstract class UndefinedEntityInterpretationStrategy {
-	
+		
 	private static String s_syntheticEntity = "$";
 	
 	/**
@@ -21,6 +25,24 @@ public abstract class UndefinedEntityInterpretationStrategy {
 	 */
 	public boolean isEntitySynthetic(String entityId) {
 		return entityId.equals(s_syntheticEntity);
+	}
+	
+	public ArgPair parseEntityAsArg(String entityId) {
+		ArgPair argAsPair = null;
+		if (entityId.startsWith("$") && entityId.length() > 1) {
+			try {
+				Pattern pattern = Pattern.compile("\\$([0-9]*)");
+				Matcher matcher = pattern.matcher(entityId);
+				if (matcher.find()) {
+					argAsPair = new ArgPair();
+					argAsPair.setPlaceNumber(matcher.group(1));
+		        }
+			}
+			catch(Exception e) {
+				// nothing to do
+			}
+		}
+		return argAsPair;
 	}
 	
 	/**

@@ -515,36 +515,179 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		}
 	}
 	
-	// set of writers, for each file type
-	private FileWriter fws[] = new FileWriter[ModuleFiles.numValues()];
-	// used for debug purposes in order to visualize objects' linkage
-	private AbstractVWMLLinkVisitor visitor = null;
-	// declared VWML objects (simple entity, complex entity and terms)
-	private List<VWMLObjWrap> declaredObjects = new ArrayList<VWMLObjWrap>();
-	// declared contexts
-	private List<VWMLObjWrap> declaredContexts = new ArrayList<VWMLObjWrap>();
-	// declared creatures
-	private List<VWMLObjWrap> declaredCreatures = new ArrayList<VWMLObjWrap>();
-	// contains list of entity ids which were marked as 'term'
-	private List<Object> markedAsTerm = new ArrayList<Object>();
-	// defines objects' linkage
-	private List<VWMLLinkWrap> linkage = new ArrayList<VWMLLinkWrap>();
-	// defines objects' interpretation linkage (special type of linkage, one object is interpreted as second)
-	private List<VWMLLinkWrap> interpret = new ArrayList<VWMLLinkWrap>();
-	// associates object and operations
-	private Map<Object, VWMLOperationLink> operations = new HashMap<Object, VWMLOperationLink>();
-	// objects Id translation
-	private List<VWMLObjectTranslationElement> idTranslationMap = new ArrayList<VWMLObjectTranslationElement>();
-	// entities of the conflict ring
-	private Map<String, List<String>> entitiesOfConflictRing = new HashMap<String, List<String>>();
-	// currently processed conflict definition name
-	private String activeConflictDefinitionName = null;
-	private VWMLLinkWrap lastLink = null;
-	// we need to store the last declared complex entity in order to detect complex context
-	// if complex context is detected then this entity is removed from declaration storage and
-	// becomes context
-	private VWMLObjWrap lastDeclaredComplexEntity = null; 
+	/**
+	 * Created per module
+	 * @author Oleg
+	 *
+	 */
+	public static class JavaCodeGeneratorModuleLinkedObjects {
+		// set of writers, for each file type
+		private FileWriter fws[] = new FileWriter[ModuleFiles.numValues()];
+		// used for debug purposes in order to visualize objects' linkage
+		private AbstractVWMLLinkVisitor visitor = null;
+		// declared VWML objects (simple entity, complex entity and terms)
+		private List<VWMLObjWrap> declaredObjects = new ArrayList<VWMLObjWrap>();
+		// declared contexts
+		private List<VWMLObjWrap> declaredContexts = new ArrayList<VWMLObjWrap>();
+		// declared creatures
+		private List<VWMLObjWrap> declaredCreatures = new ArrayList<VWMLObjWrap>();
+		// contains list of entity ids which were marked as 'term'
+		private List<Object> markedAsTerm = new ArrayList<Object>();
+		// defines objects' linkage
+		private List<VWMLLinkWrap> linkage = new ArrayList<VWMLLinkWrap>();
+		// defines objects' interpretation linkage (special type of linkage, one object is interpreted as second)
+		private List<VWMLLinkWrap> interpret = new ArrayList<VWMLLinkWrap>();
+		// associates object and operations
+		private Map<Object, VWMLOperationLink> operations = new HashMap<Object, VWMLOperationLink>();
+		// objects Id translation
+		private List<VWMLObjectTranslationElement> idTranslationMap = new ArrayList<VWMLObjectTranslationElement>();
+		// entities of the conflict ring
+		private Map<String, List<String>> entitiesOfConflictRing = new HashMap<String, List<String>>();
+		// currently processed conflict definition name
+		private String activeConflictDefinitionName = null;
+		private VWMLLinkWrap lastLink = null;
+		// we need to store the last declared complex entity in order to detect complex context
+		// if complex context is detected then this entity is removed from declaration storage and
+		// becomes context
+		private VWMLObjWrap lastDeclaredComplexEntity = null;
+		private StartModuleProps modProps = null;
+		
+		public void clear() {
+			declaredObjects.clear();
+			operations.clear();
+			linkage.clear();
+			declaredContexts.clear();
+			declaredCreatures.clear();
+			interpret.clear();
+			markedAsTerm.clear();
+			idTranslationMap.clear();
+		}
+		
+		public FileWriter[] getFws() {
+			return fws;
+		}
+		
+		public void setFws(FileWriter[] fws) {
+			this.fws = fws;
+		}
+		
+		public AbstractVWMLLinkVisitor getVisitor() {
+			return visitor;
+		}
+		
+		public void setVisitor(AbstractVWMLLinkVisitor visitor) {
+			this.visitor = visitor;
+		}
+		
+		public List<VWMLObjWrap> getDeclaredObjects() {
+			return declaredObjects;
+		}
+		
+		public void setDeclaredObjects(List<VWMLObjWrap> declaredObjects) {
+			this.declaredObjects = declaredObjects;
+		}
+		
+		public List<VWMLObjWrap> getDeclaredContexts() {
+			return declaredContexts;
+		}
+		
+		public void setDeclaredContexts(List<VWMLObjWrap> declaredContexts) {
+			this.declaredContexts = declaredContexts;
+		}
+		
+		public List<VWMLObjWrap> getDeclaredCreatures() {
+			return declaredCreatures;
+		}
+		
+		public void setDeclaredCreatures(List<VWMLObjWrap> declaredCreatures) {
+			this.declaredCreatures = declaredCreatures;
+		}
+		
+		public List<Object> getMarkedAsTerm() {
+			return markedAsTerm;
+		}
+		
+		public void setMarkedAsTerm(List<Object> markedAsTerm) {
+			this.markedAsTerm = markedAsTerm;
+		}
+		
+		public List<VWMLLinkWrap> getLinkage() {
+			return linkage;
+		}
+		
+		public void setLinkage(List<VWMLLinkWrap> linkage) {
+			this.linkage = linkage;
+		}
+		
+		public List<VWMLLinkWrap> getInterpret() {
+			return interpret;
+		}
+		
+		public void setInterpret(List<VWMLLinkWrap> interpret) {
+			this.interpret = interpret;
+		}
+		
+		public Map<Object, VWMLOperationLink> getOperations() {
+			return operations;
+		}
+		
+		public void setOperations(Map<Object, VWMLOperationLink> operations) {
+			this.operations = operations;
+		}
+		
+		public List<VWMLObjectTranslationElement> getIdTranslationMap() {
+			return idTranslationMap;
+		}
+		
+		public void setIdTranslationMap(List<VWMLObjectTranslationElement> idTranslationMap) {
+			this.idTranslationMap = idTranslationMap;
+		}
+		
+		public Map<String, List<String>> getEntitiesOfConflictRing() {
+			return entitiesOfConflictRing;
+		}
+		
+		public void setEntitiesOfConflictRing(Map<String, List<String>> entitiesOfConflictRing) {
+			this.entitiesOfConflictRing = entitiesOfConflictRing;
+		}
+		
+		public String getActiveConflictDefinitionName() {
+			return activeConflictDefinitionName;
+		}
+		
+		public void setActiveConflictDefinitionName(String activeConflictDefinitionName) {
+			this.activeConflictDefinitionName = activeConflictDefinitionName;
+		}
+		
+		public VWMLLinkWrap getLastLink() {
+			return lastLink;
+		}
+		
+		public void setLastLink(VWMLLinkWrap lastLink) {
+			this.lastLink = lastLink;
+		}
+		
+		public VWMLObjWrap getLastDeclaredComplexEntity() {
+			return lastDeclaredComplexEntity;
+		}
+
+		public void setLastDeclaredComplexEntity(VWMLObjWrap lastDeclaredComplexEntity) {
+			this.lastDeclaredComplexEntity = lastDeclaredComplexEntity;
+		}
+
+		public StartModuleProps getModProps() {
+			return modProps;
+		}
+
+		public void setModProps(StartModuleProps modProps) {
+			this.modProps = modProps;
+		} 
+	}
 	
+	private List<JavaCodeGeneratorModuleLinkedObjects> modulesLinkedObjects = new ArrayList<JavaCodeGeneratorModuleLinkedObjects>();
+	// used for non module scoped objects (like creatures, conflicts, etc). These objects are declared
+	// before module is started, so we have to create temporary structure.
+	private JavaCodeGeneratorModuleLinkedObjects tempModuleLinkedObjects = null;
 	private Logger logger = Logger.getLogger(JavaCodeGenerator.class);
 	
 	public static JavaCodeGenerator instance() {
@@ -552,13 +695,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}
 	
 	public Object getLastLink() {
-		return lastLink;
+		return getProcessingModuleLinkedObjects().getLastLink();
 	}
 
 	public Object getLastLinksUniqId() {
 		Object o = null;
-		if (lastLink != null) {
-			o = lastLink.getUniqId();
+		if (getProcessingModuleLinkedObjects().getLastLink() != null) {
+			o = getProcessingModuleLinkedObjects().getLastLink().getUniqId();
 		}
 		return o;
 	}
@@ -661,12 +804,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		};
 		// stores actual module's name inside the properties for further processing
 		modProps.setActualModuleName(JavaCodeGeneratorUtils.generateClassName(ModuleFiles.MODULE.toValue() + moduleFileName));
+		JavaCodeGeneratorModuleLinkedObjects link = addProcessingModule(modProps);
 		String moduleFullPath = getSourcePath(modProps);
 		File f = new File(moduleFullPath);
 		if (!f.exists() && !f.mkdirs()) {
 			throw new Exception("Couldn't create path '" + moduleFullPath + "'");
 		}
 		// creates files and adds caption, package name and imports
+		FileWriter fws[] = link.getFws();
 		for(int i = 0; i < fws.length; i++) {
 			fws[i] = new FileWriter(moduleFullPath + "/" + modFiles[i]);
 			for(String line : startLines) {
@@ -687,10 +832,20 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public void generate(StartModuleProps props) throws Exception {
 		normalizeCode();
-		JavaModuleStartProps modProps = (JavaModuleStartProps)props;		
+		JavaModuleStartProps modProps = (JavaModuleStartProps)props;
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		FileWriter[] fws = link.getFws();
 		new JavaCodeGeneratorModule(fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())]).buildModuleBody(modProps, getVisitor());
-		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps, declaredObjects, declaredCreatures, declaredContexts, entitiesOfConflictRing);
-		new JavaCodeGeneratorLinkage(fws[ModuleFiles.index(ModuleFiles.LINKAGE.toValue())]).buildModuleLinkagePart(modProps, linkage, interpret, markedAsTerm, operations);
+		new JavaCodeGeneratorRepository(fws[ModuleFiles.index(ModuleFiles.REPOSITORY.toValue())]).buildModuleRepositoryPart(modProps,
+									    link.getDeclaredObjects(),
+									    link.getDeclaredCreatures(),
+									    link.getDeclaredContexts(),
+									    link.getEntitiesOfConflictRing());
+		new JavaCodeGeneratorLinkage(fws[ModuleFiles.index(ModuleFiles.LINKAGE.toValue())]).buildModuleLinkagePart(modProps,
+									 link.getLinkage(),
+									 link.getInterpret(),
+									 link.getMarkedAsTerm(),
+									 link.getOperations());
 	}
 	
 	/**
@@ -701,20 +856,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public void finishModule(StartModuleProps props) throws Exception {
 		// finalizes builder and linkage
 		// finalizes module
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		FileWriter fws[] = link.getFws();
 		FileWriter fw = fws[ModuleFiles.index(ModuleFiles.MODULE.toValue())];
 		fw.write(JavaCodeGeneratorUtils.getS_classEndDef());
 		for(int i = 0; i < fws.length; i++) {
 			fws[i].flush();
 			fws[i].close();
 		}		
-		declaredObjects.clear();
-		operations.clear();
-		linkage.clear();
-		declaredContexts.clear();
-		declaredCreatures.clear();
-		interpret.clear();
-		markedAsTerm.clear();
-		idTranslationMap.clear();
+		link.clear();
+		removeProcessingModuleLinkedObjects();
 		if (logger.isInfoEnabled()) {
 			logger.info("The module '" + ((JavaModuleStartProps)props).getModuleName() + "' was built");
 		}
@@ -728,13 +879,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public void markEntityAsTerm(Object id, String[] contexts) throws Exception {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
-		markedAsTerm.add(rel.getObj());
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.getMarkedAsTerm().add(rel.getObj());
 		Iterator<VWMLLinkWrap> it = null;
 		if (rel.getRelation() == REL.ASSOCIATION) {
-			it = interpret.iterator();
+			it = link.getInterpret().iterator();
 		}
 		else {
-			it = linkage.iterator();
+			it = link.getLinkage().iterator();
 		}
 		while(it.hasNext()) {
 			VWMLLinkWrap lw = it.next();
@@ -760,8 +912,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public void markEntityAsLifeTerm(Object id, boolean asSource) throws Exception {
 		boolean found = false;
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
 		// looking for the term which was added before
-		for(Object objId : markedAsTerm) {
+		for(Object objId : link.getMarkedAsTerm()) {
 			if (objId == rel.getObj()) {
 				found = true;
 				break;
@@ -793,7 +946,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareSimpleEntity(Object id, String context) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, context));
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.getDeclaredObjects().add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, context));
 	}
 	
 	/**
@@ -804,8 +958,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareComplexEntity(Object id, Object readableId, String context) throws Exception {
-		lastDeclaredComplexEntity = new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, readableId, context);
-		declaredObjects.add(lastDeclaredComplexEntity);		
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.setLastDeclaredComplexEntity(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY, id, readableId, context));
+		link.getDeclaredObjects().add(link.getLastDeclaredComplexEntity());		
 	}
 
 	/**
@@ -816,7 +971,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareCreature(Object id, Object props, String context) throws Exception {
-		declaredCreatures.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CREATURE, id, props, context));		
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.getDeclaredCreatures().add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CREATURE, id, props, context));		
 	}
 	
 	/**
@@ -826,7 +982,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @throws Exception
 	 */
 	public void declareTerm(Object id, String context) throws Exception {
-		declaredObjects.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id, context));
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.getDeclaredObjects().add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.TERM, id, context));
 	}
 
 	/**
@@ -834,7 +991,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param contextId
 	 */
 	public void declareContext(Object contextId) {
-		declaredContexts.add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CONTEXT, contextId, null));
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.getDeclaredContexts().add(new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.CONTEXT, contextId, null));
 	}
 	
 	/**
@@ -853,9 +1011,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 */
 	public boolean removeComplexEntityFromDeclarationAndLinkage(Object id, String[] contexts) {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
-		removeFrom(linkage, rel, contexts);
-		removeFrom(interpret, rel, contexts);
-		Iterator<VWMLObjWrap> it = declaredObjects.iterator();
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		removeFrom(link.getLinkage(), rel, contexts);
+		removeFrom(link.getInterpret(), rel, contexts);
+		Iterator<VWMLObjWrap> it = link.getDeclaredObjects().iterator();
 		while(it.hasNext()) {
 			VWMLObjWrap w = it.next();
 			if (w.getObjId().equals(rel.getObj())) {
@@ -879,7 +1038,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param contexts
 	 */
 	public void changeObjectIdTo(Object id, Object idTo, String[] contexts) {
-		idTranslationMap.add(new VWMLObjectTranslationElement(id, idTo, contexts));
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.getIdTranslationMap().add(new VWMLObjectTranslationElement(id, idTo, contexts));
 	}
 
 	/**
@@ -889,9 +1049,10 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param contexts
 	 */
 	public void changeObjectIdToImmidiatly(Object id, Object idTo, String[] contexts) {
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
 		changeObjectIdToForDeclaredObjectsOnly(id, idTo, contexts);
-		changeObjectIdToIn(id, idTo, linkage, contexts);
-		changeObjectIdToIn(id, idTo, interpret, contexts);
+		changeObjectIdToIn(id, idTo, link.getLinkage(), contexts);
+		changeObjectIdToIn(id, idTo, link.getInterpret(), contexts);
 	}
 	
 	/**
@@ -900,7 +1061,8 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param idTo
 	 */
 	public void changeObjectIdToForDeclaredObjectsOnly(Object id, Object idTo, String[] contexts) {
-		for(VWMLObjWrap o : declaredObjects) {
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		for(VWMLObjWrap o : link.getDeclaredObjects()) {
 			if (o.getObjId().equals(id)) {
 				for(String context : contexts) {
 					if (context.equals(o.getContext())) {
@@ -921,13 +1083,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param uniqId
 	 */
 	public void linkObjects(Object id, Object linkedObjId, String linkingContext, String activeContext, Object uniqId) {
-		lastLink = new VWMLLinkWrap(id, linkedObjId);
-		lastLink.setActiveContext(activeContext);
-		lastLink.setLinkObjContext(linkingContext);
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.setLastLink(new VWMLLinkWrap(id, linkedObjId));
+		link.getLastLink().setActiveContext(activeContext);
+		link.getLastLink().setLinkObjContext(linkingContext);
 		if (uniqId != null) {
-			lastLink.setUniqId((String)uniqId);
+			link.getLastLink().setUniqId((String)uniqId);
 		}
-		linkage.add(lastLink);
+		link.getLinkage().add(link.getLastLink());
 	}
 	
 	/**
@@ -945,11 +1108,12 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Object '" + id + "' -> op '" + op + "'");
 		}
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
 		String uniqId = ((VWMLLinkWrap)rel.getLastLink()).getUniqId();
-		VWMLOperationLink associatedOps = operations.get(uniqId);
+		VWMLOperationLink associatedOps = link.getOperations().get(uniqId);
 		if (associatedOps == null) {
 			associatedOps = new VWMLOperationLink(rel.getObj(), uniqId, new ArrayList<String>(), rel.getRelation());
-			operations.put(uniqId, associatedOps);
+			link.getOperations().put(uniqId, associatedOps);
 		}
 		associatedOps.getAssociatedOperations().add(op);
 	}
@@ -963,13 +1127,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param uniqId
 	 */
 	public void interpretObjects(Object id, Object interpretingObjId, String linkingContext, String activeContext, Object uniqId) {
-		lastLink = new VWMLLinkWrap(id, interpretingObjId);
-		lastLink.setActiveContext(activeContext);
-		lastLink.setLinkObjContext(linkingContext);
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.setLastLink(new VWMLLinkWrap(id, interpretingObjId));
+		link.getLastLink().setActiveContext(activeContext);
+		link.getLastLink().setLinkObjContext(linkingContext);
 		if (uniqId != null) {
-			lastLink.setUniqId((String)uniqId);
+			link.getLastLink().setUniqId((String)uniqId);
 		}
-		interpret.add(lastLink);
+		link.getInterpret().add(link.getLastLink());
 	}
 	
 	/**
@@ -985,10 +1150,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		if (logger.isDebugEnabled()) {
 			logger.debug("conflict definition on ring '" + rawConflictDefinitionName + "' defined on context '" + context + "'");
 		}
-		if (entitiesOfConflictRing.get(conflictDefinitionName) == null) {
-			entitiesOfConflictRing.put(conflictDefinitionName, new ArrayList<String>());
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		if (link.getEntitiesOfConflictRing().get(conflictDefinitionName) == null) {
+			link.getEntitiesOfConflictRing().put(conflictDefinitionName, new ArrayList<String>());
 		}
-		activeConflictDefinitionName = conflictDefinitionName;
+		link.setActiveConflictDefinitionName(conflictDefinitionName);
 	}
 	
 	/**
@@ -996,15 +1162,16 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param conflictDefinitionName
 	 */
 	public void addConflictDefinitionOnRing(String conflictDefinitionName) throws Exception {
-		if (activeConflictDefinitionName == null) {
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		if (link.getActiveConflictDefinitionName() == null) {
 			throw new Exception("active conflict definition name is null");
 		}
-		List<String> conflicts = entitiesOfConflictRing.get(activeConflictDefinitionName);
+		List<String> conflicts = link.getEntitiesOfConflictRing().get(link.getActiveConflictDefinitionName());
 		if (conflicts == null) {
 			throw new Exception("trying to add conflict definition outside conflict section");
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("connects conflicts '" + activeConflictDefinitionName + "' and '" + conflictDefinitionName + "'");
+			logger.debug("connects conflicts '" + link.getActiveConflictDefinitionName() + "' and '" + conflictDefinitionName + "'");
 		}
 		if (!conflicts.contains(conflictDefinitionName)) {
 			conflicts.add(conflictDefinitionName);
@@ -1015,13 +1182,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			declareSimpleEntity(rawConflictDefinitionName, context);
 		}
 		// reversing include...
-		List<String> reversingConflicts = entitiesOfConflictRing.get(conflictDefinitionName);
+		List<String> reversingConflicts = link.getEntitiesOfConflictRing().get(conflictDefinitionName);
 		if (reversingConflicts == null) {
 			reversingConflicts = new ArrayList<String>();
-			entitiesOfConflictRing.put(conflictDefinitionName, reversingConflicts);
+			link.getEntitiesOfConflictRing().put(conflictDefinitionName, reversingConflicts);
 		}
-		if (!reversingConflicts.contains(activeConflictDefinitionName)) {
-			reversingConflicts.add(activeConflictDefinitionName);
+		if (!reversingConflicts.contains(link.getActiveConflictDefinitionName())) {
+			reversingConflicts.add(link.getActiveConflictDefinitionName());
 		}
 	}
 	
@@ -1030,15 +1197,18 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param conflictDefinitionName
 	 */
 	public void endConflictDefinitionOnRing() throws Exception {
-		activeConflictDefinitionName = null;
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.setActiveConflictDefinitionName(null);
 	}
 
 	public AbstractVWMLLinkVisitor getVisitor() {
-		return visitor;
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		return link.getVisitor();
 	}
 
 	public void setVisitor(AbstractVWMLLinkVisitor visitor) {
-		this.visitor = visitor;
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		link.setVisitor(visitor);
 	}
 
 	/**
@@ -1050,10 +1220,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}	
 
 	protected void normalizeCode() {
-		for(VWMLObjectTranslationElement t : idTranslationMap) {
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
+		for(VWMLObjectTranslationElement t : link.getIdTranslationMap()) {
 			changeObjectIdToForDeclaredObjectsOnly(t.getId(), t.getToId(), t.getContexts());
-			changeObjectIdToIn(t.getId(), t.getToId(), linkage, t.getContexts());
-			changeObjectIdToIn(t.getId(), t.getToId(), interpret, t.getContexts());
+			changeObjectIdToIn(t.getId(), t.getToId(), link.getLinkage(), t.getContexts());
+			changeObjectIdToIn(t.getId(), t.getToId(), link.getInterpret(), t.getContexts());
 		}
 	}
 	
@@ -1117,8 +1288,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	}
 	
 	private boolean checkIfSimpleEntityDeclared(Object id, String context) {
+		JavaCodeGeneratorModuleLinkedObjects link = getProcessingModuleLinkedObjects();
 		VWMLObjWrap v = new VWMLObjWrap(VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY, id, context);
-		return declaredObjects.contains(v);
+		return link.getDeclaredObjects().contains(v);
 	}	
 	
 	private String parseBoundTerm2ConflictAssociation(String conflictDefinitionName) {
@@ -1129,5 +1301,40 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			parsedAssociation = boundTerm + suffix;
 		}
 		return parsedAssociation;
+	}
+	
+	private JavaCodeGeneratorModuleLinkedObjects addProcessingModule(StartModuleProps props) {
+		JavaCodeGeneratorModuleLinkedObjects l = null;
+		if (tempModuleLinkedObjects == null) {
+			l = new JavaCodeGeneratorModuleLinkedObjects();
+		}
+		else {
+			l = tempModuleLinkedObjects;
+			tempModuleLinkedObjects = null;
+		}
+		l.setModProps(props);
+		modulesLinkedObjects.add(l);
+		return l;
+	}
+	
+	private JavaCodeGeneratorModuleLinkedObjects getProcessingModuleLinkedObjects() {
+		JavaCodeGeneratorModuleLinkedObjects l = null;
+		if (modulesLinkedObjects.size() != 0) {
+			l = modulesLinkedObjects.get(0);
+		}
+		else {
+			if (tempModuleLinkedObjects == null) {
+				tempModuleLinkedObjects = new JavaCodeGeneratorModuleLinkedObjects();
+			}
+			l = tempModuleLinkedObjects;
+		}
+		return l;
+	}
+	
+	private void removeProcessingModuleLinkedObjects() {
+		if (modulesLinkedObjects.size() != 0) {
+			modulesLinkedObjects.remove(0);
+		}
+		tempModuleLinkedObjects = null;
 	}
 }

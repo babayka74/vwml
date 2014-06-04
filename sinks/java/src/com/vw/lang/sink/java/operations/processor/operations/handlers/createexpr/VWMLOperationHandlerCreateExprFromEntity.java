@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
@@ -71,6 +72,10 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 				throw new Exception("inconsistence detected; expected at least 2 linked entities but found only '" + entity.getLink().getLinkedObjectsOnThisTime() + "'");
 			}
 			if (isInterpretationShouldBeApplied(e, e1)) {
+				VWMLEntity argRef = VWMLOperationUtils.getRelatedEntityByArgument(interpreter, e);
+				if (argRef != null) {
+					e = argRef;
+				}
 				e.setInterpreting(e1);
 			}
 			else {
@@ -106,6 +111,10 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 				newComplexEntity.link(le);
 			}
 			if (isInterpretationShouldBeApplied(entity, newComplexEntity)) {
+				VWMLEntity argRef = VWMLOperationUtils.getRelatedEntityByArgument(interpreter, entity);
+				if (argRef != null) {
+					entity = argRef;
+				}
 				entity.setInterpreting(newComplexEntity);
 			}
 			else {

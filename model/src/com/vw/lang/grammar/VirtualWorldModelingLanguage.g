@@ -40,7 +40,7 @@ tokens {
     OPDYNCONTEXT='->';
     OPSIZE='Size';
     OPINTERRUPT='Interrupt';
-    OPSHORTPATH='ShortPath';
+    OPCALLP='CallP';
     
     // languages
     JAVA='__java__';
@@ -128,11 +128,26 @@ package com.vw.lang.grammar;
 	private String modName = null;
  	private boolean inDebug = false;
  	private boolean moduleInProgress = false;
+ 	private List<String> deferredIncludes = new ArrayList<String>();
  	
  	private String lastProcessedIAS = null;
  	
  	private Logger logger = Logger.getLogger(this.getClass());
 	
+	public void setupProps() {
+    		if (modProps == null) {
+    			if (codeGenerator == null && vwmlModelBuilder.getProjectProps() != null) {
+    				codeGenerator = vwmlModelBuilder.getProjectProps().getCodeGenerator();
+    			}
+			// instantiating module's properties which will be filled later
+			modProps = (codeGenerator != null) ? codeGenerator.buildProps() : null;
+			// tell to builder reference to module's properties
+			if (vwmlModelBuilder.getProjectProps() == null) {
+				vwmlModelBuilder.setProjectProps(modProps);
+			}
+		}	
+	}
+
 	public StartModuleProps getModuleProps() {
 		return modProps;
 	}
@@ -557,8 +572,21 @@ package com.vw.lang.grammar;
  		return EntityWalker.Relation.build(eId, relType, lastLink);
 	}	
 	
+	protected void deferInclude(String file) {
+		deferredIncludes.add(file);
+	}
+	
+	protected void processDeferredIncludes() throws RecognitionException {
+		for(String file : deferredIncludes) {
+			processInclude(file);
+		}
+	}
+	
 	protected void processInclude(String file) throws RecognitionException {
 		try {
+    			if (logger.isInfoEnabled()) {
+    				logger.info("including '" + file + "'");
+    			}		
 			vwmlModelBuilder.compile(file);
 		}
 		catch(Exception e) {
@@ -622,6 +650,8 @@ filedef
                              			codeGenerator.finishModule(modProps);
                              			// module parsed and finished
                              			moduleInProgress = false;
+                             			// includes processing now...
+                             			processDeferredIncludes();
                              		}
                              		catch(Exception e) {
 		    				logger.error("Caught exception '" + e + "'");
@@ -634,9 +664,9 @@ filedef
 include
     : include_vwml {
     			if (logger.isInfoEnabled()) {
-    				logger.info("including '" + $include_vwml.id + "'");
+    				logger.info("deferring include '" + $include_vwml.id + "'");
     			}
-    			processInclude(GeneralUtils.trimQuotes($include_vwml.id)); 
+    			deferInclude(GeneralUtils.trimQuotes($include_vwml.id));    			
                    }
     ;
     
@@ -664,6 +694,9 @@ otherLanguages
 langJava
     @init {
        codeGenerator = vwmlModelBuilder.getCodeGenerator(VWMLModelBuilder.SINK_TYPE.JAVA);
+       if (vwmlModelBuilder.getProjectProps() != null && vwmlModelBuilder.getProjectProps().getCodeGenerator() == null) {
+       		vwmlModelBuilder.getProjectProps().setCodeGenerator(codeGenerator);
+       }
        if (logger.isDebugEnabled()) {
        		logger.debug("Code generator '" + codeGenerator + "'");
        }
@@ -673,12 +706,7 @@ langJava
 
 javaProps
     @init {
-	// instantiating module's properties which will be filled later
-	modProps = (codeGenerator != null) ? codeGenerator.buildProps() : null;
-	// tell to builder reference to module's properties
-	if (vwmlModelBuilder.getProjectProps() == null) {
-		vwmlModelBuilder.setProjectProps(modProps);
-	}
+    	setupProps();
     }
     : propPackage generatedFileLocation? optionalProps
     ;
@@ -831,11 +859,13 @@ name_of_related_conflict_on_ring
 module
     : 'module' ID { 
     			modName = $ID.getText();
+    			logger.info("Compiling module '" + modName + "'");
+    			setupProps();
     			// normalizes module's properties; if some properties were not set they are filled by project's properties
     			// ... so it is way to override them 
     			modProps = vwmlModelBuilder.normalizeProps(modProps);
     			// associates module's name with module info structure (will be used on last dource generation phase, especially during unit-test generation)
-    			vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null)); 
+    			vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null));
     			if (modProps != null) {
     				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
 	    			try {
@@ -1073,7 +1103,7 @@ opclist
     | OPDYNCONTEXT
     | OPSIZE
     | OPINTERRUPT
-    | OPSHORTPATH
+    | OPCALLP
     ;
 
 termLanguages

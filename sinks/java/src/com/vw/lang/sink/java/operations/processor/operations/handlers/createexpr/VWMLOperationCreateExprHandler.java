@@ -34,6 +34,10 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 			VWMLEntity interpretedEntity = (VWMLEntity)entities.get(1);
 			VWMLEntity interpretingEntity = (VWMLEntity)entities.get(0);
 			if (VWMLOperationCreateExprStrategy.isInterpretationShouldBeApplied(interpretedEntity, interpretingEntity)) {
+				VWMLEntity argRef = VWMLOperationUtils.getRelatedEntityByArgument(interpreter, interpretedEntity);
+				if (argRef != null) {
+					interpretedEntity = argRef;
+				}
 				interpretedEntity.setInterpreting(interpretingEntity);
 			}
 			else {
@@ -50,6 +54,10 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 																											context.getLinkOperationVisitor(),
 																											VWMLOperationUtils.s_dontAddIfUnknown);
 			if (VWMLOperationCreateExprStrategy.isInterpretationShouldBeApplied(entity, newComplexEntity)) {
+				VWMLEntity argRef = VWMLOperationUtils.getRelatedEntityByArgument(interpreter, entity);
+				if (argRef != null) {
+					entity = argRef;
+				}
 				entity.setInterpreting(newComplexEntity);
 			}
 			else {

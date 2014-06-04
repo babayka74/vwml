@@ -1,0 +1,22 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.model.vwml.astar"
+  		path = "c:\var\vwml/astar/src"
+  		author = "Groozman M.Z."
+		project_name = "AStarProj"
+  		description = "AStar algorithm"
+
+		fringe communication ias (
+			out ias "com.win.game.puzzleR2.model.fringe.gate.async.console.AsyncConsole"
+			in ias "com.win.game.puzzleR2.model.fringe.gate.async.console.AsyncConsole"
+		)
+	}
+}
+
+module AStar {
+	Ew ias (
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+	);
+
+}

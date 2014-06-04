@@ -32,9 +32,12 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) {
-			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entities.get(0));
+			interpretingEntity = interpretationOfArgumentPair(interpreter, entities.get(0));
 			if (interpretingEntity == null) {
-				interpretingEntity = interpretSingleEntity(entities.get(0), originalContext);
+				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entities.get(0));
+				if (interpretingEntity == null) {
+					interpretingEntity = interpretSingleEntity(entities.get(0), originalContext);
+				}
 			}
 		}
 		else {
@@ -45,15 +48,22 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
-			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
+			interpretingEntity = interpretationOfArgumentPair(interpreter, entity);
 			if (interpretingEntity == null) {
-				interpretingEntity = entity.getInterpreting();
+				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
+				if (interpretingEntity == null) {
+					interpretingEntity = entity.getInterpreting();
+				}
 			}
 		}
 		inspector.clear();
 		entities.clear();
 		if (interpretingEntity == null) {
 			throw new Exception("the interpreting entity '" + entity.getReadableId() + "' can't be 'null'; check VWML's code; entity '" + entity + "'");
+		}
+		VWMLEntity argRef = interpretationOfArgumentPair(interpreter, interpretingEntity);
+		if (argRef != null) {
+			interpretingEntity = argRef;
 		}
 		stack.push(interpretingEntity);
 	}
@@ -121,5 +131,9 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			return interpreter.getInterpretingEntityForSyntheticEntity();
 		}
 		return null;
+	}
+	
+	private VWMLEntity interpretationOfArgumentPair(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
+		return VWMLOperationUtils.getRelatedEntityByArgument(interpreter, entity);
 	}
 }

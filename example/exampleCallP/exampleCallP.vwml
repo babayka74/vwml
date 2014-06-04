@@ -1,0 +1,78 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.maze.model.vwml.exampleCallP"
+  		path = "c:\var\vwml/exampleCallP/src"
+  		author = "Groozman M.Z."
+		project_name = "exampleCallPProj"
+  		description = "Example of CallP operation usage"
+		beyond {
+			fringe communication ias (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+			)
+		}
+	}
+}
+
+include "../algorithms/DpfA/DpfA.vwml"
+
+module exampleCallP {
+	/*
+		EW represents external world data which can be loaded during game's 
+		initialization phase
+	*/
+	Ew ias (
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+		/* maze */
+		A ias (C B);
+		B ias (A D);
+		C ias (E A D);
+		D ias (B C F);
+		E ias (C);
+		F ias (D);
+	);
+	/* aux. entities */
+	Goals ias ();
+	ChoiceSet ias ();
+	NextStates ias ();
+	StateSet ias ();
+	SeqStates ias ();
+	State ias nil;
+	PathFound ias false;
+	/* selects goals to achieve */
+	GetGoals ias (
+		(Goals (Ew.F))^
+	);
+	/* initial state; walking starts here... */
+	GetInitState ias (
+		(State Ew.A)^
+	);
+	/* initial steps */
+	Init ias (
+		GetGoals~ Exe
+		GetInitState~ Exe
+		(SeqStates (State~))^
+		(StateSet (State~))^
+		((Goal Goals~ start state State~ and start possible movements State~~) Ew.Output~) Do
+	);
+	/* prints path */
+	Result ias (
+		((The result is SeqStates~) Ew.Output~) Do
+		(PathFound true)^
+	);
+	Run ias (
+		(PathFound false) ias (
+			((Goals State ChoiceSet StateSet SeqStates Result) DpfSearchMkA~) CallP
+			Run~ Exe
+		);
+		(PathFound true) ias doNothing;
+		(PathFound PathFound~)~ Exe
+	);
+
+	source lifeterm = (
+			Init~ Exe
+			Run~ Exe
+			3000 Relax
+		) Exe
+}

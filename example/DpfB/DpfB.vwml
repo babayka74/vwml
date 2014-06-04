@@ -1,0 +1,112 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.maze.model.vwml.DpfB"
+  		path = "c:\var\vwml/DpfB/src"
+  		author = "Groozman M.Z."
+		project_name = "DpfBProj"
+  		description = "Maze walker"
+		beyond {
+			fringe communication ias (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module DpfB {
+	/*
+		EW represents external world data which can be loaded during game's 
+		initialization phase
+	*/
+	Ew ias (
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+		VSum ias services.math.vsum;
+		/* maze */
+		Maze ias (
+			(1 3) (1 4) (1 5)
+			(2 1) (2 2) (2 3) (2 5)
+			(3 1) (3 3) (3 4) (3 5)
+			(4 1) (4 3)
+			(5 1) (5 2) (5 3) (5 4) (5 5)
+		);
+		DeltaMovement ias (
+			(-1 0) (0 -1)
+			(0 1) (1 0)
+		);
+		GetGoals ias (Goals ((5 2)))^;
+		GetInitState ias (State (1 5))^;
+	);
+	Goals ias ();
+	ChoiceSet ias ();
+	NextStates ias ();
+	StateSet ias ();
+	SeqStates ias ();
+	State ias nil;
+	NextStates ias ();
+	NewState ias nil;
+	/* initial steps */
+	Init ias (
+		Ew.GetGoals~ Exe
+		Ew.GetInitState~ Exe
+		(SeqStates (State~))^
+		(StateSet (State~))^
+		((Goal Goals~ and start state is State~) Ew.Output~) Do
+	);
+	/* prints path */
+	Result ias (
+		((The result is SeqStates~) Ew.Output~) Do
+	);
+	/* looks for possible states by observing area; used by GetNextStates */
+	LookupNextStates ias (
+		Svect ias nil;
+		(InMaze false) ias doNothing;
+		(InMaze true) ias (NextStates (NextStates~ (Svect~)) Join)^;
+		delta ias $;
+		(Svect ((delta~~ State~) VSum~) Do)^
+		(InMaze (Ew.Maze~ Svect~) In)~ Exe
+	);
+	/* actually looks for next states  */
+	GetNextStates ias (
+		(NextStates ())^
+		(Ew.DeltaMovement~ LookupNextStates~) ForEach
+	);
+	/* ranbdomaly selects new state */
+	GetNewState ias (NewState ChoiceSet~ Random)^;
+	/* activates next step */
+	Search ias (EndSearch (Goals~ State~) In)~ Exe;
+	/* one of goal's targets has achieved */
+	(EndSearch true) ias Result~ Exe;
+	/* continue walking... */
+	(EndSearch false) ias (
+		GetNextStates~ Exe
+		((The next possible states are NextStates~ and former states are StateSet~) Ew.Output~) Do
+		(ChoiceSet (NextStates~ StateSet~) Substruct)^
+		((The choice set is ChoiceSet~) Ew.Output~) Do
+		(Return (ChoiceSet~ ()) Ident)~ Exe
+		Search~ Exe
+	);
+	/* pop state from stack and set last state to current state */
+	(Return true) ias (
+		(SeqStates (SeqStates~) Begin)^
+		(State (SeqStates~) Last)^
+		((The stack is SeqStates~ and state is State~) Ew.Output~) Do
+	);
+	(Return false) ias (
+		GetNewState~ Exe
+		((The new state is NewState~) Ew.Output~) Do
+		(State NewState~)^
+		(SeqStates (SeqStates~ State~) Join)^
+		(StateSet (StateSet~ State~) Join)^
+		((The stack is SeqStates~) Ew.Output~) Do
+	);
+	source lifeterm = (
+			Init~ Exe
+			Search~ Exe
+			3000 Relax
+		) Exe
+}

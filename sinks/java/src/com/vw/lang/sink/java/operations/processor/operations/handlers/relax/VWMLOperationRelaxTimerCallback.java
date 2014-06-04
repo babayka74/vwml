@@ -41,7 +41,7 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 		if (completitionTerm != null) {
 			if (!delayExecution) {
 				try {
-					VWMLOperationUtils.activateTerm(interpreter, null, completitionTerm, "relaxCbk_", "Relax");
+					VWMLOperationUtils.activateTerm(interpreter, null, false, completitionTerm, "relaxCbk_", "Relax");
 				} catch (Exception e) { // swallow it for now
 				}
 			}

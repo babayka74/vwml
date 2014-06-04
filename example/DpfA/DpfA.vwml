@@ -1,0 +1,97 @@
+options {
+	language=__java__ {
+  		package = "com.win.game.maze.model.vwml.DpfA"
+  		path = "c:\var\vwml/DpfA/src"
+  		author = "Groozman M.Z."
+		project_name = "DpfAProj"
+  		description = "Maze walker"
+		beyond {
+			fringe communication ias (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+			)
+		}
+	}
+}
+
+module DpfA {
+	/*
+		EW represents external world data which can be loaded during game's 
+		initialization phase
+	*/
+	Ew ias (
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+		/* maze */
+		A ias (C B);
+		B ias (A D);
+		C ias (E A D);
+		D ias (B C F);
+		E ias (C);
+		F ias (D);
+	);
+	/* aux. entities */
+	Goals ias ();
+	ChoiceSet ias ();
+	NextStates ias ();
+	StateSet ias ();
+	SeqStates ias ();
+	State ias nil;
+	NewState ias nil;
+	/* selects goals to achieve */
+	GetGoals ias (
+		(Goals (Ew.F))^
+	);
+	/* initial state; walking starts here... */
+	GetInitState ias (
+		(State Ew.A)^
+	);
+	/* possible states which can be achieved from the current state */
+	GetNextStates ias (NextStates State~~)^;
+	/* acually sets new state */
+	GetNewState ias (NewState ChoiceSet~ Random)^;
+	/* initial steps */
+	Init ias (
+		GetGoals~ Exe
+		GetInitState~ Exe
+		(SeqStates (State~))^
+		(StateSet (State~))^
+		((Goal Goals~ start state State~ and start possible movements State~~) Ew.Output~) Do
+	);
+	/* prints path */
+	Result ias (
+		((The result is SeqStates~) Ew.Output~) Do
+	);
+	Search ias (EndSearch (Goals~ State~) In)~ Exe;
+	/* one of goal's targets has achieved */
+	(EndSearch true) ias Result~ Exe;
+	/* continue walking... */
+	(EndSearch false) ias (
+		GetNextStates~ Exe
+		((The next possible states are NextStates~ and former states are StateSet~) Ew.Output~) Do
+		(ChoiceSet (NextStates~ StateSet~) Substruct)^
+		((The choice set is ChoiceSet~) Ew.Output~) Do
+		(Return (ChoiceSet~ ()) Ident)~ Exe
+		Search~ Exe
+	);
+	/* pop state from stack and set last state to current state */
+	(Return true) ias (
+		(SeqStates (SeqStates~) Begin)^
+		(State (SeqStates~) Last)^
+		((The stack is SeqStates~ and state is State~) Ew.Output~) Do
+	);
+	(Return false) ias (
+		GetNewState~ Exe
+		((The new state is NewState~) Ew.Output~) Do
+		(State NewState~)^
+		(SeqStates (SeqStates~ State~) Join)^
+		(StateSet (StateSet~ State~) Join)^
+		((The stack is SeqStates~) Ew.Output~) Do
+	);
+
+	source lifeterm = (
+			Init~ Exe
+			Search~ Exe
+			3000 Relax
+		) Exe
+}

@@ -117,7 +117,7 @@ public class VWMLModelBuilder extends Debuggable {
 			 return ADDONS.NONE;
 		 }
 	}
-	
+		
 	public static class CodeGeneratorAux {
 		private ICodeGenerator generator;
 		private VWML2TargetSpecificSteps programSteps;

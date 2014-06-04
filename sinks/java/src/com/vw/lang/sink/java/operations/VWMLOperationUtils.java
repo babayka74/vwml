@@ -6,6 +6,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
+import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
@@ -124,7 +125,7 @@ public class VWMLOperationUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static boolean activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term, String contextPrefix, String onOperation) throws Exception {
+	public static boolean activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity component, boolean interpretComponentAsArg, VWMLEntity term, String contextPrefix, String onOperation) throws Exception {
 		boolean continueCycle = true;
 		if (onOperation == null) {
 			throw new Exception("The parameter 'onOperation' must be specified on activateTerm");
@@ -143,8 +144,15 @@ public class VWMLOperationUtils {
 		forcedContext.setContext(term.getContext().getContext());
 		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
-			// the synthetic entity '$' will be interpreted as component
-			i.setInterpretingEntityForSyntheticEntity(component);
+			if (!interpretComponentAsArg) {
+				// the synthetic entity '$' will be interpreted as component
+				i.setInterpretingEntityForSyntheticEntity(component);
+			}
+			else {
+				// all arguments are passed inside the one complex entity. The interpreted term can reference to arguments by $1, $2...
+				// The counting direction is left -> right
+				i.setInterpretingEntityForArgEntity(component);
+			}
 			if (i.getConfig().isStepByStepInterpretation()) {
 				interpreter.conditionalLoop(listener);
 			}
@@ -157,6 +165,36 @@ public class VWMLOperationUtils {
 		}
 		return continueCycle;
 		
+	}
+	
+	/**
+	 * Returns entity which is related to argument entity, argument entity has format => ${arg place in complex entity}; used by CallP operation
+	 * @param interpreter
+	 * @param entity
+	 * @return
+	 */
+	public static VWMLEntity getRelatedEntityByArgument(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
+		VWMLEntity e = null;
+		if (entity.getAsArgPair() != null) {
+			if (entity.getAsArgPair().getArgAsRef() == null) {
+				if (entity.getAsArgPair().getPlaceNumber() != null &&
+					interpreter.getInterpretingEntityForArgEntity() != null &&
+					interpreter.getInterpretingEntityForArgEntity().isMarkedAsComplexEntity() &&
+					entity.isRecursiveInterpretationOnOriginal()) {
+					VWMLComplexEntity args = (VWMLComplexEntity)interpreter.getInterpretingEntityForArgEntity();
+					int num = Integer.valueOf(entity.getAsArgPair().getPlaceNumber());
+					if (num >= args.getLink().getLinkedObjectsOnThisTime()) {
+						throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getId() + "'");
+					}
+					e = (VWMLEntity)args.getLink().getConcreteLinkedEntity(num);
+					entity.getAsArgPair().setArgAsRef(e);
+				}
+			}
+			else {
+				e = (VWMLEntity)entity.getAsArgPair().getArgAsRef();				
+			}
+		}
+		return e;
 	}
 	
 	

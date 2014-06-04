@@ -55,6 +55,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLInterpreterTimerManager timerManager = VWMLInterpreterTimerManager.instance();
 	// interpreting entity (or component in terms of ForEach operation) of synthetic entity
 	private VWMLEntity interpretingEntityForSyntheticEntity = null;
+	// interpreting entity which is used for passing arguments for CallP command
+	private VWMLEntity interpretingEntityForArgEntity = null;
 	// interpreter's state listener
 	private VWMLInterpreterListener listener = null;
 	// for example 'reactive' interpreter instantiates 'sequential' interpreters for each life term
@@ -200,6 +202,14 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 		this.interpretingEntityForSyntheticEntity = interpretingEntityForSyntheticEntity;
 	}
 
+	public void setInterpretingEntityForArgEntity(VWMLEntity interpretingEntityForArgEntity) {
+		this.interpretingEntityForArgEntity = interpretingEntityForArgEntity;
+	}
+
+	public VWMLEntity getInterpretingEntityForArgEntity() {
+		return this.interpretingEntityForArgEntity;
+	}
+	
 	public VWMLInterpreterListener getListener() {
 		return listener;
 	}

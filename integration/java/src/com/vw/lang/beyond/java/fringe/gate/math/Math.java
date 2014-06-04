@@ -154,6 +154,29 @@ public class Math implements IVWMLGate {
 		}		
 	}
 	
+	public static class VSumHandler extends GateCommandHandler {
+
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			EWEntity e = EWEntityBuilder.buildComplexEntity("()", null);
+			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == 2) {
+				EWEntity e1 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+				EWEntity e2 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(1);
+				if (e1.isMarkedAsComplexEntity() &&
+					e2.isMarkedAsComplexEntity() && 
+					e1.getLink().getLinkedObjectsOnThisTime() == e2.getLink().getLinkedObjectsOnThisTime()) {
+					for(int i = 0; i < e1.getLink().getLinkedObjectsOnThisTime(); i++) {
+						int v1 = Math.convertString2Int((String)e1.getLink().getConcreteLinkedEntity(i).getId());
+						int v2 = Math.convertString2Int((String)e2.getLink().getConcreteLinkedEntity(i).getId());
+						EWEntity v = EWEntityBuilder.buildSimpleEntity(String.valueOf(v1 + v2), null);
+						e.link(v);
+					}
+				}
+			}
+			return e;
+		}
+	}
+	
 	@SuppressWarnings("serial")
 	private static Map<String, GateCommandHandler> s_methods = new HashMap<String, GateCommandHandler>() {
 		{
@@ -164,6 +187,7 @@ public class Math implements IVWMLGate {
 			put("inc", new IncHandler());
 			put("dec", new DecHandler());
 			put("compare", new CompareHandler());
+			put("vsum", new VSumHandler());
 		}
 	};
 	

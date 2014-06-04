@@ -1,0 +1,47 @@
+module DpfA {
+	/* Depth-first search algorithm. Modification A. */
+	DpfSearchMkA ias (
+		/* aux. entities; cached by caller */
+		Goals ias $0;
+		State ias $1;
+		ChoiceSet ias $2;
+		StateSet ias $3;
+		SeqStates ias $4;
+		CompletitionCallback ias $5;
+
+		NextStates ias ();
+		NewState ias nil;
+		/* possible states which can be achieved from the current state */
+		GetNextStates ias (NextStates State~~~)^;
+		/* acually sets new state */
+		GetNewState ias (NewState ChoiceSet~~ Random)^;
+
+		Search ias (EndSearch (Goals~~ State~~) In)~ Exe;
+		/* one of goal's targets has achieved */
+		(EndSearch true) ias CompletitionCallback~~ Exe;
+		/* continue walking... */
+		(EndSearch false) ias (
+			GetNextStates~ Exe
+			((The next possible states are NextStates~ and former states are StateSet~~) Ew.Output~) Do
+			(ChoiceSet~ (NextStates~ StateSet~~) Substruct)^
+			((The choice set is ChoiceSet~~) Ew.Output~) Do
+			(Return (ChoiceSet~~ ()) Ident)~ Exe
+		);
+		/* pop state from stack and set last state to current state */
+		(Return true) ias (
+			(State~ (SeqStates~~) Last)^
+			(SeqStates~ (SeqStates~~) Begin)^
+			((The stack is SeqStates~~ and state is State~~) Ew.Output~) Do
+		);
+		(Return false) ias (
+			GetNewState~ Exe
+			((The new state is NewState~) Ew.Output~) Do
+			(State~ NewState~)^
+			(SeqStates~ (SeqStates~~ State~~) Join)^
+			(StateSet~ (StateSet~~ State~~) Join)^
+			((The stack is SeqStates~~) Ew.Output~) Do
+		);
+
+		Search~ Exe
+	);
+}

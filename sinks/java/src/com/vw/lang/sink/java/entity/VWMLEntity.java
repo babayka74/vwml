@@ -46,6 +46,8 @@ public class VWMLEntity extends VWMLObject {
 	private boolean isOriginal = false;
 	// entity is marked as synthetic
 	private boolean isSynthetic = false;
+	// entity is interpreted as argument pair (see CallP operation)
+	private ArgPair asArgPair;
 	private int interpretationHistorySize;
 	// if entity is cloned this field is set to entity from which it was cloned 
 	private VWMLEntity clonedFrom = null;
@@ -307,6 +309,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setSynthetic(boolean isSynthetic) {
 		this.isSynthetic = isSynthetic;
+	}
+
+	public ArgPair getAsArgPair() {
+		return asArgPair;
+	}
+
+	public void setAsArgPair(ArgPair asArgPair) {
+		this.asArgPair = asArgPair;
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {
