@@ -84,8 +84,8 @@ module DpfA {
 		GetNewState~ Exe
 		((The new state is NewState~) Ew.Output~) Do
 		(State NewState~)^
-		(SeqStates (SeqStates~ State~) Join)^
-		(StateSet (StateSet~ State~) Join)^
+		(SeqStates (SeqStates~ (State~)) Join)^
+		(StateSet (StateSet~ (State~)) Join)^
 		((The stack is SeqStates~) Ew.Output~) Do
 	);
 

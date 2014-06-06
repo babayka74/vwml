@@ -86,7 +86,8 @@ public class VWMLContext extends VWMLObject {
 	 * @param part
 	 * @return
 	 */
-	public static String constructContextNameInRunTime(String contextNameBuf, String part) {
+	public static String constructContextNameInRunTime(String contextNameBuf, VWMLEntity e) {
+		String part = e.getContext().getContextName() + "." + e.getReadableId();
 		if (contextNameBuf != null) {
 			return contextNameBuf + "." + part;
 		}

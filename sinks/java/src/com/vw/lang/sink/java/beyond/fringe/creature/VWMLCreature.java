@@ -49,6 +49,11 @@ public class VWMLCreature extends VWMLEntity {
 		else {
 			e = transformComplexEWEntityToVWML(context, null, ewEntity);
 		}
+		if (e != null) {
+			e.setReadableId(null);
+			e.buildReadableId();
+			e.setId(e.getReadableId());
+		}
 		return e; 
 	}
 

@@ -134,7 +134,7 @@ module puzzleR2 {
 		/* Updates player's bet */
 		UpdatePlayerBet ias (
 			RollbackBet ias (
-                        	(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ CurrentPlayerBet~)Join)^
+                        	(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (CurrentPlayerBet~))Join)^
 				((Player PlayerId~)->Credit (((Player PlayerId~)->Credit~ (CurrentPlayerBet~) Last) Ew.DecreaseCredit~) Do)^
 			);
 			UpdatedBet ias 0;
@@ -155,7 +155,7 @@ module puzzleR2 {
 			PlayerCurrentCredit ias 0;
 			/* checks player credit */
 			(BetCheckingResult 0),(BetCheckingResult 1) ias (
-                        	(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ (PlayerId~  AcceptedBet~))Join)^
+                        	(Croupier.LastPlayersBets (Croupier.LastPlayersBets~ ((PlayerId~ AcceptedBet~)))Join)^
 				((Player PlayerId~)->Credit ((PlayerCurrentCredit~ AcceptedBet~) Ew.DecreaseCredit~) Do)^
 				(PlayerCurrentCredit (Player PlayerId~)->Credit~)^
 				((Assistant reports that player PlayerId~ made bet AcceptedBet~ credit PlayerCurrentCredit~) Ew.Output~) Do
@@ -312,7 +312,7 @@ module puzzleR2 {
 					/* player joined to players group; now it should be cloned; cloned Player is run automaticaly */
 					(Player (Player PlayerId~)) Clone
 					/* join player to players group */
-					(Auction.Players (Auction.Players~ PlayerId~) Join)^
+					(Auction.Players (Auction.Players~ (PlayerId~)) Join)^
 					JoinPlayer [
 						/* increments number of players */
 						(Auction.ActivePlayers ((Auction.ActivePlayers~) Ew.IncNumberOfPlayers~) Do)^
@@ -475,7 +475,7 @@ module puzzleR2 {
 		LoadAdditionalPuzzleElements ias (
 			LoadPuzzleElements [
 				((Croupier asks to load additional puzzle elements) Ew.Output~) Do
-				(Ew.DPCommands (Ew.DPCommands~ (loadPuzzleElements Croupier))Join)^
+				(Ew.DPCommands (Ew.DPCommands~ ((loadPuzzleElements Croupier)))Join)^
 			LoadPuzzleElements ]
 		);
 		/* Resets auction's properties */
@@ -684,7 +684,7 @@ module puzzleR2 {
 		AskToLoadCorrespondenceMap ias (
 			LoadCorrespondenceMap [
 				((Player Id~ asks to load correspondence map) Ew.Output~) Do
-				(Ew.DPCommands (Ew.DPCommands~ (loadCorrespondence Id~))Join)^
+				(Ew.DPCommands (Ew.DPCommands~ ((loadCorrespondence Id~)))Join)^
 			LoadCorrespondenceMap ]
 		);
 

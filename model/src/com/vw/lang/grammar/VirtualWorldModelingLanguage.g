@@ -41,7 +41,7 @@ tokens {
     OPSIZE='Size';
     OPINTERRUPT='Interrupt';
     OPCALLP='CallP';
-    
+    OPGET='Get';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1104,6 +1104,7 @@ opclist
     | OPSIZE
     | OPINTERRUPT
     | OPCALLP
+    | OPGET
     ;
 
 termLanguages

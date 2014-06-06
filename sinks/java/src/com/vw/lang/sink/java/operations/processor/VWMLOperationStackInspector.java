@@ -26,7 +26,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			return false;
 		}
 		if (e.isPartOfDynamicContext()) {
-			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e.getReadableId());
+			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
 			reversedStack.remove(dynamicAddressedEntity);
 			return true;
 		}
@@ -44,7 +44,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 		VWMLEntity e = (VWMLEntity)obj;
 		if (e != null && e.isPartOfDynamicContext()) {
 			inspectMustReturn = true;
-			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e.getReadableId());
+			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
 			reversedStack.remove(dynamicAddressedEntity);
 			f = true;
 		}

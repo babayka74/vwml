@@ -75,12 +75,14 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		if (!r.isMarkedAsComplexEntity()) {
 			return nilEntity;
 		}
+		// copy prev result to new result entity
 		VWMLLinkIncrementalIterator itR = ((VWMLComplexEntity)r).getLink().acquireLinkedObjectsIterator();
 		if (itR != null) {
 			joinWith(result, r, itR);
 		}
 		it.next();
-		joinWith(result, entity, it);
+		// next joined component should be complex entity which contains set of joined entities
+		joinNew(result, entity, it);
 		return result;
 	}
 	
@@ -88,6 +90,21 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 		for(; it.isCorrect(); it.next()) {
 			VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)r).getLink().getConcreteLinkedEntity(it.getIt());
 			if (join(result, e) == nilEntity) {
+				break;
+			}
+		}
+		return result;
+	}
+	
+	private VWMLEntity joinNew(VWMLEntity result, VWMLEntity r, VWMLLinkIncrementalIterator it) {
+		VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)r).getLink().getConcreteLinkedEntity(it.getIt());
+		if (e == null || !e.isMarkedAsComplexEntity()) {
+			return nilEntity;
+		}
+		it = e.getLink().acquireLinkedObjectsIterator();
+		for(; it.isCorrect(); it.next()) {
+			VWMLEntity joined = (VWMLEntity)((VWMLComplexEntity)e).getLink().getConcreteLinkedEntity(it.getIt());
+			if (join(result, joined) == nilEntity) {
 				break;
 			}
 		}

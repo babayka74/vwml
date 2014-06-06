@@ -145,10 +145,12 @@ public class VWMLOperationUtils {
 		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
 			if (!interpretComponentAsArg) {
+				i.setInterpretingEntityForArgEntity(activeInterpreter.getInterpretingEntityForArgEntity());
 				// the synthetic entity '$' will be interpreted as component
 				i.setInterpretingEntityForSyntheticEntity(component);
 			}
 			else {
+				i.setInterpretingEntityForSyntheticEntity(activeInterpreter.getInterpretingEntityForSyntheticEntity());
 				// all arguments are passed inside the one complex entity. The interpreted term can reference to arguments by $1, $2...
 				// The counting direction is left -> right
 				i.setInterpretingEntityForArgEntity(component);

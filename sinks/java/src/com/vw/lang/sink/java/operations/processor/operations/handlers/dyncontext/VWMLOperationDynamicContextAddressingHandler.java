@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.dyncontex
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLObjectBuilder;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -62,6 +63,17 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		// is used for creating dynamic context only, where context is formed from terms
 		entity.setReadableId((String)entity.buildReadableId());
 		entity.setPartOfDynamicContext(true);
+		if (entity.getContext() != null) {
+			try {
+				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(), entity.getContext());
+				if (e != null) {
+					entity.setContext(e.getContext());
+				}
+			}
+			catch(Exception ex) {
+				// nothing todo
+			}
+		}
 		// clear stack
 		entities.clear();
 		inspector.clear();
