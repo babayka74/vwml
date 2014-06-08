@@ -24,12 +24,13 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity entity = null;
+		VWMLContext originalContext = context.peekContext();
 		VWMLStack stack = context.getStack();
 		VWMLEntity interpretingEntity = null;
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		inspector.setOperationalContext(context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
-		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) {
 			interpretingEntity = interpretationOfArgumentPair(interpreter, entities.get(0));

@@ -34,6 +34,7 @@ module exampleCallP2 {
 		Characters ias (
 			/* simple game unit */
 			Unit ias (
+				Id ias nil;
 				LastProcessedCommand ias stay;
 				LastProcessedCommandParams ias nil;
 				/* unit receives commands in deferred manner */
@@ -59,46 +60,62 @@ module exampleCallP2 {
 				/* unit's lifestep */
 				UnitLifeStep ias (
 					(emptyQ true) ias (
-						CommandDispatcher~ Exe
+						UnitLifeStep~ Exe
 					);
 					(emptyQ false) ias (
 						(CommandDispatcher.Dispatch (CommandQueue~) First)^
 						(CommandQueue (CommandQueue~) Rest)^
-						CommandDispatcher~ Exe
+						((The unit Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+						UnitLifeStep~ Exe
 					);
 					(emptyQ (CommandQueue~ ()) Ident)~ Exe
 				);
 
 				lifeterm = (
+					((The unit Id~ was born) Ew.Output~) Do
 					UnitLifeStep~ Exe
 				) Exe
 			);
 		);
 		Player ias (
-			AvailableCommands ias (create destroy moveto);
+			AvailableUnitsCommands ias (create destroy moveto stay stop exit);
 			Id ias nil;
 			CommandQueue ias ();
+			HandleUnitsCommand ias (
+				UnitCommandId ias nil;
+				UnitId ias nil;
+				UnitCommandParams ias nil;
+				(Handle create) ias (
+					(Characters.Unit.Id UnitId~)^
+					((The player Id~ creates unit UnitId~) Ew.Output~) Do
+					(Characters.Unit Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)) Born
+					PlayerLifeStep~ Exe
+				);
+				(Handle moveto) ias (
+					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
+					            (Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
+						    ((($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))) Join)^
+					PlayerLifeStep~ Exe
+				);
+                                (Handle destroy) ias (
+					((The player Id~ executes other actions) Ew.Output~) Do
+					PlayerLifeStep~ Exe
+				);
+				(UnitCommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(UnitId (CommandDispatcher.Dispatch~ 1) Get)^
+				(UnitCommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Handle UnitCommandId~)~ Exe
+			);
 			CommandDispatcher ias (
 				Dispatch ias nil;
-				HandleCommand ias (
-					(Handle create) ias (
-						((The player Id~ creates unit) Ew.Output~) Do
-						PlayerLifeStep~ Exe
-					);
-                                        (Handle destroy),(Handle moveto) ias (
-						((The player Id~ executes other actions) Ew.Output~) Do
-						PlayerLifeStep~ Exe
-					);
-					(Handle (Dispatch~ 0) Get)~ Exe
-				);
 				(RightCommand true) ias (
-					HandleCommand~ Exe
+					HandleUnitsCommand~ Exe
 				);
 				(RightCommand false) ias (
 					PlayerLifeStep~ Exe
 				);
 				((The player Id~ received command Dispatch~ to dispatch) Ew.Output~) Do
-				(RightCommand (AvailableCommands~ (Dispatch~ 0) Get) In)~ Exe
+				(RightCommand (AvailableUnitsCommands~ (Dispatch~ 0) Get) In)~ Exe
 			);
 			/* Player's lifestep */
 			PlayerLifeStep ias (
@@ -115,7 +132,7 @@ module exampleCallP2 {
 				(emptyQ (CommandQueue~ ()) Ident)~ Exe
 			);
 			lifeterm = (
-				((The player Id~ was born) Ew.Output~) Do
+				((The player Id~ added and active) Ew.Output~) Do
 				PlayerLifeStep~ Exe
 			) Exe
 		);
@@ -130,6 +147,7 @@ module exampleCallP2 {
 				LockQueue [
 					((Player Id~)->CommandQueue ((Player Id~)->CommandQueue~ ((CommandId~ UnitId~ Params~))) Join)^
 				LockQueue ]
+				((Command propagated to player Id~) Ew.Output~) Do
 			);
 			(ManagerCommand true) ias (
 				(Command playeradd) ias (

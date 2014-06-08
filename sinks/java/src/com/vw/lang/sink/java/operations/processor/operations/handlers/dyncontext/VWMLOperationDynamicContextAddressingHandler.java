@@ -27,6 +27,7 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		VWMLEntity entity = null;
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		inspector.setOperationalContext(context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();
@@ -37,17 +38,6 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		else
 		if (entities.size() == 1) {
 			entity = entities.get(0);
-			Object id = null;
-			VWMLObjectType type = null;
-			if (!entity.isMarkedAsComplexEntity()) {
-				id = entity.getId();
-				type = VWMLObjectType.SIMPLE_ENTITY;
-			}
-			else {
-				id = entity.buildReadableId();
-				type = VWMLObjectType.COMPLEX_ENTITY;
-			}
-			entity = (VWMLEntity)VWMLObjectBuilder.build(type, id, id, null, 0, null);
 		}
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(

@@ -14,9 +14,18 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 	private String dynContext = null;
 	private VWMLEntity dynamicAddressedEntity = null;
 	private boolean inspectMustReturn = false;
+	private VWMLContext operationalContext = null;
 	
+	public VWMLContext getOperationalContext() {
+		return operationalContext;
+	}
+
+	public void setOperationalContext(VWMLContext operationalContext) {
+		this.operationalContext = operationalContext;
+	}
+
 	@Override
-	public boolean inspected(Object obj) {
+	public boolean inspected(Object obj) throws Exception {
 		if (inspectMustReturn) {
 			return false;
 		}
@@ -27,6 +36,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 		}
 		if (e.isPartOfDynamicContext()) {
 			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
+			e.setPartOfDynamicContext(false);
 			reversedStack.remove(dynamicAddressedEntity);
 			return true;
 		}
@@ -39,12 +49,13 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 	}
 
 	@Override
-	public boolean future(Stack stack, Object obj) {
+	public boolean future(Stack stack, Object obj) throws Exception {
 		boolean f = false;
 		VWMLEntity e = (VWMLEntity)obj;
 		if (e != null && e.isPartOfDynamicContext()) {
 			inspectMustReturn = true;
 			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
+			e.setPartOfDynamicContext(false);
 			reversedStack.remove(dynamicAddressedEntity);
 			f = true;
 		}
@@ -77,16 +88,15 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 		dynamicAddressedEntity = null;
 	}
 	
-	protected void processDynamicAddressedEntity() {
+	protected void processDynamicAddressedEntity() throws Exception {
 		VWMLEntity e = null;
 		if (dynContext != null) {
 			// lookup for entity
-			try {
-				e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, dynamicAddressedEntity.buildReadableId());
-			} catch (Exception ex) {
-				// entity wasn't found on dynamic context
-				e = VWMLObjectsRepository.instance().getNilEntity();
+			if (VWMLContext.isDynamicContextPointsToSelf(dynContext) && operationalContext != null) {
+				dynContext = VWMLContext.changeSelfAddressedDynamicContextNameTo(dynContext, operationalContext.getContext());					
 			}
+			e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, dynamicAddressedEntity.buildReadableId());
+			e.setDynamicAddressedInRunTime(true);
 			reversedStack.add(e);
 			dynContext = null;
 		}

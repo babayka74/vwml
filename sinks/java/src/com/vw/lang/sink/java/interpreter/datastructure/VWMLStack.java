@@ -21,7 +21,7 @@ public class VWMLStack {
 	public static class VWMLStackInspector extends Stack.Inspector {
 		
 		@Override
-		public boolean inspected(Object obj) {
+		public boolean inspected(Object obj) throws Exception {
 			return true;
 		}
 	}
@@ -31,7 +31,7 @@ public class VWMLStack {
 		private Stack stack = Stack.instance();
 		
 		@Override
-		public boolean inspected(Object obj) {
+		public boolean inspected(Object obj) throws Exception {
 			stack.push(obj);
 			return true;
 		}
@@ -80,7 +80,7 @@ public class VWMLStack {
 	 * Inspects stack's content by calling inspector for each node; the stack's top is not changed
 	 * @param inspector
 	 */
-	public void inspect(VWMLStack.VWMLStackInspector inspector) {
+	public void inspect(VWMLStack.VWMLStackInspector inspector) throws Exception {
 		stack.inspect(inspector);
 	}
 	
@@ -124,5 +124,14 @@ public class VWMLStack {
 			pop();
 			o = peek();
 		}
-	}	
+	}
+	
+	public void printStack() {
+		VWMLObject o = peek();
+		while (o != null) {
+			System.out.println(((VWMLEntity)o).getId());
+			pop();
+			o = peek();
+		}
+	}
 }

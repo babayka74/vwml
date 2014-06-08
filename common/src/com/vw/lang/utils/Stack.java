@@ -15,7 +15,7 @@ public class Stack {
 	 */
 	public static class Inspector {
 		
-		public boolean inspected(Object obj) {
+		public boolean inspected(Object obj) throws Exception {
 			return true;
 		}
 
@@ -23,7 +23,7 @@ public class Stack {
 			return false;
 		}
 		
-		public boolean future(Stack stack, Object obj) {
+		public boolean future(Stack stack, Object obj) throws Exception {
 			return false;
 		}
 		
@@ -131,7 +131,7 @@ public class Stack {
 	 * Inspects stack's content by calling inspector for each node; the stack's top is not changed
 	 * @param inspector
 	 */
-	public void inspect(Stack.Inspector inspector) {
+	public void inspect(Stack.Inspector inspector) throws Exception {
 		Node t = top;
 		while (t.getNext() != null) {
 			if (!inspector.inspected(t.getData())) {

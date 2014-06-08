@@ -80,6 +80,13 @@ public class VWMLContext extends VWMLObject {
 		return r;
 	}
 	
+	public static boolean isDynamicContextPointsToSelf(String dynContext) {
+		return dynContext.equals("$$");
+	}
+	
+	public static String changeSelfAddressedDynamicContextNameTo(String dynContext, String toContext) {
+		return dynContext.replaceFirst("\\$\\$", toContext); 
+	}
 	/**
 	 * Constructs context name in run-time; used when dynamic context name is generated (see OPDYNCONTEXT)
 	 * @param contextNameBuf
@@ -87,7 +94,10 @@ public class VWMLContext extends VWMLObject {
 	 * @return
 	 */
 	public static String constructContextNameInRunTime(String contextNameBuf, VWMLEntity e) {
-		String part = e.getContext().getContextName() + "." + e.getReadableId();
+		String part = e.getReadableId();
+		if (!VWMLContext.isDynamicContextPointsToSelf(e.getReadableId())) {
+			part = ((e.getContext() != null) ? (e.getContext().getContext() + ".") : "") + e.getReadableId();
+		}
 		if (contextNameBuf != null) {
 			return contextNameBuf + "." + part;
 		}

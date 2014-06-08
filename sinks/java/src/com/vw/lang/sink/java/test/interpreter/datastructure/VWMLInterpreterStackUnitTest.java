@@ -46,7 +46,7 @@ public class VWMLInterpreterStackUnitTest {
 	}
 	
 	@Test
-	public void testInspectorFunctionality() {
+	public void testInspectorFunctionality() throws Exception {
 		VWMLObject obj = null;
 		VWMLStack s = VWMLStack.instance();
 		for(int i = 0; i < 7; i++) {

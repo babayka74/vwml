@@ -46,6 +46,9 @@ public class VWMLEntity extends VWMLObject {
 	private boolean isOriginal = false;
 	// entity is marked as synthetic
 	private boolean isSynthetic = false;
+	// addressed using dynamic context in runtime (->)
+	// used during interpretation phase in order to deduce active context
+	private boolean isDynamicAddressedInRunTime = false;
 	// entity is interpreted as argument pair (see CallP operation)
 	private ArgPair asArgPair;
 	private int interpretationHistorySize;
@@ -317,6 +320,18 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setAsArgPair(ArgPair asArgPair) {
 		this.asArgPair = asArgPair;
+	}
+
+	public boolean isDynamicAddressedInRunTime() {
+		return isDynamicAddressedInRunTime;
+	}
+
+	public void setDynamicAddressedInRunTime(boolean isDynamicAddressedInRunTime) {
+		this.isDynamicAddressedInRunTime = isDynamicAddressedInRunTime;
+	}
+
+	public boolean isStaticAdressedInRunTime() {
+		return ((String)getId()).contains(".");
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {
