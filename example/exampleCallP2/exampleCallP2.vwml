@@ -22,53 +22,145 @@ options {
 	}
 }
 
-// include "../algorithms/DpfB/DpfB.vwml"
+include "../algorithms/DpfB/DpfB.vwml"
 
 module exampleCallP2 {
-	MagicWorld ias (
-		Ew ias (
-			Input ias communication.in.read;
-			Output ias communication.in.write;
-			VSum ias services.math.vsum;
+	Ew ias (
+		/* maze */
+		Maze ias (
+			(1 3) (1 4) (1 5)
+			(2 1) (2 2) (2 3) (2 5)
+			(3 1) (3 3) (3 4) (3 5)
+			(4 1) (4 3)
+			(5 1) (5 2) (5 3) (5 4) (5 5)
 		);
+		DeltaMovement ias (
+			(-1 0) (0 -1)
+			(0 1) (1 0)
+		);
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+		VSum ias services.math.vsum;
+	);
+	MagicWorld ias (
 		Characters ias (
 			/* simple game unit */
 			Unit ias (
 				Id ias nil;
-				LastProcessedCommand ias stay;
-				LastProcessedCommandParams ias nil;
+				/* movement's parameters */
+				Movement ias (
+					Goals ias ();
+					ChoiceSet ias ();
+					NextStates ias ();
+					StateSet ias ();
+					SeqStates ias ();
+					State ias nil;
+					PrevState ias nil;
+					Init ias true;
+					PathPassed ias false;
+
+					Result ias (
+						((The result is SeqStates~) Ew.Output~) Do
+						(PathPassed true)^
+						(Init true)^
+					);
+
+					CheckPosition ias (
+						(RightPosition true) ias (
+							(PosToBeSet~ PosToBeChecked~)^
+							((The unit Id~ received pos PosToBeSet~~) Ew.Output~) Do
+						);
+						(RightPosition false) ias (
+							((The pos PosToBeChecked~ does not belong to maze for unit Id~) Ew.Output~) Do
+						);
+						PosToBeChecked ias nil;
+						PosToBeSet ias nil;
+						(RightPosition (Ew.Maze~ PosToBeChecked~) In)~ Exe
+ 					);
+				);
 				/* unit receives commands in deferred manner */
 				CommandQueue ias ();
 				CommandDispatcher ias (
 					Dispatch ias nil;
+					UnitCommandId ias stay;
+					UnitId ias nil;
+					UnitCommandParams ias nil;
+
 					(Handle exit) ias doNothing;
-					(Handle stay) ias (	
+					(Handle stay) ias (
 						UnitLifeStep~ Exe
 					);
 					(Handle stop) ias (
-						(LastProcessedCommand stay)^
+						((The unit Id~ received command stop) Ew.Output~) Do	
+						(UnitCommandId stay)^
 						UnitLifeStep~ Exe
 					);
-					(Handle moveto) ias (
-						1000 Relax
+					(Handle go) ias (
+						// start movement, all parameters are correct
+						(CheckMovementStart false false) ias (
+							(Init false) ias 2000 Relax;
+							(Init true) ias (
+								(Movement.PrevState nil)^
+								(Movement.SeqStates (Movement.State~))^
+								(Movement.StateSet (Movement.State~))^
+								(Movement.Init false)^
+								((The unit Id~ initialized movement procedure) Ew.Output~) Do
+							);
+							(Init Movement.Init~)~ Exe
+							(Movement.PrevState Movement.State~)^ 
+							((Ew.Maze Ew.DeltaMovement
+								  Movement.Goals
+								  Movement.State
+								  Movement.ChoiceSet
+								  Movement.StateSet
+								  Movement.SeqStates
+								  Ew.VSum
+								  Movement.Result) DpfSearchMkB~) CallP
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
+						);
+						// not all parameters were set, movement impossible
+						(CheckMovementStart true true),(CheckMovementStart false true),(CheckMovementStart true true) ias (
+							(UnitCommandId stay)^
+							((Incorrect parameters (Movement.Goals~ Movement.State~) for movement unit Id~) Ew.Output~) Do
+						);
+						(CheckMovementStart (Movement.Goals~ ()) Ident (Movement.State~ nil) Ident)~ Exe
 						UnitLifeStep~ Exe
 					);
-					(LastProcessedCommand (Dispatch~) First)^
-					(LastProcessedCommandParams (Dispatch~) Rest)^
-					(Handle LastProcessedCommand~)~ Exe
+					(Handle movetopos) ias (
+						(Movement.CheckPosition.PosToBeChecked UnitCommandParams~)^
+						(Movement.CheckPosition.PosToBeSet Movement.Goals)^
+                                                Movement.CheckPosition~ Exe
+						(UnitCommandId stay)^
+						UnitLifeStep~ Exe
+					);
+					(Handle startpos) ias (
+						(Movement.CheckPosition.PosToBeChecked UnitCommandParams~)^
+						(Movement.CheckPosition.PosToBeSet Movement.State)^
+                                                Movement.CheckPosition~ Exe
+						(UnitCommandId stay)^
+						UnitLifeStep~ Exe
+					);
+					(NothingToDispatch true) ias doNothing;
+					(NothingToDispatch false) ias (
+						(UnitCommandId (Dispatch~ 0) Get)^
+						(UnitId (Dispatch~ 1) Get)^
+						(UnitCommandParams (Dispatch~ 2) Get)^
+					);
+					(NothingToDispatch (Dispatch~ nil) Ident)~ Exe
+					(Handle UnitCommandId~)~ Exe
 				);
 				/* unit's lifestep */
 				UnitLifeStep ias (
 					(emptyQ true) ias (
-						UnitLifeStep~ Exe
+						(CommandDispatcher.Dispatch nil)^
 					);
 					(emptyQ false) ias (
 						(CommandDispatcher.Dispatch (CommandQueue~) First)^
 						(CommandQueue (CommandQueue~) Rest)^
 						((The unit Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
-						UnitLifeStep~ Exe
 					);
 					(emptyQ (CommandQueue~ ()) Ident)~ Exe
+					CommandDispatcher~ Exe
 				);
 
 				lifeterm = (
@@ -78,7 +170,7 @@ module exampleCallP2 {
 			);
 		);
 		Player ias (
-			AvailableUnitsCommands ias (create destroy moveto stay stop exit);
+			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit);
 			Id ias nil;
 			CommandQueue ias ();
 			HandleUnitsCommand ias (
@@ -91,10 +183,13 @@ module exampleCallP2 {
 					(Characters.Unit Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)) Born
 					PlayerLifeStep~ Exe
 				);
-				(Handle moveto) ias (
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop) ias (
 					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
-					            (Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
-						    ((($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))) Join)^
+					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
+						    (
+							(($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))
+						    ) Join
+					)^
 					PlayerLifeStep~ Exe
 				);
                                 (Handle destroy) ias (
