@@ -2,9 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.dyncontex
 
 import java.util.List;
 
-import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
-import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -26,7 +24,7 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity entity = null;
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		inspector.setOperationalContext(context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context

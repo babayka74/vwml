@@ -46,7 +46,7 @@ module BornSimulation {
 				(P1 (P1 Ew.Id~)) Born
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 100) Ident)~ Exe
+			(StopBorn (Ew.Id~ 500) Ident)~ Exe
 		);
 
 		source lifeterm = (

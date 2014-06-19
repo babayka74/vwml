@@ -38,6 +38,9 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLEntity clonedFromEntity = null;
 	// 'true' in case if interpreter was instantiated during 'clone' operation
 	private boolean cloned = false;
+	// 'true' in case if interpreter was pushed to interpreter's stack during CallP or ForEach operations
+	// any operation which required own interpreter
+	private boolean pushed = false;
 	// interpreter's run-time node (the same interpreter may belong to some nodes in the same time - nut all nodes must be in the same node's group)
 	private VWMLConflictRingNode rtNode = null;
 	// interpreter's conflict ring
@@ -292,5 +295,13 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public void setClonedFromEntity(VWMLEntity clonedFromEntity) {
 		this.clonedFromEntity = clonedFromEntity;
+	}
+
+	public boolean isPushed() {
+		return pushed;
+	}
+
+	public void setPushed(boolean pushed) {
+		this.pushed = pushed;
 	}
 }

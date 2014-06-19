@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_B_ACT_Action;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_B_PAS_Action;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.actions.VWMLConflictRingNode_E_ACT_Action;
@@ -39,12 +40,13 @@ public class VWMLConflictRingNodeAutomata {
 	
 	/**
 	 * Executes automata's action depending on input parameters
+	 * @param interpreter
 	 * @param node
 	 * @param input
 	 * @param activityState
 	 */
-	public void runAction(VWMLConflictRingNode node, VWMLConflictRingNodeAutomataInputs input, VWMLConflictRingNodeAutomataStates activityState) throws Exception {
-		cells[input.ordinal()][activityState.ordinal()].getAction().action(node);
+	public void runAction(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node, VWMLConflictRingNodeAutomataInputs input, VWMLConflictRingNodeAutomataStates activityState) throws Exception {
+		cells[input.ordinal()][activityState.ordinal()].getAction().action(interpreter, node);
 	}
 	
 	/**

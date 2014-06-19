@@ -194,6 +194,15 @@ public class VWMLEntity extends VWMLObject {
 				recursion = eIAS.isRecursiveInterpretationOnRuntime();
 			}
 		}
+		if (eIAS != null && eIAS.getAsArgPair() != null && recursion) {
+			VWMLContext eIASArgAsPairContext = createEntityContextBasedOnNewEntityName(eIAS.getContext(), oldId, newId);
+			eIAS = (VWMLEntity)VWMLObjectsRepository.acquire( type,
+															  eIAS.getId(),
+															  eIASArgAsPairContext.getContext(),
+															  getInterpretationHistorySize(),
+															  VWMLObjectsRepository.asOriginal,
+															  getLink().getLinkOperationVisitor());
+		}
 		if (eIAS != null && !recursion) {
 			interpretingEntity = eIAS.clone( null,
 											 oldId,
@@ -231,6 +240,12 @@ public class VWMLEntity extends VWMLObject {
 			}
 		}
 		auxCache.add(this, cloned);
+		ArgPair argPair = getAsArgPair();
+		if (argPair != null) {
+			ArgPair clonedArgPair = new ArgPair();
+			clonedArgPair.setPlaceNumber(argPair.getPlaceNumber());
+			cloned.setAsArgPair(clonedArgPair);
+		}
 		cloned.setSynthetic(isSynthetic());
 		cloned.setLifeTerm(isLifeTerm());
 		cloned.setLifeTermAsSource(isLifeTermAsSource());

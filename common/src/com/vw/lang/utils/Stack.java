@@ -153,6 +153,21 @@ public class Stack {
 			}
 		}
 	}
+	
+	/**
+	 * Returns bottom element
+	 * @return
+	 */
+	public Object bottom() {
+		if (top == null) {
+			return null;
+		}
+		Node t = top;
+		while (t.getNext() != null && t.getNext().getData() != null) {
+			t = t.getNext();
+		}
+		return t.getData();
+	}
 
 	public IStackVisualizer getStackVisualizer() {
 		return stackVisualizer;

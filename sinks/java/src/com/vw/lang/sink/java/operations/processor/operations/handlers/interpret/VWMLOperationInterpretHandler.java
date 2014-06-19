@@ -27,8 +27,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLContext originalContext = context.peekContext();
 		VWMLStack stack = context.getStack();
 		VWMLEntity interpretingEntity = null;
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
-		inspector.setOperationalContext(context);
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		List<VWMLEntity> entities = inspector.getReversedStack();
@@ -49,24 +48,41 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
-			interpretingEntity = interpretationOfArgumentPair(interpreter, entity);
-			if (interpretingEntity == null) {
-				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
-				if (interpretingEntity == null) {
-					interpretingEntity = entity.getInterpreting();
-				}
-			}
+			
+			interpretingEntity = deduceInterpretingEntity(interpreter, entity);
 		}
 		inspector.clear();
 		entities.clear();
 		if (interpretingEntity == null) {
-			throw new Exception("the interpreting entity '" + entity.getReadableId() + "' can't be 'null'; check VWML's code; entity '" + entity + "'");
+			if (entity.getContext() != null && entity.getContext().getLink().getParent() != null) {
+				// sometimes we need search for entity starting from parent. Usually it happens when assemble operation
+				// adds new entity to current context (but entity is moved to another, by Born/Clone command) and 
+				// this entity is called from current context
+				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(), (VWMLContext)(entity.getContext().getLink().getParent()));
+				if (e != null) {
+					interpretingEntity = deduceInterpretingEntity(interpreter, e);
+				}
+			}
+			if (interpretingEntity == null) {
+				throw new Exception("the interpreting entity '" + entity.getReadableId() + "' can't be 'null'; check VWML's code; entity '" + entity + "'");
+			}
 		}
 		VWMLEntity argRef = interpretationOfArgumentPair(interpreter, interpretingEntity);
 		if (argRef != null) {
 			interpretingEntity = argRef;
 		}
 		stack.push(interpretingEntity);
+	}
+
+	protected VWMLEntity deduceInterpretingEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
+		VWMLEntity interpretingEntity = interpretationOfArgumentPair(interpreter, entity);
+		if (interpretingEntity == null) {
+			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
+			if (interpretingEntity == null) {
+				interpretingEntity = entity.getInterpreting();
+			}
+		}
+		return interpretingEntity;
 	}
 	
 	protected VWMLEntity interpretSingleEntity(VWMLEntity entity, VWMLContext originalContext) throws Exception {

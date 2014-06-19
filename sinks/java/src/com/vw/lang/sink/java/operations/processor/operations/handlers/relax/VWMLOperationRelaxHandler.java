@@ -31,7 +31,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 		int timeToRelax = 0;
 		VWMLEntity runOnRegularCompletition = null, runOnTerminatedCompletition = null;
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		VWMLContext originalContext = context.peekContext();
 		// since inspector reads until empty mark we should read entity's original context

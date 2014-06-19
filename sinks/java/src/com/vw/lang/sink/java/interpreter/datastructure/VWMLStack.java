@@ -84,6 +84,14 @@ public class VWMLStack {
 		stack.inspect(inspector);
 	}
 	
+	/**
+	 * Returns bottom element
+	 * @return
+	 */
+	public VWMLObject bottom() {
+		return (VWMLObject)stack.bottom();
+	}
+	
 	public void pushEmptyMark() {
 		VWMLEntity e = new VWMLEntity(s_specialMark, s_specialMark, null);
 		stack.push(e);

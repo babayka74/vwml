@@ -121,12 +121,49 @@ public class GeneralUtils {
 	 * @return
 	 */
 	public static String getConflictBoundTerm(String conflictDefinitionName) {
+		String patterns[] = {"\\{([^\"]*)\\}", "\\[([^\"]*)\\]"};
 		String boundTerm = null;
-		Pattern pattern = Pattern.compile("\\{([^\"]*)\\}");
+		for(String patternStr : patterns) {
+			Pattern pattern = Pattern.compile(patternStr);
+			Matcher matcher = pattern.matcher(conflictDefinitionName);
+	        if (matcher.find()) {
+	            boundTerm = matcher.group(1);
+	            break;
+	        }
+		}
+        return boundTerm;
+	}
+	
+	/**
+	 * Called after getConflictBoundTerm
+	 * @param conflictDefinitionName
+	 * @return
+	 */
+	public static String getConflictDefinitionSuffix(String conflictDefinitionName) {
+		if (conflictDefinitionName.lastIndexOf("}") != -1) {
+			return conflictDefinitionName.substring(conflictDefinitionName.lastIndexOf("}") + 1);
+		}
+		else
+		if (conflictDefinitionName.lastIndexOf("]") != -1) {
+			return conflictDefinitionName.substring(conflictDefinitionName.lastIndexOf("]") + 1);
+		}
+		return null;
+	}
+	
+	public static boolean isConflictArtificallyBoundToTerm(String conflictDefinitionName) {
+		boolean boundToTerm = false;
+		Pattern pattern = Pattern.compile("\\[([^\"]*)\\]");
 		Matcher matcher = pattern.matcher(conflictDefinitionName);
         if (matcher.find()) {
-            boundTerm = matcher.group(1);
+        	boundToTerm = true;
         }
-        return boundTerm;
+        return boundToTerm;
+	}
+	
+	public static String trimConflictSuffix(String suffix) {
+		if (suffix.startsWith(".")) {
+			suffix = suffix.substring(1);
+		}
+		return suffix;
 	}
 }

@@ -85,6 +85,9 @@ public class VWMLConflictRing {
 	 * @return
 	 */
 	public void normalize() {
+		if (!isRingOperational()) {
+			initialyEmptyRing = true;
+		}
 		if (nodesConflictRing.size() == 0 || initialyEmptyRing) {
 			return;
 		}
@@ -104,19 +107,15 @@ public class VWMLConflictRing {
 				}
 			}
 		}
-		for(VWMLConflictRingNode r : toRemove) {
-			nodesConflictRing.remove(r);
+		if (toRemove.size() != 0) {
+			for(VWMLConflictRingNode r : toRemove) {
+				nodesConflictRing.remove(r);
+			}
+			toRemove.clear();
 		}
-		toRemove.clear();
-		groupsConflictRing.clear();
-		// build execution groups based on initial conflict ring
-		for(VWMLConflictRingNode node : nodesConflictRing) {
-			// builds new group
-			VWMLConflictRingExecutionGroup g = VWMLConflictRingExecutionGroup.build(node.getId(), node.getReadableId());
-			node.setExecutionGroup(g);
-			// adds master node
-			g.add(node);
-			groupsConflictRing.add(g);
+		// re-balancing nodes inside groups
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			g.balance();
 		}
 	}
 	
@@ -162,16 +161,22 @@ public class VWMLConflictRing {
 	 * @param context
 	 * @return
 	 */
-	public VWMLConflictRingExecutionGroup findGroupByEntityContext(String context) {
+	public VWMLConflictRingExecutionGroup findGroupByEntityContext(String context, boolean instantiate) {
 		VWMLConflictRingExecutionGroup g = null;
-		if (!isRingOperational()) {
-			initialyEmptyRing = true;
-		}
 		g = lookupGroupByContext(context);
-		if (g == null) {
+		if (g == null && instantiate) {
 			g = buildArtificialGroupAndAssociatedNode(context);
 		}
 		return g;
+	}
+	
+	/**
+	 * Returns name of term which is associated with given conflict
+	 * @param conflict
+	 * @return
+	 */
+	public String getBoundTermByConflict(String conflict) {
+		return conflictDef2TermAssociation.get(conflict);
 	}
 	
 	/**
@@ -197,7 +202,7 @@ public class VWMLConflictRing {
 		String parsedAssociation = conflict;
 		String boundTermCtx = GeneralUtils.getConflictBoundTerm(conflict);
 		if (boundTermCtx != null) {
-			String suffix = conflict.substring(conflict.lastIndexOf("}") + 1);
+			String suffix = GeneralUtils.getConflictDefinitionSuffix(conflict);
 			parsedAssociation = boundTermCtx + suffix;
 			conflictDef2TermAssociation.put(parsedAssociation, boundTermCtx);
 		}
@@ -208,34 +213,28 @@ public class VWMLConflictRing {
 		int i = nodesConflictRing.indexOf(node);
 		if (i == -1) {
 			if (g == null) {
-				g = VWMLConflictRingExecutionGroup.build(node.getId(), node.getReadableId());
+				g = attachNodeToConflictRingExecutionGroup(node, false);
 			}
-			g.add(node);
+			else {
+				g.add(node);
+				groupsConflictRing.add(g);
+			}
 			node.setExecutionGroup(g);
-			groupsConflictRing.add(g);
 			nodesConflictRing.add(node);
 		}
 		else {
 			node = nodesConflictRing.get(i);
 		}
+		node.setMasterNode(node);
 		return node;
 	}
 	
 	private VWMLConflictRingExecutionGroup lookupGroupByContext(String context) { 
 		VWMLConflictRingExecutionGroup g = null;
 		for (VWMLConflictRingExecutionGroup group : groupsConflictRing) {
-			String s = conflictDef2TermAssociation.get(group.getId());
-			if (s == null) {
-				if (((String)group.getId()).startsWith(context + ".")) {
-					g = group;
-					return g;
-				}
-			}
-			else {
-				if (s.equals(context)) {
-					g = group;
-					break;
-				}
+			if (group.getId().equals(context)) {
+				g = group;
+				break;
 			}
 		}
 		return g;
@@ -251,4 +250,27 @@ public class VWMLConflictRing {
 		s_artificialId++;
 		return g;
 	}
+	
+	/**
+	 * Attaches node to execution group; the group is created in case if not found
+	 * @param node
+	 * @return
+	 */
+	private VWMLConflictRingExecutionGroup attachNodeToConflictRingExecutionGroup(VWMLConflictRingNode node, boolean instantiateArtifical) {
+		VWMLConflictRingExecutionGroup g = null;
+		String groupName = getBoundTermByConflict((String)node.getId());
+		if (groupName == null) {
+			groupName = (String)node.getId();
+		}
+		g = findGroupByEntityContext(groupName, instantiateArtifical);
+		if (g == null) {
+			g = VWMLConflictRingExecutionGroup.build(groupName, groupName);
+			groupsConflictRing.add(g);
+		}
+		// adds master node
+		g.add(node);
+		return g;
+	}
+	
+	
 }

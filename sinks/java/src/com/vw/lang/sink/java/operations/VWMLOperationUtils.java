@@ -125,7 +125,7 @@ public class VWMLOperationUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static boolean activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity component, boolean interpretComponentAsArg, VWMLEntity term, String contextPrefix, String onOperation) throws Exception {
+	public static boolean activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity component, boolean interpretComponentAsArg, VWMLEntity term, String contextPrefix, String onOperation, String forcedContextName) throws Exception {
 		boolean continueCycle = true;
 		if (onOperation == null) {
 			throw new Exception("The parameter 'onOperation' must be specified on activateTerm");
@@ -141,9 +141,14 @@ public class VWMLOperationUtils {
 		}
 		// term is interpreted by own interpreter
 		VWMLContext forcedContext = VWMLContext.instance((contextPrefix != null) ? "contextPrefix" : onOperation + term.getContext().getContext());
-		forcedContext.setContext(term.getContext().getContext());
+		String ctxName = forcedContextName;
+		if (ctxName == null) {
+			ctxName = term.getContext().getContext();
+		}
+		forcedContext.setContext(ctxName);
 		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
+			i.setPushed(true);
 			if (!interpretComponentAsArg) {
 				i.setInterpretingEntityForArgEntity(activeInterpreter.getInterpretingEntityForArgEntity());
 				// the synthetic entity '$' will be interpreted as component

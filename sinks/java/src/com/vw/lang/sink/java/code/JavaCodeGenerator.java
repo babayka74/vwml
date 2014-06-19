@@ -1297,8 +1297,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		String parsedAssociation = conflictDefinitionName;
 		String boundTerm = GeneralUtils.getConflictBoundTerm(conflictDefinitionName);
 		if (boundTerm != null) {
-			String suffix = conflictDefinitionName.substring(conflictDefinitionName.lastIndexOf("}") + 1);
-			parsedAssociation = boundTerm + suffix;
+			String suffix = GeneralUtils.getConflictDefinitionSuffix(conflictDefinitionName);
+			if (!GeneralUtils.isConflictArtificallyBoundToTerm(conflictDefinitionName)) {
+				parsedAssociation = boundTerm + suffix;
+			}
+			else {
+				parsedAssociation = GeneralUtils.trimConflictSuffix(suffix);
+			}
 		}
 		return parsedAssociation;
 	}

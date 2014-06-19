@@ -33,7 +33,7 @@ public abstract class UndefinedEntityInterpretationStrategy {
 			try {
 				Pattern pattern = Pattern.compile("\\$([0-9]*)");
 				Matcher matcher = pattern.matcher(entityId);
-				if (matcher.find()) {
+				if (matcher.find() && matcher.group(1).length() > 0) {
 					argAsPair = new ArgPair();
 					argAsPair.setPlaceNumber(matcher.group(1));
 		        }

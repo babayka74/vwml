@@ -18,8 +18,7 @@ public class VWMLOperationBreakPointHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
-		stack.printStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		inspector.clear();
 	}

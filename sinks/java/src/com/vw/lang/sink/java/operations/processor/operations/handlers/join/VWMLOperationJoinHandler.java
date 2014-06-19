@@ -32,7 +32,7 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity result = null;
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 0) {

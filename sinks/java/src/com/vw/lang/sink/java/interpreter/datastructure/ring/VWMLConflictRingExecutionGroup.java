@@ -41,6 +41,17 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		group.remove(n);
 	}
 	
+	public void balance() {
+		if (group.size() > 1) {
+			VWMLConflictRingNode master = group.get(0);
+			for(int i = 1; i < group.size();) {
+				// has the same term as master
+				master.addToGroup(group.get(i));
+				group.remove(i);
+			}
+		}
+	}
+	
 	public VWMLInterpreterImpl findInterpreterByContext(String context) {
 		VWMLInterpreterImpl interpreter = null;
 		for(VWMLConflictRingNode n : group) {
@@ -145,28 +156,4 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		return r;
 	}
 	
-	public void updateSigma(VWMLConflictRingNode initiator, boolean inc, boolean forAllNodes) {
-		VWMLConflictRingNode nodeToExclude = initiator;
-		boolean initiatorWasGrouped = initiator.isGrouped();
-		if (initiatorWasGrouped) {
-			nodeToExclude = initiator.getGroupOwner();
-		}
-		for(VWMLConflictRingNode n : group) {
-			if (n != nodeToExclude || forAllNodes) {
-				if (initiatorWasGrouped) {
-					n.updateSigmaOnGrouped(initiator, inc);
-				}
-				else {
-					if (inc) {
-						n.incSigma();
-						//System.out.println("Node '" + initiator.getId() + "'; context '" + initiator.getInterpreter().getContext().getContext() + "' inc on node '" + n.getId() + "'; context '" + n.getInterpreter().getContext().getContext());
-					}
-					else {
-						n.decSigma();
-						//System.out.println("Node '" + initiator.getId() + "'; context '" + initiator.getInterpreter().getContext().getContext() + "' dec on node '" + n.getId() + "'; context '" + n.getInterpreter().getContext().getContext());						
-					}
-				}
-			}
-		}
-	}
 }

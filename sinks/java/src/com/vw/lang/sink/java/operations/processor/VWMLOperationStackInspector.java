@@ -5,8 +5,10 @@ import java.util.List;
 
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.utils.Stack;
 
 public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
@@ -15,7 +17,21 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 	private VWMLEntity dynamicAddressedEntity = null;
 	private boolean inspectMustReturn = false;
 	private VWMLContext operationalContext = null;
+	private VWMLInterpreterImpl interpreter = null;
 	
+	public VWMLOperationStackInspector(VWMLInterpreterImpl interpreter, VWMLContext context) {
+		setInterpreter(interpreter);
+		setOperationalContext(context);
+	}
+	
+	public VWMLInterpreterImpl getInterpreter() {
+		return interpreter;
+	}
+
+	public void setInterpreter(VWMLInterpreterImpl interpreter) {
+		this.interpreter = interpreter;
+	}
+
 	public VWMLContext getOperationalContext() {
 		return operationalContext;
 	}
@@ -44,7 +60,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			processDynamicAddressedEntity();
 		}
 		dynamicAddressedEntity = e;
-		reversedStack.add(e);
+		pushEntityToReversedStack(e);
 		return true;
 	}
 
@@ -97,8 +113,16 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			}
 			e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, dynamicAddressedEntity.buildReadableId());
 			e.setDynamicAddressedInRunTime(true);
-			reversedStack.add(e);
+			pushEntityToReversedStack(e);
 			dynContext = null;
 		}
+	}
+	
+	private void pushEntityToReversedStack(VWMLEntity entity) throws Exception {
+		VWMLEntity asArgRef = VWMLOperationUtils.getRelatedEntityByArgument(interpreter, entity);
+		if (asArgRef != null) {
+			entity = asArgRef;
+		}
+		reversedStack.add(entity);
 	}
 }

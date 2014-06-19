@@ -1,0 +1,86 @@
+module DpfBP {
+	/* Depth-first search algorithm. Modification B. inversed */
+	DpfSearchMkBParallelInversed ias (
+		/* aux. entities; cached by caller */
+		Maze ias $0;
+		MovementSpeed ias $1;
+		MazeLRange ias $2;
+		MazeRRange ias $3;
+		/* algorithm's goals */
+		Goals ias $4;
+		/* current state */
+		State ias $5;
+		/* available points where unit can move (ChoiceSet = NextStates - StateSet)  */
+		ChoiceSet ias $6;
+		/* shared structure which contains coordinates where units have already been */
+		StateSet ias $7;
+		/* resulting path */
+		SeqStates ias $8;
+		VectorSummationFringe ias $9;
+		CompletitionCallback ias $10;
+		/* fringe for decreasinbg number of future steps */
+		DecreaseValue ias $11;
+		/* requested steps */
+		RequestedSteps ias $12;
+		/* number of forecasted steps for algorithm, actually used when goals are 'quasi' known */
+		FutureSteps ias $13;
+
+		NextStates ias ();
+		NewState ias nil;
+		/* looks for possible states by observing area; used by GetNextStates */
+		LookupNextStates ias (
+			Svect ias nil;
+			(InMaze true) ias doNothing;
+			(InMaze false) ias (NextStates (NextStates~ (Svect~)) Join)^;
+			delta ias $;
+			(Svect ((delta~~ State~~ MazeLRange~~ MazeRRange~~) VectorSummationFringe~~) Do)^
+			(InMaze (Maze~~ Svect~) In)~ Exe
+		);
+		/* actually looks for next states  */
+		GetNextStates ias (
+			(NextStates ())^
+			(MovementSpeed~~ LookupNextStates~) ForEach
+		);
+		/* acually sets new state */
+		GetNewState ias (NewState ChoiceSet~~ Random)^;
+		Search ias (EndSearch (Goals~~ State~~) In)~ Exe;
+		/* one of goal's targets has achieved */
+		(EndSearch true) ias (
+			(Goals~ (Goals~~ (State~~)) Substruct)^
+			(FutureSteps~ 1)^
+			CompletitionCallback~~ Exe
+		);
+		/* continue walking... */
+		(EndSearch false) ias (
+			GetNextStates~ Exe
+			LockSharedStates [
+				(ChoiceSet~ (NextStates~ StateSet~~) Substruct)^
+			LockSharedStates ]
+			(Return (ChoiceSet~~ ()) Ident)~ Exe
+		);
+		/* pop state from stack and set last state to current state */
+		(Return true) ias (
+			(State~ (SeqStates~~) Last)^
+			(SeqStates~ (SeqStates~~) Begin)^
+			(RequestedSteps~ (RequestedSteps~~) Begin)^
+			Search~ Exe
+		);
+		(Return false) ias (
+			GetNewState~ Exe
+			(State~ NewState~)^
+			(SeqStates~ (SeqStates~~ (State~~)) Join)^
+			(RequestedSteps~ (RequestedSteps~~ (State~~)) Join)^
+			LockSharedStates [
+				(StateSet~ (StateSet~~ (State~~)) Join)^
+			LockSharedStates ]
+		);
+		(NoFutureSteps false) ias (
+			Search~ Exe
+			(FutureSteps~ ((FutureSteps~~) DecreaseValue~~) Do)^
+			(NoFutureSteps (FutureSteps~~ 0) Ident)~ Exe
+		);
+		(NoFutureSteps true) ias doNothing;
+
+		(NoFutureSteps (FutureSteps~~ 0) Ident)~ Exe
+	);
+}

@@ -26,7 +26,7 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() != 0) {
@@ -71,6 +71,6 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 	}
 	
 	protected boolean forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
-		return VWMLOperationUtils.activateTerm(interpreter, component, false, term, "forEach_", "ForEach");
+		return VWMLOperationUtils.activateTerm(interpreter, component, false, term, "forEach_", "ForEach", null);
 	}
 }

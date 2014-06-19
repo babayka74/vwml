@@ -1,6 +1,6 @@
-module DpfB {
-	/* Depth-first search algorithm. Modification B. */
-	DpfSearchMkB ias (
+module DpfBi {
+	/* Depth-first search algorithm. Modification B. inversed */
+	DpfSearchMkBInversed ias (
 		/* aux. entities; cached by caller */
 		Maze ias $0;
 		MovementSpeed ias $1;
@@ -18,8 +18,8 @@ module DpfB {
 		/* looks for possible states by observing area; used by GetNextStates */
 		LookupNextStates ias (
 			Svect ias nil;
-			(InMaze false) ias doNothing;
-			(InMaze true) ias (NextStates (NextStates~ (Svect~)) Join)^;
+			(InMaze true) ias doNothing;
+			(InMaze false) ias (NextStates (NextStates~ (Svect~)) Join)^;
 			delta ias $;
 			(Svect ((delta~~ State~~) VectorSummationFringe~~) Do)^
 			(InMaze (Maze~~ Svect~) In)~ Exe

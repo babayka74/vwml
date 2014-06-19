@@ -24,7 +24,7 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity entity = null;
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();
@@ -56,8 +56,10 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 	@Override
 	protected void reportInterpreterInternalState(String context, VWMLInterpreterImpl interpreter) {
 		if (interpreter.getObserver() !=  null) {
-			if (interpreter.getRtNode() != null) {
-				interpreter.getRtNode().setInConflictAreaNow(true);
+			// CallP or ForEach or any other operation which requires own interpreter
+			if (interpreter.isPushed()) {
+				String termContext = interpreter.getRtNode().getContextOfNodeOriginalTerm(interpreter);
+				context = VWMLContext.constructContextNameFromParts(termContext, context);
 			}
 			interpreter.getObserver().setActiveConflictContext(context);
 			interpreter.getObserver().setConflictOperationalState(context, VWMLConflictRingNodeAutomataInputs.IN_B);

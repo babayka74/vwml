@@ -55,6 +55,7 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 		getFw().write("\tprivate " + repositoryClassName + " repository = new " + repositoryClassName + "();\r\n");
 		getFw().write("\tprivate " + linkageClassName + " linkage = new " + linkageClassName + "();\r\n\r\n");
 		// generates build method which calls repository's and link's methods
+		generatePrepareMethod(modProps, visitor);
 		generateBuildMethod(modProps, visitor);
 		generateLinkageMethod(modProps, visitor);
 		getFw().write(JavaCodeGeneratorTemplates.s_VWMLModuleMethods);
@@ -63,6 +64,13 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 		}
 	}
 
+	protected void generatePrepareMethod(JavaModuleStartProps modProps, AbstractVWMLLinkVisitor visitor) throws Exception {
+		// generates linkage method which calls repository's and link's methods
+		getFw().write("\t@Override\r\n\tpublic void prepare() throws Exception {\r\n");
+		getFw().write("\t\trepository.addContexts();\r\n");
+		getFw().write("\t}\r\n\r\n");
+	}
+	
 	protected void generateBuildMethod(JavaModuleStartProps modProps, AbstractVWMLLinkVisitor visitor) throws Exception {
 		// generates linkage method which calls repository's and link's methods
 		getFw().write("\t@Override\r\n\tpublic void build() throws Exception {\r\n");

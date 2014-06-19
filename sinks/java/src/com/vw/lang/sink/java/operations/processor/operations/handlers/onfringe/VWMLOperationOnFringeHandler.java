@@ -28,7 +28,7 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity answerFromEW = null;
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();

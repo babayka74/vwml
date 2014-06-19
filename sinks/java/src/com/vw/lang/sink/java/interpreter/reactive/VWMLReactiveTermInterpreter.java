@@ -62,7 +62,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		// looking for ring node by source lifeterm's context 
 		for(VWMLEntity e : getTerms()) {
-			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(e.getContext().getContext());
+			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(e.getContext().getContext(), true);
 			if (g == null) {
 				throw new Exception("couldn't find ring group by context '" + e.getContext().getContext() + "'");
 			}
@@ -163,6 +163,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			impl.setTimerManager(getTimerManager());
 			impl.setRing(ring);
 			impl.setMasterInterpreter(this);
+			impl.setClonedFromEntity(term);
 			if (n != null) {
 				// associating interpreter and ring node
 				n.pushInterpreter(impl);

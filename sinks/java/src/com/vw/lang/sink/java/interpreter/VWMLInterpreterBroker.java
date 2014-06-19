@@ -71,6 +71,9 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 			throw new Exception("modules were not set; check flow");
 		}
 		for(VWMLModule module : modules) {
+			module.prepare();
+		}
+		for(VWMLModule module : modules) {
 			module.build();
 		}
 		for(VWMLModule module : modules) {

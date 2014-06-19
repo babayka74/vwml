@@ -26,7 +26,7 @@ public class VWMLOperationCallPHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() != 0) {
@@ -70,9 +70,10 @@ public class VWMLOperationCallPHandler extends VWMLOperationHandler {
 							VWMLEntity component,
 							VWMLEntity term,
 							VWMLEntity completitionTerm) throws Exception {
-		boolean b = VWMLOperationUtils.activateTerm(interpreter, component, true, term, "CallP_", "CallP");
+		String forcedContextName = term.getContext().getContext();
+		boolean b = VWMLOperationUtils.activateTerm(interpreter, component, true, term, "CallP_", "CallP", forcedContextName);
 		if (completitionTerm != null) {
-			VWMLOperationUtils.activateTerm(interpreter, null, false, completitionTerm, "CallPCbk_", "CallPCbk");
+			VWMLOperationUtils.activateTerm(interpreter, null, false, completitionTerm, "CallPCbk_", "CallPCbk", forcedContextName);
 		}
 		return b;
 	}

@@ -10,6 +10,13 @@ import com.vw.lang.sink.java.repository.VWMLRepository;
  *
  */
 public abstract class VWMLModule {
+
+	/**
+	 * Performs module's initialization steps, runs before build method
+	 * @throws Exception
+	 */
+	public abstract void prepare() throws Exception;
+	
 	/**
 	 * Acquires entities and pushes them into repository
 	 * @throws Exception

@@ -24,7 +24,7 @@ public class VWMLOperationInterruptHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		List<VWMLEntity> entities = inspector.getReversedStack();
@@ -54,7 +54,7 @@ public class VWMLOperationInterruptHandler extends VWMLOperationHandler {
 		if (masterOfInterruptedContext == null) {
 			throw new Exception("Coudn't find context to interrupt; context '" + masterEntity.getId() + "'");
 		}
-		VWMLConflictRingExecutionGroup g = interpreter.getRing().findGroupByEntityContext(masterOfInterruptedContext.getContext());
+		VWMLConflictRingExecutionGroup g = interpreter.getRing().findGroupByEntityContext(masterOfInterruptedContext.getContext(), true);
 		VWMLInterpreterImpl interruptedInterpreter = g.findInterpreterByContext((String)entity.getId());
 		if (interruptedInterpreter != null) {
 			Object timerId = interruptedInterpreter.getObserver().getAssociatedTimerWithContext(VWMLInterpreterObserver.getWaitContext());

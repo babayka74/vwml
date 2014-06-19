@@ -25,7 +25,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
-		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector();
+		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 0 || entities.size() > 2) {
@@ -79,7 +79,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		while(p.getClonedFrom() != null) {
 			p = p.getClonedFrom();
 		}
-		VWMLConflictRingExecutionGroup group = interpreter.getRing().findGroupByEntityContext(p.getContext().getContext());
+		VWMLConflictRingExecutionGroup group = interpreter.getRing().findGroupByEntityContext(p.getContext().getContext(), true);
 		if (group == null) {
 			throw new Exception("couldn't ring find group by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
@@ -94,21 +94,13 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);
 		VWMLConflictRingNode clonedNode = ringGroupMasterNode.clone(clonedInterpreter);
-		clonedNode.markAsClone(true);
 		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
 		// needed when resources should be released
 		clonedInterpreter.setClonedFromEntity(cloned);
 		clonedInterpreter.setCloned(true);
 		clonedInterpreter.setTerms(tl);
-		clonedNode.setMasterNode(ringGroupMasterNode);
 		clonedNode.setExecutionGroup(group);
 		group.add(clonedNode);
 		clonedInterpreter.start();
-		// get real operated node (not - master)
-		if (ringGroupMasterNode != null) {
-			// sigma's should be cloned also
-			ringGroupMasterNode.cloneSigmaFor(clonedNode);
-			
-		}
 	}	
 }

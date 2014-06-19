@@ -99,9 +99,19 @@ public class VWMLContext extends VWMLObject {
 			part = ((e.getContext() != null) ? (e.getContext().getContext() + ".") : "") + e.getReadableId();
 		}
 		if (contextNameBuf != null) {
-			return contextNameBuf + "." + part;
+			return constructContextNameFromParts(contextNameBuf, part);
 		}
 		return part;
+	}
+
+	/**
+	 * Constructs context from two parts
+	 * @param contextPrefix
+	 * @param contextSuffix
+	 * @return
+	 */
+	public static String constructContextNameFromParts(String contextPrefix, String contextSuffix) {
+		return contextPrefix + "." + contextSuffix;
 	}
 	
 	/**

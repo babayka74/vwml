@@ -85,8 +85,6 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 				// simple swallow it...
 			}
 		}
-		getFw().write("\t\t// adding contexts\r\n");
-		getFw().write("\t\taddContexts();\r\n\r\n");
 		if (declaredCreatures.size() > 0) {
 			getFw().write("\t\t// adding fringes\r\n");
 			getFw().write("\t\tregisterFringes();\r\n\r\n");
@@ -107,7 +105,7 @@ public class JavaCodeGeneratorRepository extends JavaCodeGeneratorComponent {
 		// closes 'build' method
 		getFw().write("\t}\r\n\r\n");
 		// starts contexts' registration method
-		getFw().write("\tprotected void addContexts() throws Exception {\r\n");
+		getFw().write("\tpublic void addContexts() throws Exception {\r\n");
 		for(VWMLObjWrap obj : declaredCreatures) {
 			String fringe = obj.getContext() + "." + obj.getObjId();
 			getFw().write("\t\t// add fringe '" + fringe + "'\r\n");

@@ -156,24 +156,103 @@ public class Math implements IVWMLGate {
 	
 	public static class VSumHandler extends GateCommandHandler {
 
+		private static int X = 0x0;
+		private static int Y = 0x1;
+		private static int XYCOORDINATES = 0x2;
+		private static int FIRSTVECTOR = 0x0;
+		private static int SECONDVECTOR = 0x1;
+		private static int LRANGE = 0x2;
+		private static int RRANGE = 0x3;
+		
+		protected static class VRange {
+			int x;
+			int y;
+			
+			public VRange(int x, int y) {
+				super();
+				this.x = x;
+				this.y = y;
+			}
+
+			public int getX() {
+				return x;
+			}
+			
+			public void setX(int x) {
+				this.x = x;
+			}
+			
+			public int getY() {
+				return y;
+			}
+
+			public void setY(int y) {
+				this.y = y;
+			}
+		}
+		
 		@Override
 		public EWEntity handler(EWEntity commandArgs) {
+			boolean invalidVectorAndStop = false;
+			VRange vRangeL = null, vRangeR = null;
 			EWEntity e = EWEntityBuilder.buildComplexEntity("()", null);
-			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == 2) {
-				EWEntity e1 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
-				EWEntity e2 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(1);
+			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() >= 2) {
+				EWEntity e1 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(FIRSTVECTOR);
+				EWEntity e2 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(SECONDVECTOR);
+				if (commandArgs.getLink().getLinkedObjectsOnThisTime() >= 3) {
+					vRangeL = createRangeFromEWEntity((EWEntity)commandArgs.getLink().getConcreteLinkedEntity(LRANGE));
+				}
+				if (commandArgs.getLink().getLinkedObjectsOnThisTime() >= 4) {
+					vRangeR = createRangeFromEWEntity((EWEntity)commandArgs.getLink().getConcreteLinkedEntity(RRANGE));
+				}
 				if (e1.isMarkedAsComplexEntity() &&
 					e2.isMarkedAsComplexEntity() && 
-					e1.getLink().getLinkedObjectsOnThisTime() == e2.getLink().getLinkedObjectsOnThisTime()) {
-					for(int i = 0; i < e1.getLink().getLinkedObjectsOnThisTime(); i++) {
+					e1.getLink().getLinkedObjectsOnThisTime() == e2.getLink().getLinkedObjectsOnThisTime() &&
+					e1.getLink().getLinkedObjectsOnThisTime() == XYCOORDINATES) {
+					for(int i = X; i < XYCOORDINATES; i++) {
 						int v1 = Math.convertString2Int((String)e1.getLink().getConcreteLinkedEntity(i).getId());
 						int v2 = Math.convertString2Int((String)e2.getLink().getConcreteLinkedEntity(i).getId());
+						if (vRangeL != null) {
+							if (i == X && v1 + v2 < vRangeL.getX()) {
+								invalidVectorAndStop = true;
+								break;
+							}
+							else
+							if (i == Y && v1 + v2 < vRangeL.getY()) {
+								invalidVectorAndStop = true;
+								break;
+							}
+						}
+						if (vRangeR != null) {
+							if (i == X && v1 + v2 > vRangeR.getX()) {
+								invalidVectorAndStop = true;
+								break;
+							}
+							else
+							if (i == Y && v1 + v2 > vRangeR.getY()) {
+								invalidVectorAndStop = true;
+								break;
+							}
+						}
 						EWEntity v = EWEntityBuilder.buildSimpleEntity(String.valueOf(v1 + v2), null);
 						e.link(v);
 					}
 				}
 			}
+			if (invalidVectorAndStop) {
+				try {
+					e = EWEntityBuilder.buildFromString("(-1 -1)");
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
 			return e;
+		}
+		
+		private VRange createRangeFromEWEntity(EWEntity e) {
+			int x = Math.convertString2Int((String)e.getLink().getConcreteLinkedEntity(X).getId());
+			int y = Math.convertString2Int((String)e.getLink().getConcreteLinkedEntity(Y).getId());
+			return new VRange(x, y);
 		}
 	}
 	

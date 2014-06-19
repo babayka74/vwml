@@ -54,7 +54,7 @@ public class VWMLInterpreterInterruptTimerDeferredTask extends VWMLInterpreterDe
 
 	@Override
 	public Object execute() throws Exception {
-		VWMLOperationUtils.activateTerm(getActiveInterpreter(), getArgs(), false, getTerm(), getContextPrefix(), getOperation());
+		VWMLOperationUtils.activateTerm(getActiveInterpreter(), getArgs(), false, getTerm(), getContextPrefix(), getOperation(), null);
 		return null;
 	}
 }
