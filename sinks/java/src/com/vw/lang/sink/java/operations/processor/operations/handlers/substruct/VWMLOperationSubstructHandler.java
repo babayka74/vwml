@@ -80,12 +80,12 @@ public class VWMLOperationSubstructHandler extends VWMLOperationHandler {
 				it.next();
 				if (it.isCorrect()) {
 					VWMLEntity e2 = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(it.getIt());
-					result = substruct(e1, e2, entity);
+					result = substruct(e1, e2, e1);
 				}
 			}
 			else {
 				VWMLEntity oldResult = result;
-				result = substruct(result, e1, entity);
+				result = substruct(result, e1, result);
 				if (oldResult != null) {
 					oldResult.getLink().unlinkFromAll();
 					oldResult = null;

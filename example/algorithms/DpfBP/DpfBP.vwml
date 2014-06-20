@@ -8,10 +8,9 @@ module DpfBP {
 		MazeRRange ias $3;
 		/* algorithm's goals */
 		Goals ias $4;
+		SharedGoals ias $5;
 		/* current state */
-		State ias $5;
-		/* available points where unit can move (ChoiceSet = NextStates - StateSet)  */
-		ChoiceSet ias $6;
+		State ias $6;
 		/* shared structure which contains coordinates where units have already been */
 		StateSet ias $7;
 		/* resulting path */
@@ -23,10 +22,32 @@ module DpfBP {
 		/* requested steps */
 		RequestedSteps ias $12;
 		/* number of forecasted steps for algorithm, actually used when goals are 'quasi' known */
-		FutureSteps ias $13;
+		NumOfRequestedSteps ias $13;
+		/* sets to 'true' in case if there are no available steps */
+		NoSteps ias $14;
+		Uid ias $15;
 
 		NextStates ias ();
+		ChoiceSet ias ();
 		NewState ias nil;
+		AvailableSteps ias false;
+
+		CheckAndRemoveFromSharedGoals ias (
+			(InSharedGoals false) ias doNothing;
+			(InSharedGoals true) ias (
+				(SharedGoals~ (SharedGoals~~ (State~~)) Substruct)^
+			);
+			(InSharedGoals (SharedGoals~~ State~~) In)~ Exe
+		);
+		
+		CollectRequestedSteps ias (
+			StepsCollected ias false;
+                        (StepsCollected false) ias doNothing;
+			(StepsCollected true) ias (StepsCollected true)^;
+			(RequestedSteps~ (RequestedSteps~~ (State~~)) Join)^
+			(NumOfRequestedSteps~ ((NumOfRequestedSteps~~) Ew.DecValue~) Do)^
+			(StepsCollected (NumOfRequestedSteps~~ 0) Ident)~ Exe
+		);
 		/* looks for possible states by observing area; used by GetNextStates */
 		LookupNextStates ias (
 			Svect ias nil;
@@ -36,51 +57,89 @@ module DpfBP {
 			(Svect ((delta~~ State~~ MazeLRange~~ MazeRRange~~) VectorSummationFringe~~) Do)^
 			(InMaze (Maze~~ Svect~) In)~ Exe
 		);
+		HaveAvailableSteps ias (
+			Step ias $;
+			(StepIn true) ias doNothing;
+			(StepIn false) ias (
+				(AvailableSteps true)^
+				($ doNothing)^
+			);
+			(StepIn LockSharedStates [ (StateSet~~ Step~~) In LockSharedStates ])~ Exe
+		);
 		/* actually looks for next states  */
 		GetNextStates ias (
 			(NextStates ())^
 			(MovementSpeed~~ LookupNextStates~) ForEach
+		);
+		CheckIfHaveAvailableSteps ias (
+			(NextStates ())^
+			GetNextStates~ Exe
+			(AvailableSteps false)^
+			(NextStates~ HaveAvailableSteps~) ForEach
 		);
 		/* acually sets new state */
 		GetNewState ias (NewState ChoiceSet~~ Random)^;
 		Search ias (EndSearch (Goals~~ State~~) In)~ Exe;
 		/* one of goal's targets has achieved */
 		(EndSearch true) ias (
+			((Goal State~~ is removed for Uid~~) Ew.Output~) Do
+			1026 Bp
 			(Goals~ (Goals~~ (State~~)) Substruct)^
-			(FutureSteps~ 1)^
+			CheckAndRemoveFromSharedGoals~ Exe
 			CompletitionCallback~~ Exe
+			(CollectRequestedSteps.StepsCollected true)^
 		);
 		/* continue walking... */
 		(EndSearch false) ias (
 			GetNextStates~ Exe
 			LockSharedStates [
+				((by Uid~~ substructing NextStates~ from StateSet~~) Ew.Output~) Do
 				(ChoiceSet~ (NextStates~ StateSet~~) Substruct)^
+				((Changed by Uid~~ substructed choices ChoiceSet~~ next NextStates~) Ew.Output~) Do
 			LockSharedStates ]
 			(Return (ChoiceSet~~ ()) Ident)~ Exe
 		);
 		/* pop state from stack and set last state to current state */
 		(Return true) ias (
+			(SeqStatesEmpty true) ias (
+				(AvailableSteps true) ias Search~ Exe;
+	 			(AvailableSteps false) ias (
+					(NoSteps~ true)^
+					CompletitionCallback~~ Exe
+					(CollectRequestedSteps.StepsCollected true)^
+				);
+				(SeqStates~ (SeqStates~~ (State~~)) Join)^
+				CheckIfHaveAvailableSteps~ Exe
+				(AvailableSteps AvailableSteps~)~ Exe
+			);
+			(SeqStatesEmpty false) ias Run~ Exe;
+			((by Uid~~ seq states set SeqStates~~) Ew.Output~) Do
 			(State~ (SeqStates~~) Last)^
 			(SeqStates~ (SeqStates~~) Begin)^
-			(RequestedSteps~ (RequestedSteps~~) Begin)^
-			Search~ Exe
+			CollectRequestedSteps~ Exe
+			(SeqStatesEmpty (SeqStates~~ ()) Ident)~ Exe
 		);
 		(Return false) ias (
+			((choice set ChoiceSet~~) Ew.Output~) Do
 			GetNewState~ Exe
+			((new state NewState~) Ew.Output~) Do
 			(State~ NewState~)^
 			(SeqStates~ (SeqStates~~ (State~~)) Join)^
-			(RequestedSteps~ (RequestedSteps~~ (State~~)) Join)^
+			((Added state State~~) Ew.Output~) Do
 			LockSharedStates [
+				((Changed by Uid~~ joined) Ew.Output~) Do
 				(StateSet~ (StateSet~~ (State~~)) Join)^
 			LockSharedStates ]
+			CollectRequestedSteps~ Exe
+			Run~ Exe
 		);
-		(NoFutureSteps false) ias (
-			Search~ Exe
-			(FutureSteps~ ((FutureSteps~~) DecreaseValue~~) Do)^
-			(NoFutureSteps (FutureSteps~~ 0) Ident)~ Exe
+		Run ias (
+			(CollectRequestedSteps true) ias doNothing;
+			(CollectRequestedSteps false) ias Search~ Exe;
+			(CollectRequestedSteps CollectRequestedSteps.StepsCollected~)~ Exe
 		);
-		(NoFutureSteps true) ias doNothing;
 
-		(NoFutureSteps (FutureSteps~~ 0) Ident)~ Exe
+		(CollectRequestedSteps.StepsCollected false)^
+		Run~ Exe
 	);
 }

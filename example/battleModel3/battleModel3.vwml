@@ -22,6 +22,10 @@ options {
 			"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(Return false).LockSharedStates" conflicts (
 				"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(EndSearch false).LockSharedStates"
 			)
+			"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.HaveAvailableSteps.LockSharedStates" conflicts (
+				"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(EndSearch false).LockSharedStates"
+				"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(Return false).LockSharedStates"
+			)
 		}
 	}
 }
@@ -42,12 +46,13 @@ module battleModel3 {
 		);
 		MazeLRange ias (0 0);
 		MazeRRange ias (13 13);
+		TargetsToBeDestroyed ias ((6 4) (7 4) (6 5) (7 5));
 		DeltaMovement ias (
 			(-1 0) (0 -1)
 			(0 1) (1 0)
 			(1 1) (-1 -1)
 		);
-		ConfiguredFutureSteps ias 4;
+		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
 		Output ias communication.in.write;
 		// MoveUnit ias communication.outchannel.move;
@@ -67,8 +72,7 @@ module battleModel3 {
 				Movement ias (
 					Goals ias ();
 					GoalReached ias false;
-					ChoiceSet ias ();
-					NextStates ias ();
+					AllGoalsReached ias false;
 					SeqStates ias ();
 					RequestedSteps ias ();
 					State ias nil;
@@ -77,12 +81,18 @@ module battleModel3 {
 					Iteration ias 0;
 					PathPassed ias false;
 					Walking ias false;
-					FutureSteps ias 1;
+					NumOfRequestedSteps ias 1;
+					NoSteps ias false;
 
-					Result ias (	
-						// ((The unit Id~ to goal Movement.RequestedSteps~ and goals Movement.Goals~) Ew.Output~) Do
+					Result ias (
+						(NoSteps false) ias (
+							(Movement.GoalReached true)^
+							(Movement.AllGoalsReached (Movement.Goals~ ()) Ident)^
+						);
+						(NoSteps true) ias (Movement.AllGoalsReached true)^;
+						(NoSteps Movement.NoSteps~)~ Exe
+						((Result detected left goals for Id~ are Movement.Goals~ Ew.TargetsToBeDestroyed~) Ew.Output~) Do
 						1025 Bp
-						(Movement.GoalReached true)^
 					);
 
 					CheckPosition ias (
@@ -124,65 +134,69 @@ module battleModel3 {
 						(Movement.Init false)^
 						(Movement.Iteration 0)^
 						(Movement.PathPassed false)^
-						(Movement.FutureSteps Ew.ConfiguredFutureSteps~)^
-						((The unit Id~ initialized movement procedure with shared stateset (Player Unit.CommandDispatcher.PlayerId~)->UnitsStateSet~ and steps Movement.FutureSteps~ and state Movement.State~) Ew.Output~) Do
+						(Movement.NoSteps false)^
+						(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
+						((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player Unit.CommandDispatcher.PlayerId~)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
 						((Ew.Maze Ew.DeltaMovement
 							Ew.MazeLRange
 							Ew.MazeRRange
 							Movement.Goals
+							Ew.TargetsToBeDestroyed
 							Movement.State
-							Movement.ChoiceSet
 							(Player Unit.CommandDispatcher.PlayerId~)->UnitsStateSet
 							Movement.SeqStates
 							Ew.VSum
 							Movement.Result
 							Ew.DecValue
 							Movement.RequestedSteps
-							Movement.FutureSteps) (DpfSearchMkBParallelInversed Id~)~) CallP
-						(Movement.PrevState (Movement.RequestedSteps~ Movement.Iteration~) Get)^
-                        			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
+							Movement.NumOfRequestedSteps
+							Movement.NoSteps                     	
+							Id) (DpfSearchMkBParallelInversed Id~)~) CallP
 						(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
-						((The unit Id~ calculated movement is Movement.RequestedSteps~) Ew.Output~) Do
+						((Calculated steps Movement.RequestedSteps~ unit Id~) Ew.Output~) Do
 					);
 
 					Go ias (
 						// start movement, all parameters are correct
-						(CheckMovement false false) ias (
-							(Init false) ias (
-								300 Relax
-                                				(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
-								(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
+						(Init false) ias doNothing;
+						(Init true) ias (
+							Recalculate~ Exe
+							UnitLifeStep~ Exe
+						);
+						(FinishedMovement false) ias (
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
+							300 Relax
+							(Movement.PrevState Movement.State~)^
+                                			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
+							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
+							(Walking true)^ 
+						);
+						(FinishedMovement true) ias (
+							(GoalReached false false) ias doNothing;
+							(GoalReached true false) ias (
+								((The unit Id~ reached goal Movement.State~ and looks for another goal from Movement.Goals~) Ew.Output~) Do
+								(Movement.GoalReached false)^
 							);
-							(Init true) ias Recalculate~ Exe;
-							(FinishedMovement false) ias (
-								((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
-								// ((Id~ Movement.PrevState~ Movement.State~) Ew.MoveUnit~) Do
-								(Movement.PrevState Movement.State~)^
-								(Walking true)^ 
+							(GoalReached false true), (GoalReached true true) ias (
+								((The unit Id~ reached all goals) Ew.Output~) Do
+								(Movement.AllGoalsReached false)^
+								(Unit.CommandDispatcher.UnitCommandId stay)^
 							);
-							(FinishedMovement true) ias (
-								(GoalReached false) ias doNothing;
-								(GoalReached true) ias (
-									((The unit Id~ reached goal Movement.State~ and looks another from Movement.Goals~) Ew.Output~) Do
-									(Movement.GoalReached false)^
-								);
-								(PathPassed true)^
-								(Movement.State Movement.PrevState~)^
-								(Walking false)^
-								(Init true)^
-								(GoalReached Movement.GoalReached~)~ Exe
-							);
+							(PathPassed true)^
+							(Movement.State Movement.PrevState~)^
+							(Walking false)^
+							(Init true)^
+							(GoalReached Movement.GoalReached~ Movement.AllGoalsReached~)~ Exe
+						);
+						(AllTargetsDestroyed true) ias (
+							((The unit Id~ detected that all shared targets destroyed) Ew.Output~) Do
+                                                	(Unit.CommandDispatcher.UnitCommandId stay)^
+						);
+						(AllTargetsDestroyed false) ias (
 							(Init Movement.Init~)~ Exe
 							(FinishedMovement (Movement.State~ nil) Ident)~ Exe
 						);
-						// not all parameters were set, movement impossible
-						(CheckMovement true true),(CheckMovement false true),(CheckMovement true false) ias (
-							(Unit.CommandDispatcher.UnitCommandId stay)^
-							(PathPassed false)^
-							(Walking false)^
-							((Incorrect parameters (Movement.Goals~ Movement.State~) for movement unit Id~) Ew.Output~) Do
-						);
-						(CheckMovement (Movement.Goals~ ()) Ident (Movement.State~ nil) Ident)~ Exe
+						(AllTargetsDestroyed (Ew.TargetsToBeDestroyed~ ()) Ident)~ Exe
 					);
 
 					HandleIfUnitVisitedPosition ias (
@@ -229,6 +243,7 @@ module battleModel3 {
 							(NewMovement true) ias (
 								(Movement.Init true)^
 								(Movement.PathPassed false)^
+								(Movement.GoalReached false)^
 								(UnitCommandId go)^
 							);
 							(NewMovement false) ias (
@@ -259,6 +274,7 @@ module battleModel3 {
 					(Handle startpos) ias (
 						(NoAddToSharedUnitsState true) ias doNothing;
 						(NoAddToSharedUnitsState false) ias (
+							(Movement.PrevState Movement.State~)^
 							(Movement.SeqStates (Movement.State~))^
 							(Movement.HandleIfUnitVisitedPosition.Position Movement.State~)^
 							Movement.HandleIfUnitVisitedPosition~ Exe
@@ -469,12 +485,12 @@ module battleModel3 {
 				(manager 0 playeradd 0)
 				(player 0 create 0)
 				(player 0 startpos 0 (1 1))
-				(player 0 movetopos 0 ((6 4) (7 4)))
+				(player 0 movetopos 0 ((6 4) (7 4) (6 5) (7 5)))
 				(player 0 go 0)
 
 				(player 0 create 1)
 				(player 0 startpos 1 (12 1))
-				(player 0 movetopos 1 ((6 5) (7 5)))
+				(player 0 movetopos 1 ((6 4) (7 4) (6 5) (7 5)))
 				(player 0 go 1)
 
 			);

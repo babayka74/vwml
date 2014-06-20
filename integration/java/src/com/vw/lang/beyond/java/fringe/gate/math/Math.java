@@ -193,7 +193,7 @@ public class Math implements IVWMLGate {
 		
 		@Override
 		public EWEntity handler(EWEntity commandArgs) {
-			boolean invalidVectorAndStop = false;
+			boolean invalidVectorAndStop = false, added = false;
 			VRange vRangeL = null, vRangeR = null;
 			EWEntity e = EWEntityBuilder.buildComplexEntity("()", null);
 			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() >= 2) {
@@ -235,16 +235,22 @@ public class Math implements IVWMLGate {
 							}
 						}
 						EWEntity v = EWEntityBuilder.buildSimpleEntity(String.valueOf(v1 + v2), null);
+						added = true;
 						e.link(v);
 					}
 				}
 			}
 			if (invalidVectorAndStop) {
 				try {
+					added = true;
 					e = EWEntityBuilder.buildFromString("(-1 -1)");
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
+			}
+			if (!added) {
+				int h = 0;
+				h++;
 			}
 			return e;
 		}
