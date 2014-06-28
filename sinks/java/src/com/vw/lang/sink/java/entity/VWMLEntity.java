@@ -365,6 +365,12 @@ public class VWMLEntity extends VWMLObject {
 		}
 	}
 	
+	public void resetInterpreting() {
+		interpretationHistory.reset(interpreting);
+		originalInterpreting = null;
+		this.interpreting = null;
+	}
+	
 	/**
 	 * Adds operation to set of associative operations
 	 * @param op

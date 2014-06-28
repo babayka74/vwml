@@ -1,31 +1,28 @@
-module DpfBP {
-	/* Depth-first search algorithm. Modification B. inversed */
-	DpfSearchMkBParallelInversed ias (
+module DpfAP {
+	/* Depth-first search algorithm. Modification A. Graph based. Non-inversed */
+	DpfSearchMkAParallel ias (
 		/* aux. entities; cached by caller */
-		Maze ias $0;
-		MovementSpeed ias $1;
-		MazeLRange ias $2;
-		MazeRRange ias $3;
 		/* algorithm's goals */
-		Goals ias $4;
-		SharedGoals ias $5;
+		Goals ias $0;
+		SharedGoals ias $1;
 		/* current state */
-		State ias $6;
+		State ias $2;
 		/* shared structure which contains coordinates where units have already been */
-		StateSet ias $7;
+		StateSet ias $3;
 		/* resulting path */
-		SeqStates ias $8;
-		VectorSummationFringe ias $9;
-		CompletitionCallback ias $10;
+		SeqStates ias $4;
+		CompletitionCallback ias $5;
+		/* called upon shared goal */
+		SharedGoalFoundCallback ias $6;
 		/* fringe for decreasinbg number of future steps */
-		DecreaseValue ias $11;
+		DecreaseValue ias $7;
 		/* requested steps */
-		RequestedSteps ias $12;
+		RequestedSteps ias $8;
 		/* number of forecasted steps for algorithm, actually used when goals are 'quasi' known */
-		NumOfRequestedSteps ias $13;
+		NumOfRequestedSteps ias $9;
 		/* sets to 'true' in case if there are no available steps */
-		NoSteps ias $14;
-		Uid ias $15;
+		NoSteps ias $10;
+		Uid ias $11;
 
 		NextStates ias ();
 		ChoiceSet ias ();
@@ -36,6 +33,7 @@ module DpfBP {
 			(InSharedGoals false) ias doNothing;
 			(InSharedGoals true) ias (
 				(SharedGoals~ (SharedGoals~~ (State~~)) Substruct)^
+				SharedGoalFoundCallback~~ Exe
 			);
 			(InSharedGoals (SharedGoals~~ State~~) In)~ Exe
 		);
@@ -44,18 +42,10 @@ module DpfBP {
 			StepsCollected ias false;
                         (StepsCollected false) ias doNothing;
 			(StepsCollected true) ias (StepsCollected true)^;
+			CheckAndRemoveFromSharedGoals~ Exe
 			(RequestedSteps~ (RequestedSteps~~ (State~~)) Join)^
 			(NumOfRequestedSteps~ ((NumOfRequestedSteps~~) Ew.DecValue~) Do)^
 			(StepsCollected (NumOfRequestedSteps~~ 0) Ident)~ Exe
-		);
-		/* looks for possible states by observing area; used by GetNextStates */
-		LookupNextStates ias (
-			Svect ias nil;
-			(InMaze true) ias doNothing;
-			(InMaze false) ias (NextStates (NextStates~ (Svect~)) Join)^;
-			delta ias $;
-			(Svect ((delta~~ State~~ MazeLRange~~ MazeRRange~~) VectorSummationFringe~~) Do)^
-			(InMaze (Maze~~ Svect~) In)~ Exe
 		);
 		HaveAvailableSteps ias (
 			Step ias $;
@@ -67,10 +57,7 @@ module DpfBP {
 			(StepIn LockSharedStates [ (StateSet~~ Step~~) In LockSharedStates ])~ Exe
 		);
 		/* actually looks for next states  */
-		GetNextStates ias (
-			(NextStates ())^
-			(MovementSpeed~~ LookupNextStates~) ForEach
-		);
+		GetNextStates ias (NextStates State~~~)^;
 		CheckIfHaveAvailableSteps ias (
 			GetNextStates~ Exe
 			(AvailableSteps false)^
@@ -82,9 +69,7 @@ module DpfBP {
 		/* one of goal's targets has achieved */
 		(EndSearch true) ias (
 			((Goal State~~ is removed for Uid~~) Ew.Output~) Do
-			1026 Bp
 			(Goals~ (Goals~~ (State~~)) Substruct)^
-			CheckAndRemoveFromSharedGoals~ Exe
 			CompletitionCallback~~ Exe
 			(CollectRequestedSteps.StepsCollected true)^
 		);

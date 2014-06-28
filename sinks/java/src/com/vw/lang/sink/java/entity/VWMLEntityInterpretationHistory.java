@@ -35,6 +35,37 @@ public class VWMLEntityInterpretationHistory {
 		}
 
 		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((interpreting == null) ? 0 : interpreting.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			VWMLEntityDescriptor other = (VWMLEntityDescriptor) obj;
+			if (interpreting == null) {
+				if (other.interpreting != null) {
+					return false;
+				}
+			} else if (!interpreting.equals(other.interpreting)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
 		public String toString() {
 			return "VWMLEntityDescriptor [interpreting=" + interpreting + ", time=" + time + "]";
 		}
@@ -76,6 +107,10 @@ public class VWMLEntityInterpretationHistory {
 	 */
 	public void restore() throws Exception {
 		
+	}
+	
+	public void reset(VWMLEntity interpreting) {
+		history.remove(interpreting);
 	}
 	
 	/**

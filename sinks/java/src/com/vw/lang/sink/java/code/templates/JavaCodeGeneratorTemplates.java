@@ -87,6 +87,7 @@ public final class JavaCodeGeneratorTemplates {
 	"\tpublic void linkEntities() throws Exception {\r\n" +
 	"\t\tbuildLinkingAssociation();\r\n" +
 	"\t\tbuildInterpretingAssociation();\r\n" +
+	"\t\tprocessUndefinedEntitiesOnPostLink();\r\n" +
 	"\t}\r\n\r\n" +
 	"\tpublic VWMLObject interpretUndefinedEntity(Object id, String context) throws Exception {\r\n" +
 	"\t\tif (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.STRICT) {\r\n" +

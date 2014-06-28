@@ -7,6 +7,11 @@ import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyComplexEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsNilEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityInterpretationStrategy;
+import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityStrictInterpretationStrategy;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 
 /**
@@ -93,5 +98,26 @@ public class VWMLLinkage {
 		VWMLEntity obj = (VWMLEntity)VWMLObjectsRepository.instance().get(id, context);
 		VWMLEntity interpretingObj = (VWMLEntity)VWMLObjectsRepository.instance().get(interpretingId, context);
 		obj.setInterpreting(interpretingObj);
+	}
+	
+	public void processUndefinedEntitiesOnPostLink() throws Exception {
+		InterpretationOfUndefinedEntityStrategyId interpretationOfUndefinedEntityStrategyId = getUndefinedEntityInterpretationStrategyId();
+		UndefinedEntityInterpretationStrategy strategy = null;
+		if (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.STRICT) {
+			strategy = new UndefinedEntityStrictInterpretationStrategy();
+		}
+		else
+		if (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM1) {
+			strategy = new UndefinedEntityAsEmptyComplexEntityInterpretationStrategy();
+		}
+		else
+		if (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM2) {
+			strategy = new UndefinedEntityAsNilEntityInterpretationStrategy();
+		}
+		else
+		if (interpretationOfUndefinedEntityStrategyId == InterpretationOfUndefinedEntityStrategyId.UE_IM3) {
+			strategy = new UndefinedEntityAsEntityInterpretationStrategy();
+		}
+		strategy.postLinkProcessUndefinedEntities();
 	}
 }

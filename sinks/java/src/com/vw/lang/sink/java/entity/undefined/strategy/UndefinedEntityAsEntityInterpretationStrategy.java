@@ -38,6 +38,27 @@ public class UndefinedEntityAsEntityInterpretationStrategy extends UndefinedEnti
 			}
 		}
 		linkage.interpretAs(id, id, ctx);
-		return VWMLObjectsRepository.instance().get(id, ctx);
+		// will processed on post linkage step
+		VWMLObject obj = VWMLObjectsRepository.instance().get(id, ctx);
+		addUndefined(obj, ctx);
+		return obj;
+	}
+	
+	@Override
+	public void postLinkProcessOfUndefinedEntity(VWMLObject obj, VWMLContext ctx) throws Exception {
+		VWMLEntity entity = (VWMLEntity)obj;
+		entity.setReadableId(entity.buildReadableId());
+		if (entity.getContext().getLink().getParent() != null) {
+			VWMLContext pctx = (VWMLContext)entity.getContext().getLink().getParent();
+			VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(), pctx);
+			if (e == null) {
+				e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(), pctx);
+			}
+			if (e != null && e != entity) {
+				// rollback
+				entity.resetInterpreting();
+				VWMLObjectsRepository.instance().remove(entity);
+			}
+		}
 	}
 }

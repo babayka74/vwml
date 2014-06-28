@@ -36,7 +36,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			if (interpretingEntity == null) {
 				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entities.get(0));
 				if (interpretingEntity == null) {
-					interpretingEntity = interpretSingleEntity(entities.get(0), originalContext);
+					interpretingEntity = interpretSingleEntity(interpreter, entities.get(0), originalContext);
 				}
 			}
 		}
@@ -75,6 +75,9 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 	}
 
 	protected VWMLEntity deduceInterpretingEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
+		if (entity == null) {
+			return null;
+		}
 		VWMLEntity interpretingEntity = interpretationOfArgumentPair(interpreter, entity);
 		if (interpretingEntity == null) {
 			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
@@ -85,7 +88,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		return interpretingEntity;
 	}
 	
-	protected VWMLEntity interpretSingleEntity(VWMLEntity entity, VWMLContext originalContext) throws Exception {
+	protected VWMLEntity interpretSingleEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity, VWMLContext originalContext) throws Exception {
 		VWMLEntity initialEntity = entity;
 		if (entity == null) {
 			throw new Exception("trying to execute 'INTERPRET' operation on empty stack");
@@ -135,7 +138,14 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			}
 			interpretingEntity = entity.getInterpreting();
 			if (interpretingEntity == null) {
-				throw new Exception("interpreting entity wasn't found for entity '" + entity.getId() + "'");
+				// this case is checked when entity is defined on some contexts, usually happens during static entity definition (see Maze, battleModel3A)
+				if (entity.getContext().getLink().getParent() != null) {
+					VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(readableId, (VWMLContext)(entity.getContext().getLink().getParent()));
+					interpretingEntity = deduceInterpretingEntity(interpreter, e);
+				}
+				if (interpretingEntity == null) {
+					throw new Exception("interpreting entity wasn't found for entity '" + readableId + "'; on contexts '" + onContext.getContext() + "/" + originalContext.getContext() + "'");
+				}
 			}
 			// cached interpreting entity
 			initialEntity.setInterpreting(interpretingEntity);

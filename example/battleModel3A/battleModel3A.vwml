@@ -1,10 +1,10 @@
 options {
 	language=__java__ {
   		package = "com.win.strategy.battle.vwml.model"
-  		path = "c:\var\vwml/battleModel3/src"
+  		path = "c:\var\vwml/battleModel3A/src"
   		author = "Win Interactive"
-		project_name = "battleModel3"
-  		description = "Strategy battle model 3"
+		project_name = "battleModel3A"
+  		description = "Strategy battle model 3A"
 		beyond {
 			fringe communication ias (
 				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
@@ -13,52 +13,55 @@ options {
 			)
 			fringe services ias (
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+				graph ias "com.win.game.model.fringe.gate.algorithm.graphloader.GraphLoader"
 			)
 		}
 		conflictring {
 			"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
 				"{MagicWorld.Player}.PlayerLifeStep.(Stop false).(emptyQ false).LockQueue"
 			)
-			"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(Return false).LockSharedStates" conflicts (
-				"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(EndSearch false).LockSharedStates"
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallel.(Return false).LockSharedStates" conflicts (
+				"[MagicWorld.Characters.Unit].DpfSearchMkAParallel.(EndSearch false).LockSharedStates"
 			)
-			"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.HaveAvailableSteps.LockSharedStates" conflicts (
-				"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(EndSearch false).LockSharedStates"
-				"[MagicWorld.Characters.Unit].DpfSearchMkBParallelInversed.(Return false).LockSharedStates"
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallel.HaveAvailableSteps.LockSharedStates" conflicts (
+				"[MagicWorld.Characters.Unit].DpfSearchMkAParallel.(EndSearch false).LockSharedStates"
+				"[MagicWorld.Characters.Unit].DpfSearchMkAParallel.(Return false).LockSharedStates"
 			)
 		}
 	}
 }
 
-include "../algorithms/DpfBP/DpfBP.vwml"
+include "../algorithms/DpfAP/DpfAP.vwml"
 
-module battleModel3 {
+module battleModel3A {
 	Ew ias (
-		/* maze */
+		/* list of maze's nodes */
+		
 		Maze ias (
-			(-1 -1)
-			(5 0) (6 0) (0 7) (0 8) (0 9)
-			(3 2) (3 3) (3 4) (3 5) (3 6) (3 7) (3 8)
-			(10 2) (10 3) (10 4) (10 5) (10 6) (10 7) (10 8)
-			(12 4) (12 5)
-			(2 10) (3 10) (4 10) (5 10) (6 10) (7 10) (8 10)
-			(4 12) (5 12) (6 12) (7 12) (8 12) (9 12) (10 12) (11 12) (12 12)
-		);
-		MazeLRange ias (0 0);
-		MazeRRange ias (13 13);
-		TargetsToBeDestroyed ias ((6 4) (7 4) (6 5) (7 5));
-		DeltaMovement ias (
-			(-1 0) (0 -1)
-			(0 1) (1 0)
-			(1 1) (-1 -1)
-		);
+			Nodes ias ();
+			BuildMaze ias (
+				(Node ($~ 0) Get)^
+				(LinkedNodes ($~ 1) Get)^
+				// stores node on object store in order to allow further interpretation
+				(Node~ Ew.Maze true) Context
+				(LinkedNodes~ Ew.Maze) Context
+				(Node~ LinkedNodes~)^
+				(Nodes (Nodes~ (Node~)) Join)^
+				((Connecting Node~ with LinkedNodes~ and list of nodes Nodes~) Ew.Output~) Do
+			);
+			(InitialMaze ((battleField) Ew.LoadGraph~) Do)^
+			// using ForEach in order to parse and prepare maze
+			(InitialMaze~ BuildMaze~) ForEach
+		);	
+
+		TargetsToBeDestroyed ias ((16 3) (6 4) (18 6) (16 6));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
 		Output ias communication.in.write;
 		// MoveUnit ias communication.outchannel.move;
 		IncIteration ias services.math.inc;
 		DecValue ias services.math.dec;
-		VSum ias services.math.vsum;
+		LoadGraph ias services.graph.load;
 	);
 	MagicWorld ias (
 		StopTheWorld ias false;
@@ -95,17 +98,19 @@ module battleModel3 {
 						1025 Bp
 					);
 
+					TargetDestroyed ias ((Unit Id~ destroyed target Movement.State~) Ew.Output~) Do;
+
 					CheckPosition ias (
-						(RightPosition false) ias (
+						(RightPosition true) ias (
 							(PosToBeSet~ PosToBeChecked~)^
 						);
-						(RightPosition true) ias (
+						(RightPosition false) ias (
 							(PosToBeSet~ nil)^
 							((The pos PosToBeChecked~ does not belong to maze for unit Id~) Ew.Output~) Do
 						);
 						PosToBeChecked ias nil;
 						PosToBeSet ias nil;
-						(RightPosition (Ew.Maze~ PosToBeChecked~) In)~ Exe
+						(RightPosition (Ew.Maze.Nodes~ PosToBeChecked~) In)~ Exe
  					);
 
 					CheckGoalPositions ias (
@@ -137,21 +142,18 @@ module battleModel3 {
 						(Movement.NoSteps false)^
 						(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
 						((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player Unit.CommandDispatcher.PlayerId~)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
-						((Ew.Maze Ew.DeltaMovement
-							Ew.MazeLRange
-							Ew.MazeRRange
-							Movement.Goals
+						((Movement.Goals
 							Ew.TargetsToBeDestroyed
 							Movement.State
 							(Player Unit.CommandDispatcher.PlayerId~)->UnitsStateSet
 							Movement.SeqStates
-							Ew.VSum
 							Movement.Result
+							Movement.TargetDestroyed
 							Ew.DecValue
 							Movement.RequestedSteps
 							Movement.NumOfRequestedSteps
 							Movement.NoSteps                     	
-							Id) (DpfSearchMkBParallelInversed Id~)~) CallP
+							Id) (DpfSearchMkAParallel Id~)~) CallP
 						(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
 						((Calculated steps Movement.RequestedSteps~ unit Id~) Ew.Output~) Do
 					);
@@ -324,7 +326,7 @@ module battleModel3 {
 				);
 
 				lifeterm = (
-					(DpfSearchMkBParallelInversed (DpfSearchMkBParallelInversed Id~)) Born
+					(DpfSearchMkAParallel (DpfSearchMkAParallel Id~)) Born
 					((The unit Id~ was born) Ew.Output~) Do
 					UnitLifeStep~ Exe
 				) Exe
@@ -351,7 +353,7 @@ module battleModel3 {
 					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
 					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
 						    (
-							(Id~ UnitCommandId~ UnitId~ UnitCommandParams~))
+							(Id~ ($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))
 						    ) Join
 					)^
 					PlayerLifeStep~ Exe
@@ -469,12 +471,14 @@ module battleModel3 {
 					((The manager stopped) Ew.Output~) Do
 				);
 				(Stop StopTheWorld~)~ Exe
-			);	
+			);
 
 			source lifeterm = (
 				((The initialization time) Ew.Output~) Do
 				3000 Relax
-				((The game manager started and waits for commands) Ew.Output~) Do
+				((The game manager started and loads maze) Ew.Output~) Do
+				Ew.Maze~ Exe
+				((The game manager waits for commands) Ew.Output~) Do
 				MainLoop~ Exe
 				3000 Relax
 			) Exe
@@ -484,13 +488,13 @@ module battleModel3 {
 			Injection ias (
 				(manager 0 playeradd 0)
 				(player 0 create 0)
-				(player 0 startpos 0 (1 1))
-				(player 0 movetopos 0 ((6 4) (7 4) (6 5) (7 5)))
+				(player 0 startpos 0 Ew.Maze.(8 1))
+				(player 0 movetopos 0 (Ew.Maze.(18 6) Ew.Maze.(6 1) Ew.Maze.(18 1) Ew.Maze.(4 1)))
 				(player 0 go 0)
 
 				(player 0 create 1)
-				(player 0 startpos 1 (12 1))
-				(player 0 movetopos 1 ((6 4) (7 4) (6 5) (7 5)))
+				(player 0 startpos 1 Ew.Maze.(8 2))
+				(player 0 movetopos 1 (Ew.Maze.(18 6) Ew.Maze.(6 1) Ew.Maze.(18 1) Ew.Maze.(4 1)))
 				(player 0 go 1)
 
 			);

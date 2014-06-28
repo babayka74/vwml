@@ -3,6 +3,8 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.applytoct
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -28,8 +30,8 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
-		if (entities.size() != 2) {
-			throw new Exception("arguments != 2 for operation 'OPAPPLYTOCONTEXT'");
+		if (entities.size() < 2) {
+			throw new Exception("arguments < 2 for operation 'OPAPPLYTOCONTEXT'");
 		}
 		else {
 			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
@@ -41,7 +43,7 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
 			if (entity.isMarkedAsComplexEntity()) {
-				if (entity.getLink().getLinkedObjectsOnThisTime() == 2) {
+				if (entity.getLink().getLinkedObjectsOnThisTime() >= 2) {
 					applyContext(entity);
 				}
 				else
@@ -62,16 +64,28 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 	}
 
 	private void applyContext(VWMLEntity entity) throws Exception {
-		if (entity.getLink().getLinkedObjectsOnThisTime() == 2) {
+		if (entity.getLink().getLinkedObjectsOnThisTime() >= 2) {
 			VWMLEntity e = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 			String contextToFind = buildAbsoluteContext((VWMLEntity)entity.getLink().getConcreteLinkedEntity(1));
+			VWMLEntity storeEntityOnObjectRepository = null;
+			if (entity.getLink().getLinkedObjectsOnThisTime() == 3) {
+				storeEntityOnObjectRepository = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(2);
+			}
 			VWMLContext ctx = VWMLContextsRepository.instance().get(contextToFind);
 			if (ctx == null) {
 				throw new Exception("couldn't find context identified by '" + contextToFind + "'; operation 'OPAPPLYTOCONTEXT'");
 			}
-			e.getContext().unAssociateEntity(e);
 			e.setContext(ctx);
-			ctx.associateEntity(e);
+			if (storeEntityOnObjectRepository != null && storeEntityOnObjectRepository.equals(VWMLObjectsRepository.instance().getTrueEntity())) {
+				VWMLObjectsRepository.instance().remove(e);
+				e.setReadableId(e.buildReadableId());
+				e.setId(e.getReadableId());
+				VWMLObjectsRepository.instance().add(e);
+			}
+			else {
+				e.getContext().unAssociateEntity(e);
+				ctx.associateEntity(e);
+			}
 		}
 	}
 	
