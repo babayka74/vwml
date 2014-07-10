@@ -30,6 +30,14 @@ public abstract class VWMLModule {
 	public abstract void linkage() throws Exception;
 	
 	/**
+	 * Clears all resources which were allocated by module
+	 * @throws Exception
+	 */
+	public void clear() throws Exception {
+		throw new Exception("Unsupported method clear");
+	}
+	
+	/**
 	 * Returns repository associated with given module; overridden by concrete module
 	 * @return
 	 */

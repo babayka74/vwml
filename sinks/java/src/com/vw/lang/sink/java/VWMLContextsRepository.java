@@ -23,9 +23,17 @@ public class VWMLContextsRepository extends VWMLRepository {
 	
 	private Map<Object, VWMLContext> contextsMap = new HashMap<Object, VWMLContext>();
 	
-	private static final VWMLContextsRepository s_contextsRepository = new VWMLContextsRepository();
+	private static VWMLContextsRepository s_contextsRepository = null;
 	
 	public static VWMLContextsRepository instance() {
+		if (s_contextsRepository != null) {
+			return s_contextsRepository;
+		}
+		synchronized(VWMLContextsRepository.class) {
+			if (s_contextsRepository == null) {
+				s_contextsRepository = new VWMLContextsRepository();
+			}
+		}
 		return s_contextsRepository;
 	}
 	
@@ -62,6 +70,15 @@ public class VWMLContextsRepository extends VWMLRepository {
 		VWMLContextsRepository.instance().release(clonedContext);
 	}
 
+	/**
+	 * Releases all contexts
+	 */
+	public void removeAll() {
+		VWMLContextsRepository.instance().release(VWMLContextsRepository.instance().getRootContext());
+		contextsMap.clear();
+		markAsInvalid();
+	}
+	
 	/**
 	 * Removes entity which was associated with context from context itslef
 	 * @param entity
@@ -283,4 +300,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		context.getAssociatedEntities().remove(entity);
 	}
 
+	protected void markAsInvalid() {
+		s_contextsRepository = null;
+	}
 }

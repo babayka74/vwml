@@ -54,7 +54,7 @@ module battleModel3A {
 			(InitialMaze~ BuildMaze~) ForEach
 		);	
 
-		TargetsToBeDestroyed ias ((16 3) (6 4) (18 6) (16 6));
+		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
 		Output ias communication.in.write;
@@ -91,11 +91,10 @@ module battleModel3A {
 						(NoSteps false) ias (
 							(Movement.GoalReached true)^
 							(Movement.AllGoalsReached (Movement.Goals~ ()) Ident)^
+							((Result detected left goals for Id~ are Movement.Goals~ Ew.TargetsToBeDestroyed~) Ew.Output~) Do
 						);
-						(NoSteps true) ias (Movement.AllGoalsReached true)^;
+						(NoSteps true) ias ((No steps for unit Id~ all nodes were visited by others units) Ew.Output~) Do;
 						(NoSteps Movement.NoSteps~)~ Exe
-						((Result detected left goals for Id~ are Movement.Goals~ Ew.TargetsToBeDestroyed~) Ew.Output~) Do
-						1025 Bp
 					);
 
 					TargetDestroyed ias ((Unit Id~ destroyed target Movement.State~) Ew.Output~) Do;
@@ -103,6 +102,7 @@ module battleModel3A {
 					CheckPosition ias (
 						(RightPosition true) ias (
 							(PosToBeSet~ PosToBeChecked~)^
+							(PosToBeChecked~ Ew.Maze true) Context
 						);
 						(RightPosition false) ias (
 							(PosToBeSet~ nil)^
@@ -166,8 +166,9 @@ module battleModel3A {
 							UnitLifeStep~ Exe
 						);
 						(FinishedMovement false) ias (
-							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
-							300 Relax
+							(TimeToStep (100 300 600 1200) Random)^
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~ time TimeToStep~) Ew.Output~) Do
+							TimeToStep~ Relax
 							(Movement.PrevState Movement.State~)^
                                 			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
 							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
@@ -184,21 +185,20 @@ module battleModel3A {
 								(Movement.AllGoalsReached false)^
 								(Unit.CommandDispatcher.UnitCommandId stay)^
 							);
+							(AllTargetsDestroyed true) ias (
+								((The unit Id~ detected that all shared targets destroyed) Ew.Output~) Do
+                                                		(Unit.CommandDispatcher.UnitCommandId stay)^
+							);
+							(AllTargetsDestroyed false) ias doNothing;
 							(PathPassed true)^
 							(Movement.State Movement.PrevState~)^
 							(Walking false)^
 							(Init true)^
 							(GoalReached Movement.GoalReached~ Movement.AllGoalsReached~)~ Exe
+							(AllTargetsDestroyed (Ew.TargetsToBeDestroyed~ ()) Ident)~ Exe
 						);
-						(AllTargetsDestroyed true) ias (
-							((The unit Id~ detected that all shared targets destroyed) Ew.Output~) Do
-                                                	(Unit.CommandDispatcher.UnitCommandId stay)^
-						);
-						(AllTargetsDestroyed false) ias (
-							(Init Movement.Init~)~ Exe
-							(FinishedMovement (Movement.State~ nil) Ident)~ Exe
-						);
-						(AllTargetsDestroyed (Ew.TargetsToBeDestroyed~ ()) Ident)~ Exe
+						(Init Movement.Init~)~ Exe
+						(FinishedMovement (Movement.State~ nil) Ident)~ Exe
 					);
 
 					HandleIfUnitVisitedPosition ias (
@@ -446,7 +446,7 @@ module battleModel3A {
 				(Stop false) ias (
 					(WaitForCommand true) ias (
 						(NoAutoCommand false) ias (
-							1000 Relax
+							200 Relax
 							(Command (AutoCommands.Injection~) First)^
 							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
 							((The auto command Command~) Ew.Output~) Do
@@ -488,14 +488,19 @@ module battleModel3A {
 			Injection ias (
 				(manager 0 playeradd 0)
 				(player 0 create 0)
-				(player 0 startpos 0 Ew.Maze.(8 1))
-				(player 0 movetopos 0 (Ew.Maze.(18 6) Ew.Maze.(6 1) Ew.Maze.(18 1) Ew.Maze.(4 1)))
+				(player 0 startpos 0 (0 39))
+				(player 0 movetopos 0 ((17 10)))
 				(player 0 go 0)
 
 				(player 0 create 1)
-				(player 0 startpos 1 Ew.Maze.(8 2))
-				(player 0 movetopos 1 (Ew.Maze.(18 6) Ew.Maze.(6 1) Ew.Maze.(18 1) Ew.Maze.(4 1)))
+				(player 0 startpos 1 (5 39))
+				(player 0 movetopos 1 ((17 10)))
 				(player 0 go 1)
+
+				(player 0 create 2)
+				(player 0 startpos 2 (29 39))
+				(player 0 movetopos 2 ((17 10)))
+				(player 0 go 2)
 
 			);
 		);

@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
@@ -16,12 +18,12 @@ import com.vw.lang.sink.utils.GeneralUtils;
  */
 public class VWMLConflictRing {
 	private int currentGroupIndex = 0;
+	private int artificialId = 0;
 	private boolean initialyEmptyRing = false;
 	// actual conflict ring data structure
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
 	private Map<String, String> conflictDef2TermAssociation = new HashMap<String, String>();
-	private static int s_artificialId = 0;
 	// singleton implementation
 	private static VWMLConflictRing s_conflictRing = null;
 	
@@ -37,6 +39,7 @@ public class VWMLConflictRing {
 			return s_conflictRing;
 		}
 		s_conflictRing = new VWMLConflictRing();
+		s_conflictRing.init();
 		return s_conflictRing;
 	}
 
@@ -52,15 +55,38 @@ public class VWMLConflictRing {
 	/**
 	 * Ring's initialization steps
 	 */
-	public static void init() {
-		
+	public void init() {
+		artificialId = 0;
+		currentGroupIndex = 0;
+		initialyEmptyRing = false;
+		// actual conflict ring data structure
+		groupsConflictRing.clear();
+		nodesConflictRing.clear();
+		conflictDef2TermAssociation.clear();
 	}
 	
 	/**
 	 * Ring's un-initialization steps
 	 */
-	public static void done() {
+	public void done() {
 		
+	}
+
+	/**
+	 * Clears all associated resources (repository, fringes, etc)
+	 * @throws Exception
+	 */
+	public void clear() throws Exception {
+		VWMLContextsRepository.instance().removeAll();
+		VWMLObjectsRepository.instance().removeAll();
+		removeAll();
+		markAsInvalid();
+	}
+	
+	public void removeAll() throws Exception {
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			g.clear();
+		}
 	}
 	
 	/**
@@ -197,6 +223,10 @@ public class VWMLConflictRing {
 			}
 		}
 	}
+
+	protected void markAsInvalid() {
+		s_conflictRing = null;
+	}
 	
 	private String associateBoundTermAndConflictDefinition(String conflict) {
 		String parsedAssociation = conflict;
@@ -242,12 +272,12 @@ public class VWMLConflictRing {
 	
 	private VWMLConflictRingExecutionGroup buildArtificialGroupAndAssociatedNode(String context) {
 		VWMLConflictRingExecutionGroup g = null;
-		String id = context + "." + "artificialId_" + s_artificialId;
+		String id = context + "." + "artificialId_" + artificialId;
 		conflictDef2TermAssociation.put(id, context);
 		g = VWMLConflictRingExecutionGroup.build(id, id);
 		VWMLConflictRingNode n = VWMLConflictRingNode.build(id, id);
 		addNode(g, n);
-		s_artificialId++;
+		artificialId++;
 		return g;
 	}
 	

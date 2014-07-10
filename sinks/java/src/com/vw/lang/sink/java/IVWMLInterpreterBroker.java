@@ -20,6 +20,12 @@ public interface IVWMLInterpreterBroker {
 	 * @throws Exception
 	 */
 	public void start() throws Exception;
+	
+	/**
+	 * Clears all resources which were allocated during interpreter's session
+	 * @throws Exception
+	 */
+	public void clear() throws Exception;
 	/**
 	 * Builds modules' initial state
 	 * @throws Exception

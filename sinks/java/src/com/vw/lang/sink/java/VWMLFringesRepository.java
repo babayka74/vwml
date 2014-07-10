@@ -23,6 +23,10 @@ public class VWMLFringesRepository {
 		associateFringe2Gates(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
 	}
 	
+	public static VWMLFringesRepository instance() {
+		return s_instance;
+	}
+	
 	/**
 	 * Registers fringe; associate fringe's name and its gate
 	 * @param fringe
@@ -49,6 +53,15 @@ public class VWMLFringesRepository {
 		return s_DebugFringeReservedName;
 	}
 
+	/**
+	 * Unregisters all registered fringes
+	 * @throws Exception
+	 */
+	public void removeAll() throws Exception {
+		fringeGates.clear();
+		associateFringe2Gates(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
+	}
+	
 	/**
 	 * Returns built-in timer manager fringe's name
 	 * @return

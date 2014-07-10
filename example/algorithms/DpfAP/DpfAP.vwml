@@ -77,9 +77,9 @@ module DpfAP {
 		(EndSearch false) ias (
 			GetNextStates~ Exe
 			LockSharedStates [
-				((by Uid~~ substructing NextStates~ from StateSet~~) Ew.Output~) Do
+				//((by Uid~~ substructing NextStates~ from StateSet~~) Ew.Output~) Do
 				(ChoiceSet~ (NextStates~ StateSet~~) Substruct)^
-				((Changed by Uid~~ substructed choices ChoiceSet~~ next NextStates~) Ew.Output~) Do
+				//((Changed by Uid~~ substructed choices ChoiceSet~~ next NextStates~) Ew.Output~) Do
 			LockSharedStates ]
 			(Return (ChoiceSet~~ ()) Ident)~ Exe
 		);
@@ -97,21 +97,21 @@ module DpfAP {
 				(AvailableSteps AvailableSteps~)~ Exe
 			);
 			(SeqStatesEmpty false) ias Run~ Exe;
-			((by Uid~~ seq states set SeqStates~~) Ew.Output~) Do
+			//((by Uid~~ seq states set SeqStates~~) Ew.Output~) Do
 			(State~ (SeqStates~~) Last)^
 			(SeqStates~ (SeqStates~~) Begin)^
 			CollectRequestedSteps~ Exe
 			(SeqStatesEmpty (SeqStates~~ ()) Ident)~ Exe
 		);
 		(Return false) ias (
-			((choice set ChoiceSet~~) Ew.Output~) Do
+			//((choice set ChoiceSet~~) Ew.Output~) Do
 			GetNewState~ Exe
-			((new state NewState~) Ew.Output~) Do
+			//((new state NewState~) Ew.Output~) Do
 			(State~ NewState~)^
 			(SeqStates~ (SeqStates~~ (State~~)) Join)^
 			((Added state State~~) Ew.Output~) Do
 			LockSharedStates [
-				((Changed by Uid~~ joined) Ew.Output~) Do
+				//((Changed by Uid~~ joined) Ew.Output~) Do
 				(StateSet~ (StateSet~~ (State~~)) Join)^
 			LockSharedStates ]
 			CollectRequestedSteps~ Exe
