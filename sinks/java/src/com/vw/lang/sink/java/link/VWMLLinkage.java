@@ -39,6 +39,10 @@ public class VWMLLinkage {
 		return modLifeTerms;
 	}
 
+	public static void resetAllLifeTerms() {
+		modLifeTerms.clear();
+	}
+	
 	/**
 	 * Returns list of all source lifeterms
 	 * @return

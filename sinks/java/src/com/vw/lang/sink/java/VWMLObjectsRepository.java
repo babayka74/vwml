@@ -19,40 +19,7 @@ public class VWMLObjectsRepository {
 
 	// defines static types of unchanged entities
 	private VWMLObjectsRepository() {
-		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
-		VWMLEntity e = null;
-		// built-in complex entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// built-in simple entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// built-in simple entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NullEntityId, VWMLEntity.s_NullEntityId, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId2, VWMLEntity.s_doNothingEntityId2, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId3, VWMLEntity.s_doNothingEntityId3, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// built-in logical 'false' entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, VWMLEntity.s_falseEntityId, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
-		// built-in logical 'true' entity id
-		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, VWMLEntity.s_trueEntityId, defaultContext, 0, null);
-		e.setOriginal(true);
-		add(e);
+		init();
 	}
 	
 	public static boolean notAsOriginal = false;
@@ -62,10 +29,18 @@ public class VWMLObjectsRepository {
 	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
 	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
 	
-	private static final VWMLObjectsRepository s_repo = new VWMLObjectsRepository();
+	private static VWMLObjectsRepository s_repo = null;
 
 	
 	public static VWMLObjectsRepository instance() {
+		if (s_repo != null) {
+			return s_repo;
+		}
+		synchronized(VWMLObjectsRepository.class) {
+			if (s_repo == null) {
+				s_repo = new VWMLObjectsRepository();
+			}
+		}
 		return s_repo;
 	}
 
@@ -166,6 +141,43 @@ public class VWMLObjectsRepository {
 		}
 		return r;
 	}
+
+	public void init() {
+		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
+		VWMLEntity e = null;
+		// built-in complex entity id
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// built-in simple entity id
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// built-in simple entity id
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NullEntityId, VWMLEntity.s_NullEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId2, VWMLEntity.s_doNothingEntityId2, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId3, VWMLEntity.s_doNothingEntityId3, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// built-in logical 'false' entity id
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, VWMLEntity.s_falseEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+		// built-in logical 'true' entity id
+		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, VWMLEntity.s_trueEntityId, defaultContext, 0, null);
+		e.setOriginal(true);
+		add(e);
+	}
 	
 	public void add(VWMLEntity obj) {
 		if (obj.getContext() == null) {
@@ -185,6 +197,16 @@ public class VWMLObjectsRepository {
 		}
 	}
 
+	public void removeAll() {
+		for(VWMLObject o : repo.values()) {
+			VWMLEntity e = (VWMLEntity)o;
+			e.getLink().unlinkFromAll();
+			e.getContext().unAssociateEntity(e);
+		}
+		repo.clear();
+		markAsInvalid();
+	}
+	
 	public boolean removeWithoutContextCleaning(VWMLEntity obj) {
 		if (obj.getContext() == null) {
 			return false; // temporary entity
@@ -412,5 +434,9 @@ public class VWMLObjectsRepository {
 	
 	protected String buildAssociatingKeyOnContext(VWMLEntity obj) {
 		return buildAssociationKey(obj.getContext().getContext(), (String)obj.getId());
+	}
+	
+	protected void markAsInvalid() {
+		s_repo = null;
 	}
 }

@@ -1,14 +1,10 @@
 package com.win.game.model.fringe.gate.algorithm.graphloader;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import javax.imageio.stream.FileImageInputStream;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;

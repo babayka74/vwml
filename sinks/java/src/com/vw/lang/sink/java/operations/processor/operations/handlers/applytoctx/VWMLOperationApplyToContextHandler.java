@@ -3,7 +3,6 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.applytoct
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
-import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;

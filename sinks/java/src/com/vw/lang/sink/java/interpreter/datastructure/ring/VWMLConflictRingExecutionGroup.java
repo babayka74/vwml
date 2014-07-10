@@ -65,6 +65,12 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		return interpreter;
 	}
 	
+	public void clear() {
+		group.clear();
+		removedNodes.clear();
+		implicitMaster = null;
+	}
+	
 	public void reset() throws Exception {
 		VWMLConflictRingNode master = null;
 		for(VWMLConflictRingNode n : group) {

@@ -137,8 +137,9 @@ public class VWML2JavaInterpreterBridge {
 		body += "\tprivate static " + s_className + " s_instance = new " + s_className + "();\r\n\r\n\tprivate " + s_className + "() {\r\n\t}\r\n\r\n";
 		body += "\tpublic static " + s_className + " instance() {\r\n\t\ts_instance.init();\r\n\t\treturn s_instance;\r\n\t}\r\n\r\n";
 		body += "\tpublic VWMLModule[] getModules() {\r\n\t\treturn modules;\r\n\t}\r\n\r\n";
-		body += "\tpublic void startInterpretationProcess() throws Exception {\r\n\t\tvwmlInterpreterBroker.setDebuggerGate(debuggerGate);\r\n\t\tvwmlInterpreterBroker.start();\r\n\t}\r\n\r\n";
-		body += "\tpublic void buildLinks() throws Exception {\r\n\t\tvwmlInterpreterBroker.build();\r\n\t}\r\n\r\n";
+		body += "\tpublic void startInterpretationProcess() throws Exception {\r\n\t\tif (vwmlInterpreterBroker == null) {\r\n\t\t\tvwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\t\t}\r\n\t\tvwmlInterpreterBroker.setDebuggerGate(debuggerGate);\r\n\t\tvwmlInterpreterBroker.start();\r\n\t}\r\n\r\n";
+		body += "\tpublic void clearResources() throws Exception {\r\n\t\tvwmlInterpreterBroker.clear();\r\n\t\tvwmlInterpreterBroker = null;\r\n\t}\r\n\r\n";
+		body += "\tpublic void buildLinks() throws Exception {\r\n\t\tif (vwmlInterpreterBroker == null) {\r\n\t\t\tvwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\t\t}\r\n\t\tvwmlInterpreterBroker.build();\r\n\t}\r\n\r\n";
 		if (debuggerGateName != null) {
 			body += "\tprotected void init() {\r\n\t\tdebuggerGate = " + debuggerGateName + ".instance();\r\n\t}\r\n";
 		}
@@ -151,7 +152,7 @@ public class VWML2JavaInterpreterBridge {
 	private String prepareDeclarations(Set<String> vwmlModules, JavaModuleStartProps projProps) {
 		String declarations = prepareModulesDeclaration(vwmlModules) + "\r\n";
 		declarations += prepareInterpretersProperties(projProps.getInterpretationProps());
-		declarations += "\tprivate IVWMLInterpreterBroker vwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\r\n";
+		declarations += "\tprivate IVWMLInterpreterBroker vwmlInterpreterBroker = null;\r\n\r\n";
 		declarations += "\tprivate IVWMLGate debuggerGate = null;\r\n\r\n";
 		return declarations;
 	}

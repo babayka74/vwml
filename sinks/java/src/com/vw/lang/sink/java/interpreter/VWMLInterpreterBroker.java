@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.parallel.VWMLParallelTermInterpreter;
 import com.vw.lang.sink.java.interpreter.reactive.VWMLReactiveTermInterpreter;
 import com.vw.lang.sink.java.interpreter.seq.VWMLSequentialTermInterpreter;
@@ -109,6 +110,13 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		impl.start();
 	}
 
+	@Override
+	public void clear() throws Exception {
+		VWMLConflictRing.instance().clear();
+		VWMLLinkage.resetAllLifeTerms();
+		modulesBuilt = false;
+	}
+	
 	protected void prepareConfiguration() {
 		VWMLPair p = null;
 		if (getPropPairs() != null) {
