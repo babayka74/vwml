@@ -1,0 +1,37 @@
+module Defender {
+	MagicWorld ias (
+		Characters ias (
+			Defender ias (
+				// unit id
+				Id ias nil;
+				// player id
+				PlayerId ias nil;
+				/* unit selected by player */
+				Selected ias false;
+
+				Init ias (
+					ActivityStrategy.Init~ Exe
+					((The defender Id~ for user PlayerId~ initialized) Ew.Output~) Do
+				);
+				ActivityStrategy ias (
+					// initialization steps
+					Init ias (
+						(Services.PositionChecker (Services.PositionChecker Id~)) Born
+					);
+					/* movement's parameters (stubs almost) */
+					Movement ias (
+						SetStartPos ias (
+							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
+                        	                        Services.(PositionChecker Id~)->CheckPosition~ Exe
+							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
+							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+						);
+						SetMoveToPos ias doNothing;
+						CheckAndStart ias doNothing;
+					);
+				);
+			);
+		);
+	);
+}

@@ -1,0 +1,169 @@
+
+include "../algorithms/DpfAPEx/DpfAPEx.vwml"
+
+module Attacker {
+	MagicWorld ias (
+		Characters ias (
+			Attacker ias (
+				// unit id
+				Id ias nil;
+				// player id
+				PlayerId ias nil;
+				/* unit selected by player */
+				Selected ias false;
+
+				Init ias (
+					ActivityStrategy.Init~ Exe
+					((The attacker Id~ for user PlayerId~ initialized) Ew.Output~) Do
+				);
+				ActivityStrategy ias (
+					// initialization steps
+					Init ias (
+						(Services.PositionChecker Services.(PositionChecker Id~)) Born
+						(DpfSearchMkAParallelEx (DpfSearchMkAParallelEx Id~)) Born
+					);
+					/* movement's parameters */
+					Movement ias (
+						Goals ias ();
+						GoalReached ias false;
+						AllGoalsReached ias false;
+						SeqStates ias ();
+						RequestedSteps ias ();
+						State ias nil;
+						PrevState ias nil;
+						Init ias true;
+						Iteration ias 0;
+						PathPassed ias false;
+						Walking ias false;
+						NumOfRequestedSteps ias 1;
+						NoSteps ias false;
+
+						Result ias (
+							(NoSteps false) ias (
+								(Movement.GoalReached true)^
+								(Movement.AllGoalsReached (Movement.Goals~ ()) Ident)^
+								((Result detected left goals for Id~ are Movement.Goals~ Ew.TargetsToBeDestroyed~) Ew.Output~) Do
+							);
+							(NoSteps true) ias ((No steps for unit Id~ all nodes were visited by others units) Ew.Output~) Do;
+							(NoSteps Movement.NoSteps~)~ Exe
+						);      
+
+						TargetDestroyed ias ((Unit Id~ destroyed target Movement.State~) Ew.Output~) Do;
+
+						Recalculate ias (
+							(Movement.RequestedSteps ())^
+							(Movement.Init false)^
+							(Movement.Iteration 0)^
+							(Movement.PathPassed false)^
+							(Movement.NoSteps false)^
+							(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
+							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
+							((Movement.Goals
+								Ew.TargetsToBeDestroyed
+								Movement.State
+								(Player PlayerId~)->UnitsStateSet
+								Movement.SeqStates
+								Movement.Result
+								Movement.TargetDestroyed
+								Ew.DecValue
+								Movement.RequestedSteps
+								Movement.NumOfRequestedSteps
+								Movement.NoSteps                     	
+								Id) (DpfSearchMkAParallelEx Id~)~) CallP
+							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
+							((Calculated steps Movement.RequestedSteps~ unit Id~) Ew.Output~) Do
+						);
+						CheckAndStart ias (
+							(PathPassed true true) ias ((Unit Id~)->(CommandDispatcher)->UnitCommandId stop)^;
+							(PathPassed false false),(PathPassed false true),(PathPassed true false) ias Movement.Go~ Exe;
+							(PathPassed Movement.PathPassed~ Selected~)~ Exe 
+						);
+						Go ias (
+							// start movement, all parameters are correct
+							(Init false) ias (FinishedMovement (Movement.State~ nil) Ident)~ Exe;
+							(Init true) ias (
+								Recalculate~ Exe
+							);
+							(FinishedMovement false) ias (
+								((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
+								300 Relax
+								(Movement.PrevState Movement.State~)^
+                                				(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
+								(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
+								(Walking true)^ 
+							);
+							(FinishedMovement true) ias (
+								(GoalReached false false) ias doNothing;
+								(GoalReached true false) ias (
+									((The unit Id~ reached goal Movement.State~ and looks for another goal from Movement.Goals~) Ew.Output~) Do
+									(Movement.GoalReached false)^
+								);
+								(GoalReached false true), (GoalReached true true) ias (
+									((The unit Id~ reached all goals) Ew.Output~) Do
+									(Movement.AllGoalsReached false)^
+									((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+								);
+								(AllTargetsDestroyed true) ias (
+									((The unit Id~ detected that all shared targets destroyed) Ew.Output~) Do
+                                                			((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+								);
+								(AllTargetsDestroyed false) ias doNothing;
+								(PathPassed true)^
+								(Movement.State Movement.PrevState~)^
+								(Walking false)^
+								(Init true)^
+								(GoalReached Movement.GoalReached~ Movement.AllGoalsReached~)~ Exe
+								(AllTargetsDestroyed (Ew.TargetsToBeDestroyed~ ()) Ident)~ Exe
+							);
+							(Init Movement.Init~)~ Exe
+						);
+						SetStartPos ias (
+							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
+                                        	        Services.(PositionChecker Id~)->CheckPosition~ Exe
+							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
+							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+						);
+						SetMoveToPos ias (
+							(Walking true) ias (
+								(Movement.Init true)^
+								((Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
+							);
+							(Walking false) ias (
+								// goal reached and new goal set, no need to wait for go command
+								(NewMovement true) ias (
+									(Movement.Init true)^
+									(Movement.PathPassed false)^
+									(Movement.GoalReached false)^
+									((Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
+								);
+								(NewMovement false) ias (
+									((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+								);
+								(NewMovement Movement.PathPassed~)~ Exe
+							);
+							(MovementGoalCorrect true) ias (
+								((The unit Id~ has finish positions Movement.Goals~) Ew.Output~) Do
+								(Walking Movement.Walking~)~ Exe
+							);
+							(MovementGoalCorrect false) ias (
+								(FollowingCommandGo true) ias (
+									((Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
+								);
+								(FollowingCommandGo false) ias (
+									((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+								);
+								(FollowingCommandGo Movement.Walking~)~ Exe
+							);
+							(Services.(PositionChecker Id~)->(CheckGoalPositions)->RollbackGoals Movement.Goals~)^
+							(Movement.Goals (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
+							(Services.(PositionChecker Id~)->(CheckGoalPositions)->Correct true)^ 
+							Services.(PositionChecker Id~)->CheckGoalPositions~ Exe
+							(MovementGoalCorrect Services.(PositionChecker Id~)->(CheckGoalPositions)->Correct~)~ Exe
+						);
+					);
+				);
+			);
+		);
+	);
+}

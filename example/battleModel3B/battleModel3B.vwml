@@ -1,0 +1,414 @@
+options {
+	language=__java__ {
+  		package = "com.win.strategy.battle.vwml.model"
+  		path = "c:\var\vwml/battleModel3B/src"
+  		author = "Win Interactive"
+		project_name = "battleModel3B"
+  		description = "Strategy battle model 3B"
+		beyond {
+			fringe communication ias (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				// outchannel ias "com.win.strategy.battle.vwml.gate.BMVWMLMoveBehaviorGate"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+				graph ias "com.win.game.model.fringe.gate.algorithm.graphloader.GraphLoader"
+			)
+		}
+		conflictring {
+			"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
+				"{MagicWorld.Player}.PlayerLifeStep.(Stop false).(emptyQ false).LockQueue"
+			)
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
+				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
+			)
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates" conflicts (
+				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
+				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
+			)
+		}
+	}
+}
+
+include "attacker.vwml"
+include "defender.vwml"
+
+module battleModel3B {
+	Ew ias (
+		/* list of maze's nodes */
+		
+		Maze ias (
+			/* all maze's nodes */
+			Nodes ias ();
+			/* nodes marked as 'attacking' */
+			ANodes ias ();
+			BuildMaze ias (
+				(Node ($~ 0) Get)^
+				(LinkedNodes ($~ 1) Get)^
+				// stores node on object store in order to allow further interpretation
+				(Node~ Ew.Maze true) Context
+				(LinkedNodes~ Ew.Maze) Context
+				(Node~ LinkedNodes~)^
+				(Nodes (Nodes~ (Node~)) Join)^
+				((Connecting Node~ with LinkedNodes~ and list of nodes Nodes~) Ew.Output~) Do
+			);
+			// main battlefield
+			(InitialMaze ((battleField) Ew.LoadGraph~) Do)^
+			// using ForEach in order to parse and prepare maze
+			(InitialMaze~ BuildMaze~) ForEach
+			// attack firezones
+			AttackFireZone ias ();
+			BuildAttackFireZone ias (
+				(ANode ($~ 0) Get)^
+				(LinkedANodes ($~ 1) Get)^
+				(ANode~ Ew.Maze) Context
+				((ANode~ AZone) LinkedANodes~)^
+				(ANodes (ANodes~ ((ANode~ AZone))) Join)^
+				((Connecting (ANode~ AZone) with LinkedANodes~ and list of nodes ANodes~) Ew.Output~) Do
+			);
+			(InitialAttackFireZone ((attackFireZoneField) Ew.LoadGraph~) Do)^
+			// using ForEach in order to parse and prepare attack zone
+			(InitialAttackFireZone~ BuildAttackFireZone~) ForEach
+		);	
+
+		TargetsToBeDestroyed ias ((17 10));
+		ConfiguredNumOfRequestedSteps ias 4;
+		Input ias communication.in.read;
+		Output ias communication.in.write;
+		// MoveUnit ias communication.outchannel.move;
+		IncIteration ias services.math.inc;
+		DecValue ias services.math.dec;
+		LoadGraph ias services.graph.load;
+	);
+	MagicWorld ias (
+		StopTheWorld ias false;
+		Services ias (
+			PositionChecker ias (
+				Init ias doNothing;
+				CheckPosition ias (
+					(RightPosition true) ias (
+						(PosToBeSet~ PosToBeChecked~)^
+						(PosToBeChecked~ Ew.Maze true) Context
+					);
+					(RightPosition false) ias (
+						(PosToBeSet~ nil)^
+						((The pos PosToBeChecked~ does not belong to maze for unit Id~) Ew.Output~) Do
+					);
+					PosToBeChecked ias nil;
+					PosToBeSet ias nil;
+					(RightPosition (Ew.Maze.Nodes~ PosToBeChecked~) In)~ Exe
+ 				);
+				CheckGoalPositions ias (
+					Correct ias true;
+					T ias nil;
+					RollbackGoals ias ();
+					CheckGoal ias (
+						(NotCorrectGoal true) ias (
+							(Correct false)^
+							((The goals Goals~ are invalid for unit Id~) Ew.Output~) Do
+							(Goals RollbackGoals~)^
+							($ doNothing)^
+						);
+						(NotCorrectGoal false) ias doNothing;
+						(CheckPosition.PosToBeChecked $~)^
+						(CheckPosition.PosToBeSet T)^
+						((Checking CheckPosition.PosToBeChecked~) Ew.Output~) Do
+						CheckPosition~ Exe
+						(NotCorrectGoal (T~ nil) Ident)~ Exe
+					);
+					(Goals~ CheckGoal~) ForEach
+				);
+			);
+		);
+		Characters ias (
+			/* general game unit */
+			Unit ias (
+				Properties ias (type);
+				/* available unit's types  */
+				Types ias (attacker defender);
+				/* default type is attacker */
+				Type ias attacker;
+				Id ias nil;
+				PlayerId ias nil;
+				/* concrete unit */
+				ConcreteUnit ias nil;
+				/* sets unit's property  */
+				PropertySetOperation ias (
+					(RightProp false) ias (
+						((The unit Id~ can not set invalid property named by Prop~) Ew.Output~) Do
+					);
+					(RightProp true) ias (
+						(Property type) ias (
+							(Create attacker) ias (
+								(Attacker.Id Id~)^
+								(Attacker.PlayerId PlayerId~)^
+								(Attacker (Attacker Id~)) Born
+								(ConcreteUnit Characters.(Attacker Id~))^
+								((The attacker Id~ created) Ew.Output~) Do
+							);
+							(Create defender) ias (
+								(Defender.Id Id~)^
+								(Defender.PlayerId PlayerId~)^
+								(Defender (Defender Id~)) Born
+								(ConcreteUnit Characters.(Defender Id~))^
+								((The defender Id~ created) Ew.Output~) Do
+							);
+							(Type Value~)^
+							(Create Type~)~ Exe
+							(ConcreteUnit~)->Init~ Exe
+						);
+						(Value ($~ 1) Get)^
+						(Property Prop~)~ Exe
+					);
+					(Prop ($~ 0) Get)^
+					((The unit Id~ received property Prop~) Ew.Output~) Do
+					(RightProp (Properties~ Prop~) In)~ Exe 
+				);
+				/* unit receives commands in deferred manner */
+				CommandQueue ias ();
+				CommandDispatcher ias (
+					Dispatch ias nil;
+					LastUnitCommandId ias stay;
+					UnitCommandId ias stay;
+					UnitId ias nil;
+					UnitCommandParams ias nil;
+
+					(Handle stay) ias (
+						UnitLifeStep~ Exe
+					);
+					(Handle stop) ias (
+						((The unit Id~ received command stop) Ew.Output~) Do	
+						(UnitCommandId stay)^
+						UnitLifeStep~ Exe
+					);
+					(Handle go) ias (
+						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->CheckAndStart~ Exe
+						UnitLifeStep~ Exe
+					);
+					(Handle movetopos) ias (
+						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe
+						UnitLifeStep~ Exe
+					);
+					(Handle startpos) ias (
+						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe
+						UnitLifeStep~ Exe
+					);
+					(Handle select) ias (
+						(UnitCommandId LastUnitCommandId~)^
+						UnitLifeStep~ Exe
+					);
+					(Handle setprops) ias (
+						(UnitCommandParams~ PropertySetOperation~) ForEach
+						UnitLifeStep~ Exe
+					);
+					(NothingToDispatch true) ias doNothing;
+					(NothingToDispatch false) ias (
+						(LastUnitCommandId UnitCommandId~)^
+						(UnitCommandId (Dispatch~ 1) Get)^
+						(UnitId (Dispatch~ 2) Get)^
+						(UnitCommandParams (Dispatch~ 3) Get)^
+					);
+					(NothingToDispatch (Dispatch~ nil) Ident)~ Exe
+					(Handle UnitCommandId~)~ Exe
+				);
+				/* unit's lifestep */
+				UnitLifeStep ias (
+					(Stop false) ias (
+						(emptyQ true) ias (
+							(CommandDispatcher.Dispatch nil)^
+						);
+						(emptyQ false) ias (
+							(CommandDispatcher.Dispatch (CommandQueue~) First)^
+							(CommandQueue (CommandQueue~) Rest)^
+							((The unit Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+						);
+						(emptyQ (CommandQueue~ ()) Ident)~ Exe
+						CommandDispatcher~ Exe
+					);
+					(Stop true) ias (
+						((The unit Id~ stopped) Ew.Output~) Do
+					);
+					(Stop StopTheWorld~)~ Exe
+				);
+
+				lifeterm = (
+					((The unit Id~ was born) Ew.Output~) Do
+					UnitLifeStep~ Exe
+				) Exe
+			);
+		);
+		Player ias (
+			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit select setprops);
+			Id ias nil;
+			Units ias ();
+			UnitsStateSet ias ();
+			CommandQueue ias ();
+			HandleUnitsCommand ias (
+				UnitCommandId ias nil;
+				UnitId ias nil;
+				UnitCommandParams ias nil;
+				(Handle create) ias (
+					(Characters.Unit.Id UnitId~)^
+					(Characters.Unit.PlayerId Id~)^
+					(Units (Units~ (UnitId~)) Join)^
+					((The player Id~ creates unit UnitId~) Ew.Output~) Do
+					(Characters.Unit Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)) Born
+					(($$)->(HandleUnitsCommand)->UnitCommandParams~ Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->PropertySetOperation~) ForEach
+					PlayerLifeStep~ Exe
+				);
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops) ias (
+					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
+					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
+						    (
+							(Id~ ($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))
+						    ) Join
+					)^
+					PlayerLifeStep~ Exe
+				);
+                                (Handle destroy) ias (
+					((The player Id~ executes other actions) Ew.Output~) Do
+					PlayerLifeStep~ Exe
+				);
+				(UnitCommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(UnitId (CommandDispatcher.Dispatch~ 1) Get)^
+				(UnitCommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Handle UnitCommandId~)~ Exe
+			);
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				(RightCommand true) ias (
+					HandleUnitsCommand~ Exe
+				);
+				(RightCommand false) ias (
+					PlayerLifeStep~ Exe
+				);
+				((The player Id~ received command Dispatch~ to dispatch) Ew.Output~) Do
+				(RightCommand (AvailableUnitsCommands~ (Dispatch~ 0) Get) In)~ Exe
+			);
+			/* Player's lifestep */
+			PlayerLifeStep ias (
+				(Stop false) ias (
+					(emptyQ true) ias (
+						PlayerLifeStep~ Exe
+					);
+					(emptyQ false) ias (
+						LockQueue [
+							(CommandDispatcher.Dispatch (CommandQueue~) First)^
+							(CommandQueue (CommandQueue~) Rest)^
+						LockQueue ]
+						CommandDispatcher~ Exe
+					);
+					(emptyQ (CommandQueue~ ()) Ident)~ Exe
+				);
+				(Stop true) ias (
+					((The player Id~ stopped) Ew.Output~) Do
+				);
+				(Stop StopTheWorld~)~ Exe
+			);
+			lifeterm = (
+				((The player Id~ added and active) Ew.Output~) Do
+				PlayerLifeStep~ Exe
+			) Exe
+		);
+		Manager ias (
+			Command ias nil;
+			Character ias nil;
+			Id ias nil;
+			UnitId ias nil;
+			CommandId ias nil;
+			Params ias nil;
+			/* command is propagated to player */
+			PropagateCommand ias (
+				LockQueue [
+					((Player Id~)->CommandQueue ((Player Id~)->CommandQueue~ ((CommandId~ UnitId~ Params~))) Join)^
+				LockQueue ]
+				((Command propagated to player Id~) Ew.Output~) Do
+			);
+			(ManagerCommand true) ias (
+				(Command playeradd) ias (
+					(Player.Id UnitId~)^
+					(Player (Player UnitId~)) Born
+				);
+				(Command exit) ias (
+					(StopTheWorld true)^
+				);
+				((manager command CommandId~) Ew.Output~) Do
+				(Command CommandId~)~ Exe
+			);
+			(ManagerCommand false) ias (
+				((Not manager command propagating) Ew.Output~) Do
+				/* passes for processing */
+				PropagateCommand~ Exe
+			);
+			/* main loop where model waits for incoming commands and dispatches them */
+			MainLoop ias (
+				/* decomposes incoming command */
+				ParseIncomingCommand ias (
+					(Character (Command~ 0) Get)^
+					(Id (Command~ 1) Get)^
+					(CommandId (Command~ 2) Get)^
+					(UnitId (Command~ 3) Get)^
+					(Params (Command~ 4) Get)^
+				);
+				(Stop false) ias (
+					(WaitForCommand true) ias (
+						(NoAutoCommand false) ias (
+							200 Relax
+							(Command (AutoCommands.Injection~) First)^
+							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
+							((The auto command Command~) Ew.Output~) Do
+							ParseIncomingCommand~ Exe
+							((The auto command Command~ character Character~) Ew.Output~) Do
+							(ManagerCommand (Character~ manager) Ident)~ Exe
+						);
+						(NoAutoCommand true) ias doNothing;
+						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
+						MainLoop~ Exe
+					);
+					(WaitForCommand false) ias (
+						ParseIncomingCommand~ Exe
+						(ManagerCommand (Character~ manager) Ident)~ Exe
+						MainLoop~ Exe
+					);
+					/* waiting for command, in non-blocking manner */ 
+					(Command (() Ew.Input~) Do)^
+					(WaitForCommand (Command~ nil) Ident)~ Exe
+				);
+				(Stop true) ias (
+					((The manager stopped) Ew.Output~) Do
+				);
+				(Stop StopTheWorld~)~ Exe
+			);
+
+			source lifeterm = (
+				((The initialization time) Ew.Output~) Do
+				3000 Relax
+				((The game manager started and loads maze) Ew.Output~) Do
+				Ew.Maze~ Exe
+				((The game manager waits for commands) Ew.Output~) Do
+				MainLoop~ Exe
+				3000 Relax
+			) Exe
+		);
+
+		AutoCommands ias (
+			Injection ias (
+				(manager 0 playeradd 0)
+				(player 0 create 0 ((type attacker)))
+				(player 0 startpos 0 (0 39))
+				(player 0 movetopos 0 ((17 10)))
+				(player 0 go 0)
+
+				(player 0 create 1 ((type attacker)))
+				(player 0 startpos 1 (5 39))
+				(player 0 movetopos 1 ((17 10)))
+				(player 0 go 1)
+
+				(player 0 create 2 ((type defender)))
+				(player 0 startpos 2 (29 39))
+				(player 0 go 2)
+			);
+		);
+	);
+}
