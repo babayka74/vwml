@@ -187,11 +187,17 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		return getReadableId();
 	}
 
+	public void rebuildHashId(Object hashId) {
+		setHashId(hashId);
+		hashId = buildCompleteHashId();
+		setHashId(hashId);
+	}
+	
 	@Override
 	public String toString() {
 		return "VWMLObject [id=" + id + ", readableId=" + readableId + "]";
 	}
-
+	
 	@Override
 	public int compareTo(VWMLObject o) {
 		int r = 0;
@@ -199,14 +205,6 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 			r = getId().toString().compareTo(o.getId().toString());
 		}
 		return r;
-	}
-
-	protected void setCompoundName(boolean compoundName) {
-		this.compoundName = compoundName;
-	}
-
-	protected Object getHashId() {
-		return hashId;
 	}
 
 	protected void setHashId(Object hashId) {
@@ -218,5 +216,13 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 			return getHashId() + "." + getId();
 		}
 		return (getId() == null) ? getHashId() : getId();
+	}
+	
+	protected void setCompoundName(boolean compoundName) {
+		this.compoundName = compoundName;
+	}
+
+	protected Object getHashId() {
+		return hashId;
 	}
 }

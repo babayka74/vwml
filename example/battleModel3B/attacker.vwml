@@ -38,6 +38,32 @@ module Attacker {
 						NumOfRequestedSteps ias 1;
 						NoSteps ias false;
 
+						/* selectes action which should be run on current step  */
+						SelectActionOnMovement ias (
+							NextAction ias nil;
+							(AttackNotPossible true) ias (NextAction ChangePosition~)^;
+							(AttackNotPossible false) ias (NextAction Attack~)^;
+							/* check if current attacker's node is valid for attack */
+							(NextAction nil)^
+							(Attack.From (Ew.Maze.Attack.Nodes~ Movement.PrevState~) Find)^
+							(AttackNotPossible (Attack.From~ nil) Ident)~ Exe
+						);					
+						/* attacker attacks */
+						Attack ias (
+							/* means that attack is allowed from this node */
+							From ias nil;
+							((The unit Id~ is on attacking position From~ and looking for enemies) Ew.Output~) Do
+							1025 Bp
+						);
+						/* attacker changes position */
+						ChangePosition ias (
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
+							300 Relax
+							(Movement.PrevState Movement.State~)^
+                                			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
+							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
+							(Walking true)^ 
+						);
 						Result ias (
 							(NoSteps false) ias (
 								(Movement.GoalReached true)^
@@ -47,9 +73,7 @@ module Attacker {
 							(NoSteps true) ias ((No steps for unit Id~ all nodes were visited by others units) Ew.Output~) Do;
 							(NoSteps Movement.NoSteps~)~ Exe
 						);      
-
 						TargetDestroyed ias ((Unit Id~ destroyed target Movement.State~) Ew.Output~) Do;
-
 						Recalculate ias (
 							(Movement.RequestedSteps ())^
 							(Movement.Init false)^
@@ -85,12 +109,8 @@ module Attacker {
 								Recalculate~ Exe
 							);
 							(FinishedMovement false) ias (
-								((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
-								300 Relax
-								(Movement.PrevState Movement.State~)^
-                                				(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
-								(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
-								(Walking true)^ 
+								SelectActionOnMovement~ Exe
+								SelectActionOnMovement.NextAction~ Exe
 							);
 							(FinishedMovement true) ias (
 								(GoalReached false false) ias doNothing;

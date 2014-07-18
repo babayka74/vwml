@@ -36,40 +36,50 @@ include "defender.vwml"
 
 module battleModel3B {
 	Ew ias (
-		/* list of maze's nodes */
-		
 		Maze ias (
+			Attack ias (
+				/* nodes marked as 'attacking' */
+				Nodes ias ();
+			);
+			Defence ias (
+				/* nodes marked as 'defence' */
+				Nodes ias ();
+			);
 			/* all maze's nodes */
 			Nodes ias ();
-			/* nodes marked as 'attacking' */
-			ANodes ias ();
-			BuildMaze ias (
+			MazePrototype ias (
+				Stg ias nil;
+				Ctx ias nil;
 				(Node ($~ 0) Get)^
 				(LinkedNodes ($~ 1) Get)^
-				// stores node on object store in order to allow further interpretation
-				(Node~ Ew.Maze true) Context
-				(LinkedNodes~ Ew.Maze) Context
+				(Node~ Ctx~ true) Context
 				(Node~ LinkedNodes~)^
-				(Nodes (Nodes~ (Node~)) Join)^
-				((Connecting Node~ with LinkedNodes~ and list of nodes Nodes~) Ew.Output~) Do
+				(Stg~ (Stg~~ (Node~)) Join)^
+				((Connecting Node~ with LinkedNodes~ and list of nodes Stg~~ on context Ctx~) Ew.Output~) Do
 			);
-			// main battlefield
-			(InitialMaze ((battleField) Ew.LoadGraph~) Do)^
-			// using ForEach in order to parse and prepare maze
-			(InitialMaze~ BuildMaze~) ForEach
+			BuildMainZone ias (
+				(MazePrototype.Stg Nodes)^
+				(MazePrototype.Ctx Ew.Maze)^
+				MazePrototype~ Exe
+			);
 			// attack firezones
-			AttackFireZone ias ();
 			BuildAttackFireZone ias (
-				(ANode ($~ 0) Get)^
-				(LinkedANodes ($~ 1) Get)^
-				(ANode~ Ew.Maze) Context
-				((ANode~ AZone) LinkedANodes~)^
-				(ANodes (ANodes~ ((ANode~ AZone))) Join)^
-				((Connecting (ANode~ AZone) with LinkedANodes~ and list of nodes ANodes~) Ew.Output~) Do
+				(MazePrototype.Stg Attack.Nodes)^
+				(MazePrototype.Ctx Ew.Maze.Attack)^
+				MazePrototype~ Exe
 			);
-			(InitialAttackFireZone ((attackFireZoneField) Ew.LoadGraph~) Do)^
-			// using ForEach in order to parse and prepare attack zone
-			(InitialAttackFireZone~ BuildAttackFireZone~) ForEach
+			// defence firezone
+			BuildDefenceFireZone ias (
+				(MazePrototype.Stg Defence.Nodes)^
+				(MazePrototype.Ctx Ew.Maze.Defence)^
+				MazePrototype~ Exe
+			);
+			Initial ias (	(battleField BuildMainZone Ew.Maze)
+					(attackFireZoneField BuildAttackFireZone Ew.Maze.Attack)  
+					// (defenceFireZoneField BuildDefenceFireZone Ew.Maze.Defence)
+				);
+			MazeBuilder ias (((($~ 0) Get) Ew.LoadGraph~ ($~ 2) Get) Do ($~ 1) Get ~) ForEach;
+			(Initial~ MazeBuilder~) ForEach	
 		);	
 
 		TargetsToBeDestroyed ias ((17 10));
@@ -399,7 +409,7 @@ module battleModel3B {
 				(player 0 startpos 0 (0 39))
 				(player 0 movetopos 0 ((17 10)))
 				(player 0 go 0)
-
+/*
 				(player 0 create 1 ((type attacker)))
 				(player 0 startpos 1 (5 39))
 				(player 0 movetopos 1 ((17 10)))
@@ -408,6 +418,7 @@ module battleModel3B {
 				(player 0 create 2 ((type defender)))
 				(player 0 startpos 2 (29 39))
 				(player 0 go 2)
+*/
 			);
 		);
 	);

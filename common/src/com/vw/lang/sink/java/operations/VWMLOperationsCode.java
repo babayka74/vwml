@@ -40,6 +40,7 @@ public enum VWMLOperationsCode {
     OPINTERRUPT("Interrupt"),
     OPCALLP("CallP"),
     OPGET("Get"),
+    OPFIND("Find"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     
