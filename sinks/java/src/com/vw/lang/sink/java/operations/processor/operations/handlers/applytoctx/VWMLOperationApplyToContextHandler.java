@@ -88,7 +88,7 @@ public class VWMLOperationApplyToContextHandler extends VWMLOperationHandler {
 		}
 	}
 	
-	private String buildAbsoluteContext(VWMLEntity e) {
+	public static String buildAbsoluteContext(VWMLEntity e) {
 		return e.getContext().getContext() + "." + (e.getReadableId() != null ? e.getReadableId() : e.getId());
 	}
 }

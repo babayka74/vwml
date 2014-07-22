@@ -112,6 +112,9 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				dynContext = VWMLContext.changeSelfAddressedDynamicContextNameTo(dynContext, operationalContext.getContext());					
 			}
 			e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, dynamicAddressedEntity.buildReadableId());
+			if (e == null) {
+				throw new Exception("Couldn't find entity '" + dynamicAddressedEntity.getReadableId() + "' on context '" + dynContext + "'");
+			}
 			e.setDynamicAddressedInRunTime(true);
 			pushEntityToReversedStack(e);
 			dynContext = null;

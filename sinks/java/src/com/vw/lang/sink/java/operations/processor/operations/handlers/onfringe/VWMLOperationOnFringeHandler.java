@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.beyond.fringe.creature.VWMLCreature;
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -14,6 +15,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.applytoctx.VWMLOperationApplyToContextHandler;
 
 /**
  * Handler of 'OPDO' operation
@@ -36,21 +38,42 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 		if (entities.size() == 0) {
 			throw new Exception("operation 'Do' requires at least 2 arguments; check code");
 		}
+		int offset = -1;
+		VWMLContext applyToContext = originalContext;
 		if (entities.size() == 1) {
 			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() >= s_numberOfArgs) {
-				answerFromEW = sendMsgToExternalWorld((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1),
-													  (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0),
-													  originalContext);
+				if (entities.get(0).getLink().getLinkedObjectsOnThisTime() > s_numberOfArgs) {
+					VWMLContext ctx = getContextFromEntity((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0));
+					if (ctx != null) {
+						applyToContext = ctx;
+					}
+					offset = 0;
+				}
+				answerFromEW = sendMsgToExternalWorld((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(2 + offset),
+													  (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1 + offset),
+													  applyToContext);
 			}
 		}
 		else {
-			answerFromEW = sendMsgToExternalWorld(entities.get(0), entities.get(1), originalContext);
+			if (entities.size() > 2) {
+				VWMLContext ctx = getContextFromEntity(entities.get(0));
+				if (ctx != null) {
+					applyToContext = ctx;
+				}
+				offset = 0;
+			}
+			answerFromEW = sendMsgToExternalWorld(entities.get(1 + offset), entities.get(2 + offset), applyToContext);
 		}
 		inspector.clear();
 		entities.clear();
 		if (answerFromEW != null) {
 			stack.push(answerFromEW);
 		}
+	}
+
+	protected VWMLContext getContextFromEntity(VWMLEntity e) {
+		String c = VWMLOperationApplyToContextHandler.buildAbsoluteContext(e);
+		return VWMLContextsRepository.instance().get(c);
 	}
 	
 	protected IVWMLGate findGate(VWMLEntity onFringe) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLCloneFactory;
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -57,6 +58,9 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	}
 
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
+		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getId())) != null) {
+			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
+		}
 		VWMLEntity cloned = clone(origEntity, clonedObject);
 		if (cloned.getInterpreting() != null && interpreter.getRing() != null) {
 			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();

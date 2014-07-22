@@ -42,6 +42,7 @@ tokens {
     OPINTERRUPT='Interrupt';
     OPCALLP='CallP';
     OPGET='Get';
+    OPFIND='Find';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1105,6 +1106,7 @@ opclist
     | OPINTERRUPT
     | OPCALLP
     | OPGET
+    | OPFIND
     ;
 
 termLanguages

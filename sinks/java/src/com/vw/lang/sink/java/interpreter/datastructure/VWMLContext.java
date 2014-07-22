@@ -351,6 +351,7 @@ public class VWMLContext extends VWMLObject {
 	 * @param entity
 	 */
 	public void associateEntity(VWMLEntity entity) {
+		entity.rebuildHashId(this.getContext());
 		associatedEntities.add(entity);
 	}
 	
@@ -360,6 +361,7 @@ public class VWMLContext extends VWMLObject {
 	}
 	
 	public void unAssociateEntity(VWMLEntity entity) {
+		entity.rebuildHashId(VWMLContextsRepository.getDefaultContextId());
 		associatedEntities.remove(entity);
 	}
 	
