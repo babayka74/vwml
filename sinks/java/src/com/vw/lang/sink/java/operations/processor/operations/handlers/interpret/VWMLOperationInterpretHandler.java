@@ -154,7 +154,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 	}
 	
 	private VWMLEntity interpretationOfSyntheticEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity) {
-		if (entity.isSynthetic() && interpreter.getInterpretingEntityForSyntheticEntity() != null && entity.isRecursiveInterpretationOnOriginal()) {
+		if (entity.isSynthetic() && interpreter.getInterpretingEntityForSyntheticEntity() != null) {
 			return interpreter.getInterpretingEntityForSyntheticEntity();
 		}
 		return null;

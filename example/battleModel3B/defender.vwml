@@ -20,9 +20,12 @@ module Defender {
 					);
 					/* movement's parameters (stubs almost) */
 					Movement ias (
+						/* unit's position */
+						State ias nil;
 						SetStartPos ias (
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->OnMaze Ew.Maze.Defence.Nodes~)^
                         	                        Services.(PositionChecker Id~)->CheckPosition~ Exe
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
 							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^

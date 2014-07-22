@@ -20,6 +20,9 @@ options {
 			"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
 				"{MagicWorld.Player}.PlayerLifeStep.(Stop false).(emptyQ false).LockQueue"
 			)
+          		"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.LockDefenders" conflicts (
+				"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
+			)
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
 				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
 			)
@@ -76,11 +79,12 @@ module battleModel3B {
 			);
 			Initial ias (	(battleField BuildMainZone Ew.Maze)
 					(attackFireZoneField BuildAttackFireZone Ew.Maze.Attack)  
-					// (defenceFireZoneField BuildDefenceFireZone Ew.Maze.Defence)
+					(defenceFireZoneField BuildDefenceFireZone Ew.Maze.Defence)
 				);
 			MazeBuilder ias (((($~ 0) Get) Ew.LoadGraph~ ($~ 2) Get) Do ($~ 1) Get ~) ForEach;
-			(Initial~ MazeBuilder~) ForEach	
-		);	
+			/* builds: battlefield, atackers' firezone, defenders' firezone */
+			(Initial~ MazeBuilder~) ForEach
+		);
 
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
@@ -107,7 +111,8 @@ module battleModel3B {
 					);
 					PosToBeChecked ias nil;
 					PosToBeSet ias nil;
-					(RightPosition (Ew.Maze.Nodes~ PosToBeChecked~) In)~ Exe
+					OnMaze ias nil;
+					(RightPosition (OnMaze~ PosToBeChecked~) In)~ Exe
  				);
 				CheckGoalPositions ias (
 					Correct ias true;
@@ -123,6 +128,7 @@ module battleModel3B {
 						(NotCorrectGoal false) ias doNothing;
 						(CheckPosition.PosToBeChecked $~)^
 						(CheckPosition.PosToBeSet T)^
+						(CheckPosition.OnMaze Ew.Maze.Nodes~)^
 						((Checking CheckPosition.PosToBeChecked~) Ew.Output~) Do
 						CheckPosition~ Exe
 						(NotCorrectGoal (T~ nil) Ident)~ Exe
@@ -134,7 +140,7 @@ module battleModel3B {
 		Characters ias (
 			/* general game unit */
 			Unit ias (
-				Properties ias (type);
+				Properties ias (type attack defence);
 				/* available unit's types  */
 				Types ias (attacker defender);
 				/* default type is attacker */
@@ -143,38 +149,71 @@ module battleModel3B {
 				PlayerId ias nil;
 				/* concrete unit */
 				ConcreteUnit ias nil;
+				/* unit's current position */
+				CurrentPosition ias nil;
+				/* each unit has following properties: power of attack and defence */
+				Power ias (
+					Attack ias ();
+					Defence ias ();
+				);
+				/* to be attacker */
+				UnitAsAttacker ias (
+					(Attacker.Id Id~)^
+					(Attacker.PlayerId PlayerId~)^
+					(Attacker (Attacker Id~)) Born
+					(ConcreteUnit Characters.(Attacker Id~))^
+					LockAttackers [
+						((Player PlayerId~)->(Units)->Attackers  
+							((Player PlayerId~)->(Units)->Attackers~ (Id~)) Join
+						)^
+					LockAttackers ]
+					((The attacker Id~ created and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
+				);
+				/* to be defender */
+				UnitAsDefender ias (
+					(Defender.Id Id~)^
+					(Defender.PlayerId PlayerId~)^
+					(Defender (Defender Id~)) Born
+					(ConcreteUnit Characters.(Defender Id~))^
+					LockDefenders [
+						( (Player PlayerId~)->(Units)->Defenders
+							((Player PlayerId~)->(Units)->Defenders~ (Id~)) Join
+						)^
+					LockDefenders ]
+					((The defender Id~ created and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
+				);
 				/* sets unit's property  */
 				PropertySetOperation ias (
+					Prop ias nil;
+					Value ias nil;
 					(RightProp false) ias (
 						((The unit Id~ can not set invalid property named by Prop~) Ew.Output~) Do
 					);
 					(RightProp true) ias (
 						(Property type) ias (
-							(Create attacker) ias (
-								(Attacker.Id Id~)^
-								(Attacker.PlayerId PlayerId~)^
-								(Attacker (Attacker Id~)) Born
-								(ConcreteUnit Characters.(Attacker Id~))^
-								((The attacker Id~ created) Ew.Output~) Do
-							);
-							(Create defender) ias (
-								(Defender.Id Id~)^
-								(Defender.PlayerId PlayerId~)^
-								(Defender (Defender Id~)) Born
-								(ConcreteUnit Characters.(Defender Id~))^
-								((The defender Id~ created) Ew.Output~) Do
-							);
+							(Create attacker) ias UnitAsAttacker~ Exe;
+							(Create defender) ias UnitAsDefender~ Exe;
 							(Type Value~)^
 							(Create Type~)~ Exe
 							(ConcreteUnit~)->Init~ Exe
 						);
+						(Property attack) ias (
+							(Power.Attack Value~)^
+							((The unit Id~ has attack power Power.Attack~) Ew.Output~) Do
+						);
+						(Property defence) ias (
+							(Power.Defence Value~)^
+							((The unit Id~ has defence power Power.Defence~) Ew.Output~) Do
+						);
 						(Value ($~ 1) Get)^
+						((The unit Id~ processes property Prop~ and value Value~) Ew.Output~) Do
 						(Property Prop~)~ Exe
 					);
 					(Prop ($~ 0) Get)^
 					((The unit Id~ received property Prop~) Ew.Output~) Do
 					(RightProp (Properties~ Prop~) In)~ Exe 
 				);
+				UpdateCurrentPosition ias (CurrentPosition (ConcreteUnit~)->(ActivityStrategy)->(Movement)->State~)^;
 				/* unit receives commands in deferred manner */
 				CommandQueue ias ();
 				CommandDispatcher ias (
@@ -202,6 +241,11 @@ module battleModel3B {
 					);
 					(Handle startpos) ias (
 						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe
+						UnitLifeStep~ Exe
+					);
+					(Handle getpos) ias (
+						UpdateCurrentPosition~ Exe
+						((The unit Id~ has position CurrentPosition~) Ew.Output~) Do
 						UnitLifeStep~ Exe
 					);
 					(Handle select) ias (
@@ -249,9 +293,13 @@ module battleModel3B {
 			);
 		);
 		Player ias (
-			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit select setprops);
+			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit select setprops getpos);
 			Id ias nil;
-			Units ias ();
+			/* available units */
+			Units ias (
+				Attackers ias ();
+				Defenders ias ();
+			);
 			UnitsStateSet ias ();
 			CommandQueue ias ();
 			HandleUnitsCommand ias (
@@ -259,15 +307,14 @@ module battleModel3B {
 				UnitId ias nil;
 				UnitCommandParams ias nil;
 				(Handle create) ias (
+					((The player Id~ creates unit UnitId~) Ew.Output~) Do
 					(Characters.Unit.Id UnitId~)^
 					(Characters.Unit.PlayerId Id~)^
-					(Units (Units~ (UnitId~)) Join)^
-					((The player Id~ creates unit UnitId~) Ew.Output~) Do
 					(Characters.Unit Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)) Born
 					(($$)->(HandleUnitsCommand)->UnitCommandParams~ Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->PropertySetOperation~) ForEach
 					PlayerLifeStep~ Exe
 				);
-				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops) ias (
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos) ias (
 					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
 					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
 						    (
@@ -405,7 +452,10 @@ module battleModel3B {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 playeradd 0)
-				(player 0 create 0 ((type attacker)))
+				(player 0 create 0 ( (type attacker)
+						     (attack (yes yes no))
+						     (defence (no no yes))
+						   ))
 				(player 0 startpos 0 (0 39))
 				(player 0 movetopos 0 ((17 10)))
 				(player 0 go 0)
@@ -414,11 +464,13 @@ module battleModel3B {
 				(player 0 startpos 1 (5 39))
 				(player 0 movetopos 1 ((17 10)))
 				(player 0 go 1)
-
-				(player 0 create 2 ((type defender)))
-				(player 0 startpos 2 (29 39))
-				(player 0 go 2)
 */
+				(player 0 create 2 ( (type defender)
+						     (attack (no yes no))
+						     (defence (yes no yes yes))
+						    ))
+				(player 0 startpos 2 (15 29))
+				(player 0 go 2)
 			);
 		);
 	);

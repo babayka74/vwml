@@ -1,7 +1,10 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.dyncontext;
 
 import java.util.List;
+import java.util.UUID;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder;
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -36,6 +39,18 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		else
 		if (entities.size() == 1) {
 			entity = entities.get(0);
+			entity.buildReadableId();
+			if (!VWMLContext.isDynamicContextPointsToSelf((String)entity.getId())) {
+				VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY,
+												 null,
+												 entity.getId() + "_mimic_" + UUID.randomUUID().toString(),
+												 entity.getContext(),
+												 context.getEntityInterpretationHistorySize(),
+												 context.getLinkOperationVisitor());
+				e.setReadableId(entity.getReadableId());
+				e.rebuildHashId(entity.getId());
+				entity = e;
+			}
 		}
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(

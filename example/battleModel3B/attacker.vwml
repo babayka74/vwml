@@ -16,11 +16,56 @@ module Attacker {
 					ActivityStrategy.Init~ Exe
 					((The attacker Id~ for user PlayerId~ initialized) Ew.Output~) Do
 				);
+				
 				ActivityStrategy ias (
 					// initialization steps
 					Init ias (
 						(Services.PositionChecker Services.(PositionChecker Id~)) Born
 						(DpfSearchMkAParallelEx (DpfSearchMkAParallelEx Id~)) Born
+					);
+					Actions ias (
+						/* attacker attacks */
+						Attack ias (
+							SelectDefenderAndAttack ias (
+								(NoAttack true) ias doNothing;
+								(NoAttack false) ias (
+								);
+								(NoAttack (OnFire~ ()) Ident)~ Exe 
+							);
+							/* means that attack is allowed from this node */
+							Position ias nil;
+							AttackedDefender ias nil;
+							/* defenders which can be attacked by attacker */
+							OnFire ias ();
+							((The unit Id~ is on attacking position Position~ and looking for enemies in Position~~) Ew.Output~) Do
+							CheckFireZone ias (
+								(OnFire false) ias doNothing;
+								(OnFire true) ias (
+									(OnFire (OnFire~ ($~)) Join)^
+									((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
+								);
+								(Unit $~)->UpdateCurrentPosition~ Exe
+								((The defender $~ is on position (Unit $~)->CurrentPosition~) Ew.Output~) Do
+								(OnFire (Position~~ (Unit $~)->CurrentPosition~) In)~ Exe
+							);
+							(OnFire ())^
+							LockDefenders [
+								((Player PlayerId~)->(Units)->Defenders~ CheckFireZone~) ForEach
+							LockDefenders ]
+							(AttackedDefender OnFire~ Random)^
+							((The attacker Id~ found defenders OnFire~ which can be attacked and selected AttackedDefender~) Ew.Output~) Do
+							SelectDefenderAndAttack~ Exe
+							1025 Bp
+						);
+						/* attacker changes position */
+						ChangePosition ias (
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
+							300 Relax
+							(Movement.PrevState Movement.State~)^
+                                			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
+							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
+							(Movement.Walking true)^ 
+						);
 					);
 					/* movement's parameters */
 					Movement ias (
@@ -41,29 +86,13 @@ module Attacker {
 						/* selectes action which should be run on current step  */
 						SelectActionOnMovement ias (
 							NextAction ias nil;
-							(AttackNotPossible true) ias (NextAction ChangePosition~)^;
-							(AttackNotPossible false) ias (NextAction Attack~)^;
+							(AttackNotPossible true) ias (NextAction Actions.ChangePosition~)^;
+							(AttackNotPossible false) ias (NextAction Actions.Attack~)^;
 							/* check if current attacker's node is valid for attack */
 							(NextAction nil)^
-							(Attack.From (Ew.Maze.Attack.Nodes~ Movement.PrevState~) Find)^
-							(AttackNotPossible (Attack.From~ nil) Ident)~ Exe
+							(Actions.Attack.Position (Ew.Maze.Attack.Nodes~ Movement.PrevState~) Find)^
+							(AttackNotPossible (Actions.Attack.Position~ nil) Ident)~ Exe
 						);					
-						/* attacker attacks */
-						Attack ias (
-							/* means that attack is allowed from this node */
-							From ias nil;
-							((The unit Id~ is on attacking position From~ and looking for enemies) Ew.Output~) Do
-							1025 Bp
-						);
-						/* attacker changes position */
-						ChangePosition ias (
-							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
-							300 Relax
-							(Movement.PrevState Movement.State~)^
-                                			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
-							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
-							(Walking true)^ 
-						);
 						Result ias (
 							(NoSteps false) ias (
 								(Movement.GoalReached true)^
@@ -80,6 +109,7 @@ module Attacker {
 							(Movement.Iteration 0)^
 							(Movement.PathPassed false)^
 							(Movement.NoSteps false)^
+							(Movement.PrevState Movement.State~)^
 							(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
 							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
 							((Movement.Goals
@@ -140,6 +170,7 @@ module Attacker {
 						SetStartPos ias (
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->OnMaze Ew.Maze.Nodes~)^
                                         	        Services.(PositionChecker Id~)->CheckPosition~ Exe
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
 							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
