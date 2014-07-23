@@ -18,6 +18,11 @@ module Defender {
 					Init ias (
 						(Services.PositionChecker (Services.PositionChecker Id~)) Born
 					);
+					Kill ias (
+						((The defender Id~ was killed) Ew.Output~) Do
+						(Characters)->(Unit Id~)->(UnitAsDefender)->Destroy~ Exe
+						((Characters)->(Unit Id~)->StopUnit true)^
+					);
 					/* movement's parameters (stubs almost) */
 					Movement ias (
 						/* unit's position */
@@ -30,6 +35,7 @@ module Defender {
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
 							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 						);
+						/* unit was killed */
 						SetMoveToPos ias doNothing;
 						CheckAndStart ias doNothing;
 					);

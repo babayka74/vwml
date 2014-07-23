@@ -20,8 +20,9 @@ options {
 			"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
 				"{MagicWorld.Player}.PlayerLifeStep.(Stop false).(emptyQ false).LockQueue"
 			)
-          		"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.LockDefenders" conflicts (
+          		"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockDefenders" conflicts (
 				"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
+				"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
 			)
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
 				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
@@ -29,6 +30,9 @@ options {
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates" conflicts (
 				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
 				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
+			)
+			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.SignalAnotherUnit.LockUnitCommandQueue" conflicts (
+				"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
 			)
 		}
 	}
@@ -151,6 +155,7 @@ module battleModel3B {
 				ConcreteUnit ias nil;
 				/* unit's current position */
 				CurrentPosition ias nil;
+				StopUnit ias false;
 				/* each unit has following properties: power of attack and defence */
 				Power ias (
 					Attack ias ();
@@ -158,29 +163,50 @@ module battleModel3B {
 				);
 				/* to be attacker */
 				UnitAsAttacker ias (
-					(Attacker.Id Id~)^
-					(Attacker.PlayerId PlayerId~)^
-					(Attacker (Attacker Id~)) Born
-					(ConcreteUnit Characters.(Attacker Id~))^
-					LockAttackers [
-						((Player PlayerId~)->(Units)->Attackers  
-							((Player PlayerId~)->(Units)->Attackers~ (Id~)) Join
-						)^
-					LockAttackers ]
-					((The attacker Id~ created and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
+					Create ias (
+						(Attacker.Id Id~)^
+						(Attacker.PlayerId PlayerId~)^
+						(Attacker (Attacker Id~)) Born
+						(ConcreteUnit Characters.(Attacker Id~))^
+						LockAttackers [
+							((Player PlayerId~)->(Units)->Attackers  
+								((Player PlayerId~)->(Units)->Attackers~ (Id~)) Join
+							)^
+						LockAttackers ]
+						((The attacker Id~ created and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
+					);
+					Destroy ias (
+						LockAttackers [
+							((Player PlayerId~)->(Units)->Attackers  
+								((Player PlayerId~)->(Units)->Attackers~ (Id~)) Substruct
+							)^
+						LockAttackers ]
+						((The attacker Id~ destroyed and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
+					);
 				);
 				/* to be defender */
 				UnitAsDefender ias (
-					(Defender.Id Id~)^
-					(Defender.PlayerId PlayerId~)^
-					(Defender (Defender Id~)) Born
-					(ConcreteUnit Characters.(Defender Id~))^
-					LockDefenders [
-						( (Player PlayerId~)->(Units)->Defenders
-							((Player PlayerId~)->(Units)->Defenders~ (Id~)) Join
-						)^
-					LockDefenders ]
-					((The defender Id~ created and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
+					Create ias (
+						(Defender.Id Id~)^
+						(Defender.PlayerId PlayerId~)^
+						(Defender (Defender Id~)) Born
+						(ConcreteUnit Characters.(Defender Id~))^
+						LockDefenders [
+							( (Player PlayerId~)->(Units)->Defenders
+								((Player PlayerId~)->(Units)->Defenders~ (Id~)) Join
+							)^
+						LockDefenders ]
+						((The defender Id~ created and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
+					);
+					Destroy ias (
+						LockDefenders [
+							( (Player PlayerId~)->(Units)->Defenders
+								( (Player PlayerId~)->(Units)->Defenders~ (Id~) ) Substruct
+							)^
+						LockDefenders ]
+
+						((The defender Id~ destroyed and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
+					);
 				);
 				/* sets unit's property  */
 				PropertySetOperation ias (
@@ -191,8 +217,8 @@ module battleModel3B {
 					);
 					(RightProp true) ias (
 						(Property type) ias (
-							(Create attacker) ias UnitAsAttacker~ Exe;
-							(Create defender) ias UnitAsDefender~ Exe;
+							(Create attacker) ias UnitAsAttacker.Create~ Exe;
+							(Create defender) ias UnitAsDefender.Create~ Exe;
 							(Type Value~)^
 							(Create Type~)~ Exe
 							(ConcreteUnit~)->Init~ Exe
@@ -256,6 +282,10 @@ module battleModel3B {
 						(UnitCommandParams~ PropertySetOperation~) ForEach
 						UnitLifeStep~ Exe
 					);
+					(Handle kill) ias (
+						(ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe
+						UnitLifeStep~ Exe
+					);
 					(NothingToDispatch true) ias doNothing;
 					(NothingToDispatch false) ias (
 						(LastUnitCommandId UnitCommandId~)^
@@ -268,7 +298,7 @@ module battleModel3B {
 				);
 				/* unit's lifestep */
 				UnitLifeStep ias (
-					(Stop false) ias (
+					(Stop false false) ias (
 						(emptyQ true) ias (
 							(CommandDispatcher.Dispatch nil)^
 						);
@@ -280,10 +310,10 @@ module battleModel3B {
 						(emptyQ (CommandQueue~ ()) Ident)~ Exe
 						CommandDispatcher~ Exe
 					);
-					(Stop true) ias (
+					(Stop true false), (Stop true true), (Stop false true) ias (
 						((The unit Id~ stopped) Ew.Output~) Do
 					);
-					(Stop StopTheWorld~)~ Exe
+					(Stop StopTheWorld~ StopUnit~)~ Exe
 				);
 
 				lifeterm = (
@@ -293,12 +323,22 @@ module battleModel3B {
 			);
 		);
 		Player ias (
-			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit select setprops getpos);
+			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
 			Id ias nil;
 			/* available units */
 			Units ias (
 				Attackers ias ();
 				Defenders ias ();
+			);
+			PropagateCommandToUnit ias (
+				LockUnitCommandQueue [
+					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
+					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
+						(
+							(Id~ ($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))
+						) Join
+					)^
+				LockUnitCommandQueue ]
 			);
 			UnitsStateSet ias ();
 			CommandQueue ias ();
@@ -314,13 +354,8 @@ module battleModel3B {
 					(($$)->(HandleUnitsCommand)->UnitCommandParams~ Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->PropertySetOperation~) ForEach
 					PlayerLifeStep~ Exe
 				);
-				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos) ias (
-					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
-					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
-						    (
-							(Id~ ($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))
-						    ) Join
-					)^
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias (
+					PropagateCommandToUnit~ Exe
 					PlayerLifeStep~ Exe
 				);
                                 (Handle destroy) ias (
@@ -453,21 +488,24 @@ module battleModel3B {
 			Injection ias (
 				(manager 0 playeradd 0)
 				(player 0 create 0 ( (type attacker)
-						     (attack (yes yes no))
+						     (attack (yes yes yes))
 						     (defence (no no yes))
 						   ))
 				(player 0 startpos 0 (0 39))
 				(player 0 movetopos 0 ((17 10)))
 				(player 0 go 0)
-/*
-				(player 0 create 1 ((type attacker)))
+
+				(player 0 create 1 ( (type attacker)
+						     (attack (yes yes yes))
+						     (defence (no no yes))
+						   ))
 				(player 0 startpos 1 (5 39))
 				(player 0 movetopos 1 ((17 10)))
 				(player 0 go 1)
-*/
+
 				(player 0 create 2 ( (type defender)
 						     (attack (no yes no))
-						     (defence (yes no yes yes))
+						     (defence (yes yes yes yes))
 						    ))
 				(player 0 startpos 2 (15 29))
 				(player 0 go 2)

@@ -17,6 +17,17 @@ module Attacker {
 					((The attacker Id~ for user PlayerId~ initialized) Ew.Output~) Do
 				);
 				
+				SignalAnotherUnit ias (
+					To ias nil;
+					CommandId ias nil;
+					CommandParams ias nil;
+					LockUnitCommandQueue [
+						((Characters)->(Unit To~)->CommandQueue
+							((Characters)->(Unit To~)->CommandQueue~ ((PlayerId~ CommandId~ To~ CommandParams~))) Join
+						)^
+					LockUnitCommandQueue ]
+				);
+
 				ActivityStrategy ias (
 					// initialization steps
 					Init ias (
@@ -27,8 +38,31 @@ module Attacker {
 						/* attacker attacks */
 						Attack ias (
 							SelectDefenderAndAttack ias (
-								(NoAttack true) ias doNothing;
+								(NoAttack true) ias (
+									((The attacker Id~ reports about absent of defenders and continues movement) Ew.Output~) Do
+									ChangePosition~ Exe
+								);
 								(NoAttack false) ias (
+									(DefenderKilled no) ias (
+										((The attacker Id~ did not kill defender AttackedDefender~ and continues movement) Ew.Output~) Do
+										ChangePosition~ Exe
+									);
+									(DefenderKilled yes) ias (
+										((The attacker Id~ killed defender AttackedDefender~ and continues movement) Ew.Output~) Do
+										ChangePosition~ Exe
+										// sends signal to defender that it was killed
+										(SignalAnotherUnit.To AttackedDefender~)^
+										(SignalAnotherUnit.CommandId kill)^
+										(SignalAnotherUnit.CommandParams ())^
+										SignalAnotherUnit~ Exe
+									);
+									(AttackedDefender OnFire~ Random)^
+									((The attacker Id~ found defenders OnFire~ which can be attacked and selected AttackedDefender~) Ew.Output~) Do
+									(AttackPower (Characters)->(Unit Id~)->(Power)->Attack~)^
+									(DefencePower (Characters)->(Unit AttackedDefender~)->(Power)->Defence~)^
+									((The attacker Id~ attacks with AttackPower~ and attacked defender AttackedDefender~ defends with DefencePower~) Ew.Output~) Do
+									(AttackResult (AttackPower~ DefencePower~) Join Random)^
+									(DefenderKilled AttackResult~)~ Exe
 								);
 								(NoAttack (OnFire~ ()) Ident)~ Exe 
 							);
@@ -52,10 +86,7 @@ module Attacker {
 							LockDefenders [
 								((Player PlayerId~)->(Units)->Defenders~ CheckFireZone~) ForEach
 							LockDefenders ]
-							(AttackedDefender OnFire~ Random)^
-							((The attacker Id~ found defenders OnFire~ which can be attacked and selected AttackedDefender~) Ew.Output~) Do
 							SelectDefenderAndAttack~ Exe
-							1025 Bp
 						);
 						/* attacker changes position */
 						ChangePosition ias (
@@ -66,6 +97,12 @@ module Attacker {
 							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
 							(Movement.Walking true)^ 
 						);
+					);
+					/* unit was killed */
+					Kill ias (
+						((The attacker Id~ was killed) Ew.Output~) Do
+						(Characters)->(Unit Id~)->(UnitAsAttacker)->Destroy~ Exe
+						((Characters)->(Unit Id~)->StopUnit true)^
 					);
 					/* movement's parameters */
 					Movement ias (
