@@ -130,6 +130,8 @@ package com.vw.lang.grammar;
  	private boolean inDebug = false;
  	private boolean moduleInProgress = false;
  	private List<String> deferredIncludes = new ArrayList<String>();
+ 	private List<String> externalContexts = new ArrayList<String>();
+ 	private List<String> externalEntities = new ArrayList<String>();
  	
  	private String lastProcessedIAS = null;
  	
@@ -631,20 +633,40 @@ package com.vw.lang.grammar;
 		}
 	}
 	
+	protected void externalContext(String externalContext) {
+		externalContexts.add(externalContext);
+	}
+
+	protected void externalEntity(String externalEntity) {
+		externalEntities.add(externalEntity);
+	}
+	
+	protected void processExternals() throws RecognitionException {
+		for(String context : externalContexts) {
+			if (logger.isInfoEnabled()) {
+				logger.info("processing external context '" + context + "'");
+			}
+			if (codeGenerator != null) {
+				codeGenerator.declareContext(context);
+			}
+		}
+	}
+	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
 		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
 	}
-		
 }
 
 
 filedef
-    : props? (include (include)*)? module? EOF {
+    : props? (include (include)*)? external? module? EOF {
                              	if (moduleInProgress && modProps != null) {
                              		try {
                              			// sets special interpretation properties
                              			// these properties are defined by user and passed by VWML tool to VWML builder 
                              			modProps.setInterpretationProps(vwmlModelBuilder.getInterpretationProps());
+                             			// process externals
+                             			processExternals();
                              			// actually generates source code
                              			codeGenerator.generate(modProps);
                              			// finalizes source generation phase for this module
@@ -661,6 +683,40 @@ filedef
                   	     	} 
                   	     }
     ;	 
+
+external
+    : 'external' '{' externalBody '}'
+    ;
+
+externalBody
+    : externalContexts? externalEntities? 
+    ;
+
+externalContexts
+    :	'contexts' '{' (externalContext)* '}'
+    ;
+
+externalEntities
+    :	'entities' '{' (externalEntity)* '}'
+    ;
+    
+externalContext
+    :  string 	{
+        		if (logger.isInfoEnabled()) {
+    				logger.info("external context '" + $string.text + "'");
+    			}
+    			externalContext(GeneralUtils.trimQuotes($string.text));
+    		}
+    ;
+
+externalEntity
+    :  string 	{
+        		if (logger.isInfoEnabled()) {
+    				logger.info("external entity '" + $string.text + "'");
+    			}
+    			externalEntity(GeneralUtils.trimQuotes($string.text));
+    		}
+    ;
 
 include
     : include_vwml {
@@ -680,7 +736,7 @@ props
     ;
     
 optionsList
-    : lang
+    : lang conflictring?
     ;
 
 lang

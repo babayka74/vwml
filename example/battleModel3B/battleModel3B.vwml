@@ -16,25 +16,25 @@ options {
 				graph ias "com.win.game.model.fringe.gate.algorithm.graphloader.GraphLoader"
 			)
 		}
-		conflictring {
-			"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
-				"{MagicWorld.Player}.PlayerLifeStep.(Stop false).(emptyQ false).LockQueue"
-			)
-          		"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockDefenders" conflicts (
-				"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
-				"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
-			)
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
-				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
-			)
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates" conflicts (
-				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
-				"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
-			)
-			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.SignalAnotherUnit.LockUnitCommandQueue" conflicts (
-				"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
-			)
-		}
+	}
+	conflictring {
+		"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
+			"{MagicWorld.Player}.PlayerLifeStep.(Stop false).(emptyQ false).LockQueue"
+		)
+          	"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockDefenders" conflicts (
+			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
+			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
+		)
+		"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
+		)
+		"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates" conflicts (
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
+			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
+		)
+		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.SignalAnotherUnit.LockUnitCommandQueue" conflicts (
+			"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
+		)
 	}
 }
 

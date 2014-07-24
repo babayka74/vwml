@@ -18,6 +18,32 @@ module Defender {
 					Init ias (
 						(Services.PositionChecker (Services.PositionChecker Id~)) Born
 					);
+					Actions is (
+						Defence ias (
+							OnFire ias ();
+							Observe ias (
+								Position ias nil;	
+								CheckFireZone ias (
+									(OnFire false) ias doNothing;
+									(OnFire true) ias (
+										(OnFire (OnFire~ ($~)) Join)^
+										((The attacker $~ can be attacked by defender Id~) Ew.Output~) Do
+									);
+									(Unit $~)->UpdateCurrentPosition~ Exe
+									((The attacker $~ is on position (Unit $~)->CurrentPosition~) Ew.Output~) Do
+									(OnFire (Position~ (Unit $~)->CurrentPosition~) Ident)~ Exe
+								);
+								(Position $~)^
+								((The defender Id~ is checking position Position~) Ew.Output~) Do
+								LockAttackers [
+									((Player PlayerId~)->(Units)->Attackers~ CheckFireZone~) ForEach
+								LockAttackers ]
+							);
+							(OnFire ())^
+							((The defender Id~ observes zone Movement.State~) Ew.Output~) Do
+							(Movement.State~ Observe~) ForEach
+						);
+					);
 					Kill ias (
 						((The defender Id~ was killed) Ew.Output~) Do
 						(Characters)->(Unit Id~)->(UnitAsDefender)->Destroy~ Exe
@@ -37,7 +63,7 @@ module Defender {
 						);
 						/* unit was killed */
 						SetMoveToPos ias doNothing;
-						CheckAndStart ias doNothing;
+						CheckAndStart ias Actions.Defence~ Exe;
 					);
 				);
 			);

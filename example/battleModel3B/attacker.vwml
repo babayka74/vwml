@@ -1,6 +1,12 @@
 
 include "../algorithms/DpfAPEx/DpfAPEx.vwml"
 
+external {
+	contexts {
+		"MagicWorld.Services"
+	}
+}
+
 module Attacker {
 	MagicWorld ias (
 		Characters ias (
@@ -243,6 +249,7 @@ module Attacker {
 								);
 								(FollowingCommandGo Movement.Walking~)~ Exe
 							);
+							1025 Bp
 							(Services.(PositionChecker Id~)->(CheckGoalPositions)->RollbackGoals Movement.Goals~)^
 							(Movement.Goals (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
 							(Services.(PositionChecker Id~)->(CheckGoalPositions)->Correct true)^ 
