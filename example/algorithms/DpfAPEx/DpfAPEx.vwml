@@ -1,6 +1,13 @@
 module DpfAPEx {
 	/* Depth-first search algorithm. Modification A. Graph based. Non-inversed */
 	DpfSearchMkAParallelEx ias (
+		Locker ias (
+			Lock ias false;
+			Latch ias nil;
+			(Lock false) ias doNothing;
+			(Lock true) ias Latch~;
+			(Lock Lock~)~ Exe
+		);
 		/* aux. entities; cached by caller */
 		/* algorithm's goals */
 		Goals ias $0;
@@ -23,6 +30,7 @@ module DpfAPEx {
 		/* sets to 'true' in case if there are no available steps */
 		NoSteps ias $10;
 		Uid ias $11;
+		Lock ias $12;
 
 		NextStates ias ();
 		ChoiceSet ias ();
@@ -54,7 +62,9 @@ module DpfAPEx {
 				(AvailableSteps true)^
 				($ doNothing)^
 			);
-			(StepIn LockSharedStates [ (StateSet~~ Step~~) In LockSharedStates ])~ Exe
+			(Locker.Latch LockSharedStates)^
+			(Locker.Lock Lock~)^
+			(StepIn Locker~ Exe [ (StateSet~~ Step~~) In Locker~ Exe ])~ Exe
 		);
 		/* actually looks for next states  */
 		GetNextStates ias (NextStates State~~~)^;
@@ -76,11 +86,13 @@ module DpfAPEx {
 		/* continue walking... */
 		(EndSearch false) ias (
 			GetNextStates~ Exe
-			LockSharedStates [
+			(Locker.Latch LockSharedStates)^
+			(Locker.Lock Lock~)^
+			Locker~ Exe [
 				//((by Uid~~ substructing NextStates~ from StateSet~~) Ew.Output~) Do
 				(ChoiceSet~ (NextStates~ StateSet~~) Substruct)^
 				//((Changed by Uid~~ substructed choices ChoiceSet~~ next NextStates~) Ew.Output~) Do
-			LockSharedStates ]
+			Locker~ Exe ]
 			(Return (ChoiceSet~~ ()) Ident)~ Exe
 		);
 		/* pop state from stack and set last state to current state */
@@ -109,11 +121,13 @@ module DpfAPEx {
 			//((new state NewState~) Ew.Output~) Do
 			(State~ NewState~)^
 			(SeqStates~ (SeqStates~~ (State~~)) Join)^
-			((Added state State~~) Ew.Output~) Do
-			LockSharedStates [
+			// ((Added state State~~) Ew.Output~) Do
+			(Locker.Latch LockSharedStates)^
+			(Locker.Lock Lock~)^
+			Locker~ Exe [
 				//((Changed by Uid~~ joined) Ew.Output~) Do
 				(StateSet~ (StateSet~~ (State~~)) Join)^
-			LockSharedStates ]
+			Locker~ Exe ]
 			CollectRequestedSteps~ Exe
 			Run~ Exe
 		);
