@@ -3,7 +3,9 @@ package com.vw.lang.sink.java.interpreter.seq;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
@@ -382,7 +384,21 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 						handleOperation(linkage, context, op);
 					}
 					else {
-						exeEntity.addOperation(op); // deferred operations
+						if (!exeEntity.isTerm()) {
+							// deferred operations
+							VWMLTerm t = (VWMLTerm)VWMLObjectBuilder.build(VWMLObjectType.TERM,
+																			exeEntity.getId(),
+																			exeEntity.getId(),
+																			exeEntity.getContext(),
+																			exeEntity.getInterpretationHistorySize(),
+																			exeEntity.getLink().getLinkOperationVisitor());
+							t.addOperation(op);
+							t.setAssociatedEntity(exeEntity);
+							exeEntity = t;
+						}
+						else {
+							exeEntity.addOperation(op);
+						}
 					}
 					// EXE is a special operation and its implementation lies out of general rules for 
 					// regular operations

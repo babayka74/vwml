@@ -1,6 +1,4 @@
 
-include "../algorithms/DpfAPEx/DpfAPEx.vwml"
-
 module Attacker {
 	MagicWorld ias (
 		Characters ias (
@@ -21,51 +19,83 @@ module Attacker {
 					// initialization steps
 					Init ias (
 						(Services.PositionChecker Services.(PositionChecker Id~)) Born
+						(Services.SignalUnit Services.(SignalUnit Id~)) Born
 						(DpfSearchMkAParallelEx (DpfSearchMkAParallelEx Id~)) Born
 					);
 					Actions ias (
 						/* attacker attacks */
 						Attack ias (
-							SelectDefenderAndAttack ias (
-								(NoAttack true) ias doNothing;
-								(NoAttack false) ias (
-								);
-								(NoAttack (OnFire~ ()) Ident)~ Exe 
-							);
+							/* stores defenders which have already been killed */
+							AlreadyKilledDefenders ias ();
 							/* means that attack is allowed from this node */
 							Position ias nil;
 							AttackedDefender ias nil;
 							/* defenders which can be attacked by attacker */
 							OnFire ias ();
+							SelectDefenderAndAttack ias (
+								(NoAttack true) ias (
+									((The attacker Id~ reports about absent of defenders and continues movement) Ew.Output~) Do
+									ChangePosition~ Exe
+								);
+								(NoAttack false) ias (
+									(DefenderKilled no) ias (
+										((The attacker Id~ did not kill defender AttackedDefender~ and continues movement) Ew.Output~) Do
+										ChangePosition~ Exe
+									);
+									(DefenderKilled yes) ias (
+										((The attacker Id~ killed defender AttackedDefender~ and continues movement) Ew.Output~) Do
+										(AlreadyKilledDefenders (AlreadyKilledDefenders~ (AttackedDefender~)) Join)^
+										(Unit AttackedDefender~)->Stay~ Exe
+										ChangePosition~ Exe
+										// sends signal to defender that it was killed
+										(Services.(SignalUnit Id~)->PlayerId PlayerId~)^
+										(Services.(SignalUnit Id~)->To AttackedDefender~)^
+										(Services.(SignalUnit Id~)->CommandId kill)^
+										(Services.(SignalUnit Id~)->CommandParams ())^
+										Services.(SignalUnit Id~)~ Exe
+									);
+									(AttackedDefender OnFire~ Random)^
+									((The attacker Id~ found defenders OnFire~ which can be attacked and selected AttackedDefender~) Ew.Output~) Do
+									(AttackPower (Characters)->(Unit Id~)->(Power)->Attack~)^
+									(DefencePower (Characters)->(Unit AttackedDefender~)->(Power)->Defence~)^
+									((The attacker Id~ attacks with AttackPower~ and attacked defender AttackedDefender~ defends with DefencePower~) Ew.Output~) Do
+									(AttackResult (AttackPower~ DefencePower~) Join Random)^
+									(DefenderKilled AttackResult~)~ Exe
+								);
+								(NoAttack (OnFire~ ()) Ident)~ Exe 
+							);
 							((The unit Id~ is on attacking position Position~ and looking for enemies in Position~~) Ew.Output~) Do
 							CheckFireZone ias (
-								(OnFire false) ias doNothing;
-								(OnFire true) ias (
+								(OnFire false false),(OnFire false true),(OnFire true true) ias doNothing;
+								(OnFire true false) ias (
 									(OnFire (OnFire~ ($~)) Join)^
 									((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
 								);
-								(Unit $~)->UpdateCurrentPosition~ Exe
-								((The defender $~ is on position (Unit $~)->CurrentPosition~) Ew.Output~) Do
-								(OnFire (Position~~ (Unit $~)->CurrentPosition~) In)~ Exe
+								(Unit $~)->GetCurrentPosition~ Exe
+								(OnFire (Position~~ (Unit $~)->CurrentPosition~) In (AlreadyKilledDefenders~ $~) In)~ Exe
 							);
 							(OnFire ())^
 							LockDefenders [
 								((Player PlayerId~)->(Units)->Defenders~ CheckFireZone~) ForEach
 							LockDefenders ]
-							(AttackedDefender OnFire~ Random)^
-							((The attacker Id~ found defenders OnFire~ which can be attacked and selected AttackedDefender~) Ew.Output~) Do
 							SelectDefenderAndAttack~ Exe
-							1025 Bp
 						);
 						/* attacker changes position */
 						ChangePosition ias (
 							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
 							300 Relax
+							((Unit Id~)->CurrentPosition Movement.State~)^
 							(Movement.PrevState Movement.State~)^
                                 			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
 							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
 							(Movement.Walking true)^ 
 						);
+					);
+					/* unit was killed */
+					Kill ias (
+						((The attacker Id~ was killed) Ew.Output~) Do
+						(Characters)->(Unit Id~)->(UnitAsAttacker)->Destroy~ Exe
+						((Characters)->(Unit Id~)->StopUnit true)^
 					);
 					/* movement's parameters */
 					Movement ias (
@@ -115,7 +145,7 @@ module Attacker {
 							((Movement.Goals
 								Ew.TargetsToBeDestroyed
 								Movement.State
-								(Player PlayerId~)->UnitsStateSet
+								(Player PlayerId~)->UnitsStateSet   /* units' shared path */
 								Movement.SeqStates
 								Movement.Result
 								Movement.TargetDestroyed
@@ -123,7 +153,8 @@ module Attacker {
 								Movement.RequestedSteps
 								Movement.NumOfRequestedSteps
 								Movement.NoSteps                     	
-								Id) (DpfSearchMkAParallelEx Id~)~) CallP
+								Id
+								true) (DpfSearchMkAParallelEx Id~)~) CallP
 							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
 							((Calculated steps Movement.RequestedSteps~ unit Id~) Ew.Output~) Do
 						);

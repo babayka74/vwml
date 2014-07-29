@@ -16,22 +16,141 @@ module Defender {
 				ActivityStrategy ias (
 					// initialization steps
 					Init ias (
-						(Services.PositionChecker (Services.PositionChecker Id~)) Born
+						(Services.PositionChecker Services.(PositionChecker Id~)) Born
+						(Services.SignalUnit Services.(SignalUnit Id~)) Born
+						(DpfSearchMkAParallelEx (DpfSearchMkAParallelEx Id~)) Born
+					);
+					Actions ias (
+						Defence ias (
+							AttackedAttacker ias nil;
+							OnFire ias ();
+							AlreadyKilledAttackers ias ();
+							/* removes path, created from last attacker's position (state), from units' shared path (UnitsStateSet) */
+							UpdateUnitsSharedPath ias (
+								RecalculatePathToAttacker ias (
+									TResult ias doNothing;
+									TTargetDestroyed ias doNothing;
+									(TSeqStates ())^
+									(TUnitsStateState ())^
+									(TRequestedSteps ())^
+									(TTargetsToBeDestroyed ())^
+									(TRequestedSteps ())^
+									(TNumOfRequestedSteps 1000)^
+									(TNoSteps false)^
+									(Unit $~)->GetCurrentPosition~ Exe
+									(Unit AttackedAttacker~)->GetCurrentPosition~ Exe
+									(TGoals ((Unit $~)->CurrentPosition~))^
+									(TState (Unit AttackedAttacker~)->CurrentPosition~)^
+									/* calculates path to another attacker; this path is substracted from shared units' path */
+									((TGoals
+										TTargetsToBeDestroyed
+										TState
+										TUnitsStateState
+										TSeqStates
+										TResult
+										TTargetDestroyed
+										Ew.DecValue
+										TRequestedSteps
+										TNumOfRequestedSteps
+										TNoSteps                     	
+										Id
+										false) (DpfSearchMkAParallelEx Id~)~) CallP
+									/* removes from shared path */
+									LockSharedStates [
+										((Player PlayerId~)->UnitsStateSet ((Player PlayerId~)->UnitsStateSet~ TRequestedSteps~) Substruct)^
+										((Movement to attacker $~ is TRequestedSteps~ from point Movement.State~ and new shared movement is (Player PlayerId~)->UnitsStateSet~) Ew.Output~) Do
+									LockSharedStates ]
+								);
+								UpdatePath ias (
+									(Ignore true) ias doNothing;
+									(Ignore false) ias RecalculatePathToAttacker~ Exe;
+									(Ignore ($~ AttackedAttacker~) Ident)~ Exe
+								);
+								LockAttackers [
+									((Player PlayerId~)->(Units)->Attackers~ UpdatePath~) ForEach
+								LockAttackers ]
+							);
+							SelectAttackerAndAttack ias (
+								(NoAttack true) ias doNothing;
+								(NoAttack false) ias (
+									(AttackerKilled no) ias ((The defender Id~ did not kill attacker AttackedAttacker~ and continues observing) Ew.Output~) Do;
+									(AttackerKilled yes) ias (
+										(AlreadyKilledAttackers (AlreadyKilledAttackers~ (AttackedAttacker~)) Join)^
+										((The defender Id~ killed attacker AttackedAttacker~ and continues observing and already killed AlreadyKilledAttackers~) Ew.Output~) Do
+										(Unit AttackedAttacker~)->Stay~ Exe
+										UpdateUnitsSharedPath~ Exe
+										// sends signal to defender that it was killed
+										(Services.(SignalUnit Id~)->PlayerId PlayerId~)^
+										(Services.(SignalUnit Id~)->To AttackedAttacker~)^
+										(Services.(SignalUnit Id~)->CommandId kill)^
+										(Services.(SignalUnit Id~)->CommandParams ())^
+										Services.(SignalUnit Id~)~ Exe
+									);
+									((The defender Id~ can attack following attackers OnFire~) Ew.Output~) Do
+									(AttackedAttacker OnFire~ Random)^
+									((The defender Id~ found attackers OnFire~ which can be attacked and selected AttackedAttacker~) Ew.Output~) Do
+									(AttackPower (Characters)->(Unit Id~)->(Power)->Attack~)^
+									(DefencePower (Characters)->(Unit AttackedAttacker~)->(Power)->Defence~)^
+									((The defender Id~ attacks with AttackPower~ and attacked attacker AttackedAttacker~ defends with DefencePower~) Ew.Output~) Do
+									(AttackResult (AttackPower~ DefencePower~) Join Random)^
+									(AttackerKilled AttackResult~)~ Exe
+								);
+								(NoAttack (OnFire~ ()) Ident)~ Exe
+							);
+							Observe ias (
+								Position ias nil;	
+								CheckFireZone ias (
+									(OnFire false false),(OnFire false true),(OnFire true true) ias doNothing;
+									(OnFire true false) ias (
+										(OnFire (OnFire~ ($~)) Join)^
+										((The attacker $~ can be attacked by defender Id~) Ew.Output~) Do
+									);
+									(Unit $~)->GetCurrentPosition~ Exe
+									(OnFire (Position~ (Unit $~)->CurrentPosition~) Ident (AlreadyKilledAttackers~ $~) In)~ Exe
+								);
+								(Position $~)^
+								LockAttackers [
+									((Player PlayerId~)->(Units)->Attackers~ CheckFireZone~) ForEach
+								LockAttackers ]
+							);
+							(OnFire ())^
+							(Movement.State~~ Observe~) ForEach
+							SelectAttackerAndAttack~ Exe
+						);
+					);
+					Kill ias (
+						((The defender Id~ was killed) Ew.Output~) Do
+						(Characters)->(Unit Id~)->(UnitAsDefender)->Destroy~ Exe
+						((Characters)->(Unit Id~)->StopUnit true)^
 					);
 					/* movement's parameters (stubs almost) */
 					Movement ias (
 						/* unit's position */
 						State ias nil;
 						SetStartPos ias (
+							(InvalidPositon false) ias (Movement.State~ Ew.Maze.Defence.Nodes) Context;
+							(InvalidPositon true) ias doNothing;
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->OnMaze Ew.Maze.Defence.Nodes~)^
                         	                        Services.(PositionChecker Id~)->CheckPosition~ Exe
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
+							(InvalidPositon (Movement.State~ nil) Ident)~ Exe
 							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 						);
+						/* unit was killed */
 						SetMoveToPos ias doNothing;
-						CheckAndStart ias doNothing;
+						CheckAndStart ias (
+							(NotCorrectParams true) ias (
+								 ((The defender Id~ has invalid start position) Ew.Output~) Do
+								((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+							);
+							(NotCorrectParams false) ias (
+								100 Relax
+								Actions.Defence~ Exe
+							);
+							(NotCorrectParams (Movement.State~ nil) Ident)~ Exe
+						);
 					);
 				);
 			);

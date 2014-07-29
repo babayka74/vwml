@@ -29,6 +29,7 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		inspector.setOperationalContext(context);
+		inspector.setAssemblyEntity(true);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();
