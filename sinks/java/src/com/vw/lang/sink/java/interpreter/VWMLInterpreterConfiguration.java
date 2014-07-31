@@ -46,10 +46,16 @@ public class VWMLInterpreterConfiguration {
 		}
 	}
 	
+	public static enum RESOURCE_STRATEGY {
+		ST,
+		MT
+	}
+	
 	public static final int DEF_EXECUTION_STEP_DELAY = 500; // in ms
 	
 	private int executionStepDelay = DEF_EXECUTION_STEP_DELAY;
 	private INTERPRETER_MT_STRATEGY interpretationMtStrategy;
+	private RESOURCE_STRATEGY resourceStrategy = RESOURCE_STRATEGY.ST;
 	private IVWMLGate debuggerGate = null;
 	private boolean isStepByStepInterpretation = false;
 	private VWMLConflictRingVisitor ringVisitor = null;
@@ -101,6 +107,14 @@ public class VWMLInterpreterConfiguration {
 
 	public void setRingVisitor(VWMLConflictRingVisitor ringVisitor) {
 		this.ringVisitor = ringVisitor;
+	}
+
+	public RESOURCE_STRATEGY getResourceStrategy() {
+		return resourceStrategy;
+	}
+
+	public void setResourceStrategy(RESOURCE_STRATEGY resourceStrategy) {
+		this.resourceStrategy = resourceStrategy;
 	}
 
 	@Override

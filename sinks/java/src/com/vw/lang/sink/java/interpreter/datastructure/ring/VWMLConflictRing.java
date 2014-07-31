@@ -9,6 +9,7 @@ import java.util.Map;
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
@@ -26,23 +27,13 @@ public class VWMLConflictRing {
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
 	private Map<String, String> conflictDef2TermAssociation = new HashMap<String, String>();
 	private VWMLConflictRingVisitor ringVisitor = null;
-	// singleton implementation
-	private static VWMLConflictRing s_conflictRing = null;
-	
-	private VWMLConflictRing() {
-	}
 	
 	/**
 	 * Simple singlton implementation
 	 * @return
 	 */
 	public static synchronized VWMLConflictRing instance() {
-		if (s_conflictRing != null) {
-			return s_conflictRing;
-		}
-		s_conflictRing = new VWMLConflictRing();
-		s_conflictRing.init();
-		return s_conflictRing;
+		return VWMLResourceHostManagerFactory.hostManagerInstance().requestRing();
 	}
 
 	/**
@@ -235,7 +226,7 @@ public class VWMLConflictRing {
 	}
 
 	protected void markAsInvalid() {
-		s_conflictRing = null;
+		VWMLResourceHostManagerFactory.hostManagerInstance().markRingAsInvalid();
 	}
 	
 	private String associateBoundTermAndConflictDefinition(String conflict) {

@@ -7,6 +7,7 @@ import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 
@@ -16,11 +17,6 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  *
  */
 public class VWMLObjectsRepository {
-
-	// defines static types of unchanged entities
-	private VWMLObjectsRepository() {
-		init();
-	}
 	
 	public static boolean notAsOriginal = false;
 	public static boolean asOriginal = true;
@@ -29,19 +25,8 @@ public class VWMLObjectsRepository {
 	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
 	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
 	
-	private static VWMLObjectsRepository s_repo = null;
-
-	
 	public static VWMLObjectsRepository instance() {
-		if (s_repo != null) {
-			return s_repo;
-		}
-		synchronized(VWMLObjectsRepository.class) {
-			if (s_repo == null) {
-				s_repo = new VWMLObjectsRepository();
-			}
-		}
-		return s_repo;
+		return VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepo();
 	}
 
 	/**
@@ -437,6 +422,6 @@ public class VWMLObjectsRepository {
 	}
 	
 	protected void markAsInvalid() {
-		s_repo = null;
+		VWMLResourceHostManagerFactory.hostManagerInstance().markObjectsRepoAsInvalid();
 	}
 }

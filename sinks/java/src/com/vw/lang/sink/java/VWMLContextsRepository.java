@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 
@@ -17,24 +18,14 @@ public class VWMLContextsRepository extends VWMLRepository {
 	
 	private static String s_default_context = "__vwml_root_context__";
 	
-	private VWMLContextsRepository() {
-		createContextIfNotExists(s_default_context);
-	}
-	
 	private Map<Object, VWMLContext> contextsMap = new HashMap<Object, VWMLContext>();
 	
-	private static VWMLContextsRepository s_contextsRepository = null;
-	
 	public static VWMLContextsRepository instance() {
-		if (s_contextsRepository != null) {
-			return s_contextsRepository;
-		}
-		synchronized(VWMLContextsRepository.class) {
-			if (s_contextsRepository == null) {
-				s_contextsRepository = new VWMLContextsRepository();
-			}
-		}
-		return s_contextsRepository;
+		return VWMLResourceHostManagerFactory.hostManagerInstance().requestContextsRepo();
+	}
+	
+	public void init() {
+		createContextIfNotExists(s_default_context);
 	}
 	
 	/**
@@ -301,6 +292,6 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 
 	protected void markAsInvalid() {
-		s_contextsRepository = null;
+		VWMLResourceHostManagerFactory.hostManagerInstance().markContextsRepoAsInvalid();
 	}
 }

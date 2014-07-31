@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.parallel.VWMLParallelTermInterpreter;
 import com.vw.lang.sink.java.interpreter.reactive.VWMLReactiveTermInterpreter;
@@ -157,7 +158,10 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
 			impl = VWMLParallelTermInterpreter.instance(linkage, terms);
+			config.setStepByStepInterpretation(true);
+			config.setResourceStrategy(VWMLInterpreterConfiguration.RESOURCE_STRATEGY.MT);
 		}
+		VWMLResourceHostManagerFactory.setResourceStrategy(config.getResourceStrategy());
 		if (impl != null) {
 			impl.setConfig(config);
 		}
