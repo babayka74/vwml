@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.ring;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 
@@ -42,13 +43,26 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	}
 	
 	public void balance() {
+		VWMLConflictRingVisitor v = VWMLConflictRing.instance().getRingVisitor();
+		if (v != null) {
+			v.print("-> group [ " + getId() + " ]");
+		}
 		if (group.size() > 1) {
 			VWMLConflictRingNode master = group.get(0);
+			if (v != null) {
+				v.print("\t-> group master [ " + master.getId() + " ]");
+			}
 			for(int i = 1; i < group.size();) {
 				// has the same term as master
 				master.addToGroup(group.get(i));
+				if (v != null) {
+					v.print("\t\t-> grouped by master [ " + group.get(i).getId() + " ]");
+				}
 				group.remove(i);
 			}
+		}
+		if (v != null) {
+			v.print("");
 		}
 	}
 	

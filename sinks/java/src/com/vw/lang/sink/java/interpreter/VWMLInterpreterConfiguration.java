@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.interpreter;
 
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 
 /**
  * Interpreter's configuration; based on properties
@@ -51,6 +52,7 @@ public class VWMLInterpreterConfiguration {
 	private INTERPRETER_MT_STRATEGY interpretationMtStrategy;
 	private IVWMLGate debuggerGate = null;
 	private boolean isStepByStepInterpretation = false;
+	private VWMLConflictRingVisitor ringVisitor = null;
 	
 	private VWMLInterpreterConfiguration() {
 		super();
@@ -91,6 +93,14 @@ public class VWMLInterpreterConfiguration {
 
 	public void setStepByStepInterpretation(boolean isStepByStepInterpretation) {
 		this.isStepByStepInterpretation = isStepByStepInterpretation;
+	}
+
+	public VWMLConflictRingVisitor getRingVisitor() {
+		return ringVisitor;
+	}
+
+	public void setRingVisitor(VWMLConflictRingVisitor ringVisitor) {
+		this.ringVisitor = ringVisitor;
 	}
 
 	@Override
