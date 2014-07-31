@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
@@ -14,6 +15,7 @@ import com.vw.lang.sink.java.interpreter.reactive.VWMLReactiveTermInterpreter;
 import com.vw.lang.sink.java.interpreter.seq.VWMLSequentialTermInterpreter;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.module.VWMLModule;
+import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
  * Defines interpretater's broker; creates new interpreter according to properties and starts interpretation process
@@ -127,6 +129,11 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 			p = VWMLPairLookUp.lookByName(propPairs, "interpreter.execution.strategy");
 			if (p != null) {
 				config.setInterpretationMtStrategy(p.getValue());
+			}
+			p = VWMLPairLookUp.lookByName(propPairs, "interpreter.ring.visitor");
+			if (p != null) {
+				VWMLConflictRingVisitor v = (VWMLConflictRingVisitor)GeneralUtils.instantiateClass(p.getValue());
+				config.setRingVisitor(v);
 			}
 		}
 	}

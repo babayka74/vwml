@@ -58,6 +58,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		if (getTerms() == null  || getTerms().size() == 0) {
 			throw new Exception("term should be set before method is called");
 		}
+		VWMLConflictRing.instance().setRingVisitor(getConfig().getRingVisitor());
 		getConfig().setStepByStepInterpretation(true);
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		// looking for ring node by source lifeterm's context 

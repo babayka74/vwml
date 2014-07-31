@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.utils.GeneralUtils;
@@ -24,6 +25,7 @@ public class VWMLConflictRing {
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
 	private Map<String, String> conflictDef2TermAssociation = new HashMap<String, String>();
+	private VWMLConflictRingVisitor ringVisitor = null;
 	// singleton implementation
 	private static VWMLConflictRing s_conflictRing = null;
 	
@@ -104,6 +106,14 @@ public class VWMLConflictRing {
 
 	public void setInitialyEmptyRing(boolean initialyEmptyRing) {
 		this.initialyEmptyRing = initialyEmptyRing;
+	}
+
+	public VWMLConflictRingVisitor getRingVisitor() {
+		return ringVisitor;
+	}
+
+	public void setRingVisitor(VWMLConflictRingVisitor ringVisitor) {
+		this.ringVisitor = ringVisitor;
 	}
 
 	/**

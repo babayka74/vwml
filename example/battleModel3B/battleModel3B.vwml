@@ -34,6 +34,7 @@ options {
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Services.SignalUnit.LockUnitCommandQueue" conflicts (
 			"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
+			"[MagicWorld.Player].MagicWorld.Services.SignalUnit.LockUnitCommandQueue"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.Observe.LockAttackers" conflicts (
 			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockAttackers"
