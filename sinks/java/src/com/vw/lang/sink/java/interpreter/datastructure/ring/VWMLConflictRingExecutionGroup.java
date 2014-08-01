@@ -21,6 +21,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// set when node without interpreter and marked as candidate for clone is removed from group by scheduler
 	// but this node has all conflicts' links which can be used during clone operation
 	private VWMLConflictRingNode implicitMaster = null;
+	private VWMLConflictRing ring = null;
 	
 	public VWMLConflictRingExecutionGroup(Object hashId) {
 		super(hashId);
@@ -30,8 +31,10 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		super(id, id, readableId);
 	}
 	
-	public static VWMLConflictRingExecutionGroup build(Object id, String readableId) {
-		return new VWMLConflictRingExecutionGroup(id, readableId);
+	public static VWMLConflictRingExecutionGroup build(VWMLConflictRing ring, Object id, String readableId) {
+		VWMLConflictRingExecutionGroup g = new VWMLConflictRingExecutionGroup(id, readableId);
+		g.setRing(ring);
+		return g;
 	}
 
 	public void add(VWMLConflictRingNode n) {
@@ -40,6 +43,21 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	
 	public void remove(VWMLConflictRingNode n) {
 		group.remove(n);
+	}
+	
+	public VWMLConflictRingNode find(Object id) {
+		for(VWMLConflictRingNode n : group) {
+			if (n.getId().equals(id)) {
+				return n;
+			}
+			// looking inside grouped ('aux' nodes)
+			for(VWMLConflictRingNode ng : n.getGroup()) {
+				if (ng.getId().equals(id)) {
+					return ng;
+				}
+			}
+		}
+		return null;
 	}
 	
 	public void balance() {
@@ -175,5 +193,12 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		removedNodes.clear();
 		return r;
 	}
-	
+
+	public VWMLConflictRing getRing() {
+		return ring;
+	}
+
+	public void setRing(VWMLConflictRing ring) {
+		this.ring = ring;
+	}
 }

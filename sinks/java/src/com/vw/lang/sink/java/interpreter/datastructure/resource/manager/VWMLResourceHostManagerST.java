@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
 /**
  * Singlethreaded manager
@@ -20,6 +21,14 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 		return s_hostedManager;
 	}
 
+	@Override
+	public void remoteLock(VWMLConflictRingNode node) {
+	}
+
+	@Override
+	public void remoteUnlock(VWMLConflictRingNode node) {
+	}
+	
 	protected Long requestKey() {
 		return Long.valueOf(0x1234);
 	}

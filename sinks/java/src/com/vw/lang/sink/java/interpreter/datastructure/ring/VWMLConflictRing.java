@@ -207,6 +207,38 @@ public class VWMLConflictRing {
 	}
 	
 	/**
+	 * Looks for node identified by id
+	 * @param id
+	 * @return
+	 */
+	public VWMLConflictRingNode lookupNodeById(Object id) {
+		VWMLConflictRingNode n = null;
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			n = g.find(id);
+			if (n != null) {
+				break;
+			}
+		}
+		return n;
+	}
+
+	/**
+	 * Posts lock request to ring for processing
+	 * @param nodeId
+	 */
+	public void postLockRequestFor(Object nodeId) throws Exception {
+		
+	}
+
+	/**
+	 * Posts unlock request to ring for processing
+	 * @param nodeId
+	 */
+	public void postUnlockRequestFor(Object nodeId) throws Exception {
+		
+	}
+	
+	/**
 	 * Links conflict with group of related conflicts
 	 * @param conflict
 	 * @param linkedConflicts
@@ -275,7 +307,7 @@ public class VWMLConflictRing {
 		VWMLConflictRingExecutionGroup g = null;
 		String id = context + "." + "artificialId_" + artificialId;
 		conflictDef2TermAssociation.put(id, context);
-		g = VWMLConflictRingExecutionGroup.build(id, id);
+		g = VWMLConflictRingExecutionGroup.build(this, id, id);
 		VWMLConflictRingNode n = VWMLConflictRingNode.build(id, id);
 		addNode(g, n);
 		artificialId++;
@@ -295,7 +327,7 @@ public class VWMLConflictRing {
 		}
 		g = findGroupByEntityContext(groupName, instantiateArtifical);
 		if (g == null) {
-			g = VWMLConflictRingExecutionGroup.build(groupName, groupName);
+			g = VWMLConflictRingExecutionGroup.build(this, groupName, groupName);
 			groupsConflictRing.add(g);
 		}
 		// adds master node

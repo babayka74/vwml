@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
@@ -26,6 +27,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				if (n == node) {
 					n.setLooped(true);
 				}
+				VWMLResourceHostManagerFactory.hostManagerInstance().remoteLock(n);
 			}
 		}
 	}
@@ -44,6 +46,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				if (n == node) {
 					n.setLooped(false);
 				}
+				VWMLResourceHostManagerFactory.hostManagerInstance().remoteUnlock(n);
 			}
 		}
 	}

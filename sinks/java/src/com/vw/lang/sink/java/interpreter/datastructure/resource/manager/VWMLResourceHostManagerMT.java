@@ -3,6 +3,8 @@ package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingMT;
 
 /**
  * Multithreaded manager
@@ -21,6 +23,38 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		return s_hostedManager;
 	}
 
+	@Override
+	public void remoteLock(VWMLConflictRingNode node) {
+		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
+			synchronized(r) {
+				VWMLConflictRing ring = r.getRing();
+				if (ring != null && node.getExecutionGroup().getRing() != ring) {
+					try {
+						ring.postLockRequestFor(node.getId());
+					} catch (Exception e) {
+						// swallow for now
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void remoteUnlock(VWMLConflictRingNode node) {
+		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
+			synchronized(r) {
+				VWMLConflictRing ring = r.getRing();
+				if (ring != null && node.getExecutionGroup().getRing() != ring) {
+					try {
+						ring.postUnlockRequestFor(node.getId());
+					} catch (Exception e) {
+						// swallow for now
+					}
+				}
+			}
+		}
+	}
+	
 	protected Long requestKey() {
 		return Long.valueOf(Thread.currentThread().getId());
 	}
@@ -32,7 +66,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 				if (r.getRing() != null) {
 					return;
 				}
-				VWMLConflictRing ring = new VWMLConflictRing();
+				VWMLConflictRingMT ring = new VWMLConflictRingMT();
 				ring.init();
 				r.setRing(ring);
 			}

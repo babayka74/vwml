@@ -10,6 +10,7 @@ import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -88,6 +89,8 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		while((listener == null) ? true : listener.getInterpreterStatus() != VWMLInterpreterImpl.stopped) {
 			VWMLConflictRingNode node = ring.next();
 			if (node == null) {
+				// no operational nodes - root interpreter is going to be stopped, so we have to clear resources
+				VWMLResourceHostManagerFactory.hostManagerInstance().clearResource();
 				break;
 			}
 			spinTimerManager(getTimerManager(), timeFringeGate);

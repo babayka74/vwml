@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
 /**
  * Managers resources which are active on the same host
@@ -46,6 +47,13 @@ public abstract class VWMLResourceHostManager {
 	
 	private Map<Long, VWMLHostedResources> hostedResources = new ConcurrentHashMap<Long, VWMLHostedResources>();
 
+	/**
+	 * Removes resource from storage
+	 */
+	public void clearResource() {
+		removeResource();
+	}
+	
 	/**
 	 * Requests and initializes ring
 	 * @return
@@ -99,6 +107,18 @@ public abstract class VWMLResourceHostManager {
 		VWMLHostedResources r = getHostedResource();
 		contextsRepoDone(r);
 	}
+
+	/**
+	 * Marks remote node as locked, which has the same id as given node 
+	 * @param node
+	 */
+	public abstract void remoteLock(VWMLConflictRingNode node);
+
+	/**
+	 * Marks remote node as locked, which has the same id as given node 
+	 * @param node
+	 */
+	public abstract void remoteUnlock(VWMLConflictRingNode node);
 	
 	/**
 	 * Initializes conflict ring
@@ -141,7 +161,11 @@ public abstract class VWMLResourceHostManager {
 	 * @return
 	 */
 	protected abstract Long requestKey();
-
+	
+	protected Map<Long, VWMLHostedResources> getHostedResourcesContainer() {
+		return hostedResources;
+	}
+	
 	private VWMLHostedResources getHostedResource() {
 		Long key = requestKey();
 		VWMLHostedResources r = hostedResources.get(key);
@@ -150,5 +174,14 @@ public abstract class VWMLResourceHostManager {
 			hostedResources.put(key, r);
 		}
 		return r;
+	}
+	
+	private void removeResource() {
+		Long key = requestKey();
+		VWMLHostedResources r = hostedResources.get(key);
+		ringDone(r);
+		objectsRepoDone(r);
+		contextsRepoDone(r);
+		hostedResources.remove(key);
 	}
 }
