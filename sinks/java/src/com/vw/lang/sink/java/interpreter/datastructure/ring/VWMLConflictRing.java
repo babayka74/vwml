@@ -9,6 +9,7 @@ import java.util.Map;
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.utils.GeneralUtils;
 
@@ -223,10 +224,25 @@ public class VWMLConflictRing {
 	}
 
 	/**
+	 * Returns true in case if node identified by id belongs to the ring
+	 * @param id
+	 * @return
+	 */
+	public boolean belong(Object id) {
+		boolean belong = false;
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			if (g.belong((String)id)) {
+				belong = true;
+			}
+		}
+		return belong;
+	}
+	
+	/**
 	 * Posts lock request to ring for processing
 	 * @param nodeId
 	 */
-	public void postLockRequestFor(Object nodeId) throws Exception {
+	public void sendLockRequestFor(Object nodeId) throws Exception {
 		
 	}
 
@@ -234,7 +250,22 @@ public class VWMLConflictRing {
 	 * Posts unlock request to ring for processing
 	 * @param nodeId
 	 */
-	public void postUnlockRequestFor(Object nodeId) throws Exception {
+	public void sendUnlockRequestFor(Object nodeId) throws Exception {
+		
+	}
+	
+	/**
+	 * Posts 'context find' request to ring
+	 * @param id
+	 */
+	public VWMLContext sendContextFindRequest(String id) throws Exception {
+		return null;
+	}
+
+	/**
+	 * Processes incoming requests
+	 */
+	public void processRequests() {
 		
 	}
 	

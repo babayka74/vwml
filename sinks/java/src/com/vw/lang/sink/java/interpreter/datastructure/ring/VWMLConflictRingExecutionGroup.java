@@ -1,7 +1,9 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLObject;
@@ -18,6 +20,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// all cloned terms have the same properties and associated with master node
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
 	private List<VWMLConflictRingNode> removedNodes = new ArrayList<VWMLConflictRingNode>();
+	private Set<String> lookup = new HashSet<String>();
 	// set when node without interpreter and marked as candidate for clone is removed from group by scheduler
 	// but this node has all conflicts' links which can be used during clone operation
 	private VWMLConflictRingNode implicitMaster = null;
@@ -39,10 +42,16 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 
 	public void add(VWMLConflictRingNode n) {
 		group.add(n);
+		lookup.add((String)n.getId());
 	}
 	
 	public void remove(VWMLConflictRingNode n) {
 		group.remove(n);
+		lookup.remove((String)n.getId());
+	}
+	
+	public boolean belong(String id) {
+		return lookup.contains(id);
 	}
 	
 	public VWMLConflictRingNode find(Object id) {
@@ -100,6 +109,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	public void clear() {
 		group.clear();
 		removedNodes.clear();
+		lookup.clear();
 		implicitMaster = null;
 	}
 	

@@ -1,7 +1,9 @@
 package com.vw.lang.sink.java;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -19,6 +21,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	private static String s_default_context = "__vwml_root_context__";
 	
 	private Map<Object, VWMLContext> contextsMap = new HashMap<Object, VWMLContext>();
+	private Set<String> lookup = new HashSet<String>();
 	
 	public static VWMLContextsRepository instance() {
 		return VWMLResourceHostManagerFactory.hostManagerInstance().requestContextsRepo();
@@ -67,6 +70,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	public void removeAll() {
 		VWMLContextsRepository.instance().release(VWMLContextsRepository.instance().getRootContext());
 		contextsMap.clear();
+		lookup.clear();
 		markAsInvalid();
 	}
 	
@@ -80,6 +84,15 @@ public class VWMLContextsRepository extends VWMLRepository {
 			VWMLContextsRepository.instance().removeAssociatedEntity(entity, context);
 			entity.getLink().unlinkFromAll();
 		}
+	}
+	
+	/**
+	 * Returns true in case if context belongs to the storage
+	 * @param context
+	 * @return
+	 */
+	public boolean belong(String context) {
+		return lookup.contains(context);
 	}
 	
 	/**
@@ -151,7 +164,15 @@ public class VWMLContextsRepository extends VWMLRepository {
 		if (root == null) {
 			return null;
 		}		
-		return find(root, contextPath, null, 1, -1);
+		VWMLContext ctx = find(root, contextPath, null, 1, -1);
+		if (ctx == null) {
+			try {
+				ctx = VWMLResourceHostManagerFactory.hostManagerInstance().remoteFindContext((String)contextId);
+			} catch (Exception e) {
+				// swallow it for now
+			}
+		}
+		return ctx;
 	}
 
 	/**
@@ -183,6 +204,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	
 	protected VWMLContext create(VWMLContext parent, String[] contextPath, int pos) {
 		String actualContext = "";
+		boolean created = false;
 		for(int i = pos; i < contextPath.length; i++) {
 			VWMLObject next = null;
 			for(VWMLObject o : parent.getLink().getLinkedObjects()) {
@@ -200,8 +222,12 @@ public class VWMLContextsRepository extends VWMLRepository {
 				((VWMLContext)next).setContext(actualContext);
 				((VWMLContext)next).setContextName(contextPath[i]);
 				parent.getLink().link(next);
+				created = true;
 			}
 			parent = (VWMLContext)next;
+		}
+		if (created) {
+			lookup.add(actualContext);
 		}
 		return parent;
 	}

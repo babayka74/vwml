@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
@@ -108,6 +109,15 @@ public abstract class VWMLResourceHostManager {
 		contextsRepoDone(r);
 	}
 
+	
+	/**
+	 * Looks up for context which can be defined on remote ring
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public abstract VWMLContext remoteFindContext(String id) throws Exception;
+	
 	/**
 	 * Marks remote node as locked, which has the same id as given node 
 	 * @param node

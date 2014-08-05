@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingMT;
@@ -28,9 +29,9 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				VWMLConflictRing ring = r.getRing();
-				if (ring != null && node.getExecutionGroup().getRing() != ring) {
+				if (ring != null && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
 					try {
-						ring.postLockRequestFor(node.getId());
+						ring.sendLockRequestFor(node.getId());
 					} catch (Exception e) {
 						// swallow for now
 					}
@@ -44,15 +45,35 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				VWMLConflictRing ring = r.getRing();
-				if (ring != null && node.getExecutionGroup().getRing() != ring) {
+				if (ring != null && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
 					try {
-						ring.postUnlockRequestFor(node.getId());
+						ring.sendUnlockRequestFor(node.getId());
 					} catch (Exception e) {
 						// swallow for now
 					}
 				}
 			}
 		}
+	}
+	
+	@Override
+	public VWMLContext remoteFindContext(String id) throws Exception {
+		VWMLContext ctx = null;
+		VWMLContextsRepository curRepo = requestContextsRepo();
+		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
+			synchronized(r) {
+				VWMLContextsRepository repo = r.getContextsRepo();
+				if (repo != null && r.getRing() != null && curRepo != repo && repo.belong(id)) {
+					try {
+						ctx = r.getRing().sendContextFindRequest(id);
+					} catch (Exception e) {
+						// swallow for now
+					}
+					break;
+				}
+			}
+		}
+		return ctx;
 	}
 	
 	protected Long requestKey() {

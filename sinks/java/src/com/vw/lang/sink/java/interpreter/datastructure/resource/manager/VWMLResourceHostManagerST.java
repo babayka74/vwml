@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
@@ -27,6 +28,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 
 	@Override
 	public void remoteUnlock(VWMLConflictRingNode node) {
+	}
+
+	@Override
+	public VWMLContext remoteFindContext(String id) throws Exception {
+		return null;
 	}
 	
 	protected Long requestKey() {
