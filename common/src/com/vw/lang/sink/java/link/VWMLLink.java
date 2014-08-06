@@ -14,8 +14,8 @@ import com.vw.lang.sink.java.VWMLObject;
  */
 public class VWMLLink {
 	
-	private VWMLObject itself;
-	private VWMLObject parent;
+	private volatile VWMLObject itself;
+	private volatile VWMLObject parent;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	private List<VWMLObject> linkedObjects = Collections.synchronizedList(new ArrayList<VWMLObject>());
 	

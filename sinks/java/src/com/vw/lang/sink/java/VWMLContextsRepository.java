@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +19,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	
 	private static String s_default_context = "__vwml_root_context__";
 	
-	private Map<Object, VWMLContext> contextsMap = new HashMap<Object, VWMLContext>();
+	private Map<Object, VWMLContext> contextsMap = null;
 	private Set<String> lookup = new HashSet<String>();
 	
 	public static VWMLContextsRepository instance() {
@@ -28,6 +27,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	public void init() {
+		contextsMap = VWMLResourceHostManagerFactory.hostManagerInstance().requestContextsRepoContainer();
 		createContextIfNotExists(s_default_context);
 	}
 	
@@ -51,7 +51,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		String[] clonedContextFullPath = context.getContextPath().clone();
 		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
 		VWMLContext newContext = VWMLContextsRepository.instance().createFromContextPath(clonedContextFullPath);
-		copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, context, auxCache, bornMode);
+		VWMLContextsRepository.instance().copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, context, auxCache, bornMode);
 		return newContext;
 	}
 	
@@ -62,6 +62,16 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 */
 	public static void releaseCloned(VWMLContext clonedContext) throws Exception {
 		VWMLContextsRepository.instance().release(clonedContext);
+	}
+	
+	/**
+	 * Performs context migration process from 'from' to 'to' repository
+	 * @param from
+	 * @param to
+	 * @param context
+	 */
+	public static void migrate(VWMLContextsRepository from, VWMLContextsRepository to, VWMLContext context) {
+		
 	}
 
 	/**
@@ -142,7 +152,8 @@ public class VWMLContextsRepository extends VWMLRepository {
 			root.setContext(rootContext);
 			contextsMap.put(rootContext, root);
 		}
-		return create(root, contextPath, startCtxIndex);
+		VWMLContext ctx = create(root, contextPath, startCtxIndex);
+		return ctx;
 	}
 	
 	/**
@@ -165,13 +176,6 @@ public class VWMLContextsRepository extends VWMLRepository {
 			return null;
 		}		
 		VWMLContext ctx = find(root, contextPath, null, 1, -1);
-		if (ctx == null) {
-			try {
-				ctx = VWMLResourceHostManagerFactory.hostManagerInstance().remoteFindContext((String)contextId);
-			} catch (Exception e) {
-				// swallow it for now
-			}
-		}
 		return ctx;
 	}
 
@@ -272,7 +276,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		return s_default_context + "." + context; 
 	}
 	
-	protected static void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLContext initial, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
+	protected void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLContext initial, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
 		if (initialEntityId != null && newEntityId != null) {
 			for(VWMLEntity e : contextFrom.getAssociatedEntities()) {
 				if (!e.isOriginal()) {

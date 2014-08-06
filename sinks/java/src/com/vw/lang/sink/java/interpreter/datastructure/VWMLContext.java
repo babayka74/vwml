@@ -1,7 +1,6 @@
 package com.vw.lang.sink.java.interpreter.datastructure;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +9,7 @@ import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
@@ -47,13 +47,14 @@ public class VWMLContext extends VWMLObject {
 	private boolean lifeTermContext = false;
 	private boolean unwinding = false;
 	// associated entities
-	private Set<VWMLEntity> associatedEntities = new HashSet<VWMLEntity>();
+	private Set<VWMLEntity> associatedEntities = null;
 	private String contextName;
 	private int entityInterpretationHistorySize = 0;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	
 	private VWMLContext(Object hashId) {
 		super(hashId);
+		init();
 	}
 	
 	/**
@@ -466,6 +467,10 @@ public class VWMLContext extends VWMLObject {
 		return true;
 	}
 
+	protected void init() {
+		associatedEntities = VWMLResourceHostManagerFactory.hostManagerInstance().requestEntityAssociatedSet();
+	}
+	
 	protected VWMLStack getContextsStack() {
 		if (contextsStack == null) {
 			contextsStack = VWMLStack.instance();
@@ -489,14 +494,14 @@ public class VWMLContext extends VWMLObject {
 
 	protected Map<VWMLEntity, VWMLEntity> getEntitiesMarkedAsObservable() {
 		if (entitiesMarkedAsObservable == null) {
-			entitiesMarkedAsObservable = new HashMap<VWMLEntity, VWMLEntity>();
+			entitiesMarkedAsObservable = VWMLResourceHostManagerFactory.hostManagerInstance().requestEntityAssociatedContainer();
 		}
 		return entitiesMarkedAsObservable;
 	}
 
 	protected Map<VWMLEntity, VWMLEntity> getEntitiesMarkedAsRecursive() {
 		if (entitiesMarkedAsRecursive == null) {
-			entitiesMarkedAsRecursive = new HashMap<VWMLEntity, VWMLEntity>();
+			entitiesMarkedAsRecursive = VWMLResourceHostManagerFactory.hostManagerInstance().requestEntityAssociatedContainer();
 		}
 		return entitiesMarkedAsRecursive;
 	}

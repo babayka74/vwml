@@ -136,6 +136,15 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 				VWMLConflictRingVisitor v = (VWMLConflictRingVisitor)GeneralUtils.instantiateClass(p.getValue());
 				config.setRingVisitor(v);
 			}
+			p = VWMLPairLookUp.lookByName(propPairs, "interpreter.ring.nodes");
+			if (p != null) {
+				try {
+					config.setNodesPerRing(Integer.valueOf(p.getValue()).intValue());
+				}
+				catch(Exception e) {
+					config.setNodesPerRing(VWMLInterpreterConfiguration.DEF_NODES_PER_RING);
+				}
+			}
 		}
 	}
 

@@ -3,8 +3,10 @@ package com.vw.lang.sink.java.interpreter.parallel;
 import java.util.List;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 
 /**
@@ -39,13 +41,15 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 	
 	@Override
 	public void start() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	public VWMLEntity decomposeAndInterpret(VWMLLinkage linkage, VWMLContext context, VWMLEntity entity) throws Exception {
-		// TODO Auto-generated method stub
-		return entity;
+		if (getConfig() == null) {
+			// default configuration is used
+			setConfig(VWMLInterpreterConfiguration.instance());
+		}
+		if (getTerms() == null  || getTerms().size() == 0) {
+			throw new Exception("term should be set before method is called");
+		}
+		VWMLConflictRing.instance().setRingVisitor(getConfig().getRingVisitor());
+		getConfig().setStepByStepInterpretation(true);
 	}
 
 	@Override

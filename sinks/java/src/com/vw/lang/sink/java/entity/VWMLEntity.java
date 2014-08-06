@@ -31,8 +31,8 @@ public class VWMLEntity extends VWMLObject {
 	
 	private VWMLContext context;
 	// this entity is interpreted as another entity/term
-	private VWMLEntity originalInterpreting;
-	private VWMLEntity interpreting;
+	private volatile VWMLEntity originalInterpreting;
+	private volatile VWMLEntity interpreting;
 	private VWMLEntityInterpretationHistory interpretationHistory = new VWMLEntityInterpretationHistory();
 	private VWMLOperations associatedOperations = new VWMLOperations("__associated_operation__" + this);
 	private boolean isLifeTerm = false;

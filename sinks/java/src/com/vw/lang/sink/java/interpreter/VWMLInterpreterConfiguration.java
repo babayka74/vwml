@@ -52,6 +52,7 @@ public class VWMLInterpreterConfiguration {
 	}
 	
 	public static final int DEF_EXECUTION_STEP_DELAY = 500; // in ms
+	public static final int DEF_NODES_PER_RING = 10;
 	
 	private int executionStepDelay = DEF_EXECUTION_STEP_DELAY;
 	private INTERPRETER_MT_STRATEGY interpretationMtStrategy;
@@ -59,6 +60,7 @@ public class VWMLInterpreterConfiguration {
 	private IVWMLGate debuggerGate = null;
 	private boolean isStepByStepInterpretation = false;
 	private VWMLConflictRingVisitor ringVisitor = null;
+	private int nodesPerRing = DEF_NODES_PER_RING;
 	
 	private VWMLInterpreterConfiguration() {
 		super();
@@ -117,12 +119,22 @@ public class VWMLInterpreterConfiguration {
 		this.resourceStrategy = resourceStrategy;
 	}
 
+	public int getNodesPerRing() {
+		return nodesPerRing;
+	}
+
+	public void setNodesPerRing(int nodesPerRing) {
+		this.nodesPerRing = nodesPerRing;
+	}
+
 	@Override
 	public String toString() {
 		return "VWMLInterpreterConfiguration [executionStepDelay="
 				+ executionStepDelay + ", interpretationMtStrategy="
-				+ interpretationMtStrategy + ", debuggerGate=" + debuggerGate
+				+ interpretationMtStrategy + ", resourceStrategy="
+				+ resourceStrategy + ", debuggerGate=" + debuggerGate
 				+ ", isStepByStepInterpretation=" + isStepByStepInterpretation
-				+ "]";
+				+ ", ringVisitor=" + ringVisitor + ", nodesPerRing="
+				+ nodesPerRing + "]";
 	}
 }

@@ -1,7 +1,14 @@
 package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -22,6 +29,26 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 		return s_hostedManager;
 	}
 
+	@Override
+	public Map<Object, VWMLContext> requestContextsRepoContainer() {
+		return new HashMap<Object, VWMLContext>();
+	}
+
+	@Override
+	public Map<Object, VWMLObject> requestObjectsRepoContainer() {
+		return new HashMap<Object, VWMLObject>();
+	}
+
+	@Override
+	public Map<VWMLEntity, VWMLEntity> requestEntityAssociatedContainer() {
+		return new HashMap<VWMLEntity, VWMLEntity>();
+	}
+	
+	@Override
+	public Set<VWMLEntity> requestEntityAssociatedSet() {
+		return new HashSet<VWMLEntity>();
+	}
+	
 	@Override
 	public void remoteLock(VWMLConflictRingNode node) {
 	}
@@ -76,4 +103,5 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	protected void contextsRepoDone(VWMLHostedResources r) {
 		r.setContextsRepo(null);
 	}
+
 }

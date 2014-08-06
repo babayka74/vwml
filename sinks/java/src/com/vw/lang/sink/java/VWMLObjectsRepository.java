@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
+import com.vw.lang.sink.java.repository.VWMLRepository;
 
 
 /**
@@ -16,13 +17,13 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  * @author ogibayev
  *
  */
-public class VWMLObjectsRepository {
+public class VWMLObjectsRepository extends VWMLRepository {
 	
 	public static boolean notAsOriginal = false;
 	public static boolean asOriginal = true;
 	
 	// builds association between object's id and its instance
-	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
+	private Map<Object, VWMLObject> repo = null;
 	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
 	
 	public static VWMLObjectsRepository instance() {
@@ -128,6 +129,7 @@ public class VWMLObjectsRepository {
 	}
 
 	public void init() {
+		repo = VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepoContainer();
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
 		VWMLEntity e = null;
 		// built-in complex entity id
@@ -405,7 +407,7 @@ public class VWMLObjectsRepository {
 			o = repo.get(buildAssociationKey(context.getContext(), (String)id));
 		}
 		else {
-			while(context != null && o == null) { 
+			while(context != null && o == null) {
 				o = repo.get(buildAssociationKey(context.getContext(), (String)id));
 				context = (VWMLContext)context.getLink().getParent();
 			}

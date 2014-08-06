@@ -1,7 +1,16 @@
 package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -15,15 +24,38 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingM
 public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 
 	private static VWMLResourceHostManagerMT s_hostedManager = new VWMLResourceHostManagerMT();
+	private static VWMLContextsRepository s_contextsRepo = null;
+	private static VWMLObjectsRepository s_objectsRepo = null;
+	private static AtomicInteger s_objectsRepoCounter = new AtomicInteger(0);
+	private static AtomicInteger s_contextsRepoCounter = new AtomicInteger(0);
 	
 	private VWMLResourceHostManagerMT() {
-		
 	}
 
 	public static VWMLResourceHostManagerMT instance() {
 		return s_hostedManager;
 	}
 
+	@Override
+	public Map<Object, VWMLContext> requestContextsRepoContainer() {
+		return new ConcurrentHashMap<Object, VWMLContext>();
+	}
+
+	@Override
+	public Map<Object, VWMLObject> requestObjectsRepoContainer() {
+		return new ConcurrentHashMap<Object, VWMLObject>();
+	}
+
+	@Override
+	public Map<VWMLEntity, VWMLEntity> requestEntityAssociatedContainer() {
+		return new ConcurrentHashMap<VWMLEntity, VWMLEntity>();
+	}
+
+	@Override
+	public Set<VWMLEntity> requestEntityAssociatedSet() {
+		return Collections.synchronizedSet(new HashSet<VWMLEntity>());
+	}
+	
 	@Override
 	public void remoteLock(VWMLConflictRingNode node) {
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
@@ -113,9 +145,16 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 				if (r.getObjectsRepo() != null) {
 					return;
 				}
-				VWMLObjectsRepository repo = new VWMLObjectsRepository();
-				repo.init();
-				r.setObjectsRepo(repo);
+				if (s_objectsRepo == null) {
+					synchronized(VWMLObjectsRepository.class) {
+						if (s_objectsRepo == null) {
+							s_objectsRepo = new VWMLObjectsRepository();
+							s_objectsRepo.init();
+						}
+					}
+				}
+				r.setObjectsRepo(s_objectsRepo);
+				s_objectsRepoCounter.incrementAndGet();
 			}
 		}
 	}
@@ -128,6 +167,9 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 					return;
 				}
 				r.setObjectsRepo(null);
+				if (s_objectsRepoCounter.decrementAndGet() == 0) {
+					s_objectsRepo = null;
+				}
 			}
 		}
 	}
@@ -139,9 +181,16 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 				if (r.getContextsRepo() != null) {
 					return;
 				}
-				VWMLContextsRepository repo = new VWMLContextsRepository();
-				repo.init();
-				r.setContextsRepo(repo);
+				if (s_contextsRepo == null) {
+					synchronized(VWMLContextsRepository.class) {
+						if (s_contextsRepo == null) {
+							s_contextsRepo = new VWMLContextsRepository();
+							s_contextsRepo.init();
+						}
+					}
+				}
+				r.setContextsRepo(s_contextsRepo);
+				s_contextsRepoCounter.incrementAndGet();
 			}
 		}
 	}
@@ -154,6 +203,9 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 					return;
 				}
 				r.setContextsRepo(null);
+				if (s_contextsRepoCounter.decrementAndGet() == 0) {
+					s_contextsRepo = null;
+				}
 			}
 		}
 	}

@@ -1,10 +1,13 @@
 package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -109,6 +112,29 @@ public abstract class VWMLResourceHostManager {
 		contextsRepoDone(r);
 	}
 
+	/**
+	 * Requests associated set
+	 * @return
+	 */
+	public abstract Set<VWMLEntity> requestEntityAssociatedSet();
+	
+	/**
+	 * Requests associated container
+	 * @return
+	 */
+	public abstract Map<VWMLEntity, VWMLEntity> requestEntityAssociatedContainer();
+	
+	/**
+	 * Requests container which is used by contexts' repository
+	 * @return
+	 */
+	public abstract Map<Object, VWMLContext> requestContextsRepoContainer();
+
+	/**
+	 * Requests container which is used by objects' repository
+	 * @return
+	 */
+	public abstract Map<Object, VWMLObject> requestObjectsRepoContainer();
 	
 	/**
 	 * Looks up for context which can be defined on remote ring
