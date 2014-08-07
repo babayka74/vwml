@@ -30,6 +30,13 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	}
 
 	@Override
+	public VWMLConflictRing findMostFreeRing() {
+		VWMLHostedResources r = getHostedResourcesContainer().get(requestKey());
+		return r.getRing();
+	}
+	
+	
+	@Override
 	public Map<Object, VWMLContext> requestContextsRepoContainer() {
 		return new HashMap<Object, VWMLContext>();
 	}

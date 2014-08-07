@@ -162,6 +162,19 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 	
 	/**
+	 * Returns number of operational nodes
+	 * @return
+	 */
+	@Override
+	public int calculateNumberOfNodes() {
+		int nodes = 0;
+		synchronized(this) {
+			nodes = super.calculateNumberOfNodes();
+		}
+		return nodes;
+	}
+	
+	/**
 	 * Posts lock request to ring for processing
 	 * @param nodeId
 	 */

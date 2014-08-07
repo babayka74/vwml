@@ -130,6 +130,15 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
+
+	/**
+	 * Asks interpreter for new activity
+	 * @param ringTerms
+	 * @param clonedFrom
+	 */
+	public void newActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
 	
 	public VWMLConflictRingNode getRtNode() {
 		return rtNode;

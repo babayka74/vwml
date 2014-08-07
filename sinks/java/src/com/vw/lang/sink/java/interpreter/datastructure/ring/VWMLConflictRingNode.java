@@ -89,12 +89,13 @@ public class VWMLConflictRingNode extends VWMLObject {
 		}
 		if (i.getStatus() == VWMLInterpreterImpl.stopProcessing) {
 			i.setStatus(VWMLInterpreterImpl.stopped);
-			if (i.isCloned()) {
+			if (i.isCloned() || i.getClonedFromEntity() != null) {
 				for(VWMLEntity t : i.getTerms()) {
 					if (t.getClonedFrom() != null) {
-						VWMLCloneFactory.releaseClonedContext(i.getClonedFromEntity(), t.getContext());
+						VWMLCloneFactory.releaseClonedContext(t, t.getContext());
 					}
 				}
+				VWMLCloneFactory.releaseClonedContext(i.getClonedFromEntity(), i.getClonedFromEntity().getContext());
 			}
 			i.reset();
 		}

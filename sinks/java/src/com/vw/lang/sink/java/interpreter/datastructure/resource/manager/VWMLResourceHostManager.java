@@ -113,6 +113,12 @@ public abstract class VWMLResourceHostManager {
 	}
 
 	/**
+	 * Finds most free ring
+	 * @param node
+	 */
+	public abstract VWMLConflictRing findMostFreeRing();
+	
+	/**
 	 * Requests associated set
 	 * @return
 	 */

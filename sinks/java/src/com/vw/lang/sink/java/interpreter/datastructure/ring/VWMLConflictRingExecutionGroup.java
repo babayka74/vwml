@@ -68,6 +68,15 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		}
 		return null;
 	}
+
+	public int nodes() {
+		int nodes = 0;
+		for(VWMLConflictRingNode n : group) {
+			nodes++;
+			nodes += n.getGroup().size();
+		}
+		return nodes;
+	}
 	
 	public void balance() {
 		VWMLConflictRingVisitor v = VWMLConflictRing.instance().getRingVisitor();

@@ -61,6 +61,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		}
 		VWMLConflictRing.instance().setRingVisitor(getConfig().getRingVisitor());
 		getConfig().setStepByStepInterpretation(true);
+		setRing(ring);
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		// looking for ring node by source lifeterm's context 
 		for(VWMLEntity e : getTerms()) {

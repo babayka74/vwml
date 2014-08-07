@@ -109,6 +109,18 @@ public class VWMLConflictRing {
 	}
 
 	/**
+	 * Returns number of operational nodes
+	 * @return
+	 */
+	public int calculateNumberOfNodes() {
+		int nodes = 0;
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			nodes += g.nodes();
+		}
+		return nodes;
+	}
+	
+	/**
 	 * Normalizes conflict ring by grouping nodes
 	 * @return
 	 */

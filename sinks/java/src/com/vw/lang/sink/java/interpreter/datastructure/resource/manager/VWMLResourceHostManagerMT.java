@@ -37,6 +37,23 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	}
 
 	@Override
+	public VWMLConflictRing findMostFreeRing() {
+		int min = -1;
+		VWMLConflictRing free = null;
+		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
+			synchronized(r) {
+				if (r.getRing() != null) {
+					if (min == -1 || min < r.getRing().calculateNumberOfNodes()) {
+						min = r.getRing().calculateNumberOfNodes();
+						free = r.getRing();
+					}
+				}
+			}
+		}
+		return free;
+	}
+	
+	@Override
 	public Map<Object, VWMLContext> requestContextsRepoContainer() {
 		return new ConcurrentHashMap<Object, VWMLContext>();
 	}
