@@ -145,6 +145,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 					config.setNodesPerRing(VWMLInterpreterConfiguration.DEF_NODES_PER_RING);
 				}
 			}
+			configureResourceManagmentStrategy();
 		}
 	}
 
@@ -168,13 +169,21 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
 			impl = VWMLParallelTermInterpreter.instance(linkage, terms);
 			config.setStepByStepInterpretation(true);
-			config.setResourceStrategy(VWMLInterpreterConfiguration.RESOURCE_STRATEGY.MT);
 		}
-		VWMLResourceHostManagerFactory.setResourceStrategy(config.getResourceStrategy());
 		if (impl != null) {
 			impl.setConfig(config);
 		}
 		return impl;
+	}
+	
+	protected void configureResourceManagmentStrategy() {
+		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
+			config.setResourceStrategy(VWMLInterpreterConfiguration.RESOURCE_STRATEGY.MT);
+		}
+		else {
+			config.setResourceStrategy(VWMLInterpreterConfiguration.RESOURCE_STRATEGY.ST);
+		}
+		VWMLResourceHostManagerFactory.setResourceStrategy(config.getResourceStrategy());
 	}
 	
 	protected VWMLLinkage getMainLinkage() {

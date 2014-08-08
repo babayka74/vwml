@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,6 +8,8 @@ import java.util.Map;
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.utils.GeneralUtils;
@@ -23,6 +24,7 @@ public class VWMLConflictRing {
 	private int currentGroupIndex = 0;
 	private int artificialId = 0;
 	private boolean initialyEmptyRing = false;
+	private boolean master = false;
 	// actual conflict ring data structure
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
@@ -65,7 +67,21 @@ public class VWMLConflictRing {
 	public void done() {
 		
 	}
-
+	
+	/**
+	 * Copies initial data structure from another ring
+	 * @param from
+	 */
+	public void copyFrom(VWMLConflictRing from) {
+		 for(VWMLConflictRingExecutionGroup g : from.getGroupsConflictRing()) {
+			 groupsConflictRing.add(g.clone(this));
+		 }
+		 for(String k : from.getConflictDef2TermAssociation().keySet()) {
+			 conflictDef2TermAssociation.put(k, from.getConflictDef2TermAssociation().get(k));
+		 }
+		 initialyEmptyRing = from.isInitialyEmptyRing();
+	}
+	
 	/**
 	 * Clears all associated resources (repository, fringes, etc)
 	 * @throws Exception
@@ -108,6 +124,14 @@ public class VWMLConflictRing {
 		this.ringVisitor = ringVisitor;
 	}
 
+	public List<VWMLConflictRingExecutionGroup> getGroupsConflictRing() {
+		return groupsConflictRing;
+	}
+
+	public Map<String, String> getConflictDef2TermAssociation() {
+		return conflictDef2TermAssociation;
+	}
+
 	/**
 	 * Returns number of operational nodes
 	 * @return
@@ -127,31 +151,7 @@ public class VWMLConflictRing {
 	public void normalize() {
 		if (!isRingOperational()) {
 			initialyEmptyRing = true;
-		}
-		if (nodesConflictRing.size() == 0 || initialyEmptyRing) {
 			return;
-		}
-		List<VWMLConflictRingNode> toRemove = new ArrayList<VWMLConflictRingNode>();
-		for(VWMLConflictRingNode node : nodesConflictRing) {
-			if (node.peekInterpreter() != null && !node.isGrouped()) {
-				// node is grouping node
-				String nodeCtx = node.peekInterpreter().getContext().getContext();				
-				// looking for candidate for group
-				for(VWMLConflictRingNode candidateNode : nodesConflictRing) {
-					if (!candidateNode.isMarkAsCandidatOnClone() && candidateNode != node && candidateNode.peekInterpreter() == null &&
-						((String)candidateNode.getId()).startsWith(nodeCtx)) {
-						candidateNode.pushInterpreter(node.peekInterpreter());
-						toRemove.add(candidateNode);
-						node.addToGroup(candidateNode);
-					}
-				}
-			}
-		}
-		if (toRemove.size() != 0) {
-			for(VWMLConflictRingNode r : toRemove) {
-				nodesConflictRing.remove(r);
-			}
-			toRemove.clear();
 		}
 		// re-balancing nodes inside groups
 		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
@@ -248,6 +248,29 @@ public class VWMLConflictRing {
 			}
 		}
 		return belong;
+	}
+
+	/**
+	 * Master property is set by 'parallel' interpreter in order to mark its own ring (created upon initialization phase)
+	 * @return
+	 */
+	public boolean isMaster() {
+		return master;
+	}
+
+	public void setMaster(boolean master) {
+		this.master = master;
+	}
+
+	/**
+	 * Activates node
+	 * @param interpreter
+	 * @param cloned
+	 * @param clonedSourceLft
+	 * @throws Exception
+	 */
+	public void sendActivateNode(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		
 	}
 	
 	/**

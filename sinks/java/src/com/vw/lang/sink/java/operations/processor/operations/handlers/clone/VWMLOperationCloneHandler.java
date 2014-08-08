@@ -80,7 +80,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	
 	private void activateSourceLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
 		VWMLConflictRing operationalRing = null;
-		operationalRing = VWMLResourceHostManagerFactory.hostManagerInstance().findMostFreeRing();
+		operationalRing = VWMLResourceHostManagerFactory.hostManagerInstance().findMostFreeRing(interpreter.getConfig());
 		if (operationalRing == null) {
 			// all rings are overloaded; new one should be created
 			VWMLInterpreterImpl ii = interpreter;
@@ -93,7 +93,8 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		}
 		else {
 			if (operationalRing != interpreter.getRing()) {
-				// sends message to add node to activate it on another ring
+				// sends message to add node and to activate it on another ring
+				operationalRing.sendActivateNode(interpreter, cloned, clonedSourceLft);
 			}
 			else {
 				VWMLOperationUtils.activateClonedTerm(operationalRing, interpreter, cloned, clonedSourceLft);

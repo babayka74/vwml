@@ -4,10 +4,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 
 /**
  * Conflict ring for MT strategy
@@ -21,7 +24,8 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		enum REVENT {
 			LOCK,
 			UNLOCK,
-			CONTEXTFIND
+			CONTEXTFIND,
+			ACTIVATENODE
 		}
 		
 		private REVENT id;
@@ -107,6 +111,28 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			VWMLConflictRingNode n = ring.lookupNodeById(getNodeId());
 			if (n != null) {
 				n.decSigma();
+			}
+			super.handle(ring);
+		}
+	}
+	
+	protected static class VWMLRingActivateNodeEvent extends VWMLRingEvent {
+		private VWMLInterpreterImpl interpreter;
+		private VWMLEntity cloned;
+		private VWMLEntity clonedSourceLft;
+		
+		public VWMLRingActivateNodeEvent(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) {
+			super(VWMLRingEvent.REVENT.ACTIVATENODE);
+			this.interpreter = interpreter;
+			this.cloned = cloned;
+			this.clonedSourceLft = clonedSourceLft;
+		}
+		
+		protected void handle(VWMLConflictRingMT ring) {
+			try {
+				VWMLOperationUtils.activateClonedTerm(ring, interpreter, cloned, clonedSourceLft);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			super.handle(ring);
 		}
@@ -206,6 +232,18 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		event.setContextId(id);
 		sendEvent(event);
 		return event.getFoundContext();
+	}
+	
+	/**
+	 * Activates node
+	 * @param interpreter
+	 * @param cloned
+	 * @param clonedSourceLft
+	 * @throws Exception
+	 */
+	public void sendActivateNode(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		VWMLRingActivateNodeEvent event = new VWMLRingActivateNodeEvent(interpreter, cloned, clonedSourceLft);
+		sendEvent(event);
 	}
 	
 	/**

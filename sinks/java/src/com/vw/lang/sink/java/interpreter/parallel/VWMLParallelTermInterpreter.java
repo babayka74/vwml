@@ -78,8 +78,11 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			interpreter = VWMLReactiveTermInterpreter.instance(getMasterInterpreter().getLinkage(), getTerms());
 			interpreter.setConfig(getMasterInterpreter().getConfig());
 			interpreter.setMasterInterpreter(getMasterInterpreter());
+			interpreter.getRing().copyFrom(getMasterInterpreter().getRing());
+			interpreter.setNormalization(false);
 			if (getClonedFrom() != null) {
 				interpreter.setClonedFromEntity(getClonedFrom());
+				interpreter.setReleaseClonedResource(true);
 			}
 			try {
 				interpreter.start();
@@ -132,6 +135,10 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRing.instance().setRingVisitor(getConfig().getRingVisitor());
 		getConfig().setStepByStepInterpretation(true);
 		// activates rings
+		// remember all execution groups belong to ring of parallel interpreter (this ring is not scheduled)
+		VWMLConflictRing.instance().normalize();
+		setRing(VWMLConflictRing.instance());
+		getRing().setMaster(true);
 		activateRings(getTerms(), null);
 		waitForAll();
 	}
@@ -155,15 +162,17 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 	}
 	
 	protected void activateRings(List<VWMLEntity> terms, VWMLEntity clonedFrom) throws Exception {
-		int nodesPerRing = terms.size() % getConfig().getNodesPerRing();
+		int nodesPerRing = getConfig().getNodesPerRing();
+		int nodes = terms.size() / nodesPerRing;
 		List<VWMLEntity> ringTerms = new ArrayList<VWMLEntity>();
 		int i = 0;
-		for(; i < terms.size(); i += nodesPerRing) {
+		for(int n = 0; n < nodes; n++) {
 			for(int j = 0; j < nodesPerRing; j++) {
 				ringTerms.add(terms.get(j + i));
 			}
 			activateRing(ringTerms, clonedFrom);
 			ringTerms = new ArrayList<VWMLEntity>();
+			i += nodesPerRing;
 		}
 		// last ring
 		for(int j = i; j < terms.size(); j++) {

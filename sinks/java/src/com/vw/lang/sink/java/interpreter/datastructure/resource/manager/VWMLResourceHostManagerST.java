@@ -9,9 +9,12 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 
 /**
  * Singlethreaded manager
@@ -30,7 +33,12 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	}
 
 	@Override
-	public VWMLConflictRing findMostFreeRing() {
+	public void activateNodeOnRemoteRing(VWMLConflictRing ring, VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		VWMLOperationUtils.activateClonedTerm(ring, interpreter, cloned, clonedSourceLft);
+	}
+	
+	@Override
+	public VWMLConflictRing findMostFreeRing(VWMLInterpreterConfiguration conf) {
 		VWMLHostedResources r = getHostedResourcesContainer().get(requestKey());
 		return r.getRing();
 	}
@@ -110,5 +118,4 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	protected void contextsRepoDone(VWMLHostedResources r) {
 		r.setContextsRepo(null);
 	}
-
 }

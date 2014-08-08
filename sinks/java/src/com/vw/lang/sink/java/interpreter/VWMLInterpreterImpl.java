@@ -70,6 +70,11 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLContext forcedContext = null;
 	// delayed task can be executed by interpreter on next iteration step
 	private VWMLInterpreterDeferredTask delayedTask = null;
+	// in case 'true' interpreter's data should be normalized.
+	// Parallel interpreter itself normalizes data and passes them to underlied reactive interpreters
+	private boolean normalization = true;
+	// used when new ring is created and new node is associated with cloned term
+	private boolean releaseClonedResource = false;
 	
 	public VWMLInterpreterImpl() {
 		super("interpreter");
@@ -312,5 +317,21 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public void setPushed(boolean pushed) {
 		this.pushed = pushed;
+	}
+
+	public boolean isNormalization() {
+		return normalization;
+	}
+
+	public void setNormalization(boolean normalization) {
+		this.normalization = normalization;
+	}
+
+	public boolean isReleaseClonedResource() {
+		return releaseClonedResource;
+	}
+
+	public void setReleaseClonedResource(boolean releaseClonedResource) {
+		this.releaseClonedResource = releaseClonedResource;
 	}
 }

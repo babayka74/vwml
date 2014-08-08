@@ -11,6 +11,8 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -37,12 +39,12 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	}
 
 	@Override
-	public VWMLConflictRing findMostFreeRing() {
+	public VWMLConflictRing findMostFreeRing(VWMLInterpreterConfiguration conf) {
 		int min = -1;
 		VWMLConflictRing free = null;
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
-				if (r.getRing() != null) {
+				if (r.getRing() != null && conf.getNodesPerRing() > r.getRing().calculateNumberOfNodes()) {
 					if (min == -1 || min < r.getRing().calculateNumberOfNodes()) {
 						min = r.getRing().calculateNumberOfNodes();
 						free = r.getRing();
@@ -78,7 +80,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				VWMLConflictRing ring = r.getRing();
-				if (ring != null && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
+				if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
 					try {
 						ring.sendLockRequestFor(node.getId());
 					} catch (Exception e) {
@@ -94,7 +96,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				VWMLConflictRing ring = r.getRing();
-				if (ring != null && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
+				if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
 					try {
 						ring.sendUnlockRequestFor(node.getId());
 					} catch (Exception e) {
@@ -112,7 +114,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				VWMLContextsRepository repo = r.getContextsRepo();
-				if (repo != null && r.getRing() != null && curRepo != repo && repo.belong(id)) {
+				if (repo != null && r.getRing() != null && !r.getRing().isMaster() && curRepo != repo && repo.belong(id)) {
 					try {
 						ctx = r.getRing().sendContextFindRequest(id);
 					} catch (Exception e) {
@@ -123,6 +125,11 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 			}
 		}
 		return ctx;
+	}
+	
+	@Override
+	public void activateNodeOnRemoteRing(VWMLConflictRing ring, VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		
 	}
 	
 	protected Long requestKey() {

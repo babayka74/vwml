@@ -8,6 +8,8 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -113,10 +115,19 @@ public abstract class VWMLResourceHostManager {
 	}
 
 	/**
-	 * Finds most free ring
-	 * @param node
+	 * Instantiates and activates new node on remote ring
+	 * @param ring
+	 * @param interpreter
+	 * @param cloned
+	 * @param clonedSourceLft
 	 */
-	public abstract VWMLConflictRing findMostFreeRing();
+	public abstract void activateNodeOnRemoteRing(VWMLConflictRing ring, VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception;
+	
+	/**
+	 * Finds most free ring
+	 * @param conf
+	 */
+	public abstract VWMLConflictRing findMostFreeRing(VWMLInterpreterConfiguration conf);
 	
 	/**
 	 * Requests associated set
