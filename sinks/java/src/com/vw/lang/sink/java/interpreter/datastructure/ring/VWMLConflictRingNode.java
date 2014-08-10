@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
  * Part of conflict ring 
@@ -63,11 +64,26 @@ public class VWMLConflictRingNode extends VWMLObject {
 		n.markAsClone(true);
 		n.setMasterNode(getMasterNode());
 		n.setExecutionGroup(getExecutionGroup());
-		n.pushInterpreter(relatedInterpreter);
-		relatedInterpreter.setRtNode(n);
+		if (relatedInterpreter != null) {
+			n.pushInterpreter(relatedInterpreter);
+			relatedInterpreter.setRtNode(n);
+		}
 		return n;
 	}
-	
+
+	/**
+	 * Deep cloning including node's linkage for specified group
+	 * @return
+	 */
+	public VWMLConflictRingNode deepClone(VWMLConflictRingExecutionGroup forGroup) {
+		List<VWMLConflictRingNode> alreadyCloned = new ArrayList<VWMLConflictRingNode>();
+		VWMLConflictRingNode n = deepCloneImpl(forGroup, alreadyCloned);
+		n.setMasterNode(n);
+		alreadyCloned.clear();
+		alreadyCloned = null;
+		return n;
+	}
+
 	/**
 	 * Resets internal structures, allowing us to 'resurrect' node
 	 */
@@ -90,12 +106,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 		if (i.getStatus() == VWMLInterpreterImpl.stopProcessing) {
 			i.setStatus(VWMLInterpreterImpl.stopped);
 			if (i.isCloned() || i.isReleaseClonedResource()) {
-				for(VWMLEntity t : i.getTerms()) {
-					if (t.getClonedFrom() != null) {
-						VWMLCloneFactory.releaseClonedContext(t, t.getContext());
-					}
-				}
-				VWMLCloneFactory.releaseClonedContext(i.getClonedFromEntity(), i.getClonedFromEntity().getContext());
+				VWMLCloneFactory.releaseClonedContext(i.getClonedFromEntity(), i.getContext());
 			}
 			i.reset();
 		}
@@ -345,5 +356,35 @@ public class VWMLConflictRingNode extends VWMLObject {
 
 	protected List<VWMLConflictRingNode> getGroup() {
 		return group;
+	}
+	
+	protected VWMLConflictRingNode deepCloneImpl(VWMLConflictRingExecutionGroup forGroup, List<VWMLConflictRingNode> alreadyCloned) {
+		VWMLConflictRingNode n = build(this.getId(), this.getReadableId());
+		n.setExecutionGroup(forGroup);
+		if (!alreadyCloned.contains(n)) {
+			alreadyCloned.add(n);
+		}
+		VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				VWMLConflictRingNode nc = (VWMLConflictRingNode)getLink().getConcreteLinkedEntity(it.getIt());
+				if (!alreadyCloned.contains(nc)) {
+					nc = nc.deepCloneImpl(forGroup, alreadyCloned);
+				}
+				else {
+					for(VWMLConflictRingNode rn : alreadyCloned) {
+						if (rn.equals(nc)) {
+							nc = rn;
+							break;
+						}
+					}
+				}
+				if (!n.isLinked(nc)) {
+					n.getLink().link(nc);
+				}
+			}
+		}
+		return n;
+		
 	}
 }

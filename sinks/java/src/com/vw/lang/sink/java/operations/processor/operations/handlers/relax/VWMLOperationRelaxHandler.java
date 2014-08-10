@@ -51,7 +51,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 			}
 			finally {
 			}
-			if (interpreter.getConfig().getInterpretationMtStrategy() != VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.REACTIVE) {
+			if (interpreter.getConfig().getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.SINGLE_SEQUENTIAL) {
 				internalDelayImpl(timeToRelax);
 			}
 			else { // reactive implementation

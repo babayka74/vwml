@@ -155,6 +155,9 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRingNode n = (activeInterpreter != null) ? activeInterpreter.getRtNode() : null;
 		if (n == null && g != null) {
 			n = g.findMasterNode();
+			if (n == null) {
+				n = g.findMasterInAnyCase();
+			}
 			if (n.peekInterpreter() != null && !addAdditionalInterpreterToNode) { // already processed
 				return null;
 			}

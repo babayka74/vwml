@@ -25,6 +25,10 @@ options {
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
 		)
+		"{MagicWorld.Player}.StopAllUnits.CheckForUnitsCompletition.Check.WaitForUnitsCompletitionLock" conflicts (
+			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
+			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
+		)
 		"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
 		)
@@ -37,13 +41,15 @@ options {
 			"[MagicWorld.Player].MagicWorld.Services.SignalUnit.LockUnitCommandQueue"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.Observe.LockAttackers" conflicts (
-			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockAttackers"
-			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockAttackers"
+			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
+			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.UpdateUnitsSharedPath.RecalculatePathToAttacker.LockSharedStates" conflicts (
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates"
 			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
+			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
+			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
 		) 
 	}
 }
@@ -200,17 +206,11 @@ module battleModel3B {
 						((The attacker Id~ created and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
 					);
 					Destroy ias (
-						(NoAttackers true) ias (
-							((All attackers destroyed for player PlayerId~ and world is going to be stopped) Ew.Output~) Do
-							Manager.StopAll~ Exe
-						);
-						(NoAttackers false) ias doNothing;
 						LockAttackers [
 							((Player PlayerId~)->(Units)->Attackers  
 								((Player PlayerId~)->(Units)->Attackers~ (Id~)) Substruct
 							)^
 							((The attacker Id~ destroyed and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
-							(NoAttackers ((Player PlayerId~)->(Units)->Attackers~ ()) Ident)~ Exe
 						LockAttackers ]
 					);
 				);
@@ -233,8 +233,8 @@ module battleModel3B {
 							( (Player PlayerId~)->(Units)->Defenders
 								( (Player PlayerId~)->(Units)->Defenders~ (Id~) ) Substruct
 							)^
+							((The defender Id~ destroyed and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
 						LockDefenders ]
-						((The defender Id~ destroyed and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
 					);
 				);
 				/* sets unit's property  */
@@ -361,7 +361,12 @@ module battleModel3B {
 			);
 			StopAllUnits ias (
 				CheckForUnitsCompletition ias (
-					Check ias (CheckForUnits (Units.Attackers~ ()) Ident (Units.Defenders~ ()) Ident)~ Exe;
+					Check ias (
+						WaitForUnitsCompletitionLock [
+							(CheckForUnits (Units.Attackers~ ()) Ident (Units.Defenders~ ()) Ident)~ Exe
+							((The player Id~ checks Units.Attackers~ Units.Defenders~) Ew.Output~) Do
+						WaitForUnitsCompletitionLock ]
+					);
 					// wait for all units
 					(CheckForUnits false false),(CheckForUnits true false),(CheckForUnits false true) ias Check~ Exe;
 					(CheckForUnits true true) ias doNothing;
@@ -384,6 +389,7 @@ module battleModel3B {
 				(CombinedUnits~ StopUnits~) ForEach
 				((The player Id~ waits for units completition) Ew.Output~) Do
 				CheckForUnitsCompletition~ Exe
+				((The player Id~ all units finished) Ew.Output~) Do
 			);
 			PropagateCommandToUnit ias (
 				LockUnitCommandQueue [

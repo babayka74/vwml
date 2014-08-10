@@ -45,13 +45,18 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	public VWMLConflictRingExecutionGroup clone(VWMLConflictRing forRing) {
 		VWMLConflictRingExecutionGroup cloned = build(forRing, getId(), getReadableId());
 		for(VWMLConflictRingNode n : group) {
-			cloned.add(n);
+			VWMLConflictRingNode n1 = n.deepClone(cloned);
+			cloned.add(n1);
 		}
-		cloned.setImplicitMaster(implicitMaster);
+		if (implicitMaster != null) {
+			VWMLConflictRingNode clonedImplicitMaster = implicitMaster.deepClone(cloned);
+			cloned.setImplicitMaster(clonedImplicitMaster);
+		}
 		return cloned;
 	}
 	
 	public void add(VWMLConflictRingNode n) {
+		n.setExecutionGroup(this);
 		group.add(n);
 		lookup.add((String)n.getId());
 	}
