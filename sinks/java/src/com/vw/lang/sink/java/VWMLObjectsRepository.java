@@ -95,7 +95,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	public static VWMLObject findObject(String contextName, Object id) throws Exception {
 		VWMLContext c = VWMLContextsRepository.instance().get(contextName);
 		if (c == null) {
-			throw new Exception("coudln't find context '" + contextName + "'");
+			throw new Exception("coudln't find context '" + contextName + "' for object '" + id + "'");
 		}
 		// checks if object has been created before
 		VWMLObject obj = instance().checkObjectOnContext(id, c);
@@ -392,7 +392,9 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	protected VWMLObject getByContext(Object id, VWMLContext context, boolean concreteContext) throws Exception {
 		String ids = (String)id;
 		VWMLContext effectiveContext = context;
-		if (ids.contains(".")) {
+		int bracket = ids.indexOf('(');
+		int dot = ids.indexOf('.');
+		if ((dot != -1 && bracket != -1 && dot < bracket) || (dot != -1 && bracket == -1)) {
 			return getByFullSpecifiedPath(id, context);
 		}
 		if (effectiveContext == null) {

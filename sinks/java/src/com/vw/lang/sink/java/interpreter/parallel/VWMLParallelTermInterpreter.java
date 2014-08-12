@@ -21,12 +21,18 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 
 	protected static class VWMLReactiveActivity implements Runnable {
 
+		protected static final boolean masterRing = true;
+		protected static final boolean secondaryRing = false;
+		
 		private VWMLParallelTermInterpreter masterInterpreter = null;
 		private List<VWMLEntity> terms = null;
 		private VWMLReactiveTermInterpreter interpreter = null;
 		private VWMLEntity clonedFrom = null;
 		private Integer signal = null;
 		private boolean stopped = false;
+		private boolean ringCopyAsSecondary = VWMLReactiveActivity.masterRing;
+		private boolean cloneMasterNode = false;
+		private boolean waitTillStart = false;
 		
 		public boolean isStopped() {
 			return stopped;
@@ -68,6 +74,30 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			return interpreter;
 		}
 
+		public boolean isRingCopyAsSecondary() {
+			return ringCopyAsSecondary;
+		}
+
+		public void setRingCopyAsSecondary(boolean ringCopyAsSecondary) {
+			this.ringCopyAsSecondary = ringCopyAsSecondary;
+		}
+
+		public boolean isCloneMasterNode() {
+			return cloneMasterNode;
+		}
+
+		public void setCloneMasterNode(boolean cloneMasterNode) {
+			this.cloneMasterNode = cloneMasterNode;
+		}
+
+		public boolean isWaitTillStart() {
+			return waitTillStart;
+		}
+
+		public void setWaitTillStart(boolean waitTillStart) {
+			this.waitTillStart = waitTillStart;
+		}
+
 		public void start() {
 			Thread t = new Thread(this);
 			t.start();
@@ -80,11 +110,20 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			interpreter.setMasterInterpreter(getMasterInterpreter());
 			interpreter.getRing().copyFrom(getMasterInterpreter().getRing());
 			interpreter.setNormalization(false);
+			interpreter.setCloneMasterOnSLFTermActivation(this.isCloneMasterNode());
 			if (getClonedFrom() != null) {
 				interpreter.setClonedFromEntity(getClonedFrom());
 				interpreter.setReleaseClonedResource(true);
 			}
+			if (isRingCopyAsSecondary() == VWMLReactiveActivity.secondaryRing) {
+				interpreter.getRing().ringAsSecondaryCopy();
+			}
 			try {
+				if (isWaitTillStart()) {
+					synchronized(signal) {
+						signal.notifyAll();
+					}
+				}
 				interpreter.start();
 				// notifies master interpreter about finishing
 				synchronized(signal) {
@@ -97,6 +136,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		}
 	}
 	
+	private static final int waitPeriodForCompletition = 10;
 	private List<VWMLReactiveActivity> activities = Collections.synchronizedList(new ArrayList<VWMLReactiveActivity>());
 	private Integer signal = new Integer(0x1234);
 	
@@ -139,7 +179,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRing.instance().normalize();
 		setRing(VWMLConflictRing.instance());
 		getRing().setMaster(true);
-		activateRings(getTerms(), null);
+		activateRings(getTerms(), null, VWMLReactiveActivity.masterRing, false, false);
 		waitForAll();
 	}
 
@@ -158,10 +198,10 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 
 	@Override
 	public void newActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
-		activateRings(ringTerms, clonedFrom);
+		activateRings(ringTerms, clonedFrom, VWMLReactiveActivity.secondaryRing, true, true);
 	}
 	
-	protected void activateRings(List<VWMLEntity> terms, VWMLEntity clonedFrom) throws Exception {
+	protected void activateRings(List<VWMLEntity> terms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart) throws Exception {
 		int nodesPerRing = getConfig().getNodesPerRing();
 		int nodes = terms.size() / nodesPerRing;
 		List<VWMLEntity> ringTerms = new ArrayList<VWMLEntity>();
@@ -170,34 +210,45 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			for(int j = 0; j < nodesPerRing; j++) {
 				ringTerms.add(terms.get(j + i));
 			}
-			activateRing(ringTerms, clonedFrom);
+			activateRing(ringTerms, clonedFrom, masterRing, cloneMaster, waitTillStart);
 			ringTerms = new ArrayList<VWMLEntity>();
 			i += nodesPerRing;
+			masterRing = VWMLReactiveActivity.secondaryRing;
 		}
 		// last ring
 		for(int j = i; j < terms.size(); j++) {
 			ringTerms.add(terms.get(j));
 		}
-		activateRing(ringTerms, clonedFrom);
+		activateRing(ringTerms, clonedFrom, masterRing, cloneMaster, waitTillStart);
 	}
 	
-	protected void activateRing(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
-		VWMLReactiveActivity activity = new VWMLReactiveActivity();
-		activity.setMasterInterpreter(this);
-		activity.setTerms(ringTerms);
-		activity.setSignal(signal);
-		activity.setClonedFrom(clonedFrom);
-		activities.add(activity);
-		activity.start();
+	protected void activateRing(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart) throws Exception {
+		if (ringTerms.size() != 0) {
+			VWMLReactiveActivity activity = new VWMLReactiveActivity();
+			activity.setMasterInterpreter(this);
+			activity.setTerms(ringTerms);
+			activity.setSignal(signal);
+			activity.setRingCopyAsSecondary(masterRing);
+			activity.setClonedFrom(clonedFrom);
+			activity.setCloneMasterNode(cloneMaster);
+			activity.setWaitTillStart(waitTillStart);
+			activities.add(activity);
+			activity.start();
+			if (waitTillStart) {
+				synchronized(signal) {
+					signal.wait();
+				}
+			}
+		}
 	}
 	
 	protected void waitForAll() throws Exception {
 		for(int i = 0; i < activities.size(); i++) {
 			if (!activities.get(i).isStopped()) {
 				synchronized(signal) {
-					signal.wait();
+					signal.wait(waitPeriodForCompletition);
 				}
-				i = 0;
+				i = -1;
 			}
 		}
 	}

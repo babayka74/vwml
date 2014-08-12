@@ -75,6 +75,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private boolean normalization = true;
 	// used when new ring is created and new node is associated with cloned term
 	private boolean releaseClonedResource = false;
+	// clones master in case if implicit master is available only (usually used by parallel interpreter when new ring is activated)
+	private boolean cloneMasterOnSLFTermActivation = false;
 	
 	public VWMLInterpreterImpl() {
 		super("interpreter");
@@ -333,5 +335,13 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public void setReleaseClonedResource(boolean releaseClonedResource) {
 		this.releaseClonedResource = releaseClonedResource;
+	}
+
+	public boolean isCloneMasterOnSLFTermActivation() {
+		return cloneMasterOnSLFTermActivation;
+	}
+
+	public void setCloneMasterOnSLFTermActivation(boolean cloneMasterOnSLFTermActivation) {
+		this.cloneMasterOnSLFTermActivation = cloneMasterOnSLFTermActivation;
 	}
 }

@@ -77,15 +77,16 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	
 	@Override
 	public void remoteLock(VWMLConflictRingNode node) {
+		VWMLConflictRing ring = null;
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
-				VWMLConflictRing ring = r.getRing();
-				if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
-					try {
-						ring.sendLockRequestFor(node.getId());
-					} catch (Exception e) {
-						// swallow for now
-					}
+				ring = r.getRing();
+			}
+			if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring) {
+				try {
+					ring.sendLockRequestFor(node.getId());
+				} catch (Exception e) {
+					// swallow for now
 				}
 			}
 		}
@@ -93,15 +94,16 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 
 	@Override
 	public void remoteUnlock(VWMLConflictRingNode node) {
+		VWMLConflictRing ring = null;
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
-				VWMLConflictRing ring = r.getRing();
-				if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring && ring.belong(node.getId())) {
-					try {
-						ring.sendUnlockRequestFor(node.getId());
-					} catch (Exception e) {
-						// swallow for now
-					}
+				ring = r.getRing();
+			}
+			if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring) {
+				try {
+					ring.sendUnlockRequestFor(node.getId());
+				} catch (Exception e) {
+					// swallow for now
 				}
 			}
 		}
@@ -110,18 +112,21 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	@Override
 	public VWMLContext remoteFindContext(String id) throws Exception {
 		VWMLContext ctx = null;
+		VWMLConflictRing ring = null;
+		VWMLContextsRepository repo = null;
 		VWMLContextsRepository curRepo = requestContextsRepo();
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
-				VWMLContextsRepository repo = r.getContextsRepo();
-				if (repo != null && r.getRing() != null && !r.getRing().isMaster() && curRepo != repo && repo.belong(id)) {
-					try {
-						ctx = r.getRing().sendContextFindRequest(id);
-					} catch (Exception e) {
-						// swallow for now
-					}
-					break;
+				repo = r.getContextsRepo();
+				ring = r.getRing();
+			}
+			if (repo != null && ring != null && !ring.isMaster() && curRepo != repo && repo.belong(id)) {
+				try {
+					ctx = ring.sendContextFindRequest(id);
+				} catch (Exception e) {
+					// swallow for now
 				}
+				break;
 			}
 		}
 		return ctx;

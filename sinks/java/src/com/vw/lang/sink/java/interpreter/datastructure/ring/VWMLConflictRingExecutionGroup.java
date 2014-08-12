@@ -43,16 +43,37 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	}
 
 	public VWMLConflictRingExecutionGroup clone(VWMLConflictRing forRing) {
+		boolean addMaster = false;
 		VWMLConflictRingExecutionGroup cloned = build(forRing, getId(), getReadableId());
-		for(VWMLConflictRingNode n : group) {
-			VWMLConflictRingNode n1 = n.deepClone(cloned);
-			cloned.add(n1);
+		VWMLConflictRingNode master = null;
+		if (group.size() != 0 && implicitMaster == null) {
+			master = group.get(0);
+			addMaster = true;
 		}
-		if (implicitMaster != null) {
-			VWMLConflictRingNode clonedImplicitMaster = implicitMaster.deepClone(cloned);
-			cloned.setImplicitMaster(clonedImplicitMaster);
+		else {
+			master = implicitMaster;
+		}
+		VWMLConflictRingNode clonedMaster = master.deepClone(cloned);
+		if (addMaster) {
+			clonedMaster.markAsClone(false);
+			cloned.add(clonedMaster);
+		}
+		else {
+			cloned.setImplicitMaster(clonedMaster);
+		}
+		for(VWMLConflictRingNode n : master.getGroup()) {
+			VWMLConflictRingNode n1 = n.deepClone(cloned);
+			clonedMaster.addToGroup(n1);
 		}
 		return cloned;
+	}
+	
+	public void convertGroupToGroupWithImplicitMaster() {
+		if (implicitMaster == null) {
+			VWMLConflictRingNode master = group.get(0);
+			setImplicitMaster(master);
+			group.remove(0);
+		}
 	}
 	
 	public void add(VWMLConflictRingNode n) {
@@ -85,6 +106,27 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		return null;
 	}
 
+	public VWMLConflictRingNode findConflictNode(Object id) {
+		VWMLConflictRingNode n = null;
+		if (group.size() != 0 && implicitMaster == null) {
+			n = group.get(0);
+		}
+		else {
+			n = implicitMaster;
+		}
+		if (n != null) {
+			if (n.getId().equals(id)) {
+				return n;
+			}
+			for(VWMLConflictRingNode ng : n.getGroup()) {
+				if (ng.getId().equals(id)) {
+					return ng;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public int nodes() {
 		int nodes = 0;
 		for(VWMLConflictRingNode n : group) {
@@ -187,7 +229,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 
 	public VWMLConflictRingNode findMasterInAnyCase() {
 		VWMLConflictRingNode master = null;
-		if (group.size() != 0) {
+		if (group.size() != 0 && implicitMaster == null) {
 			VWMLConflictRingNode n = group.get(0);
 			n.markAsClone(false);
 			master = n;

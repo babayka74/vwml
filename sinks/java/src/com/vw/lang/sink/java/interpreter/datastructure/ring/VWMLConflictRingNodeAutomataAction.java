@@ -27,6 +27,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				if (n == node) {
 					n.setLooped(true);
 				}
+				//System.out.println(node.getReadableId() + " -> " + n.getReadableId());
 				VWMLResourceHostManagerFactory.hostManagerInstance().remoteLock(n);
 			}
 		}
@@ -46,6 +47,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				if (n == node) {
 					n.setLooped(false);
 				}
+				//System.out.println(node.getReadableId() + " <- " + n.getReadableId());
 				VWMLResourceHostManagerFactory.hostManagerInstance().remoteUnlock(n);
 			}
 		}

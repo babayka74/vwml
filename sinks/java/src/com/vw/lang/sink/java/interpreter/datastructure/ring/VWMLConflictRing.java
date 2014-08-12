@@ -25,6 +25,7 @@ public class VWMLConflictRing {
 	private int artificialId = 0;
 	private boolean initialyEmptyRing = false;
 	private boolean master = false;
+	private boolean stopped = false;
 	// actual conflict ring data structure
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
@@ -55,6 +56,7 @@ public class VWMLConflictRing {
 		artificialId = 0;
 		currentGroupIndex = 0;
 		initialyEmptyRing = false;
+		stopped = false;
 		// actual conflict ring data structure
 		groupsConflictRing.clear();
 		nodesConflictRing.clear();
@@ -80,6 +82,17 @@ public class VWMLConflictRing {
 			 conflictDef2TermAssociation.put(k, from.getConflictDef2TermAssociation().get(k));
 		 }
 		 initialyEmptyRing = from.isInitialyEmptyRing();
+	}
+	
+	/**
+	 * Makes ring as secondary
+	 * the secondary means that all masters are removed from scheduler and marked as implicit,
+	 * so they are used as model for conflict resolution only
+	 */
+	public void ringAsSecondaryCopy() {
+		 for(VWMLConflictRingExecutionGroup g : getGroupsConflictRing()) {
+			 g.convertGroupToGroupWithImplicitMaster();
+		 }
 	}
 	
 	/**
@@ -114,6 +127,10 @@ public class VWMLConflictRing {
 
 	public void setInitialyEmptyRing(boolean initialyEmptyRing) {
 		this.initialyEmptyRing = initialyEmptyRing;
+	}
+
+	public boolean isStopped() {
+		return stopped;
 	}
 
 	public VWMLConflictRingVisitor getRingVisitor() {
@@ -191,6 +208,7 @@ public class VWMLConflictRing {
 		}
 		if (stopped == groupsConflictRing.size()) {
 			n = null;
+			setStopped(true);
 		}
 		return n;
 	}
@@ -235,6 +253,22 @@ public class VWMLConflictRing {
 		return n;
 	}
 
+	/**
+	 * Lookups requested conflict node by id
+	 * @param id
+	 * @return
+	 */
+	public VWMLConflictRingNode findConflictNode(Object id) {
+		VWMLConflictRingNode n = null;
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			n = g.findConflictNode(id);
+			if (n != null) {
+				break;
+			}
+		}
+		return n;
+	}
+	
 	/**
 	 * Returns true in case if node identified by id belongs to the ring
 	 * @param id
@@ -303,7 +337,11 @@ public class VWMLConflictRing {
 	public void processRequests() {
 		
 	}
-	
+
+	protected void setStopped(boolean stopped) {
+		this.stopped = stopped;
+	}
+
 	/**
 	 * Links conflict with group of related conflicts
 	 * @param conflict

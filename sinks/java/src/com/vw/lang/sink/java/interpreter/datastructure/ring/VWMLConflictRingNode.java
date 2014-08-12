@@ -7,7 +7,6 @@ import com.vw.lang.sink.java.VWMLCloneFactory;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
@@ -173,12 +172,8 @@ public class VWMLConflictRingNode extends VWMLObject {
 			VWMLEntity initialTerm = interpreter.getRtNode().findInitialTerm();
 			if (initialTerm.getClonedFrom() != null) {
 				initialTerm	= initialTerm.getClonedFrom();
-				initialTerm.buildReadableId();
-				termContext = VWMLContext.constructContextNameFromParts(initialTerm.getContext().getContext(), initialTerm.getReadableId());
 			}
-			else {
-				termContext = initialTerm.getContext().getContext();
-			}
+			termContext = initialTerm.getContext().getContext();
 		}
 		return termContext;
 	}

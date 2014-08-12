@@ -29,28 +29,27 @@ options {
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
 		)
-		"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates" conflicts (
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
+		"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker" conflicts (
+			"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker"
 		)
-		"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates" conflicts (
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
+		"[MagicWorld.Characters.Unit].MagicWorld.PathFinder.UpdateUnitsSharedPath.RecalculatePathToAttacker.LockSharedStates" conflicts (
+			"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Services.SignalUnit.LockUnitCommandQueue" conflicts (
 			"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
 			"[MagicWorld.Player].MagicWorld.Services.SignalUnit.LockUnitCommandQueue"
+			"{MagicWorld.Characters.Unit}.UnitLifeStep.(Stop false).(emptyQ false).LockUnitCommandQueue"
+		)
+		"{MagicWorld.Characters.Unit}.UnitLifeStep.(Stop false).(emptyQ false).LockUnitCommandQueue" conflicts (
+			"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.Observe.LockAttackers" conflicts (
 			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
 			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
 		)
-		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.UpdateUnitsSharedPath.RecalculatePathToAttacker.LockSharedStates" conflicts (
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(Return false).LockSharedStates"
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.HaveAvailableSteps.LockSharedStates"
-			"[MagicWorld.Characters.Unit].DpfSearchMkAParallelEx.(EndSearch false).LockSharedStates"
-			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
-			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
-		) 
+		"{MagicWorld.Characters.Unit}.UnitAsAttacker.Destroy.LockAttackers" conflicts (
+			"{MagicWorld.Characters.Unit}.UnitAsAttacker.Destroy.LockAttackers"
+		)
 	}
 }
 
@@ -118,6 +117,56 @@ module battleModel3B {
 	);
 	MagicWorld ias (
 		StopTheWorld ias false;
+		PathFinder ias (
+			PlayerId ias nil;
+			FromUnit ias nil;
+			ToUnit ias nil;
+			/* removes path, created from last attacker's position (state), from units' shared path (UnitsStateSet) */
+			UpdateUnitsSharedPath ias (
+				RecalculatePathToAttacker ias (
+					TResult ias doNothing;
+					TTargetDestroyed ias doNothing;
+					(TSeqStates ())^
+					(TUnitsStateState ())^
+					(TRequestedSteps ())^
+					(TTargetsToBeDestroyed ())^
+					(TRequestedSteps ())^
+					(TNumOfRequestedSteps 1000)^
+					(TNoSteps false)^
+					(Characters)->(Unit $~)->GetCurrentPosition~ Exe
+					(TGoals ((Characters)->(Unit $~)->CurrentPosition~))^
+					(Characters)->(Unit FromUnit~)->GetCurrentPosition~ Exe
+					(TState (Characters)->(Unit FromUnit~)->CurrentPosition~)^
+					/* calculates path to another attacker; this path is substracted from shared units' path */
+					((LLLLLL TState~ TGoals~ (Characters)->(Unit FromUnit~)->CurrentPosition~) Ew.Output~) Do
+					((TGoals
+						TTargetsToBeDestroyed
+						TState
+						TUnitsStateState
+						TSeqStates
+						TResult
+						TTargetDestroyed
+						Ew.DecValue
+						TRequestedSteps
+						TNumOfRequestedSteps
+						TNoSteps                     	
+						FromUnit
+						true) (DpfSearchMkAParallelEx FromUnit~)~) CallP
+					((MMMMM) Ew.Output~) Do
+					/* removes from shared path */
+					LockSharedStates [
+						((Player PlayerId~)->UnitsStateSet ((Player PlayerId~)->UnitsStateSet~ TRequestedSteps~) Substruct)^
+						((Movement to attacker $~ is TRequestedSteps~ and new shared movement is (Player PlayerId~)->UnitsStateSet~) Ew.Output~) Do
+					LockSharedStates ]
+				);
+				UpdatePath ias (
+					(Ignore true) ias doNothing;
+					(Ignore false) ias RecalculatePathToAttacker~ Exe;
+					(Ignore ($~ AttackedAttacker~) Ident)~ Exe
+				);
+				((Player PlayerId~)->(Units)->Attackers~ UpdatePath~) ForEach
+			);
+		);
 		Services ias (
 			SignalUnit ias (
 				PlayerId ias nil;
@@ -183,7 +232,18 @@ module battleModel3B {
 				ConcreteUnit ias nil;
 				/* unit's current position */
 				CurrentPosition ias nil;
+				/* true in case if unit should be stopped */
 				StopUnit ias false;
+				/* true in case if marked as killed, but not destroyed yet */
+				MarkedAsKilled ias false;
+				/* Performs initialization steps */
+				Init ias (
+					(Type attacker)^
+					(ConcreteUnit nil)^
+					(CurrentPosition nil)^
+					(StopUnit false)^
+					(MarkedAsKilled false)^
+				);
 				/* each unit has following properties: power of attack and defence */
 				Power ias (
 					Attack ias ();
@@ -206,11 +266,20 @@ module battleModel3B {
 						((The attacker Id~ created and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
 					);
 					Destroy ias (
+						(NoAttackers true) ias doNothing;
+						(NoAttackers false) ias (
+							(PathFinder.PlayerId PlayerId~)^
+							(PathFinder.FromUnit Id~)^
+							PathFinder.UpdateUnitsSharedPath~ Exe
+						);
+						(NoRefreshPath true) ias doNothing;
+						(NoRefreshPath false) ias (NoAttackers ((Player PlayerId~)->(Units)->Attackers~ ()) Ident)~ Exe;
 						LockAttackers [
 							((Player PlayerId~)->(Units)->Attackers  
 								((Player PlayerId~)->(Units)->Attackers~ (Id~)) Substruct
 							)^
 							((The attacker Id~ destroyed and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
+							(NoRefreshPath (Player PlayerId~)->Stop~)~ Exe
 						LockAttackers ]
 					);
 				);
@@ -268,7 +337,12 @@ module battleModel3B {
 					((The unit Id~ received property Prop~) Ew.Output~) Do
 					(RightProp (Properties~ Prop~) In)~ Exe 
 				);
-				GetCurrentPosition ias (CurrentPosition (ConcreteUnit~)->(ActivityStrategy)->(Movement)->State~)^;
+				GetCurrentPosition ias (
+					(CurrentPositionNil true) ias (CurrentPosition (ConcreteUnit~)->(ActivityStrategy)->(Movement)->PrevState~)^;
+					(CurrentPositionNil false) ias doNothing;
+					(CurrentPosition (ConcreteUnit~)->(ActivityStrategy)->(Movement)->State~)^
+					(CurrentPositionNil (CurrentPosition~ nil) Ident)~ Exe
+				);
 				/* unit receives commands in deferred manner */
 				CommandQueue ias ();
 				CommandDispatcher ias (
@@ -332,8 +406,10 @@ module battleModel3B {
 							(CommandDispatcher.Dispatch nil)^
 						);
 						(emptyQ false) ias (
-							(CommandDispatcher.Dispatch (CommandQueue~) First)^
-							(CommandQueue (CommandQueue~) Rest)^
+							LockUnitCommandQueue [
+								(CommandDispatcher.Dispatch (CommandQueue~) First)^
+								(CommandQueue (CommandQueue~) Rest)^
+							LockUnitCommandQueue ]
 							((The unit Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
 						);
 						(emptyQ (CommandQueue~ ()) Ident)~ Exe
@@ -347,6 +423,7 @@ module battleModel3B {
 
 				lifeterm = (
 					((The unit Id~ was born) Ew.Output~) Do
+					Init~ Exe
 					UnitLifeStep~ Exe
 				) Exe
 			);
@@ -354,6 +431,7 @@ module battleModel3B {
 		Player ias (
 			AvailableUnitsCommands ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
 			Id ias nil;
+			Stop ias false;
 			/* available units */
 			Units ias (
 				Attackers ias ();
@@ -361,12 +439,7 @@ module battleModel3B {
 			);
 			StopAllUnits ias (
 				CheckForUnitsCompletition ias (
-					Check ias (
-						WaitForUnitsCompletitionLock [
-							(CheckForUnits (Units.Attackers~ ()) Ident (Units.Defenders~ ()) Ident)~ Exe
-							((The player Id~ checks Units.Attackers~ Units.Defenders~) Ew.Output~) Do
-						WaitForUnitsCompletitionLock ]
-					);
+					Check ias (CheckForUnits WaitForUnitsCompletitionLock [ (Units.Attackers~ ()) Ident (Units.Defenders~ ()) Ident WaitForUnitsCompletitionLock ])~ Exe;
 					// wait for all units
 					(CheckForUnits false false),(CheckForUnits true false),(CheckForUnits false true) ias Check~ Exe;
 					(CheckForUnits true true) ias doNothing;
@@ -383,6 +456,7 @@ module battleModel3B {
 					);
 					($~ StopUnit~) ForEach
 				);
+				(Stop true)^
 				((The player Id~ is going to be stopped) Ew.Output~) Do
 				(CombinedUnits (Units.Attackers~ Units.Defenders~))^
 				((The player Id~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
@@ -401,6 +475,7 @@ module battleModel3B {
 					)^
 				LockUnitCommandQueue ]
 			);
+			UnitsStateSetLocker ias nil;
 			UnitsStateSet ias ();
 			CommandQueue ias ();
 			HandleUnitsCommand ias (
@@ -485,6 +560,9 @@ module battleModel3B {
 			(ManagerCommand true) ias (
 				(Command playeradd) ias (
 					(Player.Id UnitId~)^
+					(Player.Stop false)^
+					(Player.Units.Attackers ())^
+					(Player.Units.Defenders ())^
 					(Player (Player UnitId~)) Born
 				);
 				(Command exit) ias (
@@ -511,7 +589,6 @@ module battleModel3B {
 				(Stop false) ias (
 					(WaitForCommand true) ias (
 						(NoAutoCommand false) ias (
-							200 Relax
 							(Command (AutoCommands.Injection~) First)^
 							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
 							((The auto command Command~) Ew.Output~) Do
@@ -567,13 +644,14 @@ module battleModel3B {
 				(player 0 startpos 1 (5 39))
 				(player 0 movetopos 1 ((17 10)))
 				(player 0 go 1)
-
+	
 				(player 0 create 2 ( (type defender)
 						     (attack (yes yes no))
 						     (defence (yes yes yes yes))
 						    ))
 				(player 0 startpos 2 (15 29))
 				(player 0 go 2)
+
 			);
 		);
 	);

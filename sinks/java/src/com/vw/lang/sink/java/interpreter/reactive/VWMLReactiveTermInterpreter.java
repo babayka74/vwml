@@ -24,7 +24,6 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  *
  */
 public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
-
 	private VWMLConflictRing ring = VWMLConflictRing.instance();
 	private IVWMLGate timeFringeGate = null;
 	
@@ -67,9 +66,13 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
 		// looking for ring node by source lifeterm's context 
 		for(VWMLEntity e : getTerms()) {
-			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(e.getContext().getContext(), true);
+			VWMLEntity p = e;
+			while(p.getClonedFrom() != null) {
+				p = p.getClonedFrom();
+			}
+			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(p.getContext().getContext(), true);
 			if (g == null) {
-				throw new Exception("couldn't find ring group by context '" + e.getContext().getContext() + "'");
+				throw new Exception("couldn't find ring group by context '" + p.getContext().getContext() + "'");
 			}
 			activateSourceLifeTerm(g, this, e, null, null, false);
 		}
@@ -157,6 +160,10 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			n = g.findMasterNode();
 			if (n == null) {
 				n = g.findMasterInAnyCase();
+				if (isCloneMasterOnSLFTermActivation()) {
+					n = n.clone(null);
+					g.add(n);
+				}
 			}
 			if (n.peekInterpreter() != null && !addAdditionalInterpreterToNode) { // already processed
 				return null;

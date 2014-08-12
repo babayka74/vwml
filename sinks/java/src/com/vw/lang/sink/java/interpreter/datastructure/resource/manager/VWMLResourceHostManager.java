@@ -54,6 +54,16 @@ public abstract class VWMLResourceHostManager {
 	private Map<Long, VWMLHostedResources> hostedResources = new ConcurrentHashMap<Long, VWMLHostedResources>();
 
 	/**
+	 * Returns true in case if resource is available
+	 * @return
+	 */
+	public boolean isResourceAvailable() {
+		Long key = requestKey();
+		VWMLHostedResources r = hostedResources.get(key);
+		return (r != null);
+	}
+	
+	/**
 	 * Removes resource from storage
 	 */
 	public void clearResource() {

@@ -82,12 +82,8 @@ module Attacker {
 						);
 						/* attacker changes position */
 						ChangePosition ias (
-							Rx ias 0;
-							(CalcRx true) ias (Rx 300)^;
-							(CalcRx false) ias (Rx 600)^;
-							(CalcRx (Id~ 0) Ident)~ Exe
-							((The unit Id~ moved from Movement.PrevState~ to Movement.State~ time Rx~) Ew.Output~) Do
-							Rx~ Relax
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~ time 300) Ew.Output~) Do
+							300 Relax
 							((Unit Id~)->CurrentPosition Movement.State~)^
 							(Movement.PrevState Movement.State~)^
                                 			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^

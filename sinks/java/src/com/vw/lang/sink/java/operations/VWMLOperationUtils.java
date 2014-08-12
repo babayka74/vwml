@@ -195,12 +195,9 @@ public class VWMLOperationUtils {
 		if (group == null) {
 			throw new Exception("couldn't ring find group by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
-		VWMLConflictRingNode ringGroupMasterNode = group.findMasterNode();
+		VWMLConflictRingNode ringGroupMasterNode = findRingMasterNodeByGroup(group);
 		if (ringGroupMasterNode == null) {
-			ringGroupMasterNode = group.findMasterInAnyCase();
-			if (ringGroupMasterNode == null) {
-				throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
-			}
+			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
@@ -215,6 +212,19 @@ public class VWMLOperationUtils {
 		group.add(clonedNode);
 		clonedInterpreter.start();
 	}
+
+	/**
+	 * Lookups for ring's master node based on given group
+	 * @param group
+	 * @return
+	 */
+	public static VWMLConflictRingNode findRingMasterNodeByGroup(VWMLConflictRingExecutionGroup group) {
+		VWMLConflictRingNode ringGroupMasterNode = group.findMasterNode();
+		if (ringGroupMasterNode == null) {
+			ringGroupMasterNode = group.findMasterInAnyCase();
+		}
+		return ringGroupMasterNode;
+	}
 	
 	/**
 	 * Returns entity which is related to argument entity, argument entity has format => ${arg place in complex entity}; used by CallP operation
@@ -225,27 +235,15 @@ public class VWMLOperationUtils {
 	public static VWMLEntity getRelatedEntityByArgument(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
 		VWMLEntity e = null;
 		if (entity.getAsArgPair() != null) {
-			if (entity.getAsArgPair().getArgAsRef() == null) {
-				if (entity.getAsArgPair().getPlaceNumber() != null &&
-					interpreter.getInterpretingEntityForArgEntity() != null &&
-					interpreter.getInterpretingEntityForArgEntity().isMarkedAsComplexEntity() &&
-					entity.isRecursiveInterpretationOnOriginal()) {
-					VWMLComplexEntity args = (VWMLComplexEntity)interpreter.getInterpretingEntityForArgEntity();
-					int num = Integer.valueOf(entity.getAsArgPair().getPlaceNumber());
-					if (num >= args.getLink().getLinkedObjectsOnThisTime()) {
-						throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getId() + "'");
-					}
-					e = (VWMLEntity)args.getLink().getConcreteLinkedEntity(num);
-					entity.getAsArgPair().setArgAsRef(e);
-				}
+			VWMLComplexEntity args = (VWMLComplexEntity)interpreter.getInterpretingEntityForArgEntity();
+			int num = Integer.valueOf(entity.getAsArgPair().getPlaceNumber());
+			if (num >= args.getLink().getLinkedObjectsOnThisTime()) {
+				throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getId() + "'");
 			}
-			else {
-				e = (VWMLEntity)entity.getAsArgPair().getArgAsRef();				
-			}
+			e = (VWMLEntity)args.getLink().getConcreteLinkedEntity(num);
 		}
 		return e;
 	}
-	
 	
 	private static void addToRepository(VWMLContext context, VWMLEntity newComplexEntity) throws Exception {
 		VWMLObjectsRepository.instance().remove(newComplexEntity);
