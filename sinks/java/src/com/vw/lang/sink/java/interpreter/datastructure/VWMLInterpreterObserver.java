@@ -15,6 +15,7 @@ public class VWMLInterpreterObserver {
 	public static class VWMLInterpreterObserverData {
 		private VWMLConflictRingNodeAutomataInputs automataInputs;
 		private Object associatedTimer;
+		private int refCounter = 0;
 		
 		protected VWMLConflictRingNodeAutomataInputs getAutomataInputs() {
 			return automataInputs;
@@ -31,6 +32,21 @@ public class VWMLInterpreterObserver {
 		protected void setAssociatedTimer(Object associatedTimer) {
 			this.associatedTimer = associatedTimer;
 		}
+		
+		protected int incRefCounter() {
+			return refCounter++;
+		}
+		
+		protected int decRefCounter() {
+			if (refCounter != 0) {
+				refCounter--;
+			}
+			return refCounter;
+		}
+		
+		protected int getRefCounter() {
+			return refCounter;
+		}
 	}
 	
 	public static String s_waitContext = "__waitContext__";
@@ -44,7 +60,7 @@ public class VWMLInterpreterObserver {
 	
 	public VWMLConflictRingNodeAutomataInputs getConflictOperationalState(String context) {
 		VWMLConflictRingNodeAutomataInputs input = null;	
-		if (observed.get(s_waitContext) != null) {
+		if (observed.get(getWaitContext()) != null) {
 			return VWMLConflictRingNodeAutomataInputs.IN_W;
 		}
 		VWMLInterpreterObserverData data = observed.get(context);
@@ -61,7 +77,7 @@ public class VWMLInterpreterObserver {
 	}
 
 	public void setActiveConflictContext(String context) {
-		if (context != s_waitContext) {
+		if (context != getWaitContext()) {
 			activeConflictContext = context;
 		}
 	}
@@ -71,13 +87,36 @@ public class VWMLInterpreterObserver {
 	}
 
 	public void setConflictOperationalState(String context, VWMLConflictRingNodeAutomataInputs conflictOperationalState) {
+		boolean useRefCounter = false;
+		if (context.equals(getWaitContext())) {
+			useRefCounter = true;
+		}
 		if (conflictOperationalState == null) {
-			observed.remove(context);
+			if (useRefCounter) {
+				VWMLInterpreterObserverData data = observed.get(context);
+				if (data.decRefCounter() == 0) {
+					observed.remove(context);
+				}
+			}
+			else {
+				observed.remove(context);
+			}
 		}
 		else {
-			VWMLInterpreterObserverData data = new VWMLInterpreterObserverData();
-			data.setAutomataInputs(conflictOperationalState);
-			observed.put(context, data);
+			if (useRefCounter) {
+				VWMLInterpreterObserverData data = observed.get(context);
+				if (data == null) {
+					data = new VWMLInterpreterObserverData();
+					observed.put(context, data);
+				}
+				data.incRefCounter();
+				data.setAutomataInputs(conflictOperationalState);
+			}
+			else {
+				VWMLInterpreterObserverData data = new VWMLInterpreterObserverData();
+				data.setAutomataInputs(conflictOperationalState);
+				observed.put(context, data);
+			}
 		}
 	}
 	

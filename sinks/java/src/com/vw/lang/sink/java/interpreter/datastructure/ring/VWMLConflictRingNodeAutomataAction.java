@@ -17,7 +17,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 * Increases node's index according to automata's specification
 	 * @param node
 	 */
-	public void incIndex(VWMLConflictRingNode node) {
+	public void incIndex(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) {
 		// increase 'index' on linked nodes
 		VWMLLinkIncrementalIterator it = node.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
@@ -28,7 +28,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 					n.setLooped(true);
 				}
 				//System.out.println(node.getReadableId() + " -> " + n.getReadableId());
-				VWMLResourceHostManagerFactory.hostManagerInstance().remoteLock(n);
+				VWMLResourceHostManagerFactory.hostManagerInstance().remoteLock(interpreter, node, n);
 			}
 		}
 	}
@@ -37,7 +37,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 * Decreases node's index according to automata's specification
 	 * @param node
 	 */
-	public void decIndex(VWMLConflictRingNode node) {
+	public void decIndex(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) {
 		// increase 'index' on linked nodes
 		VWMLLinkIncrementalIterator it = node.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
@@ -48,7 +48,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 					n.setLooped(false);
 				}
 				//System.out.println(node.getReadableId() + " <- " + n.getReadableId());
-				VWMLResourceHostManagerFactory.hostManagerInstance().remoteUnlock(n);
+				VWMLResourceHostManagerFactory.hostManagerInstance().remoteUnlock(interpreter, node, n);
 			}
 		}
 	}
@@ -70,8 +70,9 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	/**
 	 * Resets input signal to IN_N	
 	 * @param interpreter
+	 * @param node
 	 */
-	public void resetInput(VWMLConflictRingNode node, VWMLInterpreterImpl interpreter) {
+	public void resetInput(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) {
 		if (interpreter.getObserver() != null) {
 			interpreter.getObserver().setConflictOperationalState((String)node.getId(), VWMLConflictRingNodeAutomataInputs.IN_N);
 			interpreter.getObserver().setActiveConflictContext(null);

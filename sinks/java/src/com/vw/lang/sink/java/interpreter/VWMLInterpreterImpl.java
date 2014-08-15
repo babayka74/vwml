@@ -146,6 +146,16 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	public void newActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
+
+	/**
+	 * Runs one step execution process
+	 * @param blockedNode
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean oneStep(VWMLConflictRingNode blockedNode) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
 	
 	public VWMLConflictRingNode getRtNode() {
 		return rtNode;

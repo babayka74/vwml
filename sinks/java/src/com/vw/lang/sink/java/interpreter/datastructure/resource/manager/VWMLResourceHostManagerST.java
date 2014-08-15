@@ -33,6 +33,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	}
 
 	@Override
+	public VWMLConflictRingNode buildConflictRingNode(Object id, String readableId) {
+		return new VWMLConflictRingNode(id, readableId);
+	}
+	
+	@Override
 	public void activateNodeOnRemoteRing(VWMLConflictRing ring, VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
 		VWMLOperationUtils.activateClonedTerm(ring, interpreter, cloned, clonedSourceLft);
 	}
@@ -65,11 +70,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	}
 	
 	@Override
-	public void remoteLock(VWMLConflictRingNode node) {
+	public void remoteLock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node) {
 	}
 
 	@Override
-	public void remoteUnlock(VWMLConflictRingNode node) {
+	public void remoteUnlock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node) {
 	}
 
 	@Override

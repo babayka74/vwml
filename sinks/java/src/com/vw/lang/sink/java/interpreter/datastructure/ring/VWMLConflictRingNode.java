@@ -8,6 +8,7 @@ import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
@@ -25,6 +26,9 @@ public class VWMLConflictRingNode extends VWMLObject {
 	private boolean markAsCandidatOnClone = false;
 	// sets 'true' in case if conflict model loops itself
 	private boolean looped = false;
+	// true in case if node is in conflict situation; the conflict marked by operation '[' and 
+	// finished by ']' operation
+	private boolean nodeInConflict = false;
 	// index of conflict fragment 
 	private int sigma = 0;
 	// true in case if node belongs to any group
@@ -40,6 +44,8 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// by operations which require additional term interpretation in runtime (used by reactive and parallel interpreters)
 	private VWMLStack operationalInterpreters = VWMLStack.instance();
 	private int activeInterpreters = 0;
+	// sets to 'true' in case if node requires arbitration during lock event
+	private boolean requireArbitrationOnLock = false;
 	
 	public VWMLConflictRingNode(Object hashId) {
 		super(hashId);
@@ -50,7 +56,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	}
 	
 	public static VWMLConflictRingNode build(Object id, String readableId) {
-		return new VWMLConflictRingNode(id, readableId);
+		return VWMLResourceHostManagerFactory.hostManagerInstance().buildConflictRingNode(id, readableId);
 	}
 
 	/**
@@ -190,6 +196,29 @@ public class VWMLConflictRingNode extends VWMLObject {
 		return activeInterpreters == 1 && (i.getStatus() == VWMLInterpreterImpl.stopProcessing || i.getStatus() == VWMLInterpreterImpl.stopped);
 	}
 
+	public boolean isRequireArbitrationOnLock() {
+		return requireArbitrationOnLock;
+	}
+
+	public void setRequireArbitrationOnLock(boolean requireArbitrationOnLock) {
+		this.requireArbitrationOnLock = requireArbitrationOnLock;
+	}
+
+	public boolean isNodeOnSendingLockEvent() {
+		return false;
+	}
+
+	public void markNodeAsSendingLockEvent(boolean nodeOnSendingLockEvent) {
+	}
+
+	public boolean isNodeInConflict() {
+		return nodeInConflict;
+	}
+
+	public void setNodeInConflict(boolean nodeInConflict) {
+		this.nodeInConflict = nodeInConflict;
+	}
+	
 	public int getSigma() {
 		return sigma;
 	}
@@ -303,6 +332,23 @@ public class VWMLConflictRingNode extends VWMLObject {
 			e = i.getClonedFromEntity();
 		}
 		return e;
+	}
+	
+	/**
+	 * Add deferred unlock operation; used when forced lock is required and need to wakeup node which was slept by force; the forced lock 
+	 * is activated during circular conflict resolution (see VWMLConflictRingMT -> lock)
+	 * @param node
+	 */
+	public void addDeferredWakeupOnUnlock(VWMLConflictRingNode node) throws Exception {
+		throw new Exception("For MT strategy only");
+	}
+	
+	/**
+	 * Processes deferred unlock for nodes added by 'addDeferredWakeupOnUnlock'
+	 * @throws Exception
+	 */
+	public void processDeferredWakeupsOnUnlock() throws Exception {
+		throw new Exception("For MT strategy only");
 	}
 	
 	protected void operateOnNode() throws Exception {

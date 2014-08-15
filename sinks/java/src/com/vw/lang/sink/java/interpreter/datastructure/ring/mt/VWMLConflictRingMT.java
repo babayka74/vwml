@@ -7,9 +7,11 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 
 /**
@@ -19,8 +21,6 @@ import com.vw.lang.sink.java.operations.VWMLOperationUtils;
  */
 public class VWMLConflictRingMT extends VWMLConflictRing {
 
-	private final static int waitResponse = 10;
-	
 	protected static abstract class VWMLRingEvent {
 		
 		enum REVENT {
@@ -33,6 +33,8 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		private REVENT id;
 		private AtomicBoolean processed = new AtomicBoolean(false);
 		private VWMLConflictRing ring = null;
+		private VWMLConflictRingNode from = null;
+		private VWMLConflictRingNode rtNode = null;
 
 		public VWMLRingEvent() {
 			super();
@@ -67,18 +69,38 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			this.ring = ring;
 		}
 
+		public VWMLConflictRingNode getFrom() {
+			return from;
+		}
+
+		public void setFrom(VWMLConflictRingNode from) {
+			this.from = from;
+		}
+		
+		public VWMLConflictRingNode getRtNode() {
+			return rtNode;
+		}
+
+		public void setRtNode(VWMLConflictRingNode rtNode) {
+			this.rtNode = rtNode;
+		}
+
 		protected void waitFor() throws Exception {
 			int stallCounter = 0;
+			if (getRtNode().peekInterpreter() == null) {
+				throw new Exception("There are no any active interpretes on node '" + getRtNode().getId() + "'");
+			}
+			VWMLInterpreterImpl interpreter = getRtNode().peekInterpreter().getMasterInterpreter();
+			if (interpreter == null) {
+				throw new Exception("Master interpreter is null on node '" + getRtNode().getId() + "'");
+			}
 			while (!isProcessed()) {
-				synchronized(this) {
-					wait(waitResponse);
-				}
-				if (getRing().isStopped()) {
+				boolean nextStep = interpreter.oneStep(getRtNode());
+				if (!nextStep || getRing().isStopped()) {
 					break;
 				}
-				ring.processRequests();
 				stallCounter++;
-				if (stallCounter > 100) {
+				if (stallCounter > 1000000) {
 					throw new Exception("Stalled ring '" + getRing() + "' on thread '" + Thread.currentThread().getId() + "'");
 				}
 			}
@@ -86,9 +108,6 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		
 		protected void handle(VWMLConflictRingMT ring) {
 			setProcessed();
-			synchronized(this) {
-				notifyAll();
-			}
 		}
 	}
 	
@@ -115,7 +134,19 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		protected void handle(VWMLConflictRingMT ring) {
 			VWMLConflictRingNode n = ring.findConflictNode(getNodeId());
 			if (n != null) {
-				n.incSigma();
+				if (n.isNodeInConflict()) {
+					// conflict node to sleep
+					VWMLConflictRingMT.sleepNode(getRtNode());
+					try {
+						// conflict node will be waken up after n is waken
+						n.addDeferredWakeupOnUnlock(getRtNode());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					n.incSigma();
+				}
 				//System.out.println("+ " + n.getSigma());
 			}
 			super.handle(ring);
@@ -205,6 +236,31 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	
 	private volatile boolean stopped = false;
 	private ConcurrentLinkedQueue<VWMLRingEvent> eventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
+
+	
+	/**
+	 * Puts node on wait state
+	 * @param node
+	 */
+	public static void sleepNode(VWMLConflictRingNode node) {
+		if (node != null && node.peekInterpreter() != null) {
+			if (node.peekInterpreter().getObserver() != null) {
+				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
+			}
+		}
+	}
+
+	/**
+	 * Wakeups node which previously was put to sleep by sleepNode
+	 * @param node
+	 */
+	public static void wakeupNode(VWMLConflictRingNode node) {
+		if (node != null && node.peekInterpreter() != null) {
+			if (node.peekInterpreter().getObserver() != null) {
+				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
+			}
+		}
+	}
 	
 	@Override
 	public boolean isStopped() {
@@ -241,24 +297,35 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	
 	/**
 	 * Posts lock request to ring for processing
+	 * @param fromRTNode
+	 * @param from
 	 * @param nodeId
 	 */
 	@Override
-	public void sendLockRequestFor(Object nodeId) throws Exception {
+	public void sendLockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
+		System.out.println("Sent lock '" + from.getId() + "' to '" + nodeId + "'; thread '" + Thread.currentThread().getId() + "'");
 		VWMLRingLockEvent event = new VWMLRingLockEvent();
+		event.setRtNode(fromRTNode);
+		event.setFrom(from);
 		event.setNodeId(nodeId);
 		sendEvent(event);
 	}
 
 	/**
 	 * Posts unlock request to ring for processing
+	 * @param fromRTNode
+	 * @param from
 	 * @param nodeId
 	 */
 	@Override
-	public void sendUnlockRequestFor(Object nodeId) throws Exception {
+	public void sendUnlockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
+		System.out.println("Sent unlock '" + from.getId() + "' to '" + nodeId + "'; thread '" + Thread.currentThread().getId() + "'");
 		VWMLRingUnlockEvent event = new VWMLRingUnlockEvent();
+		event.setRtNode(fromRTNode);
+		event.setFrom(from);
 		event.setNodeId(nodeId);
 		sendEvent(event);
+		from.processDeferredWakeupsOnUnlock();
 	}
 	
 	/**
@@ -294,13 +361,13 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingEvent event = null;
 		while ((event = eventQueue.poll()) != null) {
 			event.handle(this);
-			//System.out.println("Read event '" + event + "' from '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
+			System.out.println("Read event '" + event + "' from '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
 		}
 	}
 	
 	protected VWMLRingEvent sendEvent(VWMLRingEvent event) throws Exception {
 		event.setRing(this);
-		//System.out.println("Sent event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
+		System.out.println("Sent event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
 		eventQueue.offer(event);
 		waitForResult(event);
 		return event;

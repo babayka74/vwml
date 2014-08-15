@@ -8,6 +8,7 @@ package com.vw.lang.sink.java.interpreter;
 public abstract class VWMLInterpreterListener {
 	
 	private boolean forcedStop = false;
+	private boolean oneStepInterpretationMode = false;
 	
 	/**
 	 * Handles interpreter's changes (implemented by long-term operations which require interpretation of terms in run-time)
@@ -37,5 +38,17 @@ public abstract class VWMLInterpreterListener {
 	 */
 	public boolean isForcedStop() {
 		return forcedStop;
+	}
+
+	/**
+	 * One step interpretation mode means that listener will stop interpretation after each step
+	 * @return
+	 */
+	public boolean isOneStepInterpretationMode() {
+		return oneStepInterpretationMode;
+	}
+
+	public void setOneStepInterpretationMode(boolean oneStepInterpretationMode) {
+		this.oneStepInterpretationMode = oneStepInterpretationMode;
 	}
 }

@@ -17,6 +17,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingMT;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingNodeMT;
 
 /**
  * Multithreaded manager
@@ -38,6 +39,11 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		return s_hostedManager;
 	}
 
+	@Override
+	public VWMLConflictRingNode buildConflictRingNode(Object id, String readableId) {
+		return new VWMLConflictRingNodeMT(id, readableId);
+	}
+	
 	@Override
 	public VWMLConflictRing findMostFreeRing(VWMLInterpreterConfiguration conf) {
 		int min = -1;
@@ -76,32 +82,34 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	}
 	
 	@Override
-	public void remoteLock(VWMLConflictRingNode node) {
+	public void remoteLock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node) {
 		VWMLConflictRing ring = null;
+		VWMLConflictRingNode rtNode = interpreter.getRtNode();
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				ring = r.getRing();
 			}
 			if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring) {
 				try {
-					ring.sendLockRequestFor(node.getId());
+					ring.sendLockRequestFor(rtNode, from, node.getId());
 				} catch (Exception e) {
-					// swallow for now
+					e.printStackTrace();
 				}
 			}
 		}
 	}
 
 	@Override
-	public void remoteUnlock(VWMLConflictRingNode node) {
+	public void remoteUnlock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node) {
 		VWMLConflictRing ring = null;
+		VWMLConflictRingNode rtNode = interpreter.getRtNode();
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
 				ring = r.getRing();
 			}
 			if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring) {
 				try {
-					ring.sendUnlockRequestFor(node.getId());
+					ring.sendUnlockRequestFor(rtNode, from, node.getId());
 				} catch (Exception e) {
 					// swallow for now
 				}

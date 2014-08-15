@@ -125,6 +125,14 @@ public abstract class VWMLResourceHostManager {
 	}
 
 	/**
+	 * Builds conflict ring node depending on threading model
+	 * @param id
+	 * @param readableId
+	 * @return
+	 */
+	public abstract VWMLConflictRingNode buildConflictRingNode(Object id, String readableId);
+	
+	/**
 	 * Instantiates and activates new node on remote ring
 	 * @param ring
 	 * @param interpreter
@@ -172,16 +180,20 @@ public abstract class VWMLResourceHostManager {
 	public abstract VWMLContext remoteFindContext(String id) throws Exception;
 	
 	/**
-	 * Marks remote node as locked, which has the same id as given node 
+	 * Marks remote node as locked, which has the same id as given node
+	 * @param interpreter
+	 * @param from
 	 * @param node
 	 */
-	public abstract void remoteLock(VWMLConflictRingNode node);
+	public abstract void remoteLock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node);
 
 	/**
 	 * Marks remote node as locked, which has the same id as given node 
+	 * @param interpreter
+	 * @param from
 	 * @param node
 	 */
-	public abstract void remoteUnlock(VWMLConflictRingNode node);
+	public abstract void remoteUnlock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node);
 	
 	/**
 	 * Initializes conflict ring

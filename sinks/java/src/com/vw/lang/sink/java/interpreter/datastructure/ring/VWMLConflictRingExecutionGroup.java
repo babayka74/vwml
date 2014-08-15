@@ -10,6 +10,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
  * Ring's execution group
@@ -118,9 +119,11 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			if (n.getId().equals(id)) {
 				return n;
 			}
-			for(VWMLConflictRingNode ng : n.getGroup()) {
-				if (ng.getId().equals(id)) {
-					return ng;
+			VWMLLinkIncrementalIterator it = n.getLink().acquireLinkedObjectsIterator();
+			for(; it.isCorrect(); it.next()) {
+				VWMLConflictRingNode n1 = (VWMLConflictRingNode)n.getLink().getConcreteLinkedEntity(it.getIt());
+				if (n1.getId().equals(id)) {
+					return n1;
 				}
 			}
 		}

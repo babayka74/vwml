@@ -31,6 +31,7 @@ public class VWMLConflictRing {
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
 	private Map<String, String> conflictDef2TermAssociation = new HashMap<String, String>();
 	private VWMLConflictRingVisitor ringVisitor = null;
+	private VWMLInterpreterImpl ringInitialInterpreter = null;
 	
 	/**
 	 * Simple singlton implementation
@@ -147,6 +148,14 @@ public class VWMLConflictRing {
 
 	public Map<String, String> getConflictDef2TermAssociation() {
 		return conflictDef2TermAssociation;
+	}
+
+	public VWMLInterpreterImpl getRingInitialInterpreter() {
+		return ringInitialInterpreter;
+	}
+
+	public void setRingInitialInterpreter(VWMLInterpreterImpl ringInitialInterpreter) {
+		this.ringInitialInterpreter = ringInitialInterpreter;
 	}
 
 	/**
@@ -309,17 +318,20 @@ public class VWMLConflictRing {
 	
 	/**
 	 * Posts lock request to ring for processing
+	 * @param fromRTNode
+	 * @param from
 	 * @param nodeId
 	 */
-	public void sendLockRequestFor(Object nodeId) throws Exception {
+	public void sendLockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
 		
 	}
 
 	/**
 	 * Posts unlock request to ring for processing
+	 * @param from
 	 * @param nodeId
 	 */
-	public void sendUnlockRequestFor(Object nodeId) throws Exception {
+	public void sendUnlockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
 		
 	}
 	

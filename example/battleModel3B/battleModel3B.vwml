@@ -644,14 +644,14 @@ module battleModel3B {
 				(player 0 startpos 1 (5 39))
 				(player 0 movetopos 1 ((17 10)))
 				(player 0 go 1)
-	
+/*	
 				(player 0 create 2 ( (type defender)
 						     (attack (yes yes no))
 						     (defence (yes yes yes yes))
 						    ))
 				(player 0 startpos 2 (15 29))
 				(player 0 go 2)
-
+*/
 			);
 		);
 	);
