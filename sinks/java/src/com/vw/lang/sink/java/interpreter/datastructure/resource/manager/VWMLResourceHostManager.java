@@ -54,6 +54,14 @@ public abstract class VWMLResourceHostManager {
 	private Map<Long, VWMLHostedResources> hostedResources = new ConcurrentHashMap<Long, VWMLHostedResources>();
 
 	/**
+	 * Get resource's uniq id
+	 * @return
+	 */
+	public Long getUniqId() {
+		return requestKey();
+	}
+	
+	/**
 	 * Returns true in case if resource is available
 	 * @return
 	 */

@@ -43,7 +43,11 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		return g;
 	}
 
-	public VWMLConflictRingExecutionGroup clone(VWMLConflictRing forRing) {
+	public VWMLConflictRingExecutionGroup cloneConflictModel(VWMLConflictRing forRing) {
+		return cloneConflictModelCached(forRing, null);
+	}
+
+	public VWMLConflictRingExecutionGroup cloneConflictModelCached(VWMLConflictRing forRing, List<VWMLConflictRingNode> cache) {
 		boolean addMaster = false;
 		VWMLConflictRingExecutionGroup cloned = build(forRing, getId(), getReadableId());
 		VWMLConflictRingNode master = null;
@@ -54,7 +58,12 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		else {
 			master = implicitMaster;
 		}
-		VWMLConflictRingNode clonedMaster = master.deepClone(cloned);
+		boolean clearCache = false;
+		if (cache == null) {
+			clearCache = true;
+			cache = new ArrayList<VWMLConflictRingNode>();
+		}
+		VWMLConflictRingNode clonedMaster = master.deepCloneConflictModelCached(cloned, cache);
 		if (addMaster) {
 			clonedMaster.markAsClone(false);
 			cloned.add(clonedMaster);
@@ -63,8 +72,12 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			cloned.setImplicitMaster(clonedMaster);
 		}
 		for(VWMLConflictRingNode n : master.getGroup()) {
-			VWMLConflictRingNode n1 = n.deepClone(cloned);
+			VWMLConflictRingNode n1 = n.deepCloneConflictModelCached(cloned, cache);
 			clonedMaster.addToGroup(n1);
+		}
+		if (clearCache) {
+			cache.clear();
+			cache = null;
 		}
 		return cloned;
 	}

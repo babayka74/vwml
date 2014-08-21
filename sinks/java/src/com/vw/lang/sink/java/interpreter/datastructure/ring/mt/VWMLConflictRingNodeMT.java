@@ -13,10 +13,8 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode
  */
 public class VWMLConflictRingNodeMT extends VWMLConflictRingNode {
 
-	// true in case if node sends lock event in order to notify other rings about entering into conflict situation
-	private boolean nodeOnSendingLockEvent = false;
-	
 	private Collection<VWMLConflictRingNode> nodesForDeferredUnlock = Collections.synchronizedCollection(new ArrayList<VWMLConflictRingNode>());
+	private Collection<String> nodesIdInConflictNow = Collections.synchronizedCollection(new ArrayList<String>());
 	
 	public VWMLConflictRingNodeMT(Object hashId) {
 		super(hashId);
@@ -30,16 +28,6 @@ public class VWMLConflictRingNodeMT extends VWMLConflictRingNode {
 		return new VWMLConflictRingNodeMT(id, readableId);
 	}
 	
-	@Override
-	public boolean isNodeOnSendingLockEvent() {
-		return nodeOnSendingLockEvent;
-	}
-
-	@Override
-	public void markNodeAsSendingLockEvent(boolean nodeOnSendingLockEvent) {
-		this.nodeOnSendingLockEvent = nodeOnSendingLockEvent;
-	}
-
 	/**
 	 * Add deferred unlock operation; used when forced lock is required and need to wakeup node which was slept by force; the forced lock 
 	 * is activated during circular conflict resolution (see VWMLConflictRingMT -> lock)
@@ -56,9 +44,44 @@ public class VWMLConflictRingNodeMT extends VWMLConflictRingNode {
 	 */
 	@Override
 	public void processDeferredWakeupsOnUnlock() throws Exception {
-		for(VWMLConflictRingNode n : nodesForDeferredUnlock) {
-			VWMLConflictRingMT.wakeupNode(n);
+		if (nodesForDeferredUnlock.size() != 0) {
+			incSigma(); // deferred sigma; waken node will decrease sigma
+			for(VWMLConflictRingNode n : nodesForDeferredUnlock) {
+				VWMLConflictRingMT.wakeupNode(n);
+				System.out.println("Awoke from model node '" + this.getId() + "(" + this.getSigma() + ")'; rt node '" + n.getId() + "'");
+			}
+			nodesForDeferredUnlock.clear();
 		}
-		nodesForDeferredUnlock.clear();
+	}
+
+	/**
+	 * Used in order to tell that current node is in conflict with nodeId 
+	 * @param nodeId
+	 * @throws Exception
+	 */
+	@Override
+	public void inConflictNow(String nodeId) throws Exception {
+		nodesIdInConflictNow.add(nodeId);
+	}
+
+	/**
+	 * Returns true in case if current node is in conflict with node which was setup by 'inConflictNow'
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public boolean isInConflictNowWith(String nodeId) throws Exception {
+		return nodesIdInConflictNow.contains(nodeId);
+	}
+	
+	/**
+	 * Deactivates conflict previously activated by 'inConflictNow'
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public boolean deactivateConflictWith(String nodeId) throws Exception {
+		nodesIdInConflictNow.remove(nodeId);
+		return true;
 	}
 }

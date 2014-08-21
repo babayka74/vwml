@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLCloneFactory;
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -25,7 +26,7 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// placed to ring, so we may guess about its ability to be cloned
 	private boolean markAsCandidatOnClone = false;
 	// sets 'true' in case if conflict model loops itself
-	private boolean looped = false;
+	private VWMLConflictRingNode loopedNonModelNode = null;
 	// true in case if node is in conflict situation; the conflict marked by operation '[' and 
 	// finished by ']' operation
 	private boolean nodeInConflict = false;
@@ -44,8 +45,6 @@ public class VWMLConflictRingNode extends VWMLObject {
 	// by operations which require additional term interpretation in runtime (used by reactive and parallel interpreters)
 	private VWMLStack operationalInterpreters = VWMLStack.instance();
 	private int activeInterpreters = 0;
-	// sets to 'true' in case if node requires arbitration during lock event
-	private boolean requireArbitrationOnLock = false;
 	
 	public VWMLConflictRingNode(Object hashId) {
 		super(hashId);
@@ -77,18 +76,18 @@ public class VWMLConflictRingNode extends VWMLObject {
 	}
 
 	/**
-	 * Deep cloning including node's linkage for specified group
+	 * Deep cloning of conflict model, including node's linkage for specified group (cached)
 	 * @return
 	 */
-	public VWMLConflictRingNode deepClone(VWMLConflictRingExecutionGroup forGroup) {
-		List<VWMLConflictRingNode> alreadyCloned = new ArrayList<VWMLConflictRingNode>();
+	public VWMLConflictRingNode deepCloneConflictModelCached(VWMLConflictRingExecutionGroup forGroup, List<VWMLConflictRingNode> alreadyCloned) {
 		VWMLConflictRingNode n = deepCloneImpl(forGroup, alreadyCloned);
 		n.setMasterNode(n);
-		alreadyCloned.clear();
-		alreadyCloned = null;
+		if (n.getExecutionGroup() == null) {
+			n.setExecutionGroup(forGroup);
+		}
 		return n;
 	}
-
+	
 	/**
 	 * Resets internal structures, allowing us to 'resurrect' node
 	 */
@@ -133,12 +132,14 @@ public class VWMLConflictRingNode extends VWMLObject {
 		this.markAsCandidatOnClone = markAsCandidatOnClone;
 	}
 
-	public boolean isLooped() {
-		return looped;
+	public boolean isLooped(VWMLConflictRingNode loopedNonModelNode) {
+		return this.loopedNonModelNode == loopedNonModelNode;
 	}
 
-	public void setLooped(boolean looped) {
-		this.looped = looped;
+	public void setLooped(VWMLConflictRingNode loopedNonModelNode) {
+		if (loopedNonModelNode == null || this.loopedNonModelNode == null) {
+			this.loopedNonModelNode = loopedNonModelNode;
+		}
 	}
 
 	/**
@@ -180,6 +181,9 @@ public class VWMLConflictRingNode extends VWMLObject {
 				initialTerm	= initialTerm.getClonedFrom();
 			}
 			termContext = initialTerm.getContext().getContext();
+			if (!VWMLContextsRepository.getDefaultContextId().equals(termContext)) {
+				termContext += "." + initialTerm.getId();
+			}
 		}
 		return termContext;
 	}
@@ -194,21 +198,6 @@ public class VWMLConflictRingNode extends VWMLObject {
 			return true;
 		}
 		return activeInterpreters == 1 && (i.getStatus() == VWMLInterpreterImpl.stopProcessing || i.getStatus() == VWMLInterpreterImpl.stopped);
-	}
-
-	public boolean isRequireArbitrationOnLock() {
-		return requireArbitrationOnLock;
-	}
-
-	public void setRequireArbitrationOnLock(boolean requireArbitrationOnLock) {
-		this.requireArbitrationOnLock = requireArbitrationOnLock;
-	}
-
-	public boolean isNodeOnSendingLockEvent() {
-		return false;
-	}
-
-	public void markNodeAsSendingLockEvent(boolean nodeOnSendingLockEvent) {
 	}
 
 	public boolean isNodeInConflict() {
@@ -350,6 +339,33 @@ public class VWMLConflictRingNode extends VWMLObject {
 	public void processDeferredWakeupsOnUnlock() throws Exception {
 		throw new Exception("For MT strategy only");
 	}
+
+	/**
+	 * Used in order to tell that current node is in conflict with nodeId 
+	 * @param nodeId
+	 * @throws Exception
+	 */
+	public void inConflictNow(String nodeId) throws Exception {
+		throw new Exception("For MT strategy only");
+	}
+
+	/**
+	 * Returns true in case if current node is in conflict with node which was setup by 'inConflictNow'
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean isInConflictNowWith(String nodeId) throws Exception {
+		throw new Exception("For MT strategy only");
+	}
+
+	/**
+	 * Deactivates conflict previously activated by 'inConflictNow'
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean deactivateConflictWith(String nodeId) throws Exception {
+		throw new Exception("For MT strategy only");
+	}
 	
 	protected void operateOnNode() throws Exception {
 		VWMLConflictRingNode operationalNode = null;
@@ -373,10 +389,10 @@ public class VWMLConflictRingNode extends VWMLObject {
 		if (operationalNode != null) {
 			input = i.getObserver().getConflictOperationalState((String)operationalNode.getId());
 			state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
-			if (operationalNode.getSigma() == 0 || operationalNode.isLooped()) {
+			if (operationalNode.getSigma() == 0 || operationalNode.isLooped(i.getRtNode())) {
 				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;
 			}
-			//System.out.println("Node of '" + operationalNode.getInterpreter().getContext().getContext() + "'; sigma '" + operationalNode.getSigma() + "'; state '" + state + "'; input '" + input + "'");
+			// System.out.println("Node of '" + operationalNode.peekInterpreter().getContext().getContext() + "'; sigma '" + operationalNode.getSigma() + "'; state '" + state + "'; input '" + input + "'");
 		}
 		nodeAutomata.runAction(i, operationalNode, input, state);
 	}
@@ -401,25 +417,18 @@ public class VWMLConflictRingNode extends VWMLObject {
 	
 	protected VWMLConflictRingNode deepCloneImpl(VWMLConflictRingExecutionGroup forGroup, List<VWMLConflictRingNode> alreadyCloned) {
 		VWMLConflictRingNode n = build(this.getId(), this.getReadableId());
-		n.setExecutionGroup(forGroup);
 		if (!alreadyCloned.contains(n)) {
+			n.setExecutionGroup(forGroup);
 			alreadyCloned.add(n);
+		}
+		else {
+			return alreadyCloned.get(alreadyCloned.indexOf(n));
 		}
 		VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
 				VWMLConflictRingNode nc = (VWMLConflictRingNode)getLink().getConcreteLinkedEntity(it.getIt());
-				if (!alreadyCloned.contains(nc)) {
-					nc = nc.deepCloneImpl(forGroup, alreadyCloned);
-				}
-				else {
-					for(VWMLConflictRingNode rn : alreadyCloned) {
-						if (rn.equals(nc)) {
-							nc = rn;
-							break;
-						}
-					}
-				}
+				nc = nc.deepCloneImpl(forGroup, alreadyCloned);
 				if (!n.isLinked(nc)) {
 					n.getLink().link(nc);
 				}

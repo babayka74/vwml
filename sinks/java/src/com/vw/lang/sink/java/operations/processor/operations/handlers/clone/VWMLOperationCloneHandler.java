@@ -94,6 +94,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		else {
 			if (operationalRing != interpreter.getRing()) {
 				// sends message to add node and to activate it on another ring
+				System.out.println("Expand ring '" + operationalRing + "'");
 				operationalRing.sendActivateNode(interpreter, cloned, clonedSourceLft);
 			}
 			else {

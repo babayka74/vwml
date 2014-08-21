@@ -200,6 +200,9 @@ public class VWMLOperationUtils {
 			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
 		}
 		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
+		if (interpreter.getMasterInterpreter() != ring.getRingInitialInterpreter()) {
+			clonedInterpreter.move(ring.getRingInitialInterpreter());
+		}
 		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
 		tl.add(clonedSourceLft);
 		VWMLConflictRingNode clonedNode = ringGroupMasterNode.clone(clonedInterpreter);

@@ -50,7 +50,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		VWMLConflictRing free = null;
 		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
 			synchronized(r) {
-				if (r.getRing() != null && conf.getNodesPerRing() > r.getRing().calculateNumberOfNodes()) {
+				if (r.getRing() != null && !r.getRing().isMaster() && conf.getNodesPerRing() > r.getRing().calculateNumberOfNodes()) {
 					if (min == -1 || min < r.getRing().calculateNumberOfNodes()) {
 						min = r.getRing().calculateNumberOfNodes();
 						free = r.getRing();

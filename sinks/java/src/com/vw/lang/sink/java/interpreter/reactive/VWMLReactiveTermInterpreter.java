@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter.reactive;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
@@ -26,6 +27,7 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
 public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	private VWMLConflictRing ring = VWMLConflictRing.instance();
 	private IVWMLGate timeFringeGate = null;
+	private List<VWMLConflictRingNode> blockedOnInterpretation = new ArrayList<VWMLConflictRingNode>();
 	
 	private VWMLReactiveTermInterpreter() {
 		setRing(ring);
@@ -75,7 +77,10 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			if (g == null) {
 				throw new Exception("couldn't find ring group by context '" + p.getContext().getContext() + "'");
 			}
-			activateSourceLifeTerm(g, this, e, null, null, false);
+			VWMLInterpreterImpl impl = activateSourceLifeTerm(g, this, e, null, null, false);
+			if (impl != null && getClonedFromEntity() != null) {
+				impl.setClonedFromEntity(getClonedFromEntity());
+			}
 		}
 		if (isNormalization()) {
 			normalizeInterpreterData();
@@ -96,7 +101,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	@Override
 	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
 		while((listener == null) ? true : listener.getInterpreterStatus() != VWMLInterpreterImpl.stopped) {
-			if (!oneStep(null)) {
+			if (!oneStep()) {
 				break;
 			}
 		}
@@ -104,12 +109,11 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	
 	/**
 	 * Runs one step execution process
-	 * @param blockedNode
 	 * @return
 	 * @throws Exception
 	 */
 	@Override
-	public boolean oneStep(VWMLConflictRingNode blockedNode) throws Exception {
+	public boolean oneStep() throws Exception {
 		boolean continueExecution = true;
 		VWMLConflictRingNode node = ring.next();
 		if (node == null) {
@@ -119,11 +123,21 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		}
 		else {
 			spinTimerManager(getTimerManager(), timeFringeGate);
-			if (blockedNode == null || blockedNode != node) {
+			if (!isBlocked(node)) {
 				node.operate();
 			}
 		}
 		return continueExecution;
+	}
+	
+	@Override
+	public void addBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
+		blockedOnInterpretation.add(node);
+	}
+
+	@Override
+	public void removeBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
+		blockedOnInterpretation.remove(node);
 	}
 	
 	/**
@@ -214,5 +228,9 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			impl.start();
 		}
 		return impl;
+	}
+	
+	protected boolean isBlocked(VWMLConflictRingNode node) {
+		return blockedOnInterpretation.contains(node);
 	}
 }

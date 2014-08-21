@@ -25,9 +25,10 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				n.incSigma();
 				if (n == node) {
-					n.setLooped(true);
+					n.setLooped(interpreter.getRtNode());
 				}
-				//System.out.println(node.getReadableId() + " -> " + n.getReadableId());
+				//VWMLEntity term = interpreter.getRtNode().findInitialTerm();
+				//System.out.println("<" + term.getId() + ">" + node.getReadableId() + "(" + node.getSigma() + ")" + " -> " + n.getReadableId() + "(" + n.getSigma() + ")");
 				VWMLResourceHostManagerFactory.hostManagerInstance().remoteLock(interpreter, node, n);
 			}
 		}
@@ -45,9 +46,10 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				n.decSigma();
 				if (n == node) {
-					n.setLooped(false);
+					n.setLooped(null);
 				}
-				//System.out.println(node.getReadableId() + " <- " + n.getReadableId());
+				//VWMLEntity term = interpreter.getRtNode().findInitialTerm();
+				//System.out.println("<" + term.getId() + ">" + node.getReadableId() + "(" + node.getSigma() + ")" + " <- " + n.getReadableId() + "(" + n.getSigma() + ")");
 				VWMLResourceHostManagerFactory.hostManagerInstance().remoteUnlock(interpreter, node, n);
 			}
 		}

@@ -105,6 +105,13 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	public VWMLContext getForcedContext() {
 		return forcedContext;
 	}
+
+	/**
+	 * Moves interpreter to another master
+	 */
+	public void move(VWMLInterpreterImpl master) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
 	
 	/**
 	 * Adds term to the same interpreter in runtime; used for reactive and parallel interpreters only
@@ -149,11 +156,26 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	/**
 	 * Runs one step execution process
-	 * @param blockedNode
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean oneStep(VWMLConflictRingNode blockedNode) throws Exception {
+	public boolean oneStep() throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+
+	/**
+	 * Given node is be blocked on interpretation during oneStep
+	 * @param node
+	 */
+	public void addBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+
+	/**
+	 * Given node is be unblocked on interpretation during oneStep
+	 * @param node
+	 */
+	public void removeBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	

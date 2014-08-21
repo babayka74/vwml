@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,6 +22,7 @@ import com.vw.lang.sink.utils.GeneralUtils;
  *
  */
 public class VWMLConflictRing {
+	private Long uniqId;
 	private int currentGroupIndex = 0;
 	private int artificialId = 0;
 	private boolean initialyEmptyRing = false;
@@ -54,6 +56,7 @@ public class VWMLConflictRing {
 	 * Ring's initialization steps
 	 */
 	public void init() {
+		uniqId = VWMLResourceHostManagerFactory.hostManagerInstance().getUniqId();
 		artificialId = 0;
 		currentGroupIndex = 0;
 		initialyEmptyRing = false;
@@ -72,17 +75,33 @@ public class VWMLConflictRing {
 	}
 	
 	/**
+	 * Ring's id
+	 * @return
+	 */
+	public Long getId() {
+		return uniqId;
+	}
+	
+	/**
 	 * Copies initial data structure from another ring
 	 * @param from
 	 */
 	public void copyFrom(VWMLConflictRing from) {
-		 for(VWMLConflictRingExecutionGroup g : from.getGroupsConflictRing()) {
-			 groupsConflictRing.add(g.clone(this));
-		 }
-		 for(String k : from.getConflictDef2TermAssociation().keySet()) {
-			 conflictDef2TermAssociation.put(k, from.getConflictDef2TermAssociation().get(k));
-		 }
-		 initialyEmptyRing = from.isInitialyEmptyRing();
+		List<VWMLConflictRingNode> cache = new ArrayList<VWMLConflictRingNode>();
+		// conflicts
+		for(VWMLConflictRingNode n : from.getNodesConflictRing()) {
+			VWMLConflictRingNode n1 = n.deepCloneConflictModelCached(null, cache);
+			nodesConflictRing.add(n1);
+		}
+		// groups (on the same cache)
+		for(VWMLConflictRingExecutionGroup g : from.getGroupsConflictRing()) {
+			groupsConflictRing.add(g.cloneConflictModelCached(this, cache));
+		}
+		for(String k : from.getConflictDef2TermAssociation().keySet()) {
+			conflictDef2TermAssociation.put(k, from.getConflictDef2TermAssociation().get(k));
+		}
+		initialyEmptyRing = from.isInitialyEmptyRing();
+		cache.clear();
 	}
 	
 	/**
@@ -346,8 +365,38 @@ public class VWMLConflictRing {
 	/**
 	 * Processes incoming requests
 	 */
-	public void processRequests() {
+	public void processRequests() throws Exception {
 		
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((uniqId == null) ? 0 : uniqId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		VWMLConflictRing other = (VWMLConflictRing) obj;
+		if (uniqId == null) {
+			if (other.uniqId != null) {
+				return false;
+			}
+		} else if (!uniqId.equals(other.uniqId)) {
+			return false;
+		}
+		return true;
 	}
 
 	protected void setStopped(boolean stopped) {
@@ -377,6 +426,10 @@ public class VWMLConflictRing {
 		VWMLResourceHostManagerFactory.hostManagerInstance().markRingAsInvalid();
 	}
 	
+	protected List<VWMLConflictRingNode> getNodesConflictRing() {
+		return nodesConflictRing;
+	}
+
 	private String associateBoundTermAndConflictDefinition(String conflict) {
 		String parsedAssociation = conflict;
 		String boundTermCtx = GeneralUtils.getConflictBoundTerm(conflict);

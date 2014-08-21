@@ -76,6 +76,16 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		cloned.setRing(getRing());
 		return cloned;
 	}
+	
+	/**
+	 * Moves interpreter to another master
+	 */
+	@Override
+	public void move(VWMLInterpreterImpl master) throws Exception {
+		setMasterInterpreter(master);
+		setTimerManager(master.getTimerManager());
+		setRing(master.getRing());
+	}
 		
 	/**
 	 * Resets interpreter's data

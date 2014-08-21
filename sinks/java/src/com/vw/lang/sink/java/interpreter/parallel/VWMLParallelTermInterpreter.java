@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.interpreter.parallel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
@@ -28,7 +29,9 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		private List<VWMLEntity> terms = null;
 		private VWMLReactiveTermInterpreter interpreter = null;
 		private VWMLEntity clonedFrom = null;
-		private Integer signal = null;
+		private Integer signalOnStart = null;
+		private Integer signalOnStop = null;
+		private AtomicBoolean started = new AtomicBoolean(false);
 		private boolean stopped = false;
 		private boolean ringCopyAsSecondary = VWMLReactiveActivity.masterRing;
 		private boolean cloneMasterNode = false;
@@ -46,14 +49,22 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			this.clonedFrom = clonedFrom;
 		}
 
-		public Integer getSignal() {
-			return signal;
+		public Integer getSignalOnStart() {
+			return signalOnStart;
 		}
 
-		public void setSignal(Integer signal) {
-			this.signal = signal;
+		public void setSignalOnStart(Integer signalOnStart) {
+			this.signalOnStart = signalOnStart;
 		}
 
+		public Integer getSignalOnStop() {
+			return signalOnStop;
+		}
+
+		public void setSignalOnStop(Integer signalOnStop) {
+			this.signalOnStop = signalOnStop;
+		}
+		
 		public VWMLParallelTermInterpreter getMasterInterpreter() {
 			return masterInterpreter;
 		}
@@ -120,25 +131,36 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			}
 			try {
 				if (isWaitTillStart()) {
-					synchronized(signal) {
-						signal.notifyAll();
+					started.getAndSet(true);
+					synchronized(signalOnStart) {
+						signalOnStart.notifyAll();
 					}
 				}
+				System.out.println("Ring started '" + interpreter.getRing() + "'");
 				interpreter.start();
+				System.out.println("Ring finished '" + interpreter.getRing() + "'");
 				// notifies master interpreter about finishing
-				synchronized(signal) {
-					signal.notifyAll();
+				synchronized(signalOnStop) {
+					signalOnStop.notifyAll();
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			stopped = true;
 		}
+		
+		protected void markAsStarted() {
+			started.getAndSet(true);
+		}
+		
+		protected boolean isStarted() {
+			return started.get();
+		}
 	}
 	
 	private static final int waitPeriodForCompletition = 10;
 	private List<VWMLReactiveActivity> activities = Collections.synchronizedList(new ArrayList<VWMLReactiveActivity>());
-	private Integer signal = new Integer(0x1234);
+	private Integer signalOnStop = new Integer(0x1235);
 	
 	private VWMLParallelTermInterpreter() {
 	}
@@ -224,10 +246,12 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 	
 	protected void activateRing(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart) throws Exception {
 		if (ringTerms.size() != 0) {
+			Integer signalOnStart = new Integer(0x1111);
 			VWMLReactiveActivity activity = new VWMLReactiveActivity();
 			activity.setMasterInterpreter(this);
 			activity.setTerms(ringTerms);
-			activity.setSignal(signal);
+			activity.setSignalOnStart(signalOnStart);
+			activity.setSignalOnStop(signalOnStop);
 			activity.setRingCopyAsSecondary(masterRing);
 			activity.setClonedFrom(clonedFrom);
 			activity.setCloneMasterNode(cloneMaster);
@@ -235,9 +259,12 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			activities.add(activity);
 			activity.start();
 			if (waitTillStart) {
-				synchronized(signal) {
-					signal.wait();
+				while(!activity.isStarted()) {
+					synchronized(signalOnStart) {
+						signalOnStart.wait(waitPeriodForCompletition);
+					}
 				}
+				System.out.println("activity started");
 			}
 		}
 	}
@@ -245,8 +272,8 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 	protected void waitForAll() throws Exception {
 		for(int i = 0; i < activities.size(); i++) {
 			if (!activities.get(i).isStopped()) {
-				synchronized(signal) {
-					signal.wait(waitPeriodForCompletition);
+				synchronized(signalOnStop) {
+					signalOnStop.wait(waitPeriodForCompletition);
 				}
 				i = -1;
 			}

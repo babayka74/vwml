@@ -1,11 +1,9 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring.mt;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
 /**
@@ -15,49 +13,152 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode
  */
 public class VWMLConflictRingMTArbiter {
 	
-	/**
-	 * Situation root class
-	 * @author Oleg
-	 *
-	 */
-	public static abstract class VWMLArbitrationSituation {
+	protected static class VWMLConflictPair {
+		private VWMLConflictRing ring;
+		private VWMLConflictRingNode node;
+		private boolean accepted = false;
+		private boolean resolved = false;
 		
-		public abstract void resolve() throws Exception;
+		public VWMLConflictPair(VWMLConflictRing ring, VWMLConflictRingNode node) {
+			super();
+			this.ring = ring;
+			this.node = node;
+		}
+		
+		public boolean isAccepted() {
+			return accepted;
+		}
+
+		public void accept() {
+			this.accepted = true;
+		}
+
+		public boolean isResolved() {
+			return resolved;
+		}
+
+		public void setResolved(boolean resolved) {
+			this.resolved = resolved;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((node == null) ? 0 : node.hashCode());
+			result = prime * result + ((ring == null) ? 0 : ring.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			VWMLConflictPair other = (VWMLConflictPair) obj;
+			if (node == null) {
+				if (other.node != null) {
+					return false;
+				}
+			} else if (!node.equals(other.node)) {
+				return false;
+			}
+			if (ring == null) {
+				if (other.ring != null) {
+					return false;
+				}
+			} else if (!ring.equals(other.ring)) {
+				return false;
+			}
+			return true;
+		}
 	}
 	
-	/**
-	 * Lock situation which requires arbitration
-	 * @author Oleg
-	 *
-	 */
-	public static class VWMLArbitrationLockSituation extends VWMLArbitrationSituation {
-		private VWMLConflictRingNode from;
-		private VWMLConflictRingNode to;
-
-		public VWMLConflictRingNode getFrom() {
-			return from;
+	protected static class VWMLConflictTuple {
+		private VWMLConflictPair pair1;
+		private VWMLConflictPair pair2;
+		
+		public VWMLConflictTuple(VWMLConflictPair pair1, VWMLConflictPair pair2) {
+			super();
+			this.pair1 = pair1;
+			this.pair2 = pair2;
 		}
 
-		public void setFrom(VWMLConflictRingNode from) {
-			this.from = from;
-		}
-
-		public VWMLConflictRingNode getTo() {
-			return to;
-		}
-
-		public void setTo(VWMLConflictRingNode to) {
-			this.to = to;
+		public VWMLConflictPair getPair1() {
+			return pair1;
 		}
 		
-		public void resolve() throws Exception {
-			VWMLConflictRingMT.wakeupNode(getTo());
+		public void setPair1(VWMLConflictPair pair1) {
+			this.pair1 = pair1;
+		}
+		
+		public VWMLConflictPair getPair2() {
+			return pair2;
+		}
+		
+		public void setPair2(VWMLConflictPair pair2) {
+			this.pair2 = pair2;
+		}
+
+		public VWMLConflictPair findPair(VWMLConflictPair pairAsKey) {
+			if (pairAsKey.equals(pair1)) {
+				return pair1;
+			}
+			else
+			if (pairAsKey.equals(pair2)) {
+				return pair2;
+			}
+			return null;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((pair1 == null) ? 0 : pair1.hashCode());
+			result = prime * result + ((pair2 == null) ? 0 : pair2.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			VWMLConflictTuple other = (VWMLConflictTuple) obj;
+			if (pair1 == null) {
+				if (other.pair1 != null) {
+					return false;
+				}
+			} else if (!pair1.equals(other.pair1)) {
+				return false;
+			}
+			if (pair2 == null) {
+				if (other.pair2 != null) {
+					return false;
+				}
+			} else if (!pair2.equals(other.pair2)) {
+				return false;
+			}
+			return true;
 		}
 	}
 	
 	private static volatile VWMLConflictRingMTArbiter s_arbiter = null;
 	
-	private Map<VWMLConflictRingMT.VWMLRingEvent.REVENT, Collection<VWMLArbitrationSituation>> situations = new ConcurrentHashMap<VWMLConflictRingMT.VWMLRingEvent.REVENT, Collection<VWMLArbitrationSituation>>();
+	private List<VWMLConflictTuple> conflicts = new ArrayList<VWMLConflictTuple>();
 	
 	private VWMLConflictRingMTArbiter() {
 		
@@ -81,22 +182,84 @@ public class VWMLConflictRingMTArbiter {
 	}
 	
 	/**
-	 * Adds lock arbitration situation
-	 * @param eventId
-	 * @param node1
-	 * @param node2
+	 * Handle lock conflict; avoids technical deadlock; checks conflict by testing acceptance of conflict's cross-reference
+	 * @param ring
+	 * @param ringOpposite
+	 * @param node
+	 * @param nodeOpposite
+	 * @return
 	 */
-	public void addLockSituation(VWMLConflictRingMT.VWMLRingEvent.REVENT eventId, VWMLConflictRingNode from, VWMLConflictRingNode to) {
-		Collection<VWMLArbitrationSituation> situationsPerEvent = situations.get(eventId);
-		if (situationsPerEvent == null) {
-			situationsPerEvent = Collections.synchronizedCollection(new ArrayList<VWMLArbitrationSituation>());
-			situations.put(eventId, situationsPerEvent);
+	public synchronized boolean handleLockConflict(	VWMLConflictRing ring, VWMLConflictRing ringOpposite,
+													VWMLConflictRingNode node, VWMLConflictRingNode nodeOpposite,
+													VWMLConflictRingNode oppositeRTNode) throws Exception {
+		VWMLConflictPair pair1 = new VWMLConflictPair(ring, node);
+		VWMLConflictPair pair2 = new VWMLConflictPair(ringOpposite, nodeOpposite);
+		System.out.println("<" + Thread.currentThread().getId() + ">[" + ring + ":" + node.getId() + "] -> [" + ringOpposite + ":" + nodeOpposite.getId() + "]");
+		VWMLConflictTuple tupleAsKey = new VWMLConflictTuple(pair1, pair2);
+		VWMLConflictTuple tuple = getTupleByKey(tupleAsKey);
+		if (tuple != null && tuple.getPair1().isResolved() && tuple.getPair2().isResolved()) {
+			// remove resolved conflict
+			tuple.setPair1(null);
+			tuple.setPair2(null);
+			node.deactivateConflictWith((String)nodeOpposite.getId());
+			nodeOpposite.deactivateConflictWith((String)node.getId());
+			conflicts.remove(tuple);
+			System.out.println("<" + Thread.currentThread().getId() + "> removed conflict");
+			return true;
 		}
-		VWMLArbitrationLockSituation situation = new VWMLArbitrationLockSituation();
-		VWMLConflictRingMT.sleepNode(from);
-		VWMLConflictRingMT.sleepNode(to);
-		situation.setFrom(from);
-		situation.setTo(to);
-		situationsPerEvent.add(situation);
+		if (tuple == null) {
+			conflicts.add(tupleAsKey);
+			tuple = tupleAsKey;
+		}
+		// each side accepts opposite one
+		VWMLConflictPair p = tuple.findPair(pair2);
+		if (p == null) {
+			throw new Exception("Inconsistence found; invalid pair '" + pair2 + "'");
+		}
+		p.accept();
+		// conflict accepted by two sides and should be resolved
+		if (tuple.getPair1().isAccepted() && tuple.getPair2().isAccepted()) {
+			// resolve
+			sleepOppositeRTNodeStrategy(node, oppositeRTNode);
+			tuple.getPair1().setResolved(true);
+			tuple.getPair2().setResolved(true);
+			System.out.println("<" + Thread.currentThread().getId() + "> resolved conflict");
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Model node sleeps opposite RT node - strategy
+	 * @param modelNode
+	 * @param rtNode
+	 */
+	public void sleepOppositeRTNodeStrategy(VWMLConflictRingNode modelNode, VWMLConflictRingNode rtNode) throws Exception {
+		// conflict node to sleep
+		VWMLConflictRingMT.sleepNode(rtNode);
+		// conflict node will be waken up after n is waken
+		System.out.println("Deferred wakeup for model node '" + modelNode.getId() + "(" + modelNode.getSigma() + ")'; rt node '" + rtNode.getId() + "'");
+		modelNode.addDeferredWakeupOnUnlock(rtNode);
+	}
+	
+	
+	protected VWMLConflictTuple getTupleByKey(VWMLConflictTuple key) {
+		VWMLConflictTuple tuple = null;
+		for(int i = 0; i < 2; i++) {
+			int tupleIndex = conflicts.indexOf(key);
+			if (tupleIndex != -1) {
+				tuple = conflicts.get(tupleIndex);
+			}
+			if (tuple == null) {
+				VWMLConflictPair p1 = key.getPair1();
+				VWMLConflictPair p2 = key.getPair2();
+				key.setPair1(p2);
+				key.setPair2(p1);
+				continue;
+			}
+			break;
+		}
+		return tuple;
+
 	}
 }
