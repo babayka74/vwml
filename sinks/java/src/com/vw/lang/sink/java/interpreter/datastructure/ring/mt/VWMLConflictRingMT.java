@@ -116,8 +116,9 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 				}
 				stallCounter++;
 				if (stallCounter > 10000000) {
-					throw new Exception("Stalled ring '" + getRing() + "' on thread '" + Thread.currentThread().getId() + "'");
+					throw new Exception("Stalled event '" + getId() + "'; from node '" + getFrom().getId() + "' ring '" + getRing() + "' on thread '" + Thread.currentThread().getId() + "'");
 				}
+				Thread.sleep(0);
 			}
 			interpreter.removeBlockedOnInterpretation(getRtNode());
 		}
@@ -371,9 +372,9 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			if (event.isHandleAgain()) {
 				deferredEventQueue.offer(event);
 				//System.out.println("event '" + event + "' from '" + this + "' should be handled again; thread '" + Thread.currentThread().getId() + "'");
-				// initiates thread switch
-				Thread.sleep(0);
 			}
+			// initiates thread switch
+			Thread.sleep(0);
 		}
 		while ((event = deferredEventQueue.poll()) != null) {
 			eventQueue.offer(event);
