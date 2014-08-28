@@ -18,9 +18,6 @@ options {
 		}
 	}
 	conflictring {
-		"{MagicWorld.Manager}.PropagateCommand.LockQueue" conflicts (
-			"{MagicWorld.Player}.PlayerLifeStep.LockQueue"
-		)
           	"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockDefenders" conflicts (
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
@@ -34,14 +31,6 @@ options {
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.PathFinder.UpdateUnitsSharedPath.RecalculatePathToAttacker.LockSharedStates" conflicts (
 			"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker"
-		)
-		"[MagicWorld.Characters.Unit].MagicWorld.Services.SignalUnit.LockUnitCommandQueue" conflicts (
-			"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
-			"[MagicWorld.Player].MagicWorld.Services.SignalUnit.LockUnitCommandQueue"
-			"{MagicWorld.Characters.Unit}.UnitLifeStep.LockUnitCommandQueue"
-		)
-		"{MagicWorld.Characters.Unit}.UnitLifeStep.LockUnitCommandQueue" conflicts (
-			"{MagicWorld.Player}.PropagateCommandToUnit.LockUnitCommandQueue"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.Observe.LockAttackers" conflicts (
 			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
@@ -173,11 +162,7 @@ module battleModel3B {
 				To ias nil;
 				CommandId ias nil;
 				CommandParams ias nil;
-				LockUnitCommandQueue [
-					((Characters)->(Unit To~)->CommandQueue
-						((Characters)->(Unit To~)->CommandQueue~ ((PlayerId~ CommandId~ To~ CommandParams~))) Join
-					)^
-				LockUnitCommandQueue ]
+				((Characters)->(Unit To~) Tx (PlayerId~ CommandId~ To~ CommandParams~)) Gate
 			);
 			PositionChecker ias (
 				Init ias doNothing;
@@ -349,7 +334,6 @@ module battleModel3B {
 					(CurrentPositionNil (CurrentPosition~ nil) Ident)~ Exe
 				);
 				/* unit receives commands in deferred manner */
-				CommandQueue ias ();
 				CommandDispatcher ias (
 					Dispatch ias nil;
 					LastUnitCommandId ias stay;
@@ -406,19 +390,15 @@ module battleModel3B {
 				);
 				/* unit's lifestep */
 				UnitLifeStep ias (
-					LockUnitCommandQueue ias nil;
 					(Stop false) ias (
-						(emptyQ true) ias (
+						(ready false) ias (
 							(CommandDispatcher.Dispatch nil)^
 						);
-						(emptyQ false) ias (
-							LockUnitCommandQueue [
-								(CommandDispatcher.Dispatch (CommandQueue~) First)^
-								(CommandQueue (CommandQueue~) Rest)^
-							LockUnitCommandQueue ]
+						(ready true) ias (
+							(CommandDispatcher.Dispatch ((Unit Id~) Rx) Gate)^
 							((The unit Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
 						);
-						(emptyQ LockUnitCommandQueue [ (CommandQueue~ ()) Ident LockUnitCommandQueue ])~ Exe
+						(ready (((Unit Id~) Ready) Gate true) Ident)~ Exe
 						CommandDispatcher~ Exe
 					);
 					(Stop true) ias (
@@ -476,18 +456,14 @@ module battleModel3B {
 				((The player Id~ all units finished) Ew.Output~) Do
 			);
 			PropagateCommandToUnit ias (
-				LockUnitCommandQueue [
-					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue
-					(Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)->CommandQueue~
-						(
-							(Id~ ($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~))
-						) Join
-					)^
-				LockUnitCommandQueue ]
+				(
+					Characters.(Unit ($$)->(HandleUnitsCommand)->UnitId~)
+					Tx
+					(Id~ ($$)->(HandleUnitsCommand)->UnitCommandId~ ($$)->(HandleUnitsCommand)->UnitId~ ($$)->(HandleUnitsCommand)->UnitCommandParams~)
+				) Gate
 			);
 			UnitsStateSetLocker ias nil;
 			UnitsStateSet ias ();
-			CommandQueue ias ();
 			HandleUnitsCommand ias (
 				UnitCommandId ias nil;
 				UnitId ias nil;
@@ -529,22 +505,16 @@ module battleModel3B {
 			);
 			/* Player's lifestep */
 			PlayerLifeStep ias (
-				LockQueue ias nil;
 				(Stop false) ias (
-					(emptyQ true) ias (
+					(ready false) ias (
 						(CommandDispatcher.Dispatch nil)^
 						PlayerLifeStep~ Exe
 					);
-					(emptyQ false) ias (
-						LockQueue [
-							//((The player Id~ command queue before CommandQueue~) Ew.Output~) Do
-							(CommandDispatcher.Dispatch (CommandQueue~) First)^
-							(CommandQueue (CommandQueue~) Rest)^
-							// ((The player Id~ command queue after CommandQueue~) Ew.Output~) Do
-						LockQueue ]
+					(ready true) ias (
+						(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
 						CommandDispatcher~ Exe
 					);
-					(emptyQ LockQueue [ (CommandQueue~ ()) Ident LockQueue ])~ Exe
+					(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 				);
 				(Stop true) ias (
 					StopAllUnits~ Exe
@@ -570,9 +540,8 @@ module battleModel3B {
 			/* command is propagated to player */
 			PropagateCommand ias (
 				((Command CommandId~ is propagated to player Id~) Ew.Output~) Do
-				LockQueue [
-					((Player Id~)->CommandQueue ((Player Id~)->CommandQueue~ ((CommandId~ UnitId~ Params~))) Join)^
-				LockQueue ]
+				// activating gate on player's side (Tx mode)
+				((Player Id~) Tx (CommandId~ UnitId~ Params~)) Gate
 				((Command CommandId~ propagated to player Id~) Ew.Output~) Do
 			);
 			(ManagerCommand true) ias (

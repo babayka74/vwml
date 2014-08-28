@@ -43,6 +43,7 @@ tokens {
     OPCALLP='CallP';
     OPGET='Get';
     OPFIND='Find';
+    OPGATE='Gate';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1163,6 +1164,7 @@ opclist
     | OPCALLP
     | OPGET
     | OPFIND
+    | OPGATE
     ;
 
 termLanguages

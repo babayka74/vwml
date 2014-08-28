@@ -70,6 +70,18 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	}
 	
 	@Override
+	public VWMLConflictRing findRingByExecutingTerm(VWMLEntity executingTerm) {
+		VWMLHostedResources r = getHostedResourcesContainer().get(requestKey());
+		VWMLConflictRing ring = r.getRing();
+		if (ring != null) {
+			if (ring.findNodeExecutingTerm(executingTerm) == null) {
+				ring = null;
+			}
+		}
+		return ring;
+	}
+	
+	@Override
 	public void remoteLock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node) {
 	}
 

@@ -13,6 +13,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.utils.GeneralUtils;
 
 /**
@@ -22,6 +23,139 @@ import com.vw.lang.sink.utils.GeneralUtils;
  *
  */
 public class VWMLConflictRing {
+	
+	protected static abstract class VWMLRingEvent {
+		
+		public static enum REVENT {
+			LOCK,
+			UNLOCK,
+			CONTEXTFIND,
+			ACTIVATENODE
+		}
+		
+		private REVENT id;
+		private boolean processed = false;
+		private VWMLConflictRing ring = null;
+		private VWMLConflictRingNode from = null;
+		private VWMLConflictRingNode rtNode = null;
+		private boolean handleAgain = false;
+		private int againCounter = 0;
+
+
+		public VWMLRingEvent() {
+			super();
+		}
+
+		public VWMLRingEvent(REVENT id) {
+			super();
+			this.id = id;
+		}
+
+		public REVENT getId() {
+			return id;
+		}
+
+		public void setId(REVENT id) {
+			this.id = id;
+		}
+		
+		public void setProcessed() {
+			processed = true;
+		}
+		
+		public boolean isProcessed() {
+			return processed;
+		}
+		
+		public VWMLConflictRing getRing() {
+			return ring;
+		}
+
+		public void setRing(VWMLConflictRing ring) {
+			this.ring = ring;
+		}
+
+		public VWMLConflictRingNode getFrom() {
+			return from;
+		}
+
+		public void setFrom(VWMLConflictRingNode from) {
+			this.from = from;
+		}
+		
+		public VWMLConflictRingNode getRtNode() {
+			return rtNode;
+		}
+
+		public void setRtNode(VWMLConflictRingNode rtNode) {
+			this.rtNode = rtNode;
+		}
+		
+		public boolean isHandleAgain() {
+			return handleAgain;
+		}
+
+		public void setHandleAgain(boolean handleAgain) {
+			this.handleAgain = handleAgain;
+			againCounter++;
+		}
+
+		public int getAgainCounter() {
+			return againCounter;
+		}
+	
+		public abstract void waitFor() throws Exception;
+		
+		public void handle(VWMLConflictRing ring) throws Exception {
+			setProcessed();
+		}
+	}
+	
+	public static class VWMLRingActivateGateEvent extends VWMLRingEvent {
+		private VWMLEntity ringDestTerm;
+		private VWMLEntity transportedEntity;
+		private VWMLEntity handlerDestTerm;
+		
+		public VWMLRingActivateGateEvent(VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) {
+			super();
+			this.ringDestTerm = ringDestTerm;
+			this.transportedEntity = transportedEntity;
+			this.handlerDestTerm = handlerDestTerm;
+		}
+
+		public VWMLEntity getRingDestTerm() {
+			return ringDestTerm;
+		}
+		
+		public VWMLEntity getTransportedEntity() {
+			return transportedEntity;
+		}
+		
+		public VWMLEntity getHandlerDestTerm() {
+			return handlerDestTerm;
+		}
+
+		@Override
+		public void waitFor() throws Exception {
+		}
+		
+		@Override
+		public void handle(VWMLConflictRing ring) throws Exception {
+			VWMLConflictRingNode node = ring.findNodeExecutingTerm(getRingDestTerm());
+			if (node == null) {
+				throw new Exception("Couldn't find node associated with term '" + getRingDestTerm() + "'");
+			}
+			VWMLOperationUtils.activateTerm(node.peekInterpreter(),
+											getTransportedEntity(),
+											false,
+											getHandlerDestTerm(),
+											"Gate_",
+											"Gate",
+											null);
+			super.handle(ring);
+		}
+	}
+	
 	private Long uniqId;
 	private int currentGroupIndex = 0;
 	private int artificialId = 0;
@@ -34,6 +168,9 @@ public class VWMLConflictRing {
 	private Map<String, String> conflictDef2TermAssociation = new HashMap<String, String>();
 	private VWMLConflictRingVisitor ringVisitor = null;
 	private VWMLInterpreterImpl ringInitialInterpreter = null;
+	// for ST strategy; no need queue since each node performs only one operation which can send only one event
+	private List<VWMLRingEvent> deferredEventQueue = new ArrayList<VWMLRingEvent>();
+	private Map<String, List<VWMLRingEvent>> nonAckGateEventQueue = new HashMap<String, List<VWMLRingEvent>>();
 	
 	/**
 	 * Simple singlton implementation
@@ -213,30 +350,15 @@ public class VWMLConflictRing {
 	}
 	
 	/**
-	 * Returns current node on the ring and goes to next
+	 * Returns active node on the ring and goes to next
 	 * @return
 	 */
 	public VWMLConflictRingNode next() {
-		if (groupsConflictRing.size() == 0) {
-			return null;
-		}
-		VWMLConflictRingNode n = null;
-		int stopped = 0;
-		while(stopped != groupsConflictRing.size()) {
-			VWMLConflictRingExecutionGroup g = groupsConflictRing.get(currentGroupIndex);
-			currentGroupIndex++;
-			currentGroupIndex = currentGroupIndex % groupsConflictRing.size();
-			n = g.schedule();
-			if (n == null) {
-				stopped++;
-			}
-			else {
-				break;
-			}
-		}
-		if (stopped == groupsConflictRing.size()) {
-			n = null;
-			setStopped(true);
+		VWMLConflictRingNode n = scheduleNextNode();
+		try {
+			processRequests();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return n;
 	}
@@ -265,22 +387,6 @@ public class VWMLConflictRing {
 		return conflictDef2TermAssociation.get(conflict);
 	}
 	
-	/**
-	 * Looks for node identified by id
-	 * @param id
-	 * @return
-	 */
-	public VWMLConflictRingNode lookupNodeById(Object id) {
-		VWMLConflictRingNode n = null;
-		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
-			n = g.find(id);
-			if (n != null) {
-				break;
-			}
-		}
-		return n;
-	}
-
 	/**
 	 * Lookups requested conflict node by id
 	 * @param id
@@ -313,6 +419,22 @@ public class VWMLConflictRing {
 	}
 
 	/**
+	 * Lookups for node which executes given term
+	 * @param term
+	 * @return
+	 */
+	public VWMLConflictRingNode findNodeExecutingTerm(VWMLEntity term) {
+		VWMLConflictRingNode node = null;
+		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
+			node = g.findNodeExecutingTerm(term);
+			if (node != null) {
+				break;
+			}
+		}
+		return node;
+	}
+	
+	/**
 	 * Master property is set by 'parallel' interpreter in order to mark its own ring (created upon initialization phase)
 	 * @return
 	 */
@@ -323,7 +445,53 @@ public class VWMLConflictRing {
 	public void setMaster(boolean master) {
 		this.master = master;
 	}
-
+	
+	/**
+	 * Fetches transmitted data, if exists, from ring's gate; the data identified by destination term (see askActivateGate)
+	 * @param ringDestTerm
+	 * @return
+	 */
+	public VWMLRingEvent fromGate(VWMLEntity ringDestTerm) {
+		VWMLRingEvent event = null;
+		List<VWMLRingEvent> q = nonAckGateEventQueue.get(ringDestTerm.getId());
+		if (q != null && q.size() != 0) {
+			event = q.get(q.size() - 1);
+			q.remove(q.size() - 1);
+		}
+		return event;
+	}
+	
+	/**
+	 * Returns 'true' in case if gate has transmitted data for destination term
+	 * @param ringDestTerm
+	 * @return
+	 */
+	public boolean isGateOpened(VWMLEntity ringDestTerm) {
+		boolean opened = false;
+		List<VWMLRingEvent> q = nonAckGateEventQueue.get(ringDestTerm.getId());
+		if (q != null) {
+			opened = (q.size() != 0);
+		}
+		return opened;
+	}
+	
+	/**
+	 * Activates gate on given ring; the gate is used in order to pass data between rings
+	 * @param ringDestTerm
+	 * @param transportedEntity
+	 * @param handlerDestTerm
+	 * @throws Exception
+	 */
+	public void askActivateGate(VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
+		VWMLRingActivateGateEvent event = new VWMLRingActivateGateEvent(ringDestTerm, transportedEntity, handlerDestTerm);
+		if (handlerDestTerm != null) {
+			addDeferredEvent(event);
+		}
+		else {
+			toGate(event);
+		}
+	}
+	
 	/**
 	 * Activates node
 	 * @param interpreter
@@ -331,8 +499,8 @@ public class VWMLConflictRing {
 	 * @param clonedSourceLft
 	 * @throws Exception
 	 */
-	public void sendActivateNode(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
-		
+	public void askActivateNode(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		throw new Exception("for MT strategy only");
 	}
 	
 	/**
@@ -341,8 +509,8 @@ public class VWMLConflictRing {
 	 * @param from
 	 * @param nodeId
 	 */
-	public void sendLockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
-		
+	public void askLockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
+		throw new Exception("for MT strategy only");
 	}
 
 	/**
@@ -350,23 +518,16 @@ public class VWMLConflictRing {
 	 * @param from
 	 * @param nodeId
 	 */
-	public void sendUnlockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
-		
+	public void askUnlockRequestFor(VWMLConflictRingNode fromRTNode, VWMLConflictRingNode from, Object nodeId) throws Exception {
+		throw new Exception("for MT strategy only");
 	}
 	
 	/**
 	 * Posts 'context find' request to ring
 	 * @param id
 	 */
-	public VWMLContext sendContextFindRequest(String id) throws Exception {
-		return null;
-	}
-
-	/**
-	 * Processes incoming requests
-	 */
-	public void processRequests() throws Exception {
-		
+	public VWMLContext askContextFindRequest(String id) throws Exception {
+		throw new Exception("for MT strategy only");
 	}
 
 	@Override
@@ -399,6 +560,45 @@ public class VWMLConflictRing {
 		return true;
 	}
 
+	/**
+	 * Processes incoming requests
+	 */
+	protected void processRequests() throws Exception {
+		VWMLRingEvent event = fetchDeferredEvent();
+		if (event != null) {
+			event.handle(this);
+		}
+	}
+
+	/**
+	 * Schedules next node for execution
+	 * @return
+	 */
+	protected VWMLConflictRingNode scheduleNextNode() {
+		if (groupsConflictRing.size() == 0) {
+			return null;
+		}
+		VWMLConflictRingNode n = null;
+		int stopped = 0;
+		while(stopped != groupsConflictRing.size()) {
+			VWMLConflictRingExecutionGroup g = groupsConflictRing.get(currentGroupIndex);
+			currentGroupIndex++;
+			currentGroupIndex = currentGroupIndex % groupsConflictRing.size();
+			n = g.schedule();
+			if (n == null) {
+				stopped++;
+			}
+			else {
+				break;
+			}
+		}
+		if (stopped == groupsConflictRing.size()) {
+			n = null;
+			setStopped(true);
+		}
+		return n;
+	}
+	
 	protected void setStopped(boolean stopped) {
 		this.stopped = stopped;
 	}
@@ -430,6 +630,15 @@ public class VWMLConflictRing {
 		return nodesConflictRing;
 	}
 
+	protected void toGate(VWMLRingActivateGateEvent event) {
+		List<VWMLRingEvent> q = nonAckGateEventQueue.get(event.getRingDestTerm().getId());
+		if (q == null) {
+			q = new ArrayList<VWMLRingEvent>();
+			nonAckGateEventQueue.put((String)event.getRingDestTerm().getId(), q);
+		}
+		q.add(event);
+	}
+	
 	private String associateBoundTermAndConflictDefinition(String conflict) {
 		String parsedAssociation = conflict;
 		String boundTermCtx = GeneralUtils.getConflictBoundTerm(conflict);
@@ -504,5 +713,17 @@ public class VWMLConflictRing {
 		return g;
 	}
 	
+	private void addDeferredEvent(VWMLRingEvent event) {
+		deferredEventQueue.add(event);
+	}
 	
+	private VWMLRingEvent fetchDeferredEvent() {
+		VWMLRingEvent event = null;
+		if (deferredEventQueue.size() != 0) {
+			event = deferredEventQueue.get(deferredEventQueue.size() - 1);
+			deferredEventQueue.remove(deferredEventQueue.size() - 1);
+		}
+		return event;
+	}
 }
+

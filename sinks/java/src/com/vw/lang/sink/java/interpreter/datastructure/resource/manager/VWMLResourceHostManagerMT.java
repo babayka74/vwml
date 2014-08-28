@@ -82,6 +82,22 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	}
 	
 	@Override
+	public VWMLConflictRing findRingByExecutingTerm(VWMLEntity executingTerm) {
+		VWMLConflictRing ring = null;
+		for(VWMLHostedResources r : getHostedResourcesContainer().values()) {
+			synchronized(r) {
+				ring = r.getRing();
+			}
+			if (ring != null && !ring.isMaster()) {
+				if (ring.findNodeExecutingTerm(executingTerm) != null) {
+					break;
+				}
+			}
+		}
+		return ring;
+	}
+	
+	@Override
 	public void remoteLock(VWMLInterpreterImpl interpreter, VWMLConflictRingNode from, VWMLConflictRingNode node) {
 		VWMLConflictRing ring = null;
 		VWMLConflictRingNode rtNode = interpreter.getRtNode();
@@ -91,7 +107,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 			}
 			if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring) {
 				try {
-					ring.sendLockRequestFor(rtNode, from, node.getId());
+					ring.askLockRequestFor(rtNode, from, node.getId());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -109,7 +125,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 			}
 			if (ring != null && !ring.isMaster() && node.getExecutionGroup().getRing() != ring) {
 				try {
-					ring.sendUnlockRequestFor(rtNode, from, node.getId());
+					ring.askUnlockRequestFor(rtNode, from, node.getId());
 				} catch (Exception e) {
 					// swallow for now
 				}
@@ -130,7 +146,7 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 			}
 			if (repo != null && ring != null && !ring.isMaster() && curRepo != repo && repo.belong(id)) {
 				try {
-					ctx = ring.sendContextFindRequest(id);
+					ctx = ring.askContextFindRequest(id);
 				} catch (Exception e) {
 					// swallow for now
 				}

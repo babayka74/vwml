@@ -133,6 +133,29 @@ public abstract class VWMLResourceHostManager {
 	}
 
 	/**
+	 * The transportedEntity is sent to ring identified by ringDestTerm and handler identified by handlerDestTerm
+	 * The handler is interpreted by destination
+	 * @param ringDestTerm
+	 * @param transportedEntity
+	 * @param handlerDestTerm
+	 * @throws Exception
+	 */
+	public void activateGate(VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
+		VWMLConflictRing ring = findRingByExecutingTerm(ringDestTerm);
+		if (ring == null) {
+			throw new Exception("couldn't find ring by destination term '" + ringDestTerm.getInterpretationHistorySize() + "'");
+		}
+		ring.askActivateGate(ringDestTerm, transportedEntity, handlerDestTerm);
+	}
+	
+	/**
+	 * Lookups for ring which has node which in turn executes given term
+	 * @param executingTerm
+	 * @return
+	 */
+	public abstract VWMLConflictRing findRingByExecutingTerm(VWMLEntity executingTerm);
+	
+	/**
 	 * Builds conflict ring node depending on threading model
 	 * @param id
 	 * @param readableId
@@ -186,7 +209,7 @@ public abstract class VWMLResourceHostManager {
 	 * @throws Exception
 	 */
 	public abstract VWMLContext remoteFindContext(String id) throws Exception;
-	
+
 	/**
 	 * Marks remote node as locked, which has the same id as given node
 	 * @param interpreter
