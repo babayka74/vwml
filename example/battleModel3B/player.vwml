@@ -1,0 +1,153 @@
+module Player {
+	MagicWorld ias (
+		Player ias (
+			AvailableModes ias (wait attack deal);
+			AvailableUnitCommands ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
+			AvailablePlayerCommandsOnModeWait ias (setmode);
+			AvailablePlayerCommandsOnModeDeal ias ();
+			Mode ias wait;
+			Id ias nil;
+			Stop ias false;
+			/* available units */
+			Units ias (
+				LastAttackerDestroyed ias true;
+				LastDefenderDestroyed ias true;
+				Attackers ias ();
+				Defenders ias ();
+			);
+			StopAllUnits ias (
+				CheckForUnitsCompletition ias (
+					Check ias (
+						(CheckForUnits WaitForUnitsCompletitionLock [ (Units.LastAttackerDestroyed~ true) Ident (Units.LastDefenderDestroyed~ true) Ident WaitForUnitsCompletitionLock ])~ Exe
+					);
+					// wait for all units
+					(CheckForUnits false false),(CheckForUnits true false),(CheckForUnits false true) ias Check~ Exe;
+					(CheckForUnits true true) ias doNothing;
+					Check~ Exe
+				);
+				StopUnits ias (
+					StopUnit ias (
+						(Services.(SignalUnit Player Id~)->PlayerId Id~)^
+						(Services.(SignalUnit Player Id~)->To $~)^
+						(Services.(SignalUnit Player Id~)->CommandId kill)^
+						(Services.(SignalUnit Player Id~)->CommandParams ())^
+						Services.(SignalUnit Player Id~)~ Exe
+						((The player Id~ sent kill signal to unit $~) Ew.Output~) Do
+					);
+					($~ StopUnit~) ForEach
+				);
+				(Stop true)^
+				((The player Id~ is going to be stopped) Ew.Output~) Do
+				(CombinedUnits (Units.Attackers~ Units.Defenders~))^
+				((The player Id~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
+				(CombinedUnits~ StopUnits~) ForEach
+				((The player Id~ waits for units completition) Ew.Output~) Do
+				CheckForUnitsCompletition~ Exe
+				((The player Id~ all units finished) Ew.Output~) Do
+			);
+			PropagateCommandToUnit ias (
+				(
+					Characters.(Unit ($$)->(HandleUnitsCommand)->To~)
+					Tx
+					(Id~ ($$)->(HandleUnitsCommand)->CommandId~ ($$)->(HandleUnitsCommand)->To~ ($$)->(HandleUnitsCommand)->CommandParams~)
+				) Gate
+			);
+			UnitsStateSetLocker ias nil;
+			UnitsStateSet ias ();
+			HandleUnitsCommand ias (
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+				(Handle create) ias (
+					((The player Id~ creates unit To~) Ew.Output~) Do
+					(Characters.Unit.Id To~)^
+					(Characters.Unit.PlayerId Id~)^
+					(Characters.Unit Characters.(Unit ($$)->(HandleUnitsCommand)->To~)) Born
+					(($$)->(HandleUnitsCommand)->CommandParams~ Characters.(Unit ($$)->(HandleUnitsCommand)->To~)->PropertySetOperation~) ForEach
+					(CommandDispatcher.Dispatch nil)^
+					PlayerLifeStep~ Exe
+				);
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias (
+					PropagateCommandToUnit~ Exe
+					(CommandDispatcher.Dispatch nil)^
+					PlayerLifeStep~ Exe
+				);
+                                (Handle destroy) ias (
+					((The player Id~ executes other actions) Ew.Output~) Do
+					(CommandDispatcher.Dispatch nil)^
+					PlayerLifeStep~ Exe
+				);
+				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(To (CommandDispatcher.Dispatch~ 1) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Handle CommandId~)~ Exe
+			);
+			HandlePlayerCommandOnModeWait ias (
+				(Handle setmode) ias (
+					(RightMode false) ias doNothing;
+					(RightMode true) ias (Mode CommandParams~)^;
+					(RightMode (AvailableModes~ CommandParams~) In)~ Exe
+				);
+				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 1) Get)^
+				(Handle CommandId~)~ Exe
+				PlayerLifeStep~ Exe
+			);
+			HandlePlayerCommandOnModeDeal ias (
+				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 1) Get)^
+				(Handle CommandId~)~ Exe
+				PlayerLifeStep~ Exe
+			);
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				CommandSet ias nil;
+				Handler ias nil;
+				CheckAndHandleCommand ias (
+					(RightCommand true) ias Handler~ Exe;
+					(RightCommand false) ias PlayerLifeStep~ Exe;
+					((The player Id~ received command Dispatch~ to dispatch) Ew.Output~) Do
+					(RightCommand (CommandSet~ (Dispatch~ 0) Get) In)~ Exe
+				);
+				(mode wait) ias (
+					(CommandSet AvailablePlayerCommandsOnModeWait~)^
+					(Handler HandlePlayerCommandOnModeWait~)^
+				);
+				(mode deal) ias (
+					(CommandSet AvailablePlayerCommandsOnModeDeal~)^
+					(Handler HandlePlayerCommandOnModeDeal~)^
+				);
+				(mode attack) ias (
+					(CommandSet AvailableUnitCommands~)^
+					(Handler HandleUnitsCommand~)^
+				);
+				(mode Mode~)~ Exe
+				CheckAndHandleCommand~ Exe
+			);
+			/* Player's lifestep */
+			PlayerLifeStep ias (
+				(Stop false) ias (
+					(ready false) ias (
+						(CommandDispatcher.Dispatch nil)^
+						PlayerLifeStep~ Exe
+					);
+					(ready true) ias (
+						(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
+						CommandDispatcher~ Exe
+					);
+					(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
+				);
+				(Stop true) ias (
+					StopAllUnits~ Exe
+					((The player Id~ stopped) Ew.Output~) Do
+				);
+				(Stop StopTheWorld~)~ Exe
+			);
+			lifeterm = (
+				((The player Id~ added and active) Ew.Output~) Do
+				(Services.SignalUnit Services.(SignalUnit Player Id~)) Born
+				PlayerLifeStep~ Exe
+			) Exe
+		);
+	);
+}

@@ -142,7 +142,6 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		if (getConfig().isStepByStepInterpretation()) {
 			VWMLInterpreterDeferredTask task = getDeferredTask();
 			if (task != null) {
-				setDeferredTask(null);
 				task.execute();
 			}
 		}

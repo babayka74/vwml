@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLObject;
@@ -68,8 +69,8 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLInterpreterImpl masterInterpreter = null;
 	// forced context is used on child interpreters, which are activated during some types of operations like forEach and ':'
 	private VWMLContext forcedContext = null;
-	// delayed task can be executed by interpreter on next iteration step
-	private VWMLInterpreterDeferredTask delayedTask = null;
+	// delayed tasks can be executed by interpreter on next iteration step
+	private List<VWMLInterpreterDeferredTask> delayedTasks = new ArrayList<VWMLInterpreterDeferredTask>();
 	// in case 'true' interpreter's data should be normalized.
 	// Parallel interpreter itself normalizes data and passes them to underlied reactive interpreters
 	private boolean normalization = true;
@@ -278,11 +279,16 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	}
 
 	public VWMLInterpreterDeferredTask getDeferredTask() {
-		return delayedTask;
+		VWMLInterpreterDeferredTask task = null;
+		if (delayedTasks.size() != 0) {
+			task = delayedTasks.get(0);
+			delayedTasks.remove(task);
+		}
+		return task;
 	}
 
 	public void setDeferredTask(VWMLInterpreterDeferredTask delayedTask) {
-		this.delayedTask = delayedTask;
+		delayedTasks.add(delayedTask);
 	}
 
 	public void pushInterpreterToChildStack(VWMLInterpreterImpl interpreter) {
