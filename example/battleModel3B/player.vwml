@@ -1,24 +1,41 @@
+include "playerattack.vwml"
+include "playerdeal.vwml"
+
 module Player {
 	MagicWorld ias (
 		Player ias (
 			AvailableModes ias (wait attack deal);
-			AvailableUnitCommands ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
-			AvailablePlayerCommandsOnModeWait ias (setmode);
-			AvailablePlayerCommandsOnModeDeal ias ();
+			AvailablePlayerCommandsOnModeAttack ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
+			AvailablePlayerCommandsOnModeWait   ias (setmode);
+			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal);
 			Mode ias wait;
 			Id ias nil;
 			Stop ias false;
-			/* available units */
-			Units ias (
-				LastAttackerDestroyed ias true;
-				LastDefenderDestroyed ias true;
-				Attackers ias ();
-				Defenders ias ();
+			Resources ias (
+				/* available units */
+				Units ias (
+					LastAttackerDestroyed ias true;
+					LastDefenderDestroyed ias true;
+					Attackers ias ();
+					Defenders ias ();
+					/* shared entity which stores units' current state (position) */
+					UnitsStateSet ias ();
+					UnitsStateSetLocker ias nil;
+				);
+				/* controlled/own/visible quartals */
+				Quartals ias (
+					/* player is owner, at least, of one quartal */
+					Own ias nil;
+					/* set of quartals controlled by player */
+					Controlled ias ();
+					/* player knows about these quartals but doesn't have control upon them */
+					Visible ias ();
+				);
 			);
 			StopAllUnits ias (
 				CheckForUnitsCompletition ias (
 					Check ias (
-						(CheckForUnits WaitForUnitsCompletitionLock [ (Units.LastAttackerDestroyed~ true) Ident (Units.LastDefenderDestroyed~ true) Ident WaitForUnitsCompletitionLock ])~ Exe
+						(CheckForUnits WaitForUnitsCompletitionLock [ (Resources.Units.LastAttackerDestroyed~ true) Ident (Resources.Units.LastDefenderDestroyed~ true) Ident WaitForUnitsCompletitionLock ])~ Exe
 					);
 					// wait for all units
 					(CheckForUnits false false),(CheckForUnits true false),(CheckForUnits false true) ias Check~ Exe;
@@ -38,65 +55,38 @@ module Player {
 				);
 				(Stop true)^
 				((The player Id~ is going to be stopped) Ew.Output~) Do
-				(CombinedUnits (Units.Attackers~ Units.Defenders~))^
+				(CombinedUnits (Resources.Units.Attackers~ Resources.Units.Defenders~))^
 				((The player Id~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
 				(CombinedUnits~ StopUnits~) ForEach
 				((The player Id~ waits for units completition) Ew.Output~) Do
 				CheckForUnitsCompletition~ Exe
 				((The player Id~ all units finished) Ew.Output~) Do
 			);
-			PropagateCommandToUnit ias (
-				(
-					Characters.(Unit ($$)->(HandleUnitsCommand)->To~)
-					Tx
-					(Id~ ($$)->(HandleUnitsCommand)->CommandId~ ($$)->(HandleUnitsCommand)->To~ ($$)->(HandleUnitsCommand)->CommandParams~)
-				) Gate
-			);
-			UnitsStateSetLocker ias nil;
-			UnitsStateSet ias ();
-			HandleUnitsCommand ias (
-				CommandId ias nil;
-				To ias nil;
-				CommandParams ias nil;
-				(Handle create) ias (
-					((The player Id~ creates unit To~) Ew.Output~) Do
-					(Characters.Unit.Id To~)^
-					(Characters.Unit.PlayerId Id~)^
-					(Characters.Unit Characters.(Unit ($$)->(HandleUnitsCommand)->To~)) Born
-					(($$)->(HandleUnitsCommand)->CommandParams~ Characters.(Unit ($$)->(HandleUnitsCommand)->To~)->PropertySetOperation~) ForEach
-					(CommandDispatcher.Dispatch nil)^
-					PlayerLifeStep~ Exe
-				);
-				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias (
-					PropagateCommandToUnit~ Exe
-					(CommandDispatcher.Dispatch nil)^
-					PlayerLifeStep~ Exe
-				);
-                                (Handle destroy) ias (
-					((The player Id~ executes other actions) Ew.Output~) Do
-					(CommandDispatcher.Dispatch nil)^
-					PlayerLifeStep~ Exe
-				);
-				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
-				(To (CommandDispatcher.Dispatch~ 1) Get)^
-				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
-				(Handle CommandId~)~ Exe
+			HandlePlayerCommandOnModeAttack ias (
+				(Attack.CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(Attack.To (CommandDispatcher.Dispatch~ 1) Get)^
+				(Attack.CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				Attack~ Exe
+				PlayerLifeStep~ Exe
 			);
 			HandlePlayerCommandOnModeWait ias (
 				(Handle setmode) ias (
 					(RightMode false) ias doNothing;
-					(RightMode true) ias (Mode CommandParams~)^;
+					(RightMode true) ias (
+						(Mode CommandParams~)^
+						((The player Id~ mode is Mode~) Ew.Output~) Do
+					);
 					(RightMode (AvailableModes~ CommandParams~) In)~ Exe
 				);
 				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
-				(CommandParams (CommandDispatcher.Dispatch~ 1) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
 				(Handle CommandId~)~ Exe
 				PlayerLifeStep~ Exe
 			);
 			HandlePlayerCommandOnModeDeal ias (
-				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
-				(CommandParams (CommandDispatcher.Dispatch~ 1) Get)^
-				(Handle CommandId~)~ Exe
+				(Deal.CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(Deal.CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				Deal~ Exe
 				PlayerLifeStep~ Exe
 			);
 			CommandDispatcher ias (
@@ -118,8 +108,8 @@ module Player {
 					(Handler HandlePlayerCommandOnModeDeal~)^
 				);
 				(mode attack) ias (
-					(CommandSet AvailableUnitCommands~)^
-					(Handler HandleUnitsCommand~)^
+					(CommandSet AvailablePlayerCommandsOnModeAttack~)^
+					(Handler HandlePlayerCommandOnModeAttack~)^
 				);
 				(mode Mode~)~ Exe
 				CheckAndHandleCommand~ Exe
@@ -145,6 +135,10 @@ module Player {
 			);
 			lifeterm = (
 				((The player Id~ added and active) Ew.Output~) Do
+				(Resources.Quartals.Controlled ())^
+				(Resources.Quartals.Visible ())^
+				(Resources.Units.Attackers ())^
+				(Resources.Units.Defenders ())^
 				(Services.SignalUnit Services.(SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe
 			) Exe

@@ -67,7 +67,7 @@ module Defender {
 								);
 								(Position $~)^
 								LockAttackers [
-									((Player PlayerId~)->(Units)->Attackers~ CheckFireZone~) ForEach
+									((Player PlayerId~)->(Resources)->(Units)->Attackers~ CheckFireZone~) ForEach
 								LockAttackers ]
 							);
 							(OnFire ())^

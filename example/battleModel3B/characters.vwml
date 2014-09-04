@@ -36,17 +36,17 @@ module Characters {
 				/* to be attacker */
 				UnitAsAttacker ias (
 					Create ias (
-						((Player PlayerId~)->(Units)->LastAttackerDestroyed false)^
+						((Player PlayerId~)->(Resources)->(Units)->LastAttackerDestroyed false)^
 						(Attacker.Id Id~)^
 						(Attacker.PlayerId PlayerId~)^
 						(Attacker (Attacker Id~)) Born
 						(ConcreteUnit Characters.(Attacker Id~))^
 						LockAttackers [
-							((Player PlayerId~)->(Units)->Attackers  
-								((Player PlayerId~)->(Units)->Attackers~ (Id~)) Join
+							((Player PlayerId~)->(Resources)->(Units)->Attackers  
+								((Player PlayerId~)->(Resources)->(Units)->Attackers~ (Id~)) Join
 							)^
 						LockAttackers ]
-						((The attacker Id~ created and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
+						((The attacker Id~ created and available attackers (Player PlayerId~)->(Resources)->(Units)->Attackers~) Ew.Output~) Do
 					);
 					Destroy ias (
 						(NoRefreshPath true false),(NoRefreshPath false true),(NoRefreshPath true true) ias doNothing;
@@ -56,39 +56,39 @@ module Characters {
 							PathFinder.UpdateUnitsSharedPath~ Exe
 						);
 						LockAttackers [
-							((Player PlayerId~)->(Units)->Attackers  
-								((Player PlayerId~)->(Units)->Attackers~ (Id~)) Substruct
+							((Player PlayerId~)->(Resources)->(Units)->Attackers  
+								((Player PlayerId~)->(Resources)->(Units)->Attackers~ (Id~)) Substruct
 							)^
-							((The attacker Id~ destroyed and available attackers (Player PlayerId~)->(Units)->Attackers~) Ew.Output~) Do
-							(LastAttackerDestroyed ((Player PlayerId~)->(Units)->Attackers~ ()) Ident)^
+							((The attacker Id~ destroyed and available attackers (Player PlayerId~)->(Resources)->(Units)->Attackers~) Ew.Output~) Do
+							(LastAttackerDestroyed ((Player PlayerId~)->(Resources)->(Units)->Attackers~ ()) Ident)^
 							((The lst attacker LastAttackerDestroyed~) Ew.Output~) Do
 							(NoRefreshPath LastAttackerDestroyed~ (Player PlayerId~)->Stop~)~ Exe
-							((Player PlayerId~)->(Units)->LastAttackerDestroyed LastAttackerDestroyed~)^
+							((Player PlayerId~)->(Resources)->(Units)->LastAttackerDestroyed LastAttackerDestroyed~)^
 						LockAttackers ]
 					);
 				);
 				/* to be defender */
 				UnitAsDefender ias (
 					Create ias (
-						((Player PlayerId~)->(Units)->LastDefenderDestroyed false)^
+						((Player PlayerId~)->(Resources)->(Units)->LastDefenderDestroyed false)^
 						(Defender.Id Id~)^
 						(Defender.PlayerId PlayerId~)^
 						(Defender (Defender Id~)) Born
 						(ConcreteUnit Characters.(Defender Id~))^
 						LockDefenders [
-							( (Player PlayerId~)->(Units)->Defenders
-								((Player PlayerId~)->(Units)->Defenders~ (Id~)) Join
+							( (Player PlayerId~)->(Resources)->(Units)->Defenders
+								((Player PlayerId~)->(Resources)->(Units)->Defenders~ (Id~)) Join
 							)^
 						LockDefenders ]
-						((The defender Id~ created and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
+						((The defender Id~ created and available defenders (Player PlayerId~)->(Resources)->(Units)->Defenders~) Ew.Output~) Do
 					);
 					Destroy ias (
 						LockDefenders [
-							( (Player PlayerId~)->(Units)->Defenders
-								( (Player PlayerId~)->(Units)->Defenders~ (Id~) ) Substruct
+							( (Player PlayerId~)->(Resources)->(Units)->Defenders
+								( (Player PlayerId~)->(Resources)->(Units)->Defenders~ (Id~) ) Substruct
 							)^
-							((The defender Id~ destroyed and available defenders (Player PlayerId~)->(Units)->Defenders~) Ew.Output~) Do
-							((Player PlayerId~)->(Units)->LastDefenderDestroyed ((Player PlayerId~)->(Units)->Defenders~ ()) Ident)^
+							((The defender Id~ destroyed and available defenders (Player PlayerId~)->(Resources)->(Units)->Defenders~) Ew.Output~) Do
+							((Player PlayerId~)->(Units)->LastDefenderDestroyed ((Player PlayerId~)->(Resources)->(Units)->Defenders~ ()) Ident)^
 						LockDefenders ]
 					);
 				);

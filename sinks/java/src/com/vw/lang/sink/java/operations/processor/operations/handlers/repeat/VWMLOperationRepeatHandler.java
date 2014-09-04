@@ -1,13 +1,14 @@
-package com.vw.lang.sink.java.operations.processor.operations.handlers.foreach;
+package com.vw.lang.sink.java.operations.processor.operations.handlers.repeat;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLObjectBuilder;
+import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
-import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
@@ -15,11 +16,11 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 
 /**
- * Handler of 'OPFOREACH' operation
+ * Handler of 'OPREPEAT' operation
  * @author ogibayev
  *
  */
-public class VWMLOperationForEachHandler extends VWMLOperationHandler {
+public class VWMLOperationRepeatHandler extends VWMLOperationHandler {
 
 	private static final int s_numOfOperationArgs = 2;
 	
@@ -31,7 +32,7 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() != 0) {
 			if (entities.size() == 1) {
-				handleForEachOnComplexEntity(interpreter, entities.get(0), context);
+				handleRepeatOnComplexEntity(interpreter, entities.get(0), context);
 			}
 			else {
 				VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack( entities,
@@ -41,36 +42,36 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 																									   context.getEntityInterpretationHistorySize(),
 																									   context.getLinkOperationVisitor(),
 																									   VWMLOperationUtils.s_dontAddIfUnknown);
-				handleForEachOnComplexEntity(interpreter, entity, context);
+				handleRepeatOnComplexEntity(interpreter, entity, context);
 			}
 		}
 		inspector.clear();
 		entities.clear();
 	}
-
-	protected void handleForEachOnComplexEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity, VWMLContext context) throws Exception {
+	
+	protected void handleRepeatOnComplexEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity, VWMLContext context) throws Exception {
 		if (!entity.isMarkedAsComplexEntity()) {
 			return;
 		}
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_numOfOperationArgs) {
-			throw new Exception("Operation 'ForEach' requires 2 arguments (arguments and term)");
+			throw new Exception("Operation 'Repeat' requires 2 arguments (arguments and term)");
 		}
-		VWMLEntity args = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(0);
+		VWMLEntity counter = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(0);
 		VWMLEntity term = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(1);
-		if (args.isMarkedAsComplexEntity()) {
-			VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)args).getLink().acquireLinkedObjectsIterator();
-			if (it != null) {
-				for(; it.isCorrect(); it.next()) {
-					VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)args).getLink().getConcreteLinkedEntity(it.getIt());
-					if (!forEach(interpreter, e, term)) {
-						break;
-					}
+		if (!counter.isMarkedAsComplexEntity()) {
+			int c = 0;
+			c = Integer.valueOf((String)counter.getId()).intValue();
+			for(int i = 0; i < c; i++) {
+				String id = String.valueOf(i);
+				VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, id, id, context, 0, null);
+				if (!forEach(interpreter, e, term)) {
+					break;
 				}
 			}
 		}
 	}
 	
 	protected boolean forEach(VWMLInterpreterImpl interpreter, VWMLEntity component, VWMLEntity term) throws Exception {
-		return VWMLOperationUtils.activateTerm(interpreter, component, false, term, "forEach_", "ForEach", null);
+		return VWMLOperationUtils.activateTerm(interpreter, component, false, term, "Repeat_", "Repeat", null);
 	}
 }

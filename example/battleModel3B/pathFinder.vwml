@@ -38,8 +38,8 @@ module PathFinder {
 					((MMMMM) Ew.Output~) Do
 					/* removes from shared path */
 					LockSharedStates [
-						((Player PlayerId~)->UnitsStateSet ((Player PlayerId~)->UnitsStateSet~ TRequestedSteps~) Substruct)^
-						((Movement to attacker $~ is TRequestedSteps~ and new shared movement is (Player PlayerId~)->UnitsStateSet~) Ew.Output~) Do
+						((Player PlayerId~)->(Resources)->(Units)->UnitsStateSet ((Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~ TRequestedSteps~) Substruct)^
+						((Movement to attacker $~ is TRequestedSteps~ and new shared movement is (Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~) Ew.Output~) Do
 					LockSharedStates ]
 				);
 				UpdatePath ias (
@@ -47,7 +47,7 @@ module PathFinder {
 					(Ignore false) ias RecalculatePathToAttacker~ Exe;
 					(Ignore ($~ AttackedAttacker~) Ident)~ Exe
 				);
-				((Player PlayerId~)->(Units)->Attackers~ UpdatePath~) ForEach
+				((Player PlayerId~)->(Resources)->(Units)->Attackers~ UpdatePath~) ForEach
 			);
 		);
 	);

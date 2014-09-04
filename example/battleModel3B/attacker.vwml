@@ -78,7 +78,7 @@ module Attacker {
 							);
 							(OnFire ())^
 							LockDefenders [
-								((Player PlayerId~)->(Units)->Defenders~ CheckFireZone~) ForEach
+								((Player PlayerId~)->(Resources)->(Units)->Defenders~ CheckFireZone~) ForEach
 							LockDefenders ]
 							SelectDefenderAndAttack~ Exe
 						);
@@ -143,11 +143,11 @@ module Attacker {
 							(Movement.NoSteps false)^
 							(Movement.PrevState Movement.State~)^
 							(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
-							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
+							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
 							((Movement.Goals
 								Ew.TargetsToBeDestroyed
 								Movement.State
-								(Player PlayerId~)->UnitsStateSet   /* units' shared path */
+								(Player PlayerId~)->(Resources)->(Units)->UnitsStateSet   /* units' shared path */
 								Movement.SeqStates
 								Movement.Result
 								Movement.TargetDestroyed

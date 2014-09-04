@@ -1,0 +1,88 @@
+module Quartal {
+	MagicWorld ias (
+		Quartal ias (
+			/* each quartal has own uniq id */
+			Id ias nil;
+			/* player who owns quartal */
+			Owner ias nil;
+			/* false means that quartal owned but not linked to specific player */
+			Linked ias false;
+			/* 'true' in case if quartal is not active */
+			StopQuartal ias false;
+			/* one sherif is associated with one quartal; the banker is aux. entity */
+			Sherif ias (
+				Intention ias nil;
+				IntentionParams ias nil;
+				DesiredBribe ias nil;
+				Banker ias (
+				);
+				Behavior ias (
+					State ias cnp;
+					(open cnp) ias (
+					);
+					(open cp) ias (
+					);
+					(open onp),(open op) ias (
+						((The sherif of quartal Id~ has already opened information about quartal) Ew.Output~) Do
+					);
+					(close onp) ias (
+					);
+					(close op) ias (
+					);
+					(close cnp),(close cp) ias (
+						((The sherif of quartal Id~ has already closed information about quartal) Ew.Output~) Do;
+					);
+					(pay onp) ias (
+					);
+					(pay cnp),(pay op),(pay cp) ias (
+						((The sherif of quartal Id~ has already got bribe or qaurtal is closed) Ew.Output~) Do;
+					);
+					(requestdone op) ias (
+					);
+					(requestdone cp) ias (
+					);
+					(requestdone cnp),(requestdone onp) ias (
+						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do;
+					);
+					(notrequestdone op) ias (
+					);
+					(notrequestdone cp) ias (
+					);
+					(notrequestdone cnp),(notrequestdone onp) ias (
+						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do;
+					);
+					(Intention~ State~)~ Exe
+				);
+			);
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				// (Id~ Intention~ IntentionParams~)
+				(Sherif.Intention (Dispatch~ 1) Get)^
+				(Sherif.IntentionParams (Dispatch~ 2) Get)^
+				Sherif.Behavior~ Exe
+			);
+			QuartalLifeStep ias (
+					(Stop false) ias (
+						(ready false) ias (
+							(CommandDispatcher.Dispatch nil)^
+						);
+						(ready true) ias (
+							(CommandDispatcher.Dispatch ((Quartal Id~) Rx) Gate)^
+							((The quartal Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+							CommandDispatcher~ Exe
+						);
+						(ready (((Quartal Id~) Ready) Gate true) Ident)~ Exe
+						QuartalLifeStep~ Exe
+					);
+					(Stop true) ias (
+						((The Quartal Id~ stopped) Ew.Output~) Do
+					);
+					(Stop StopQuartal~)~ Exe
+			);
+			lifeterm = (
+				((The quartal Id~ added and active for owner Owner~) Ew.Output~) Do
+				QuartalLifeStep~ Exe
+			) Exe
+		);
+	);
+}

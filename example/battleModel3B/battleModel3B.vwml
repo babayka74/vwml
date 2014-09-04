@@ -26,11 +26,11 @@ options {
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
 			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
 		)
-		"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker" conflicts (
-			"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker"
+		"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker" conflicts (
+			"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.PathFinder.UpdateUnitsSharedPath.RecalculatePathToAttacker.LockSharedStates" conflicts (
-			"[MagicWorld.Characters.Unit].MagicWorld.Player.UnitsStateSetLocker"
+			"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker"
 		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.Observe.LockAttackers" conflicts (
 			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
@@ -46,6 +46,7 @@ include "../algorithms/DpfAPEx/DpfAPEx.vwml"
 include "ew.vwml"
 include "services.vwml"
 include "pathFinder.vwml"
+include "quartal.vwml"
 include "characters.vwml"
 include "player.vwml"
 include "attacker.vwml"
@@ -71,13 +72,27 @@ module battleModel3B {
 				((Command CommandId~ propagated to player Id~) Ew.Output~) Do
 			);
 			(ManagerCommand true) ias (
+				// cretes player
 				(Command playeradd) ias (
 					(Player.Id UnitId~)^
 					(Player.Stop false)^
-					(Player.Units.Attackers ())^
-					(Player.Units.Defenders ())^
 					(Player (Player UnitId~)) Born
 				);
+				// creates initial set of quartals for player
+				(Command createquartals) ias (
+					QuartalId ias 0;
+					ActivateQuartal ias (
+						(Quartal.Id $~)^
+						(Quartal.Owner UnitId~)^
+						(Quartal.Linked false)^
+						(Quartal.Sherif.DesiredBribe Ew.QuartalsConf.SherifBribeRanges~ Random)^
+						(Quartal (Quartal $~)) Born
+						// links quartal to given player
+						((Player UnitId~) Tx (linkquartal UnitId~ ($~))) Gate
+					);
+					(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
+				);
+				// stops game model
 				(Command exit) ias (
 					(StopTheWorld true)^
 				);
@@ -142,6 +157,13 @@ module battleModel3B {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 playeradd 0)
+				(player 0 setmode 0 deal)
+				(manager 0 createquartals 0 ())
+			);
+		);
+
+/*
+   ===== ATTACK =====
 				(player 0 create 0 ( (type attacker)
 						     (attack (yes yes yes))
 						     (defence (no no yes))
@@ -164,8 +186,6 @@ module battleModel3B {
 						    ))
 				(player 0 startpos 2 (15 29))
 				(player 0 go 2)
-
-			);
-		);
+*/
 	);
 }

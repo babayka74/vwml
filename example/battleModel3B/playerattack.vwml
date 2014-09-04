@@ -1,0 +1,38 @@
+module PlayerAttack {
+	MagicWorld ias (
+		Player ias (
+			Attack ias (
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+				PropagateCommandToUnit ias (
+					(
+						Characters.(Unit ($$)->(Attack)->To~)
+						Tx
+						(Id~ ($$)->(Attack)->CommandId~ ($$)->(Attack)->To~ ($$)->(Attack)->CommandParams~)
+					) Gate
+				);
+				(Handle create) ias (
+					((The player Id~ creates unit To~) Ew.Output~) Do
+					(Characters.Unit.Id To~)^
+					(Characters.Unit.PlayerId Id~)^
+					(Characters.Unit Characters.(Unit ($$)->(Attack)->To~)) Born
+					(($$)->(Attack)->CommandParams~ Characters.(Unit ($$)->(Attack)->To~)->PropertySetOperation~) ForEach
+					(CommandDispatcher.Dispatch nil)^
+				);
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias (
+					PropagateCommandToUnit~ Exe
+					(CommandDispatcher.Dispatch nil)^
+				);
+                                (Handle destroy) ias (
+					((The player Id~ executes other actions) Ew.Output~) Do
+					(CommandDispatcher.Dispatch nil)^
+				);
+				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(To (CommandDispatcher.Dispatch~ 1) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

@@ -46,7 +46,12 @@ module ExternalWorld {
 			/* builds: battlefield, atackers' firezone, defenders' firezone */
 			(Initial~ MazeBuilder~) ForEach
 		);
-
+		QuartalsConf ias (
+			/* initial quartals (closed) per player */
+			QuartalsPerPlayer ias 2;
+			/* selected per quartal in random way */
+			SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
+		);
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;

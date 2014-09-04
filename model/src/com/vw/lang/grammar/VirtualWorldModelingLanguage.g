@@ -45,6 +45,7 @@ tokens {
     OPFIND='Find';
     OPGATE='Gate';
     OPRECALL='Recall';
+    OPREPEAT='Repeat';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1167,6 +1168,7 @@ opclist
     | OPFIND
     | OPGATE
     | OPRECALL
+    | OPREPEAT
     ;
 
 termLanguages
