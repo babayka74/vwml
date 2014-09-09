@@ -23,8 +23,8 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
  */
 public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 
-	private static final int s_numOfArgs = 2;
-	private static final int s_numOfExArgs = 3;
+	private static final int s_numOfArgs = 3;
+	private static final int s_numOfExArgs = 4;
 	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
@@ -61,25 +61,42 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 		int time = 0;
 		VWMLEntity runOnTerminatedCompletition = null;
 		VWMLEntity timeEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
-		VWMLEntity runOnRegularCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
+		VWMLEntity recallIdEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
+		VWMLEntity runOnRegularCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(2);
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfExArgs) {
-			runOnTerminatedCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(2);
+			runOnTerminatedCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(3);
 		}
 		try {
 			time = Integer.parseInt((String)timeEntity.getId());
 		}
 		finally {
 		}
-		recallImpl(context, interpreter, time, runOnRegularCompletition, runOnTerminatedCompletition);
+		recallImpl(context, interpreter, time, recallIdEntity, runOnRegularCompletition, runOnTerminatedCompletition);
 	}
 	
-	protected void recallImpl(VWMLContext activeContext, VWMLInterpreterImpl interpreter, int time, VWMLEntity runOnRegularCompletition, VWMLEntity runOnTerminatedCompletition) throws Exception {
+	protected void recallImpl(VWMLContext activeContext, VWMLInterpreterImpl interpreter, int time, VWMLEntity recallEntityId, VWMLEntity runOnRegularCompletition, VWMLEntity runOnTerminatedCompletition) throws Exception {
 		if (time != 0) {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
+			if (interpreter.isPushed()) {
+				if (interpreter.getRtNode() == null) {
+					throw new Exception("Pushed interpreter on 'Recall' doesn't have associated RT node; context '" + activeContext.getContext() + "'");
+					
+				}
+				interpreter = interpreter.getRtNode().firstPushedInterpreter();
+				if (interpreter == null) {
+					throw new Exception("Didn't find first pushed interpreter on 'Recall'; context '" + activeContext.getContext() + "'");
+				}
+			}
 			VWMLOperationRecallTimerCallback callback = new VWMLOperationRecallTimerCallback(runOnRegularCompletition, runOnTerminatedCompletition);
 			if (interpreter.getTimerManager() != null) {
-				interpreter.getTimerManager().addTimer(e.getId(), time, Long.valueOf((String)e.getId()), interpreter, callback);
+				recallEntityId.setReadableId(null);
+				if (time != -1) {
+					interpreter.getTimerManager().addTimer(recallEntityId.buildReadableId(), time, Long.valueOf((String)e.getId()), interpreter, callback);
+				}
+				else {
+					interpreter.getTimerManager().removeTimer(recallEntityId.buildReadableId());
+				}
 			}
 		}
 	}

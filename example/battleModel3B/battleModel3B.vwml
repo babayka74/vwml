@@ -82,10 +82,9 @@ module battleModel3B {
 				(Command createquartals) ias (
 					QuartalId ias 0;
 					ActivateQuartal ias (
+						// quartal's configuration
 						(Quartal.Id $~)^
-						(Quartal.Owner UnitId~)^
-						(Quartal.Linked false)^
-						(Quartal.Sherif.DesiredBribe Ew.QuartalsConf.SherifBribeRanges~ Random)^
+						(Quartal.Owner Id~)^
 						(Quartal (Quartal $~)) Born
 						// links quartal to given player
 						((Player UnitId~) Tx (linkquartal UnitId~ ($~))) Gate
@@ -158,7 +157,11 @@ module battleModel3B {
 			Injection ias (
 				(manager 0 playeradd 0)
 				(player 0 setmode 0 deal)
+				// create quartals for player 1
 				(manager 0 createquartals 0 ())
+				// publish intetion for player 0 and quartal 1
+				(player 0 setintention 0 (1 open (100)))
+				(player 0 setintention 0 (1 pay (950)))
 			);
 		);
 

@@ -9,47 +9,187 @@ module Quartal {
 			Linked ias false;
 			/* 'true' in case if quartal is not active */
 			StopQuartal ias false;
+			/* last sender */
+			Source ias nil;
+			/* quartal's resource type (configured) */
+			Resource ias (
+				Type ias nil;
+				/* contribution to player's account */
+				Quantum ias 0;
+				/* period  */
+				Period ias 100; // ms
+				/* number */
+				Quantums ias 0;
+				/* transition cnp -> op; permitted time */
+				OpenTime ias 1000; // ms
+				/* desired price set by sherif to open information about quartal */
+				DesiredOpenInfoPrice ias 100;
+				/* resource initialization point */
+				Init ias (
+					(ResourceConf Ew.QuartalsConf.Resources~ Random)^
+					(Sherif.DesiredBribe Ew.QuartalsConf.SherifBribeRanges~ Random)^
+					(Type (ResourceConf~ 0) Get)^
+					(Quantum (ResourceConf~ 1) Get)^
+					(Period (ResourceConf~ 2) Get)^
+					(Quantums (ResourceConf~ 3) Get)^
+					(OpenTime (ResourceConf~ 4) Get)^
+					(DesiredOpenInfoPrice (ResourceConf~ 5) Get)^
+				);
+			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
 			Sherif ias (
 				Intention ias nil;
 				IntentionParams ias nil;
 				DesiredBribe ias nil;
+				ProposedBribe ias nil;
 				Banker ias (
+					OnSuccessPayment ias nil;
+					OnFailedPayment ias nil;
+					Value ias 0;
+					Account ias 0;
+					ApplyPayment ias (
+						(Account ((Account~ Value~) Ew.Sum~) Do)^
+						((The sherif of quartal Id~ has following sum Banker.Account~ on account) Ew.Output~) Do
+					);
+					AskPaymentForQuartalInfo ias (
+						((Player Owner~) Tx (payquartalinfo Owner~ (Id~ Resource.Type~ Value~))) Gate
+					);
+					AskPaymentForBribe ias (
+						((Player Owner~) Tx (paybribe Owner~ (Id~ Resource.Type~ Value~))) Gate
+					);
+					Pay ias (
+						(NoQuantums true) ias (
+							((Quartal Id~) Tx (Owner~ requestdone ())) Gate
+							((The banker of sherif of quartal Id~ payed to player Owner~ all requested resources) Ew.Output~) Do
+						);
+						(NoQuantums false) ias (
+							(Resource.Quantums ((Resource.Quantums~) Ew.DecValue~) Do)^
+							((The banker of sherif of quartal Id~ pays to player Owner~ resource (Id~ Resource.Type~ Resource.Quantum~) and left Resource.Quantums~ payments) Ew.Output~) Do
+							/* sending contribution message to player */
+							((Player Owner~) Tx (contribution Owner~ (Id~ Resource.Type~ Resource.Quantum~))) Gate
+							/* re-activates contribution */
+							(Resource.Period~ (Pay Id~) Pay~) Recall
+						);
+						(NoQuantums (Resource.Quantums~ 0) Ident)~ Exe
+					);
+				);
+				OpenInfo ias (
+					((The sherif of quartal Id~ opens information about quartal
+						(Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ )) Ew.Output~) Do
 				);
 				Behavior ias (
 					State ias cnp;
+					// called when (Cnp Id~) timer expired
+					OnCnpTimer ias ((Quartal Id~) Tx (Owner~ close ())) Gate;
+					SuccessPaymentForOpenInfo ias (
+						(State onp)^
+						Banker.ApplyPayment~ Exe
+						OpenInfo~ Exe
+						// starts timer; when timer is finished quartal is moved to state cnp
+						(Resource.OpenTime~ (Cnp Id~) OnCnpTimer~) Recall
+						((The sherif of quartal Id~ provided information to player Owner~ and cnp timer activated for Resource.OpenTime~ ms) Ew.Output~) Do
+					);
+					FailedPaymentForOpenInfo ias (
+						(State cnp)^
+						((The sherif of quartal Id~ did not provide information to player Owner~ since payment was failed) Ew.Output~) Do
+					);
+					SuccessPaymentForBribeRequest ias (
+						// stop timer which could be activated on cnp state
+						((The sherif of quartal Id~ took bribe ProposedBribe~) Ew.Output~) Do
+						Banker.ApplyPayment~ Exe
+						(State op)^
+						// starts timer of contribution period (player's bank account will being updated during this period)
+						(Resource.Period~ (Pay Id~) Banker.Pay~) Recall
+					);
+					FailedPaymentForBribeRequest ias (
+						(State onp)^
+						((The sherif of quartal Id~ did not get bribe payment from player Owner~ since payment was failed) Ew.Output~) Do
+					);
+					/* payment */
+					(paymentresult wtp) ias (
+						(paymentresult confirmed) ias Banker.OnSuccessPayment~ Exe;
+						(paymentresult declined) ias Banker.OnFailedPayment~ Exe;
+						(paymentresult (Sherif.IntentionParams~ 0) Get)~ Exe
+					);
+					(open wtp),(close wtp),(pay wtp),(requestdone wtp),(notrequestdone wtp) ias (
+						// remember messages which were received during payment operation
+				        	((Quartal Id~) Tx (Source~ Sherif.Intention~ Sherif.IntentionParams~)) Gate
+					);
+					// provides information about how much should be payed in order to get information about quartal
 					(open cnp) ias (
+						(OpenQInfo 1) ias (
+							(Banker.Value ProposedPrice~)^
+							(Banker.OnSuccessPayment SuccessPaymentForOpenInfo~)^
+							(Banker.OnFailedPayment FailedPaymentForOpenInfo~)^
+							Banker.AskPaymentForQuartalInfo~ Exe
+							(State wtp)^
+						);
+						(OpenQInfo -1),(OpenQInfo 0) ias (
+							((The sherif of quartal Id~ did not allow to open info ProposedPrice~ desired price is Resource.DesiredOpenInfoPrice~) Ew.Output~) Do
+						);
+						(ProposedPrice (Sherif.IntentionParams~ 0) Get)^
+						// sherif's bribe
+						(OpenQInfo ((ProposedPrice~ Resource.DesiredOpenInfoPrice~) Ew.Compare~) Do)~ Exe
 					);
 					(open cp) ias (
+						(State op)^
+						((The sherif of quartal Id~ provides information to player Owner~ and no sherif account updated) Ew.Output~) Do
 					);
 					(open onp),(open op) ias (
 						((The sherif of quartal Id~ has already opened information about quartal) Ew.Output~) Do
+						OpenInfo~ Exe
 					);
 					(close onp) ias (
+						Resource.Init~ Exe
+						(State cnp)^
+						((The sherif of quartal Id~ closed information no bribe got) Ew.Output~) Do
 					);
+					// 
 					(close op) ias (
+						(State cp)^
+						((The sherif of quartal Id~ closed information bribe was got) Ew.Output~) Do
 					);
 					(close cnp),(close cp) ias (
-						((The sherif of quartal Id~ has already closed information about quartal) Ew.Output~) Do;
+						((The sherif of quartal Id~ has already closed information about quartal) Ew.Output~) Do
 					);
+					// player payes bribe and started getting resources and back payements from quartal
 					(pay onp) ias (
+						(TakeBribe 1) ias (
+							(Banker.Value ProposedBribe~)^
+							(Banker.OnSuccessPayment SuccessPaymentForBribeRequest~)^
+							(Banker.OnFailedPayment FailedPaymentForBribeRequest~)^
+							Banker.AskPaymentForBribe~ Exe
+							(State wtp)^
+						);
+						(TakeBribe -1),(TakeBribe 0) ias (
+							((The sherif of quartal Id~ did not take bribe ProposedBribe~ desired bribe is DesiredBribe~) Ew.Output~) Do
+						);
+						(ProposedBribe (Sherif.IntentionParams~ 0) Get)^
+						// sherif's bribe
+						(TakeBribe ((ProposedBribe~ DesiredBribe~) Ew.Compare~) Do)~ Exe
 					);
 					(pay cnp),(pay op),(pay cp) ias (
-						((The sherif of quartal Id~ has already got bribe or qaurtal is closed) Ew.Output~) Do;
+						((The sherif of quartal Id~ has already got bribe or qaurtal is closed and payment is impossible) Ew.Output~) Do
 					);
 					(requestdone op) ias (
+						Resource.Init~ Exe
+						(State onp)^
 					);
 					(requestdone cp) ias (
+						Resource.Init~ Exe
+						(State cnp)^
 					);
 					(requestdone cnp),(requestdone onp) ias (
-						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do;
+						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
 					);
 					(notrequestdone op) ias (
+						(State op)^
 					);
 					(notrequestdone cp) ias (
+						(State cp)^
 					);
 					(notrequestdone cnp),(notrequestdone onp) ias (
-						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do;
+						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
 					);
 					(Intention~ State~)~ Exe
 				);
@@ -57,6 +197,7 @@ module Quartal {
 			CommandDispatcher ias (
 				Dispatch ias nil;
 				// (Id~ Intention~ IntentionParams~)
+				(Source (Dispatch~ 0) Get)^
 				(Sherif.Intention (Dispatch~ 1) Get)^
 				(Sherif.IntentionParams (Dispatch~ 2) Get)^
 				Sherif.Behavior~ Exe
@@ -81,6 +222,7 @@ module Quartal {
 			);
 			lifeterm = (
 				((The quartal Id~ added and active for owner Owner~) Ew.Output~) Do
+				Resource.Init~ Exe
 				QuartalLifeStep~ Exe
 			) Exe
 		);

@@ -7,7 +7,7 @@ module Player {
 			AvailableModes ias (wait attack deal);
 			AvailablePlayerCommandsOnModeAttack ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
 			AvailablePlayerCommandsOnModeWait   ias (setmode);
-			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal);
+			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution);
 			Mode ias wait;
 			Id ias nil;
 			Stop ias false;
@@ -30,6 +30,40 @@ module Player {
 					Controlled ias ();
 					/* player knows about these quartals but doesn't have control upon them */
 					Visible ias ();
+				);
+				/* Account's information */
+				Account ias (
+					Value ias nil;
+					Result ias false;
+					Init ias (
+						/* by resource type */
+						AssociateByRt ias (
+							(Type ($~ 0) Get)^
+							((Rt Type~) ($~ 1) Get)^
+							((Rt Type~) Account true) Context
+							((Player Id~ initialized with resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
+						);
+						(Ew.QuartalsConf.ResourceTypes~ AssociateByRt~) ForEach
+					);
+					Recharge ias (
+						(ByRtType (Rt (Value~ 1) Get))^
+						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sum~) Do)^
+						(Result true)^
+						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do 
+					);
+					Withdraw ias (
+						(Allow -1) ias (
+							(Result false)^
+							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (Value~ 2) Get) Ew.Output~) Do
+						);
+						(Allow 0),(Allow 1) ias (
+							(Result true)^
+							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sub~) Do)^
+							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do 
+						);
+						(ByRtType (Rt (Value~ 1) Get))^
+						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
+					);
 				);
 			);
 			StopAllUnits ias (
@@ -139,6 +173,7 @@ module Player {
 				(Resources.Quartals.Visible ())^
 				(Resources.Units.Attackers ())^
 				(Resources.Units.Defenders ())^
+				Resources.Account.Init~ Exe
 				(Services.SignalUnit Services.(SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe
 			) Exe

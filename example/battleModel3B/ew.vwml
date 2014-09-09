@@ -51,6 +51,10 @@ module ExternalWorld {
 			QuartalsPerPlayer ias 2;
 			/* selected per quartal in random way */
 			SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
+			/* available resource types */
+			ResourceTypes ias ((vodka 10000) (gold 20000) (food 300000));
+			/* available quartal's resources */
+			Resources ias ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50));
 		);
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
@@ -59,6 +63,9 @@ module ExternalWorld {
 		// MoveUnit ias communication.outchannel.move;
 		IncIteration ias services.math.inc;
 		DecValue ias services.math.dec;
+		Sum ias services.math.sum;
+		Sub ias services.math.substr;
+		Compare ias services.math.compare;
 		LoadGraph ias services.graph.load;
 	);
 }
