@@ -143,7 +143,9 @@ module battleModel3B {
 			);
 
 			source lifeterm = (
+#if_debug
 				((The initialization time) Ew.Output~) Do
+#endif
 				3000 Relax
 				((The game manager started and loads maze) Ew.Output~) Do
 				Ew.Maze~ Exe

@@ -374,8 +374,8 @@ public class VWMLModelBuilder extends Debuggable {
 			}
 		}
         VirtualWorldModelingLanguageLexer lex = new VirtualWorldModelingLanguageLexer(new ANTLRFileStream(vwmlFilePath, "UTF8"));
-        CommonTokenStream tokens = new CommonTokenStream(lex);
-        VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(tokens);
+        CommonTokenStream vwmlTokens = new CommonTokenStream(lex);
+        VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(vwmlTokens);
         try {
             g.filedef();
     		if (logger.isInfoEnabled()) {
@@ -387,6 +387,7 @@ public class VWMLModelBuilder extends Debuggable {
             throw e;
         }
         catch (RecognitionException e) {
+        	g.reportError(e);
         	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
             throw e;
         }

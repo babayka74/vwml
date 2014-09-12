@@ -117,14 +117,14 @@ module Quartal {
 					);
 					// provides information about how much should be payed in order to get information about quartal
 					(open cnp) ias (
-						(OpenQInfo 1) ias (
+						(OpenQInfo 0),(OpenQInfo 1) ias (
 							(Banker.Value ProposedPrice~)^
 							(Banker.OnSuccessPayment SuccessPaymentForOpenInfo~)^
 							(Banker.OnFailedPayment FailedPaymentForOpenInfo~)^
 							Banker.AskPaymentForQuartalInfo~ Exe
 							(State wtp)^
 						);
-						(OpenQInfo -1),(OpenQInfo 0) ias (
+						(OpenQInfo -1) ias (
 							((The sherif of quartal Id~ did not allow to open info ProposedPrice~ desired price is Resource.DesiredOpenInfoPrice~) Ew.Output~) Do
 						);
 						(ProposedPrice (Sherif.IntentionParams~ 0) Get)^
@@ -154,14 +154,14 @@ module Quartal {
 					);
 					// player payes bribe and started getting resources and back payements from quartal
 					(pay onp) ias (
-						(TakeBribe 1) ias (
+						(TakeBribe 0),(TakeBribe 1) ias (
 							(Banker.Value ProposedBribe~)^
 							(Banker.OnSuccessPayment SuccessPaymentForBribeRequest~)^
 							(Banker.OnFailedPayment FailedPaymentForBribeRequest~)^
 							Banker.AskPaymentForBribe~ Exe
 							(State wtp)^
 						);
-						(TakeBribe -1),(TakeBribe 0) ias (
+						(TakeBribe -1) ias (
 							((The sherif of quartal Id~ did not take bribe ProposedBribe~ desired bribe is DesiredBribe~) Ew.Output~) Do
 						);
 						(ProposedBribe (Sherif.IntentionParams~ 0) Get)^
@@ -189,7 +189,9 @@ module Quartal {
 						(State cp)^
 					);
 					(notrequestdone cnp),(notrequestdone onp) ias (
+#if_debug
 						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
+#endif
 					);
 					(Intention~ State~)~ Exe
 				);

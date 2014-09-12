@@ -95,9 +95,9 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		getFw().write(listOfInterpretedObjects);
 		String operation2ObjectsAssociation = generateOperation2ObjectAssociations(operations);
 		getFw().write(operation2ObjectsAssociation);
-		String entityMarkedAsTerm = JavaCodeGeneratorUtils.generateObjectsDefinition("entityMarkedAsTerms", markedAsTerm);
-		getFw().write("\t@SuppressWarnings(\"unused\")\r\n");
-		getFw().write(entityMarkedAsTerm);
+//		String entityMarkedAsTerm = JavaCodeGeneratorUtils.generateObjectsDefinition("entityMarkedAsTerms", markedAsTerm);
+//		getFw().write("\t@SuppressWarnings(\"unused\")\r\n");
+//		getFw().write(entityMarkedAsTerm);
 		getFw().write("\tprivate AbstractVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
 		// defined strategy for undefined entity
 		getFw().write(generateDeclarationsFromInterpretationProps(modProps) + "\r\n");

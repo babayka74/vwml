@@ -16,8 +16,6 @@ module example1 {
 	a ias ();
 	b ias ();
 	d ias ();
-
 	c ias ((a b)^ d);
-
 	lifeterm = c~ Exe
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import com.vw.lang.sink.ICodeGenerator;
+import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.code.linkage.JavaCodeGeneratorLinkage;
@@ -1098,8 +1099,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	 * @param id (REL)
 	 * @param op
 	 * @param activeContext
+	 * @param opInfo
 	 */
-	public void associateOperation(Object id, String op, String activeContext) {
+	public void associateOperation(Object id, String op, String activeContext, OperationInfo opInfo) {
 		EntityWalker.Relation rel = (EntityWalker.Relation)id;
 		if (rel == null || rel.getLastLink() == null) {
 			logger.error("couldn't associated operation '" + op + "' since last linkage operation is absent");
