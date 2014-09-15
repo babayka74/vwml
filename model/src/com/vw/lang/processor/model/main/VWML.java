@@ -62,6 +62,9 @@ public final class VWML {
 			if (args.getDebug() != null && args.getDebug().equals("active")) {
 				ip.setActivateDebugger(true);
 			}
+			if (args.getIncludeDebugInfo() != null && args.getIncludeDebugInfo().equals("true")){
+				ip.setIncludeDebugInfo(true);
+			}
 			if (args.getDirectives().size() != 0) {
 				for(String directive : args.getDirectives()) {
 					String[] directiveStruct = directive.split("=");
@@ -210,6 +213,8 @@ public final class VWML {
 		private String addons = null;
 		@Option(name="-p", usage="preprocessor's directives in format \"<directive>{=<value>}, ...\"")
 		private String preprocessorDirective = null;
+		@Option(name="-debuginfo", usage="includes debug info in case if true specified")
+		private String includeDebugInfo = null;
 		
 		 // receives other command line parameters than options
 	    @Argument
@@ -284,12 +289,21 @@ public final class VWML {
 			this.arguments = arguments;
 		}
 
+		public String getIncludeDebugInfo() {
+			return includeDebugInfo;
+		}
+
+		public void setIncludeDebugInfo(String includeDebugInfo) {
+			this.includeDebugInfo = includeDebugInfo;
+		}
+
 		@Override
 		public String toString() {
 			return "VWMLArgs [mode=" + mode + ", testMode=" + testMode
 					+ ", debug=" + debug + ", entityInterpretationStrategy="
 					+ entityInterpretationStrategy + ", interpreterProps="
 					+ interpreterProps + ", addons=" + addons
+					+ ", includeDebugInfo=" + includeDebugInfo
 					+ ", arguments=" + arguments + ", directives=" + directives
 					+ "]";
 		}

@@ -6,11 +6,38 @@ package com.vw.lang.sink;
  *
  */
 public class OperationInfo {
+	private String opCode;
 	private String fileName;
 	private String nextToken;
 	private int line;
 	private int position;
 	
+	public OperationInfo() {
+		super();
+	}
+
+	public OperationInfo(String opCode) {
+		super();
+		this.opCode = opCode;
+	}
+
+	public OperationInfo(String opCode, String fileName, String nextToken, int line, int position) {
+		super();
+		this.opCode = opCode;
+		this.fileName = fileName;
+		this.nextToken = nextToken;
+		this.line = line;
+		this.position = position;
+	}
+
+	public String getOpCode() {
+		return opCode;
+	}
+
+	public void setOpCode(String opCode) {
+		this.opCode = opCode;
+	}
+
 	public String getFileName() {
 		return fileName;
 	}
@@ -41,5 +68,12 @@ public class OperationInfo {
 	
 	public void setPosition(int position) {
 		this.position = position;
+	}
+
+	@Override
+	public String toString() {
+		return "OperationInfo [opCode=" + opCode + ", fileName=" + fileName
+				+ ", nextToken=" + nextToken + ", line=" + line + ", position="
+				+ position + "]";
 	}
 }

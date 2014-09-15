@@ -147,7 +147,7 @@ public class VWMLOperationProcessor {
 		catch(Exception e) {
 			e.printStackTrace();
 			reportException(context, operation, e);
-			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'; operation '" + operation + "'");
+			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'; operation '" + operation + "'; debug info '" + operation.getDebugInfo() + "'");
 		}
 	}
 	

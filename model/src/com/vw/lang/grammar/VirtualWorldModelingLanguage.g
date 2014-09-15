@@ -964,6 +964,7 @@ module
     			vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null));
     			if (modProps != null) {
     				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
+	    			((JavaCodeGenerator.JavaModuleStartProps)modProps).setSourceName(getSourceName());
 	    			try {
 	    				if (codeGenerator == null) {
 	    					codeGenerator = modProps.getCodeGenerator();
@@ -1207,6 +1208,7 @@ oplist
     				String c = contexts.first();
     				com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
     				org.antlr.runtime.Token nextToken = getTokenStream().LT(1);
+    				opInfo.setOpCode($opclist.text);
     				opInfo.setLine(nextToken.getLine());
     				opInfo.setPosition(nextToken.getCharPositionInLine());
     				opInfo.setFileName(getSourceName());

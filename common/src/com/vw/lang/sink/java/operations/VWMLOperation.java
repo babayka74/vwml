@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.operations;
 
+import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.java.VWMLObject;
 
 /**
@@ -9,6 +10,7 @@ import com.vw.lang.sink.java.VWMLObject;
  */
 public class VWMLOperation extends VWMLObject {
 	private VWMLOperationsCode opCode;
+	private OperationInfo debugInfo;
 
 	public VWMLOperation() {
 		super(VWMLOperationsCode.getDefault(), VWMLOperationsCode.getDefault(), null);
@@ -19,6 +21,12 @@ public class VWMLOperation extends VWMLObject {
 		this.opCode = opCode;
 	}
 
+	public VWMLOperation(VWMLOperationsCode opCode, OperationInfo debugInfo) {
+		super(opCode.toValue(),opCode.toValue(), null);
+		this.opCode = opCode;
+		this.debugInfo = debugInfo;
+	}
+	
 	public VWMLOperationsCode getOpCode() {
 		return opCode;
 	}
@@ -26,5 +34,13 @@ public class VWMLOperation extends VWMLObject {
 	public void setOpCode(VWMLOperationsCode opCode) {
 		super.setId(opCode.toValue());
 		this.opCode = opCode;
+	}
+
+	public OperationInfo getDebugInfo() {
+		return debugInfo;
+	}
+
+	public void setDebugInfo(OperationInfo debugInfo) {
+		this.debugInfo = debugInfo;
 	}
 }

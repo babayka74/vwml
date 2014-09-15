@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
@@ -75,6 +76,7 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 				VWMLContext.class.getName(),
 				VWMLContextsRepository.class.getName(),
 				AbstractVWMLLinkVisitor.class.getName(),
+				OperationInfo.class.getName(),
 				InterpretationOfUndefinedEntityStrategyId.class.getName(),
 				UndefinedEntityAsEmptyComplexEntityInterpretationStrategy.class.getName(),
 				UndefinedEntityAsEntityInterpretationStrategy.class.getName(),
@@ -95,14 +97,25 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 		getFw().write(listOfInterpretedObjects);
 		String operation2ObjectsAssociation = generateOperation2ObjectAssociations(operations);
 		getFw().write(operation2ObjectsAssociation);
+		if (modProps.getInterpretationProps().isIncludeDebugInfo()) {
+			String operation2ObjectsAssociationDebug = generateOperation2ObjectAssociationsDebug(operations);
+			getFw().write(operation2ObjectsAssociationDebug);
+		}
 //		String entityMarkedAsTerm = JavaCodeGeneratorUtils.generateObjectsDefinition("entityMarkedAsTerms", markedAsTerm);
 //		getFw().write("\t@SuppressWarnings(\"unused\")\r\n");
 //		getFw().write(entityMarkedAsTerm);
 		getFw().write("\tprivate AbstractVWMLLinkVisitor preprocessorStructureVisualizer = null;\r\n\r\n");
+		getFw().write("\tprivate boolean debugInfoIncluded = " + (modProps.getInterpretationProps().isIncludeDebugInfo() ? "true" : "false") + "; \r\n\r\n");
+		getFw().write("\tprivate String sourceName = \"" + modProps.getSourceName().replace("\\", "\\\\") + "\"; \r\n\r\n");
 		// defined strategy for undefined entity
 		getFw().write(generateDeclarationsFromInterpretationProps(modProps) + "\r\n");
 		// and entity's history size
 		getFw().write(generateEntitySpecificDeclaration(modProps) + "\r\n");
+		if (modProps.getInterpretationProps().isIncludeDebugInfo()) {
+			getFw().write("\tpublic OperationInfo[] getOperationDebugInfo(Object uniqId) {\r\n");
+			getFw().write("\t\treturn appliedOperationsDebugInfo.get(uniqId);\r\n");
+			getFw().write("\t}\r\n");
+		}
 		// link and aux. methods
 		String[] methodsDef =  {
 								JavaCodeGeneratorTemplates.s_VWMLLinkageCodeTemplate,
@@ -176,17 +189,41 @@ public class JavaCodeGeneratorLinkage extends JavaCodeGeneratorComponent {
 			VWMLOperationLink link = operations.get(id);
 			String opsAsList = new String();
 			boolean fp = true;
-			for(String op : link.getAssociatedOperations()) {
+			for(OperationInfo op : link.getAssociatedOperations()) {
 				if (!fp) {
 					opsAsList += ",";
 				}
-				opsAsList += "\"" + op + "\"";
+				opsAsList += "\"" + op.getOpCode() + "\"";
 				fp = false;
 			}
 			if (!ft) {
 				appliedOperations += ",\r\n";
 			}
 			appliedOperations += "\t\t{put(\"" + id + "\", new VWMLOperationLink(new String[] {" + opsAsList + "}));}\r\n";
+		}
+		appliedOperations += "\t};\r\n\r\n";
+		return appliedOperations;
+	}
+	
+	private String generateOperation2ObjectAssociationsDebug(Map<Object, VWMLOperationLink> operations) {
+		boolean ft = true;
+		// key is unique entity's key, which describes entity's position in AST
+		String appliedOperations = "\t@SuppressWarnings(\"serial\")\r\n\tprivate Map<Object, OperationInfo[]> appliedOperationsDebugInfo = new HashMap<Object, OperationInfo[]>() {\r\n";
+		for(Object id : operations.keySet()) {
+			VWMLOperationLink link = operations.get(id);
+			String opsAsList = new String();
+			boolean fp = true;
+			for(OperationInfo op : link.getAssociatedOperations()) {
+				if (!fp) {
+					opsAsList += ",";
+				}
+				opsAsList += "new OperationInfo(\"" + op.getOpCode() + "\", \"" + "" + "\", \"" + op.getNextToken() + "\", " + op.getLine() + ", " + op.getPosition() + ")";
+				fp = false;
+			}
+			if (!ft) {
+				appliedOperations += ",\r\n";
+			}
+			appliedOperations += "\t\t{put(\"" + id + "\", new OperationInfo[] {" + opsAsList + "});}\r\n";
 		}
 		appliedOperations += "\t};\r\n\r\n";
 		return appliedOperations;

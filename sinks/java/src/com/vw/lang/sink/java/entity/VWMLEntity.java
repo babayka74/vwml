@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.entity;
 
+import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.java.VWMLCloneAuxCache;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
@@ -374,8 +375,10 @@ public class VWMLEntity extends VWMLObject {
 	/**
 	 * Adds operation to set of associative operations
 	 * @param op
+	 * @param opDebugInfo
 	 */
-	public void addOperation(VWMLOperation op) {
+	public void addOperation(VWMLOperation op, OperationInfo opDebugInfo) {
+		op.setDebugInfo(opDebugInfo);
 		associatedOperations.addOperation(op);
 		if (this.getLink().getLinkOperationVisitor() != null) {
 			this.getLink().getLinkOperationVisitor().associateOperation(this, op);

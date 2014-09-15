@@ -401,12 +401,12 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 																			exeEntity.getContext(),
 																			exeEntity.getInterpretationHistorySize(),
 																			exeEntity.getLink().getLinkOperationVisitor());
-							t.addOperation(op);
+							t.addOperation(op, op.getDebugInfo());
 							t.setAssociatedEntity(exeEntity);
 							exeEntity = t;
 						}
 						else {
-							exeEntity.addOperation(op);
+							exeEntity.addOperation(op, op.getDebugInfo());
 						}
 					}
 					// EXE is a special operation and its implementation lies out of general rules for 

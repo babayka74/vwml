@@ -44,6 +44,7 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		private String date;
 		private AbstractVWMLLinkVisitor visitor;
 		private String visitorDataPath;
+		private String sourceName;
 		
 		public JavaModuleStartProps() {
 			super();
@@ -65,6 +66,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.date = date;
 			this.visitor = visitor;
 			this.visitorDataPath = visitorDataPath;
+		}
+
+		public String getSourceName() {
+			return sourceName;
+		}
+
+		public void setSourceName(String sourceName) {
+			this.sourceName = sourceName;
 		}
 
 		public String getSrcPath() {
@@ -447,14 +456,14 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public static class VWMLOperationLink {
 		private Object entityId;
 		private Object linkId;
-		private List<String> associatedOperations;
+		private List<OperationInfo> associatedOperations;
 		private EntityWalker.REL rel = EntityWalker.REL.NONE;
 		
 		public VWMLOperationLink() {
 			super();
 		}
 
-		public VWMLOperationLink(Object entityId, Object linkId, List<String> associatedOperations, EntityWalker.REL rel) {
+		public VWMLOperationLink(Object entityId, Object linkId, List<OperationInfo> associatedOperations, EntityWalker.REL rel) {
 			super();
 			this.entityId = entityId;
 			this.linkId = linkId;
@@ -482,11 +491,11 @@ public class JavaCodeGenerator implements ICodeGenerator {
 			this.linkId = linkId;
 		}
 
-		public List<String> getAssociatedOperations() {
+		public List<OperationInfo> getAssociatedOperations() {
 			return associatedOperations;
 		}
 
-		public void setAssociatedOperations(List<String> associatedOperations) {
+		public void setAssociatedOperations(List<OperationInfo> associatedOperations) {
 			this.associatedOperations = associatedOperations;
 		}
 	}
@@ -1114,10 +1123,13 @@ public class JavaCodeGenerator implements ICodeGenerator {
 		String uniqId = ((VWMLLinkWrap)rel.getLastLink()).getUniqId();
 		VWMLOperationLink associatedOps = link.getOperations().get(uniqId);
 		if (associatedOps == null) {
-			associatedOps = new VWMLOperationLink(rel.getObj(), uniqId, new ArrayList<String>(), rel.getRelation());
+			associatedOps = new VWMLOperationLink(rel.getObj(), uniqId, new ArrayList<OperationInfo>(), rel.getRelation());
 			link.getOperations().put(uniqId, associatedOps);
 		}
-		associatedOps.getAssociatedOperations().add(op);
+		if (opInfo == null) {
+			opInfo = new OperationInfo(op);
+		}
+		associatedOps.getAssociatedOperations().add(opInfo);
 	}
 	
 	/**

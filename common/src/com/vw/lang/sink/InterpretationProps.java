@@ -11,6 +11,7 @@ import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
  */
 public class InterpretationProps {
 	private boolean activateDebugger;
+	private boolean includeDebugInfo;
 	private String interpretersSrcPath;
 	private String interpretersPackage;
 	private InterpretationOfUndefinedEntityStrategyId interpretationOfUndefinedEntityStrategyId = InterpretationOfUndefinedEntityStrategyId.STRICT;
@@ -60,6 +61,14 @@ public class InterpretationProps {
 
 	public void setActivateDebugger(boolean activateDebugger) {
 		this.activateDebugger = activateDebugger;
+	}
+
+	public boolean isIncludeDebugInfo() {
+		return includeDebugInfo;
+	}
+
+	public void setIncludeDebugInfo(boolean includeDebugInfo) {
+		this.includeDebugInfo = includeDebugInfo;
 	}
 
 	@Override
