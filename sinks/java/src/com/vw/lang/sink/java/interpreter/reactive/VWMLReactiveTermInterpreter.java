@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter.reactive;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
@@ -10,6 +11,7 @@ import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -23,22 +25,25 @@ import com.vw.lang.sink.java.link.VWMLLinkage;
  *
  */
 public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
-
 	private VWMLConflictRing ring = VWMLConflictRing.instance();
 	private IVWMLGate timeFringeGate = null;
+	private List<VWMLConflictRingNode> blockedOnInterpretation = new ArrayList<VWMLConflictRingNode>();
 	
 	private VWMLReactiveTermInterpreter() {
+		setRing(ring);
 	}
 	
 	private VWMLReactiveTermInterpreter(VWMLLinkage linkage, List<VWMLEntity> terms) {
 		setTerms(terms);
 		setLinkage(linkage);
+		setRing(ring);
 	}
 
 	private VWMLReactiveTermInterpreter(VWMLLinkage linkage, List<VWMLEntity> terms, VWMLContext context) {
 		setTerms(terms);
 		setLinkage(linkage);
 		setContext(context);
+		setRing(ring);
 	}
 	
 	public static VWMLReactiveTermInterpreter instance(VWMLLinkage linkage, List<VWMLEntity> terms) {
@@ -61,15 +66,25 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRing.instance().setRingVisitor(getConfig().getRingVisitor());
 		getConfig().setStepByStepInterpretation(true);
 		// iterates through the conflict ring and associates ring node with reactive sequential interpreter
-		// looking for ring node by source lifeterm's context 
+		// looking for ring node by source lifeterm's context
+		ring.setRingInitialInterpreter(this);
 		for(VWMLEntity e : getTerms()) {
-			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(e.getContext().getContext(), true);
-			if (g == null) {
-				throw new Exception("couldn't find ring group by context '" + e.getContext().getContext() + "'");
+			VWMLEntity p = e;
+			while(p.getClonedFrom() != null) {
+				p = p.getClonedFrom();
 			}
-			activateSourceLifeTerm(g, this, e, null, null, false);
+			VWMLConflictRingExecutionGroup g = ring.findGroupByEntityContext(p.getContext().getContext(), true);
+			if (g == null) {
+				throw new Exception("couldn't find ring group by context '" + p.getContext().getContext() + "'");
+			}
+			VWMLInterpreterImpl impl = activateSourceLifeTerm(g, this, e, null, null, false);
+			if (impl != null && getClonedFromEntity() != null) {
+				impl.setClonedFromEntity(getClonedFromEntity());
+			}
 		}
-		normalizeInterpreterData();
+		if (isNormalization()) {
+			normalizeInterpreterData();
+		}
 		timeFringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 		// starts reactive interpretation activity
 		setStatus(continueProcessingOfCurrentEntity);
@@ -86,13 +101,43 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 	@Override
 	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
 		while((listener == null) ? true : listener.getInterpreterStatus() != VWMLInterpreterImpl.stopped) {
-			VWMLConflictRingNode node = ring.next();
-			if (node == null) {
+			if (!oneStep()) {
 				break;
 			}
-			spinTimerManager(getTimerManager(), timeFringeGate);
-			node.operate();
 		}
+	}
+	
+	/**
+	 * Runs one step execution process
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public boolean oneStep() throws Exception {
+		boolean continueExecution = true;
+		VWMLConflictRingNode node = ring.next();
+		if (node == null) {
+			// no operational nodes - root interpreter is going to be stopped, so we have to clear resources
+			VWMLResourceHostManagerFactory.hostManagerInstance().clearResource();
+			continueExecution = false;
+		}
+		else {
+			spinTimerManager(getTimerManager(), timeFringeGate);
+			if (!isBlocked(node)) {
+				node.operate();
+			}
+		}
+		return continueExecution;
+	}
+	
+	@Override
+	public void addBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
+		blockedOnInterpretation.add(node);
+	}
+
+	@Override
+	public void removeBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
+		blockedOnInterpretation.remove(node);
 	}
 	
 	/**
@@ -147,6 +192,13 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRingNode n = (activeInterpreter != null) ? activeInterpreter.getRtNode() : null;
 		if (n == null && g != null) {
 			n = g.findMasterNode();
+			if (n == null) {
+				n = g.findMasterInAnyCase();
+				if (isCloneMasterOnSLFTermActivation()) {
+					n = n.clone(null);
+					g.add(n);
+				}
+			}
 			if (n.peekInterpreter() != null && !addAdditionalInterpreterToNode) { // already processed
 				return null;
 			}
@@ -176,5 +228,9 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			impl.start();
 		}
 		return impl;
+	}
+	
+	protected boolean isBlocked(VWMLConflictRingNode node) {
+		return blockedOnInterpretation.contains(node);
 	}
 }

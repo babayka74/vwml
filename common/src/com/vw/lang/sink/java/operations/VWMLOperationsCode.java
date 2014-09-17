@@ -41,6 +41,10 @@ public enum VWMLOperationsCode {
     OPCALLP("CallP"),
     OPGET("Get"),
     OPFIND("Find"),
+    OPGATE("Gate"),
+    OPRECALL("Recall"),
+    OPREPEAT("Repeat"),
+    OPACTIVATE("Activate"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

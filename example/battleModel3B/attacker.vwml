@@ -25,8 +25,6 @@ module Attacker {
 					Actions ias (
 						/* attacker attacks */
 						Attack ias (
-							/* stores defenders which have already been killed */
-							AlreadyKilledDefenders ias ();
 							/* means that attack is allowed from this node */
 							Position ias nil;
 							AttackedDefender ias nil;
@@ -44,7 +42,7 @@ module Attacker {
 									);
 									(DefenderKilled yes) ias (
 										((The attacker Id~ killed defender AttackedDefender~ and continues movement) Ew.Output~) Do
-										(AlreadyKilledDefenders (AlreadyKilledDefenders~ (AttackedDefender~)) Join)^
+										((Unit AttackedDefender~)->MarkedAsKilled true)^
 										(Unit AttackedDefender~)->Stay~ Exe
 										ChangePosition~ Exe
 										// sends signal to defender that it was killed
@@ -66,23 +64,27 @@ module Attacker {
 							);
 							((The unit Id~ is on attacking position Position~ and looking for enemies in Position~~) Ew.Output~) Do
 							CheckFireZone ias (
-								(OnFire false false),(OnFire false true),(OnFire true true) ias doNothing;
-								(OnFire true false) ias (
-									(OnFire (OnFire~ ($~)) Join)^
-									((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
+								(Killed true) ias doNothing;
+								(Killed false) ias (
+									(OnFire false) ias doNothing;
+									(OnFire true) ias (
+										(OnFire (OnFire~ ($~)) Join)^
+										((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
+									);
+									(Unit $~)->GetCurrentPosition~ Exe
+									(OnFire (Position~~ (Unit $~)->CurrentPosition~) In)~ Exe
 								);
-								(Unit $~)->GetCurrentPosition~ Exe
-								(OnFire (Position~~ (Unit $~)->CurrentPosition~) In (AlreadyKilledDefenders~ $~) In)~ Exe
+								(Killed (Unit $~)->MarkedAsKilled~)~ Exe
 							);
 							(OnFire ())^
 							LockDefenders [
-								((Player PlayerId~)->(Units)->Defenders~ CheckFireZone~) ForEach
+								((Player PlayerId~)->(Resources)->(Units)->Defenders~ CheckFireZone~) ForEach
 							LockDefenders ]
 							SelectDefenderAndAttack~ Exe
 						);
 						/* attacker changes position */
 						ChangePosition ias (
-							((The unit Id~ moved from Movement.PrevState~ to Movement.State~) Ew.Output~) Do
+							((The unit Id~ moved from Movement.PrevState~ to Movement.State~ time 300) Ew.Output~) Do
 							300 Relax
 							((Unit Id~)->CurrentPosition Movement.State~)^
 							(Movement.PrevState Movement.State~)^
@@ -141,11 +143,11 @@ module Attacker {
 							(Movement.NoSteps false)^
 							(Movement.PrevState Movement.State~)^
 							(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
-							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
+							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
 							((Movement.Goals
 								Ew.TargetsToBeDestroyed
 								Movement.State
-								(Player PlayerId~)->UnitsStateSet   /* units' shared path */
+								(Player PlayerId~)->(Resources)->(Units)->UnitsStateSet   /* units' shared path */
 								Movement.SeqStates
 								Movement.Result
 								Movement.TargetDestroyed

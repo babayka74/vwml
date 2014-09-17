@@ -59,7 +59,9 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 			// CallP or ForEach or any other operation which requires own interpreter
 			if (interpreter.isPushed()) {
 				String termContext = interpreter.getRtNode().getContextOfNodeOriginalTerm(interpreter);
-				context = VWMLContext.constructContextNameFromParts(termContext, context);
+				if (!context.startsWith(termContext)) {
+					context = VWMLContext.constructContextNameFromParts(termContext, context);
+				}
 			}
 			interpreter.getObserver().setActiveConflictContext(context);
 			interpreter.getObserver().setConflictOperationalState(context, VWMLConflictRingNodeAutomataInputs.IN_B);

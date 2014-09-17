@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.parallel.VWMLParallelTermInterpreter;
 import com.vw.lang.sink.java.interpreter.reactive.VWMLReactiveTermInterpreter;
@@ -135,6 +136,16 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 				VWMLConflictRingVisitor v = (VWMLConflictRingVisitor)GeneralUtils.instantiateClass(p.getValue());
 				config.setRingVisitor(v);
 			}
+			p = VWMLPairLookUp.lookByName(propPairs, "interpreter.ring.nodes");
+			if (p != null) {
+				try {
+					config.setNodesPerRing(Integer.valueOf(p.getValue()).intValue());
+				}
+				catch(Exception e) {
+					config.setNodesPerRing(VWMLInterpreterConfiguration.DEF_NODES_PER_RING);
+				}
+			}
+			configureResourceManagmentStrategy();
 		}
 	}
 
@@ -157,11 +168,22 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		else
 		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
 			impl = VWMLParallelTermInterpreter.instance(linkage, terms);
+			config.setStepByStepInterpretation(true);
 		}
 		if (impl != null) {
 			impl.setConfig(config);
 		}
 		return impl;
+	}
+	
+	protected void configureResourceManagmentStrategy() {
+		if (config.getInterpretationMtStrategy() == VWMLInterpreterConfiguration.INTERPRETER_MT_STRATEGY.PARALLEL) {
+			config.setResourceStrategy(VWMLInterpreterConfiguration.RESOURCE_STRATEGY.MT);
+		}
+		else {
+			config.setResourceStrategy(VWMLInterpreterConfiguration.RESOURCE_STRATEGY.ST);
+		}
+		VWMLResourceHostManagerFactory.setResourceStrategy(config.getResourceStrategy());
 	}
 	
 	protected VWMLLinkage getMainLinkage() {

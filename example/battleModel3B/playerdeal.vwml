@@ -1,0 +1,46 @@
+module PlayerDeal {
+	MagicWorld ias (
+		Player ias (
+			Deal ias (
+				CommandId ias nil;
+				CommandParams ias nil;
+				// (player 0 setintention (quartalId intention (...)))
+ 				(Handle setintention) ias (
+					(QuartalId (CommandParams~ 0) Get)^
+					(Intention (CommandParams~ 1) Get)^
+					(IntentionParams (CommandParams~ 2) Get)^
+					((The player Id~ in mode deal processes CommandId~ for quartal QuartalId~ intention Intention~ and params IntentionParams~) Ew.Output~) Do
+					// propagate to quartal
+					((Quartal QuartalId~) Tx (Id~ Intention~ IntentionParams~)) Gate
+				);
+				(Handle linkquartal) ias (
+					(QuartalId (CommandParams~ 0) Get)^
+					(Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^
+					((Quartal QuartalId~)->Linked true)^
+					((Quartal QuartalId~)->Owner Id~)^
+					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~) Ew.Output~) Do
+				);
+				(Handle unlinkquartal) ias (
+					(QuartalId (CommandParams~ 0) Get)^
+					(Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^
+					((Quartal QuartalId~)->Linked false)^
+					((Quartal QuartalId~)->Owner nil)^
+					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~) Ew.Output~) Do
+				);
+				(Handle paybribe),(Handle payquartalinfo) ias (
+					(Result true) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (confirmed))) Gate;
+					(Result false) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (declined))) Gate;
+					(QuartalId (CommandParams~ 0) Get)^
+					(Resources.Account.Value CommandParams~)^
+					Resources.Account.Withdraw~ Exe
+					(Result Resources.Account.Result~)~ Exe
+				);
+				(Handle contribution) ias (
+					(Resources.Account.Value CommandParams~)^
+					Resources.Account.Recharge~ Exe
+				);
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

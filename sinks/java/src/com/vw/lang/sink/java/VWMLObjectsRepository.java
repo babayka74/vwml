@@ -7,7 +7,9 @@ import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
+import com.vw.lang.sink.java.repository.VWMLRepository;
 
 
 /**
@@ -15,33 +17,17 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  * @author ogibayev
  *
  */
-public class VWMLObjectsRepository {
-
-	// defines static types of unchanged entities
-	private VWMLObjectsRepository() {
-		init();
-	}
+public class VWMLObjectsRepository extends VWMLRepository {
 	
 	public static boolean notAsOriginal = false;
 	public static boolean asOriginal = true;
 	
 	// builds association between object's id and its instance
-	private Map<Object, VWMLObject> repo = new HashMap<Object, VWMLObject>();
+	private Map<Object, VWMLObject> repo = null;
 	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
 	
-	private static VWMLObjectsRepository s_repo = null;
-
-	
 	public static VWMLObjectsRepository instance() {
-		if (s_repo != null) {
-			return s_repo;
-		}
-		synchronized(VWMLObjectsRepository.class) {
-			if (s_repo == null) {
-				s_repo = new VWMLObjectsRepository();
-			}
-		}
-		return s_repo;
+		return VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepo();
 	}
 
 	/**
@@ -109,7 +95,7 @@ public class VWMLObjectsRepository {
 	public static VWMLObject findObject(String contextName, Object id) throws Exception {
 		VWMLContext c = VWMLContextsRepository.instance().get(contextName);
 		if (c == null) {
-			throw new Exception("coudln't find context '" + contextName + "'");
+			throw new Exception("coudln't find context '" + contextName + "' for object '" + id + "'");
 		}
 		// checks if object has been created before
 		VWMLObject obj = instance().checkObjectOnContext(id, c);
@@ -143,6 +129,7 @@ public class VWMLObjectsRepository {
 	}
 
 	public void init() {
+		repo = VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepoContainer();
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
 		VWMLEntity e = null;
 		// built-in complex entity id
@@ -405,7 +392,9 @@ public class VWMLObjectsRepository {
 	protected VWMLObject getByContext(Object id, VWMLContext context, boolean concreteContext) throws Exception {
 		String ids = (String)id;
 		VWMLContext effectiveContext = context;
-		if (ids.contains(".")) {
+		int bracket = ids.indexOf('(');
+		int dot = ids.indexOf('.');
+		if ((dot != -1 && bracket != -1 && dot < bracket) || (dot != -1 && bracket == -1)) {
 			return getByFullSpecifiedPath(id, context);
 		}
 		if (effectiveContext == null) {
@@ -420,7 +409,7 @@ public class VWMLObjectsRepository {
 			o = repo.get(buildAssociationKey(context.getContext(), (String)id));
 		}
 		else {
-			while(context != null && o == null) { 
+			while(context != null && o == null) {
 				o = repo.get(buildAssociationKey(context.getContext(), (String)id));
 				context = (VWMLContext)context.getLink().getParent();
 			}
@@ -437,6 +426,6 @@ public class VWMLObjectsRepository {
 	}
 	
 	protected void markAsInvalid() {
-		s_repo = null;
+		VWMLResourceHostManagerFactory.hostManagerInstance().markObjectsRepoAsInvalid();
 	}
 }

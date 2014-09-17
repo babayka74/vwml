@@ -138,7 +138,7 @@ public class VWMLSingleTermInterpreter extends VWMLInterpreterImpl {
 				if (!entity.isTerm() && entity.isMarkedAsComplexEntity()) {
 					// assemble operation is used if we need to collect result of entity interpretation process
 					opImplicitlyAddedRef = new VWMLOperation(VWMLOperationsCode.OPIMPLICITASSEMBLE);
-					entity.addOperation(opImplicitlyAddedRef);
+					entity.addOperation(opImplicitlyAddedRef, null);
 				}
 				else
 				if (entity.isTerm() && ((VWMLTerm)entity).getAssociatedEntity() != null) {
@@ -223,7 +223,7 @@ public class VWMLSingleTermInterpreter extends VWMLInterpreterImpl {
 					handleOperation(linkage, context, op);
 				}
 				else {
-					exeEntity.addOperation(op); // deferred operations
+					exeEntity.addOperation(op, op.getDebugInfo()); // deferred operations
 				}
 				// EXE is a special operation and its implementation lies out of general rules for 
 				// regular operations

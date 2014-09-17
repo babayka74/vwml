@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.code.templates;
 
 
 
+
 /**
  * Parts of code needed to java code generator
  * @author ogibayev
@@ -72,6 +73,12 @@ public final class JavaCodeGeneratorTemplates {
 	"\t}\r\n\r\n";
 
 	public static String s_VWMLLinkageCodeTemplate = "" +
+	"\tpublic boolean isDubugInfoIncluded() {\r\n" +
+	"\t\treturn debugInfoIncluded;\r\n" +
+	"\t}\r\n\r\n" +	
+	"\tpublic String getSourceName() {\r\n" +
+	"\t\treturn sourceName;\r\n" +
+	"\t}\r\n\r\n" +	
 	"\tpublic void setPreprocessorStructureVisualizer(AbstractVWMLLinkVisitor preprocessorStructureVisualizer) {\r\n" +
 	"\t\tthis.preprocessorStructureVisualizer = preprocessorStructureVisualizer;\r\n" +
 	"\t}\r\n\r\n" +
@@ -127,6 +134,11 @@ public final class JavaCodeGeneratorTemplates {
 		"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n" +
 	"\tprotected void buildOperationsAssociationFor(VWMLEntity entity, Object uniqId, String context) throws Exception {\r\n" +
+	"\t\tOperationInfo[] opDebugInfo = null;\r\n" +
+	"\t\tint i = 0;\r\n" +
+	"\t\tif (isDubugInfoIncluded()) {\r\n" +
+	"\t\t\topDebugInfo = getOperationDebugInfo(uniqId);\r\n" +
+	"\t\t}\r\n" +
 	"\t\tVWMLOperationLink link = appliedOperations.get(uniqId);\r\n" +
 	"\t\tif (link != null && entity.acquireOperationsIterator() == null) {\r\n" +
 	"\t\t\tString[] ops = link.getAssociatedOperations();\r\n" +
@@ -135,7 +147,11 @@ public final class JavaCodeGeneratorTemplates {
 	"\t\t\t\tif (opCode == VWMLOperationsCode.OPNOP) {\r\n" +
 	"\t\t\t\t\tthrow new Exception(\"invalid operation '\" + op + \"'\");\r\n" +
 	"\t\t\t\t}\r\n" +
-	"\t\t\t\tentity.addOperation(new VWMLOperation(opCode));\r\n" +
+	"\t\t\t\tif (opDebugInfo != null) {\r\n" +
+	"\t\t\t\t\topDebugInfo[i].setFileName(getSourceName());\r\n" +
+	"\t\t\t\t}\r\n" +
+	"\t\t\t\tentity.addOperation(new VWMLOperation(opCode), (opDebugInfo != null) ? opDebugInfo[i] : null);\r\n" +
+	"\t\t\t\ti++;\r\n" +
 	"\t\t\t}\r\n" +
 	"\t\t}\r\n" +
 	"\t}\r\n\r\n" +

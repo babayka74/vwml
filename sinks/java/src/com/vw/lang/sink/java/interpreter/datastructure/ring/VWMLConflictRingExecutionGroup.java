@@ -1,11 +1,16 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 
 /**
  * Ring's execution group
@@ -18,9 +23,11 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// all cloned terms have the same properties and associated with master node
 	private List<VWMLConflictRingNode> group = new ArrayList<VWMLConflictRingNode>();
 	private List<VWMLConflictRingNode> removedNodes = new ArrayList<VWMLConflictRingNode>();
+	private Set<String> lookup = new HashSet<String>();
 	// set when node without interpreter and marked as candidate for clone is removed from group by scheduler
 	// but this node has all conflicts' links which can be used during clone operation
 	private VWMLConflictRingNode implicitMaster = null;
+	private VWMLConflictRing ring = null;
 	
 	public VWMLConflictRingExecutionGroup(Object hashId) {
 		super(hashId);
@@ -30,35 +37,171 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		super(id, id, readableId);
 	}
 	
-	public static VWMLConflictRingExecutionGroup build(Object id, String readableId) {
-		return new VWMLConflictRingExecutionGroup(id, readableId);
+	public static VWMLConflictRingExecutionGroup build(VWMLConflictRing ring, Object id, String readableId) {
+		VWMLConflictRingExecutionGroup g = new VWMLConflictRingExecutionGroup(id, readableId);
+		g.setRing(ring);
+		return g;
 	}
 
+	public VWMLConflictRingExecutionGroup cloneConflictModel(VWMLConflictRing forRing) {
+		return cloneConflictModelCached(forRing, null);
+	}
+
+	public VWMLConflictRingExecutionGroup cloneConflictModelCached(VWMLConflictRing forRing, List<VWMLConflictRingNode> cache) {
+		boolean addMaster = false;
+		VWMLConflictRingExecutionGroup cloned = build(forRing, getId(), getReadableId());
+		VWMLConflictRingNode master = null;
+		if (group.size() != 0 && implicitMaster == null) {
+			master = group.get(0);
+			addMaster = true;
+		}
+		else {
+			master = implicitMaster;
+		}
+		boolean clearCache = false;
+		if (cache == null) {
+			clearCache = true;
+			cache = new ArrayList<VWMLConflictRingNode>();
+		}
+		VWMLConflictRingNode clonedMaster = master.deepCloneConflictModelCached(cloned, cache);
+		if (addMaster) {
+			clonedMaster.markAsClone(false);
+			cloned.add(clonedMaster);
+		}
+		else {
+			cloned.setImplicitMaster(clonedMaster);
+		}
+		for(VWMLConflictRingNode n : master.getGroup()) {
+			VWMLConflictRingNode n1 = n.deepCloneConflictModelCached(cloned, cache);
+			clonedMaster.addToGroup(n1);
+		}
+		if (clearCache) {
+			cache.clear();
+			cache = null;
+		}
+		return cloned;
+	}
+	
+	public void convertGroupToGroupWithImplicitMaster() {
+		if (implicitMaster == null) {
+			VWMLConflictRingNode master = group.get(0);
+			setImplicitMaster(master);
+			group.remove(0);
+		}
+	}
+	
 	public void add(VWMLConflictRingNode n) {
+		n.setExecutionGroup(this);
 		group.add(n);
+		lookup.add((String)n.getId());
 	}
 	
 	public void remove(VWMLConflictRingNode n) {
 		group.remove(n);
+		lookup.remove((String)n.getId());
+	}
+	
+	public boolean belong(String id) {
+		return lookup.contains(id);
+	}
+	
+	/**
+	 * Looks for conflict node
+	 * @param id
+	 * @return
+	 */
+	public VWMLConflictRingNode find(Object id) {
+		for(VWMLConflictRingNode n : group) {
+			if (n.getId().equals(id)) {
+				return n;
+			}
+			// looking inside grouped ('aux' nodes)
+			for(VWMLConflictRingNode ng : n.getGroup()) {
+				if (ng.getId().equals(id)) {
+					return ng;
+				}
+			}
+		}
+		return null;
+	}
+
+	public VWMLConflictRingNode findConflictNode(Object id) {
+		VWMLConflictRingNode n = null;
+		if (group.size() != 0 && implicitMaster == null) {
+			n = group.get(0);
+		}
+		else {
+			n = implicitMaster;
+		}
+		if (n != null) {
+			if (n.getId().equals(id)) {
+				return n;
+			}
+			for(VWMLConflictRingNode n1 : n.getGroup()) {
+				if (n1.getId().equals(id)) {
+					return n1;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public VWMLConflictRingNode findNodeExecutingTerm(VWMLEntity executingTerm) {
+		VWMLConflictRingNode node = null;
+		for(VWMLConflictRingNode n : group) {
+			VWMLInterpreterImpl i = n.firstPushedInterpreter();
+			if (i != null) {
+				List<VWMLEntity> terms = i.getTerms();
+				for(VWMLEntity t : terms) {
+					if (executingTerm.getId().equals(t.getContext().getContextName())) {
+						node = n;
+						break;
+					}
+				}
+				if (node != null) {
+					break;
+				}
+			}
+		}
+		return node;
+	}
+	
+	public int nodes() {
+		int nodes = 0;
+		for(VWMLConflictRingNode n : group) {
+			nodes++;
+			nodes += n.getGroup().size();
+		}
+		return nodes;
 	}
 	
 	public void balance() {
 		VWMLConflictRingVisitor v = VWMLConflictRing.instance().getRingVisitor();
 		if (v != null) {
-			v.print("-> group [ " + getId() + " ]");
+			v.print("-> group [ " + getId() + " ] {TID => " + Thread.currentThread().getId() + "}");
 		}
-		if (group.size() > 1) {
+		if (group.size() > 0) {
 			VWMLConflictRingNode master = group.get(0);
 			if (v != null) {
 				v.print("\t-> group master [ " + master.getId() + " ]");
 			}
-			for(int i = 1; i < group.size();) {
-				// has the same term as master
-				master.addToGroup(group.get(i));
-				if (v != null) {
-					v.print("\t\t-> grouped by master [ " + group.get(i).getId() + " ]");
+			if (group.size() > 1) {
+				for(int i = 1; i < group.size();) {
+					// has the same term as master
+					master.addToGroup(group.get(i));
+					if (v != null) {
+						v.print("\t\t-> grouped by master [ " + group.get(i).getId() + " ]");
+					}
+					group.remove(i);
 				}
-				group.remove(i);
+			}
+			String term = getRing().getBoundTermByConflict((String)master.getId());
+			if (term != null) {
+				VWMLContext ctx = VWMLContextsRepository.instance().get(term);
+				if (ctx != null && ctx.findLifeTerm() != null && ctx.findSourceLifeTerm() == null) {
+					group.remove(0);
+					setImplicitMaster(master);
+				}
 			}
 		}
 		if (v != null) {
@@ -82,6 +225,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	public void clear() {
 		group.clear();
 		removedNodes.clear();
+		lookup.clear();
 		implicitMaster = null;
 	}
 	
@@ -124,7 +268,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 
 	public VWMLConflictRingNode findMasterInAnyCase() {
 		VWMLConflictRingNode master = null;
-		if (group.size() != 0) {
+		if (group.size() != 0 && implicitMaster == null) {
 			VWMLConflictRingNode n = group.get(0);
 			n.markAsClone(false);
 			master = n;
@@ -175,5 +319,20 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		removedNodes.clear();
 		return r;
 	}
-	
+
+	public VWMLConflictRing getRing() {
+		return ring;
+	}
+
+	public void setRing(VWMLConflictRing ring) {
+		this.ring = ring;
+	}
+
+	public VWMLConflictRingNode getImplicitMaster() {
+		return implicitMaster;
+	}
+
+	public void setImplicitMaster(VWMLConflictRingNode implicitMaster) {
+		this.implicitMaster = implicitMaster;
+	}
 }

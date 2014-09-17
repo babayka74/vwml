@@ -62,7 +62,7 @@ module DpfAPEx {
 				(AvailableSteps true)^
 				($ doNothing)^
 			);
-			(Locker.Latch LockSharedStates)^
+			(Locker.Latch MagicWorld.Player.Resources.Units.UnitsStateSetLocker)^
 			(Locker.Lock Lock~)^
 			(StepIn Locker~ Exe [ (StateSet~~ Step~~) In Locker~ Exe ])~ Exe
 		);
@@ -86,7 +86,7 @@ module DpfAPEx {
 		/* continue walking... */
 		(EndSearch false) ias (
 			GetNextStates~ Exe
-			(Locker.Latch LockSharedStates)^
+			(Locker.Latch MagicWorld.Player.Resources.Units.UnitsStateSetLocker)^
 			(Locker.Lock Lock~)^
 			Locker~ Exe [
 				//((by Uid~~ substructing NextStates~ from StateSet~~) Ew.Output~) Do
@@ -122,7 +122,7 @@ module DpfAPEx {
 			(State~ NewState~)^
 			(SeqStates~ (SeqStates~~ (State~~)) Join)^
 			// ((Added state State~~) Ew.Output~) Do
-			(Locker.Latch LockSharedStates)^
+			(Locker.Latch MagicWorld.Player.Resources.Units.UnitsStateSetLocker)^
 			(Locker.Lock Lock~)^
 			Locker~ Exe [
 				//((Changed by Uid~~ joined) Ew.Output~) Do
@@ -138,6 +138,7 @@ module DpfAPEx {
 		);
 
 		(CollectRequestedSteps.StepsCollected false)^
+		((Goals for Uid~~ Goals~~) Ew.Output~) Do
 		Run~ Exe
 	);
 }

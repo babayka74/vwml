@@ -76,6 +76,16 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		cloned.setRing(getRing());
 		return cloned;
 	}
+	
+	/**
+	 * Moves interpreter to another master
+	 */
+	@Override
+	public void move(VWMLInterpreterImpl master) throws Exception {
+		setMasterInterpreter(master);
+		setTimerManager(master.getTimerManager());
+		setRing(master.getRing());
+	}
 		
 	/**
 	 * Resets interpreter's data
@@ -132,7 +142,6 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		if (getConfig().isStepByStepInterpretation()) {
 			VWMLInterpreterDeferredTask task = getDeferredTask();
 			if (task != null) {
-				setDeferredTask(null);
 				task.execute();
 			}
 		}
@@ -392,12 +401,12 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 																			exeEntity.getContext(),
 																			exeEntity.getInterpretationHistorySize(),
 																			exeEntity.getLink().getLinkOperationVisitor());
-							t.addOperation(op);
+							t.addOperation(op, op.getDebugInfo());
 							t.setAssociatedEntity(exeEntity);
 							exeEntity = t;
 						}
 						else {
-							exeEntity.addOperation(op);
+							exeEntity.addOperation(op, op.getDebugInfo());
 						}
 					}
 					// EXE is a special operation and its implementation lies out of general rules for 

@@ -14,9 +14,10 @@ options {
 
 module example5 {
 	a ias ();
-	b ias ();
-	d ias ();
-	x ias a;
+	b ias ()
+		d ias ();
+		x ias a;
+	;
 	y ias b;
 
 	c ias ( ((b d) (x~ y~) (a b)^ (d a)Exe)^

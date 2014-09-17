@@ -24,61 +24,14 @@ module Defender {
 						Defence ias (
 							AttackedAttacker ias nil;
 							OnFire ias ();
-							AlreadyKilledAttackers ias ();
-							/* removes path, created from last attacker's position (state), from units' shared path (UnitsStateSet) */
-							UpdateUnitsSharedPath ias (
-								RecalculatePathToAttacker ias (
-									TResult ias doNothing;
-									TTargetDestroyed ias doNothing;
-									(TSeqStates ())^
-									(TUnitsStateState ())^
-									(TRequestedSteps ())^
-									(TTargetsToBeDestroyed ())^
-									(TRequestedSteps ())^
-									(TNumOfRequestedSteps 1000)^
-									(TNoSteps false)^
-									(Unit $~)->GetCurrentPosition~ Exe
-									(Unit AttackedAttacker~)->GetCurrentPosition~ Exe
-									(TGoals ((Unit $~)->CurrentPosition~))^
-									(TState (Unit AttackedAttacker~)->CurrentPosition~)^
-									/* calculates path to another attacker; this path is substracted from shared units' path */
-									((TGoals
-										TTargetsToBeDestroyed
-										TState
-										TUnitsStateState
-										TSeqStates
-										TResult
-										TTargetDestroyed
-										Ew.DecValue
-										TRequestedSteps
-										TNumOfRequestedSteps
-										TNoSteps                     	
-										Id
-										false) (DpfSearchMkAParallelEx Id~)~) CallP
-									/* removes from shared path */
-									LockSharedStates [
-										((Player PlayerId~)->UnitsStateSet ((Player PlayerId~)->UnitsStateSet~ TRequestedSteps~) Substruct)^
-										((Movement to attacker $~ is TRequestedSteps~ from point Movement.State~ and new shared movement is (Player PlayerId~)->UnitsStateSet~) Ew.Output~) Do
-									LockSharedStates ]
-								);
-								UpdatePath ias (
-									(Ignore true) ias doNothing;
-									(Ignore false) ias RecalculatePathToAttacker~ Exe;
-									(Ignore ($~ AttackedAttacker~) Ident)~ Exe
-								);
-								LockAttackers [
-									((Player PlayerId~)->(Units)->Attackers~ UpdatePath~) ForEach
-								LockAttackers ]
-							);
 							SelectAttackerAndAttack ias (
 								(NoAttack true) ias doNothing;
 								(NoAttack false) ias (
 									(AttackerKilled no) ias ((The defender Id~ did not kill attacker AttackedAttacker~ and continues observing) Ew.Output~) Do;
 									(AttackerKilled yes) ias (
-										(AlreadyKilledAttackers (AlreadyKilledAttackers~ (AttackedAttacker~)) Join)^
-										((The defender Id~ killed attacker AttackedAttacker~ and continues observing and already killed AlreadyKilledAttackers~) Ew.Output~) Do
+										((The defender Id~ killed attacker AttackedAttacker~ and continues observing) Ew.Output~) Do
+										((Unit AttackedAttacker~)->MarkedAsKilled true)^
 										(Unit AttackedAttacker~)->Stay~ Exe
-										UpdateUnitsSharedPath~ Exe
 										// sends signal to defender that it was killed
 										(Services.(SignalUnit Id~)->PlayerId PlayerId~)^
 										(Services.(SignalUnit Id~)->To AttackedAttacker~)^
@@ -100,17 +53,21 @@ module Defender {
 							Observe ias (
 								Position ias nil;	
 								CheckFireZone ias (
-									(OnFire false false),(OnFire false true),(OnFire true true) ias doNothing;
-									(OnFire true false) ias (
-										(OnFire (OnFire~ ($~)) Join)^
-										((The attacker $~ can be attacked by defender Id~) Ew.Output~) Do
+									(AsKilled true) ias doNothing;
+									(AsKilled false) ias (
+										(OnFire false) ias doNothing;
+										(OnFire true) ias (
+											(OnFire (OnFire~ ($~)) Join)^
+											((The attacker $~ can be attacked by defender Id~) Ew.Output~) Do
+										);
+										(Unit $~)->GetCurrentPosition~ Exe
+										(OnFire (Position~ (Unit $~)->CurrentPosition~) Ident)~ Exe
 									);
-									(Unit $~)->GetCurrentPosition~ Exe
-									(OnFire (Position~ (Unit $~)->CurrentPosition~) Ident (AlreadyKilledAttackers~ $~) In)~ Exe
+									(AsKilled (Unit $~)->MarkedAsKilled~)~ Exe
 								);
 								(Position $~)^
 								LockAttackers [
-									((Player PlayerId~)->(Units)->Attackers~ CheckFireZone~) ForEach
+									((Player PlayerId~)->(Resources)->(Units)->Attackers~ CheckFireZone~) ForEach
 								LockAttackers ]
 							);
 							(OnFire ())^

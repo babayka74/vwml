@@ -21,7 +21,7 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
  */
 public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 
-	private static int s_numOfOperationArgs = 2;
+	private static final int s_numOfOperationArgs = 2;
 	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {

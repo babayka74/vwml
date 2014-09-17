@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java.interpreter.datastructure.ring;
 
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
@@ -16,7 +17,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 * Increases node's index according to automata's specification
 	 * @param node
 	 */
-	public void incIndex(VWMLConflictRingNode node) {
+	public void incIndex(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) {
 		// increase 'index' on linked nodes
 		VWMLLinkIncrementalIterator it = node.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
@@ -24,8 +25,11 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				n.incSigma();
 				if (n == node) {
-					n.setLooped(true);
+					n.setLooped(interpreter.getRtNode());
 				}
+				//VWMLEntity term = interpreter.getRtNode().findInitialTerm();
+				//System.out.println("<" + term.getId() + ">" + node.getReadableId() + "(" + node.getSigma() + ")" + " -> " + n.getReadableId() + "(" + n.getSigma() + ")");
+				VWMLResourceHostManagerFactory.hostManagerInstance().remoteLock(interpreter, node, n);
 			}
 		}
 	}
@@ -34,7 +38,7 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	 * Decreases node's index according to automata's specification
 	 * @param node
 	 */
-	public void decIndex(VWMLConflictRingNode node) {
+	public void decIndex(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) {
 		// increase 'index' on linked nodes
 		VWMLLinkIncrementalIterator it = node.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
@@ -42,8 +46,11 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 				VWMLConflictRingNode n = (VWMLConflictRingNode)node.getLink().getConcreteLinkedEntity(it.getIt());
 				n.decSigma();
 				if (n == node) {
-					n.setLooped(false);
+					n.setLooped(null);
 				}
+				//VWMLEntity term = interpreter.getRtNode().findInitialTerm();
+				//System.out.println("<" + term.getId() + ">" + node.getReadableId() + "(" + node.getSigma() + ")" + " <- " + n.getReadableId() + "(" + n.getSigma() + ")");
+				VWMLResourceHostManagerFactory.hostManagerInstance().remoteUnlock(interpreter, node, n);
 			}
 		}
 	}
@@ -65,8 +72,9 @@ public abstract class VWMLConflictRingNodeAutomataAction {
 	/**
 	 * Resets input signal to IN_N	
 	 * @param interpreter
+	 * @param node
 	 */
-	public void resetInput(VWMLConflictRingNode node, VWMLInterpreterImpl interpreter) {
+	public void resetInput(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) {
 		if (interpreter.getObserver() != null) {
 			interpreter.getObserver().setConflictOperationalState((String)node.getId(), VWMLConflictRingNodeAutomataInputs.IN_N);
 			interpreter.getObserver().setActiveConflictContext(null);

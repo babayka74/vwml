@@ -234,8 +234,9 @@ public interface ICodeGenerator {
 	 * @param id
 	 * @param op
 	 * @param activeContext
+	 * @param opInfo
 	 */
-	public void associateOperation(Object id, String op, String activeContext);
+	public void associateOperation(Object id, String op, String activeContext, OperationInfo opInfo);
 	
 	/**
 	 * Set interpreting link between objects

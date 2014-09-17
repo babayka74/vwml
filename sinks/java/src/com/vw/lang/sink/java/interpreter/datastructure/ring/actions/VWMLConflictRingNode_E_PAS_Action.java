@@ -15,5 +15,4 @@ public class VWMLConflictRingNode_E_PAS_Action extends VWMLConflictRingNodeAutom
 	public void action(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) throws Exception {
 		throw new Exception("unreachable state reached; node '" + node.getId() + "'");
 	}
-
 }

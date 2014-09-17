@@ -12,6 +12,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
+import com.vw.lang.grammar.preprocessor.VWMLPreprocessor;
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
 import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
@@ -60,6 +61,22 @@ public final class VWML {
 			InterpretationProps ip = new InterpretationProps();
 			if (args.getDebug() != null && args.getDebug().equals("active")) {
 				ip.setActivateDebugger(true);
+			}
+			if (args.getIncludeDebugInfo() != null && args.getIncludeDebugInfo().equals("true")){
+				ip.setIncludeDebugInfo(true);
+			}
+			if (args.getDirectives().size() != 0) {
+				for(String directive : args.getDirectives()) {
+					String[] directiveStruct = directive.split("=");
+					if (directiveStruct != null) {
+						if (directiveStruct.length > 1) {
+							VWMLPreprocessor.addDirective(directiveStruct[0], directiveStruct[1]);
+						}
+						else {
+							VWMLPreprocessor.addDirective(directiveStruct[0], null);
+						}
+					}
+				}
 			}
 			ip.setInterpretationOfUndefinedEntityStrategyId(InterpretationOfUndefinedEntityStrategyId.fromValue(args.getEntityInterpretationStrategy()));
 			if (args.getInterpreterProps() != null) {
@@ -194,10 +211,15 @@ public final class VWML {
 		private String interpreterProps = null;
 		@Option(name="-addons", usage="comma separated properties list")
 		private String addons = null;
+		@Option(name="-p", usage="preprocessor's directives in format \"<directive>{=<value>}, ...\"")
+		private String preprocessorDirective = null;
+		@Option(name="-debuginfo", usage="includes debug info in case if true specified")
+		private String includeDebugInfo = null;
 		
 		 // receives other command line parameters than options
 	    @Argument
 	    private List<String> arguments = new ArrayList<String>();
+	    private List<String> directives = new ArrayList<String>();
 
 		public String getAddons() {
 			return addons;
@@ -247,6 +269,18 @@ public final class VWML {
 			this.entityInterpretationStrategy = entityInterpretationStrategy;
 		}
 
+		public String getPreprocessorDirective() {
+			return preprocessorDirective;
+		}
+
+		public void setPreprocessorDirective(String preprocessorDirective) {
+			this.preprocessorDirective = preprocessorDirective;
+		}
+		
+		public List<String> getDirectives() {
+			return directives;
+		}
+
 		public List<String> getArguments() {
 			return arguments;
 		}
@@ -255,10 +289,22 @@ public final class VWML {
 			this.arguments = arguments;
 		}
 
+		public String getIncludeDebugInfo() {
+			return includeDebugInfo;
+		}
+
+		public void setIncludeDebugInfo(String includeDebugInfo) {
+			this.includeDebugInfo = includeDebugInfo;
+		}
+
 		@Override
 		public String toString() {
-			return "VWMLArgs [mode=" + mode + ", entityInterpretationModes="
-					+ entityInterpretationStrategy + ", arguments=" + arguments
+			return "VWMLArgs [mode=" + mode + ", testMode=" + testMode
+					+ ", debug=" + debug + ", entityInterpretationStrategy="
+					+ entityInterpretationStrategy + ", interpreterProps="
+					+ interpreterProps + ", addons=" + addons
+					+ ", includeDebugInfo=" + includeDebugInfo
+					+ ", arguments=" + arguments + ", directives=" + directives
 					+ "]";
 		}
 	}
@@ -282,6 +328,12 @@ public final class VWML {
 		cmdParser.setUsageWidth(80);
 		try {
 			cmdParser.parseArgument(args);
+			if (vwmlArgs.getPreprocessorDirective() != null) {
+				String[] list = vwmlArgs.getPreprocessorDirective().split(",");
+				for(String directive : list) {
+					vwmlArgs.getDirectives().add(directive);
+				}
+			}
 			if (logger.isInfoEnabled()) {
 				logger.info("builder started; actual arguments are '" + vwmlArgs + "'");
 			}

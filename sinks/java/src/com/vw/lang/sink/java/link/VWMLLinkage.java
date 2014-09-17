@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.link;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
@@ -123,5 +124,9 @@ public class VWMLLinkage {
 			strategy = new UndefinedEntityAsEntityInterpretationStrategy();
 		}
 		strategy.postLinkProcessUndefinedEntities();
+	}
+	
+	public OperationInfo[] getOperationDebugInfo(Object uniqId) {
+		return null;
 	}
 }

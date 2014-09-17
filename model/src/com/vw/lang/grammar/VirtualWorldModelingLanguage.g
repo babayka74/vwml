@@ -43,11 +43,18 @@ tokens {
     OPCALLP='CallP';
     OPGET='Get';
     OPFIND='Find';
+    OPGATE='Gate';
+    OPRECALL='Recall';
+    OPREPEAT='Repeat';
+    OPACTIVATE='Activate';
     // languages
     JAVA='__java__';
     C='__c__';
     CPP='__cpp__';
     OBJECTIVEC='__objective_c__';
+    // DIRECTIVES
+    DIRECTIVE_DEBUG='#if_debug';
+    DIRECTIVE_ENDIF='#endif';
 }
 
 @header {
@@ -76,6 +83,9 @@ import com.vw.lang.sink.utils.GeneralUtils;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.code.JavaCodeGenerator;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
+
+// preprocessor
+import com.vw.lang.grammar.preprocessor.VWMLPreprocessor;
 
 // logger
 import org.apache.log4j.Logger;
@@ -109,6 +119,15 @@ package com.vw.lang.grammar;
 		}
 	}
 
+	protected static class VWMLDirective {
+	}
+	
+	protected static class VWMLSkipOffDirective extends VWMLDirective {
+	}
+
+	protected static class VWMLDebugDirective extends VWMLSkipOffDirective {
+	}
+
 	private VWMLModelBuilder vwmlModelBuilder = VWMLModelBuilder.instance();
 	private VWMLContextBuilder vwmlContextBuilder = VWMLContextBuilder.instance();
 	private VWMLContextBuilder.ContextBunch lastProcessedContextBunch = null;
@@ -132,6 +151,7 @@ package com.vw.lang.grammar;
  	private List<String> deferredIncludes = new ArrayList<String>();
  	private List<String> externalContexts = new ArrayList<String>();
  	private List<String> externalEntities = new ArrayList<String>();
+ 	private List<VWMLSkipOffDirective> skipOffDirectives = new ArrayList<VWMLSkipOffDirective>();
  	
  	private String lastProcessedIAS = null;
  	
@@ -416,7 +436,6 @@ package com.vw.lang.grammar;
     			}
     		}
     		else {
-    			System.out.println("???????????????????????????????? " + id);
     			// effective context on simple entity is equal '.' operator for complex entity
    			// adds effective context
    			addEffectiveContext(id);
@@ -654,6 +673,27 @@ package com.vw.lang.grammar;
 	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
 		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
+	}
+	
+	// DIRECTIVES
+	protected void pushSkipOffDirective(VWMLSkipOffDirective directive) {
+		boolean skipOffSwitch = !VWMLPreprocessor.isDebugDirectiveOn();
+		if (skipOffSwitch) {
+			skipOffDirectives.add(directive);
+		}
+	}
+	
+	protected VWMLSkipOffDirective popSkipOffDirective() {
+		VWMLSkipOffDirective d = null;
+		if (skipOffDirectives.size() != 0) {
+			skipOffDirectives.get(skipOffDirectives.size() - 1);
+			skipOffDirectives.remove(skipOffDirectives.size() - 1);
+		}
+		return d;
+	}
+	
+	protected boolean skipOff() {
+		return skipOffDirectives.size() != 0;
 	}
 }
 
@@ -925,6 +965,7 @@ module
     			vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null));
     			if (modProps != null) {
     				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
+	    			((JavaCodeGenerator.JavaModuleStartProps)modProps).setSourceName(getSourceName());
 	    			try {
 	    				if (codeGenerator == null) {
 	    					codeGenerator = modProps.getCodeGenerator();
@@ -952,17 +993,23 @@ body
 expression
     : (bunch_of_entity_decls IAS) => entity_def
     | check_term_def
+    | directives {System.out.println("Directive " + $directives.text);}
     ;
 
 entity_def
-    : bunch_of_entity_decls IAS {
-    			// adds entity id to context stack
-    			declareAbsoluteContextByIASRelation();
-    		      } (term)* SEMICOLON
-    		      {
-    		      	// removes top entity from stack
-    		      	handleProcessedAbsoluteContextbyIASRelation();
-    		      }
+    : bunch_of_entity_decls IAS
+    		{
+    			if (!skipOff()) {
+	    			// adds entity id to context stack
+	    			declareAbsoluteContextByIASRelation();
+    			}
+    		} (term)* SEMICOLON
+		{
+    		      	if (!skipOff()) {
+    		      		// removes top entity from stack
+    		      		handleProcessedAbsoluteContextbyIASRelation();
+    		      	}
+		}
     		      
     ;
 
@@ -973,104 +1020,127 @@ check_term_def
 
 source_lifetrerm
     : 'source' {
-    			if (logger.isDebugEnabled()) {
-    				logger.debug("source lifeterm indicator detected");
+    			if (!skipOff()) {
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("source lifeterm indicator detected");
+    				}
+    				sourceLifeTermDetectedFlag = true;
     			}
-    			sourceLifeTermDetectedFlag = true;
     	       }
     ;
 
 lifeterm_def
     :  term_def {
-    			if (logger.isInfoEnabled()) {
-    				logger.info("Lifeterm '" + lastProcessedEntity + "' found");
-    			}
-    			if (codeGenerator != null) {
-  	       			try {
-					codeGenerator.markEntityAsLifeTerm(lastProcessedEntity, sourceLifeTermDetectedFlag);
-					if (logger.isDebugEnabled()) {
-						logger.debug("entity '" + lastProcessedEntity + "' marked as lifeterm; is source '" + sourceLifeTermDetectedFlag + "'");
+    			if (!skipOff()) {
+    				if (logger.isInfoEnabled()) {
+    					logger.info("Lifeterm '" + lastProcessedEntity + "' found");
+    				}
+    				if (codeGenerator != null) {
+  	       				try {
+						codeGenerator.markEntityAsLifeTerm(lastProcessedEntity, sourceLifeTermDetectedFlag);
+						if (logger.isDebugEnabled()) {
+							logger.debug("entity '" + lastProcessedEntity + "' marked as lifeterm; is source '" + sourceLifeTermDetectedFlag + "'");
+						}
+						sourceLifeTermDetectedFlag = false;
 					}
-					sourceLifeTermDetectedFlag = false;
+					catch(Exception e) {
+						rethrowVWMLExceptionAsRecognitionException(e);
+					}
+	       			} 
+	       		}
+    		}
+    ;
+
+term_def
+    : entity 	{
+    			if (!skipOff()) {
+    				lastProcessedEntity = $entity.rel;
+    				lastProcessedEntityAsTerm = false;
+    				if (lastProcessedEntity != null && logger.isDebugEnabled()) {
+    					logger.debug(">> '" + lastProcessedEntity.getObj() + "' <<");
+    				}
+    			}
+    	     	} (oplist)* 
+  	     	{  
+  	       		if (lastProcessedEntityAsTerm && codeGenerator != null && !skipOff()) {
+  	       			try {
+  	       				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
+					if (logger.isDebugEnabled()) {
+						logger.debug("entity '" + lastProcessedEntity + "' checking term prop on contexts '" + contexts + "'");
+					}
+					codeGenerator.markEntityAsTerm(lastProcessedEntity, contexts.asStrings());
+					if (logger.isDebugEnabled()) {
+						logger.debug("entity '" + lastProcessedEntity + "' marked as term on contexts '" + contexts + "'");
+					}
 				}
 				catch(Exception e) {
 					rethrowVWMLExceptionAsRecognitionException(e);
 				}
 	       		} 
-    		}
-    ;
-
-term_def
-    : entity {
-    		lastProcessedEntity = $entity.rel;
-    		lastProcessedEntityAsTerm = false;
-    		if (lastProcessedEntity != null && logger.isDebugEnabled()) {
-    			logger.debug(">> '" + lastProcessedEntity.getObj() + "' <<");
-    		}
-    	     } (oplist)* 
-  	     {  	     
-  	       if (lastProcessedEntityAsTerm && codeGenerator != null) {
-  	       		try {
-  	       			VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
-				if (logger.isDebugEnabled()) {
-					logger.debug("entity '" + lastProcessedEntity + "' checking term prop on contexts '" + contexts + "'");
-				}
-				codeGenerator.markEntityAsTerm(lastProcessedEntity, contexts.asStrings());
-				if (logger.isDebugEnabled()) {
-					logger.debug("entity '" + lastProcessedEntity + "' marked as term on contexts '" + contexts + "'");
-				}
-			}
-			catch(Exception e) {
-				rethrowVWMLExceptionAsRecognitionException(e);
-			}
-	       } 
-	     }
+	     	}
     ;
 
 entity_decl
-    : simple_entity_decl  {
-    				if (!complexEntityNameBuilderDecl.isInProgress()) {
-    					lastProcessedContextBunch.add(ContextBunchElement.build($simple_entity_decl.id));
-    					if (logger.isDebugEnabled()) {
-    						logger.debug("+++++++++++++++++++++++ " + $simple_entity_decl.id);
-    					}
+    : simple_entity_decl
+    		{
+    			if (!skipOff() && !complexEntityNameBuilderDecl.isInProgress()) {
+    				lastProcessedContextBunch.add(ContextBunchElement.build($simple_entity_decl.id));
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("+++++++++++++++++++++++ " + $simple_entity_decl.id);
     				}
-    			  }
-    | complex_entity_decl {
-    				if (complexEntityNameBuilderDecl.isRootEntityFinishedProgress()) {
-  					Object id = complexEntityDeclarationPhase3();
-    					lastProcessedContextBunch.add(ContextBunchElement.build(id));
-     					if (logger.isDebugEnabled()) {
-    						logger.debug("+++++++++++++++++++++++ " + id);
-    					}
-    				}
-    			  }
+    			}
+    		}
+    | complex_entity_decl
+    		{
+    			if (!skipOff() && complexEntityNameBuilderDecl.isRootEntityFinishedProgress()) {
+  				Object id = complexEntityDeclarationPhase3();
+    				lastProcessedContextBunch.add(ContextBunchElement.build(id));
+    			}
+    		}
     ;
 
-
 bunch_of_entity_decls
-    @after {
-    	VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
-        vwmlContextBuilder.push(lastProcessedContextBunch);
-        if (logger.isDebugEnabled()) {
-        	logger.debug("Pushed '" + lastProcessedContextBunch + "'; parent contexts '" + contexts + "'");
-        }
-    }
-    : 	{    	
-    		lastProcessedContextBunch = VWMLContextBuilder.ContextBunch.instance();
-    		if (logger.isDebugEnabled()) {
-    			logger.debug("Created bunch");
+    @after 	{
+    			if (!skipOff()) {
+    				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
+        			vwmlContextBuilder.push(lastProcessedContextBunch);
+        			if (logger.isDebugEnabled()) {
+        				logger.debug("Pushed '" + lastProcessedContextBunch + "'; parent contexts '" + contexts + "'");
+        			}
+        		}
     		}
-	} entity_decl (COMMA entity_decl)*
+    : 
+    		{
+    			if (!skipOff()) {
+    				lastProcessedContextBunch = VWMLContextBuilder.ContextBunch.instance();
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("Created bunch");
+    				}
+    			}
+    		} entity_decl (COMMA entity_decl)*
     ;	
 
     
 simple_entity_decl returns [String id]
-    : ID { id = simpleEntityDeclaration($ID.getText()); }
+    : ID 	{
+    			if (!skipOff()) {
+    				id = simpleEntityDeclaration($ID.getText());
+    			}
+    		}
     ;
     
 complex_entity_decl
-    : '(' {complexEntityDeclarationPhase1();} (entity_decl)* {complexEntityDeclarationPhase2();} ')'
+    : '(' 	{
+    			if (!skipOff()) {
+    				complexEntityDeclarationPhase1();
+    			}
+    		} (entity_decl)*
+    		{
+    			if (!skipOff()) {
+    				complexEntityDeclarationPhase2();
+    			}
+    		}
+    	')'
     ;
 
 term
@@ -1078,39 +1148,52 @@ term
     ;  
 
 entity returns [EntityWalker.Relation rel]
-    : simple_entity         { 
-    				rel = $simple_entity.rel;
-    			    }
+    : simple_entity
+    		{ 
+    			rel = $simple_entity.rel;
+    		}
 
-    | complex_entity        { 
-    				rel = $complex_entity.rel;
-    			    }
-    | '.'                   {
-                            	processComplexContext(lastProcessedEntity);
-                            }
+    | complex_entity
+    		{ 
+    			rel = $complex_entity.rel;
+    		}
+    | '.'       {
+                	if (!skipOff()) {
+                		processComplexContext(lastProcessedEntity);
+                	}
+             	}
     ;
 
 
 simple_entity returns [EntityWalker.Relation rel]
-    : ID {
-    		rel = simpleEntityAssembling($ID.text);
-         }
+    : ID 	{
+    			if (!skipOff()) {
+    				rel = simpleEntityAssembling($ID.text);
+    			} else {
+    				rel = null;
+    			}
+         	}
     ;
 
 complex_entity returns [EntityWalker.Relation rel]
-    @init {
-    	complexEntityStartAssembling();
-    }
-    @after {
-        rel = complexEntityStopAssembling();
-    }
+    @init 	{
+    			if (!skipOff()) {
+    				complexEntityStartAssembling();
+    			}
+    		}
+    @after 	{
+    			if (!skipOff()) {
+        			rel = complexEntityStopAssembling();
+        		}
+    		}
     : '(' (term)* ')'
     ;
-    
-    
+
+
 ID
     : LETTER (LETTER | '.')* // ('a'..'z'|'A'..'Z'|'0'..'9'|'.'|'_'|'*'|'-')+
     ;
+
 
 STRING_LITERAL
     :  '"' ( ~('"') )* '"'
@@ -1118,14 +1201,22 @@ STRING_LITERAL
 
 oplist
     // associates operation with entity
-    : opclist       {
-    			if (lastProcessedEntity != null && codeGenerator != null) { 
+    : opclist
+    		{
+    			if (!skipOff() && lastProcessedEntity != null && codeGenerator != null) { 
     				lastProcessedEntityAsTerm = true;
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
     				String c = contexts.first();
-    				codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, c);
+    				com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
+    				org.antlr.runtime.Token nextToken = getTokenStream().LT(1);
+    				opInfo.setOpCode($opclist.text);
+    				opInfo.setLine(nextToken.getLine());
+    				opInfo.setPosition(nextToken.getCharPositionInLine());
+    				opInfo.setFileName(getSourceName());
+    				opInfo.setNextToken(nextToken.getText());
+    				codeGenerator.associateOperation(lastProcessedEntity, $opclist.text, c, opInfo);
     			} 
-    		    }
+    		}
     ;
 
 opclist
@@ -1163,7 +1254,22 @@ opclist
     | OPCALLP
     | OPGET
     | OPFIND
+    | OPGATE
+    | OPRECALL
+    | OPREPEAT
+    | OPACTIVATE
     ;
+
+directives
+     : DIRECTIVE_DEBUG
+     		{
+     			pushSkipOffDirective(new VWMLDebugDirective());
+     		}
+     | DIRECTIVE_ENDIF
+     		{
+     			popSkipOffDirective();
+     		}
+     ;
 
 termLanguages
     : JAVA
@@ -1175,7 +1281,7 @@ termLanguages
 string
     : STRING_LITERAL
     ;
-    
+        
 COMMA
     : ','
     ;
@@ -1204,7 +1310,6 @@ COMMENT
 LINE_COMMENT
     : '//' ~('\n'|'\r')* '\r'? '\n' {$channel=HIDDEN;}
     ;
-
 
 fragment
 LETTER

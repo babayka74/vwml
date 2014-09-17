@@ -1,0 +1,54 @@
+module PathFinder {
+	MagicWorld ias (
+		PathFinder ias (
+			PlayerId ias nil;
+			FromUnit ias nil;
+			ToUnit ias nil;
+			/* removes path, created from last attacker's position (state), from units' shared path (UnitsStateSet) */
+			UpdateUnitsSharedPath ias (
+				RecalculatePathToAttacker ias (
+					TResult ias doNothing;
+					TTargetDestroyed ias doNothing;
+					(TSeqStates ())^
+					(TUnitsStateState ())^
+					(TRequestedSteps ())^
+					(TTargetsToBeDestroyed ())^
+					(TRequestedSteps ())^
+					(TNumOfRequestedSteps 1000)^
+					(TNoSteps false)^
+					(Characters)->(Unit $~)->GetCurrentPosition~ Exe
+					(TGoals ((Characters)->(Unit $~)->CurrentPosition~))^
+					(Characters)->(Unit FromUnit~)->GetCurrentPosition~ Exe
+					(TState (Characters)->(Unit FromUnit~)->CurrentPosition~)^
+					/* calculates path to another attacker; this path is substracted from shared units' path */
+					((LLLLLL TState~ TGoals~ (Characters)->(Unit FromUnit~)->CurrentPosition~) Ew.Output~) Do
+					((TGoals
+						TTargetsToBeDestroyed
+						TState
+						TUnitsStateState
+						TSeqStates
+						TResult
+						TTargetDestroyed
+						Ew.DecValue
+						TRequestedSteps
+						TNumOfRequestedSteps
+						TNoSteps                     	
+						FromUnit
+						true) (DpfSearchMkAParallelEx FromUnit~)~) CallP
+					((MMMMM) Ew.Output~) Do
+					/* removes from shared path */
+					LockSharedStates [
+						((Player PlayerId~)->(Resources)->(Units)->UnitsStateSet ((Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~ TRequestedSteps~) Substruct)^
+						((Movement to attacker $~ is TRequestedSteps~ and new shared movement is (Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~) Ew.Output~) Do
+					LockSharedStates ]
+				);
+				UpdatePath ias (
+					(Ignore true) ias doNothing;
+					(Ignore false) ias RecalculatePathToAttacker~ Exe;
+					(Ignore ($~ AttackedAttacker~) Ident)~ Exe
+				);
+				((Player PlayerId~)->(Resources)->(Units)->Attackers~ UpdatePath~) ForEach
+			);
+		);
+	);
+}

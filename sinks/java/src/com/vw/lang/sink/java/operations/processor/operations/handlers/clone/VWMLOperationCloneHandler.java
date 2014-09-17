@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.clone;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLCloneFactory;
@@ -9,10 +8,9 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
 
@@ -78,33 +76,6 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	}
 	
 	private void activateSourceLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
-		// lookup for original
-		VWMLEntity p = clonedSourceLft;
-		while(p.getClonedFrom() != null) {
-			p = p.getClonedFrom();
-		}
-		VWMLConflictRingExecutionGroup group = interpreter.getRing().findGroupByEntityContext(p.getContext().getContext(), true);
-		if (group == null) {
-			throw new Exception("couldn't ring find group by context '" + clonedSourceLft.getContext().getContext() + "'");
-		}
-		VWMLConflictRingNode ringGroupMasterNode = group.findMasterNode();
-		if (ringGroupMasterNode == null) {
-			ringGroupMasterNode = group.findMasterInAnyCase();
-			if (ringGroupMasterNode == null) {
-				throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
-			}
-		}
-		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
-		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
-		tl.add(clonedSourceLft);
-		VWMLConflictRingNode clonedNode = ringGroupMasterNode.clone(clonedInterpreter);
-		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
-		// needed when resources should be released
-		clonedInterpreter.setClonedFromEntity(cloned);
-		clonedInterpreter.setCloned(true);
-		clonedInterpreter.setTerms(tl);
-		clonedNode.setExecutionGroup(group);
-		group.add(clonedNode);
-		clonedInterpreter.start();
+		VWMLOperationUtils.activateTerm(interpreter, cloned, clonedSourceLft);
 	}	
 }

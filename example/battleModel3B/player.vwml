@@ -1,0 +1,182 @@
+include "playerattack.vwml"
+include "playerdeal.vwml"
+
+module Player {
+	MagicWorld ias (
+		Player ias (
+			AvailableModes ias (wait attack deal);
+			AvailablePlayerCommandsOnModeAttack ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
+			AvailablePlayerCommandsOnModeWait   ias (setmode);
+			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution);
+			Mode ias wait;
+			Id ias nil;
+			Stop ias false;
+			Resources ias (
+				/* available units */
+				Units ias (
+					LastAttackerDestroyed ias true;
+					LastDefenderDestroyed ias true;
+					Attackers ias ();
+					Defenders ias ();
+					/* shared entity which stores units' current state (position) */
+					UnitsStateSet ias ();
+					UnitsStateSetLocker ias nil;
+				);
+				/* controlled/own/visible quartals */
+				Quartals ias (
+					/* player is owner, at least, of one quartal */
+					Own ias nil;
+					/* set of quartals controlled by player */
+					Controlled ias ();
+					/* player knows about these quartals but doesn't have control upon them */
+					Visible ias ();
+				);
+				/* Account's information */
+				Account ias (
+					Value ias nil;
+					Result ias false;
+					Init ias (
+						/* by resource type */
+						AssociateByRt ias (
+							(Type ($~ 0) Get)^
+							((Rt Type~) ($~ 1) Get)^
+							((Rt Type~) Account true) Context
+							((Player Id~ initialized with resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
+						);
+						(Ew.QuartalsConf.ResourceTypes~ AssociateByRt~) ForEach
+					);
+					Recharge ias (
+						(ByRtType (Rt (Value~ 1) Get))^
+						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sum~) Do)^
+						(Result true)^
+						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do 
+					);
+					Withdraw ias (
+						(Allow -1) ias (
+							(Result false)^
+							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (Value~ 2) Get) Ew.Output~) Do
+						);
+						(Allow 0),(Allow 1) ias (
+							(Result true)^
+							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sub~) Do)^
+							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do 
+						);
+						(ByRtType (Rt (Value~ 1) Get))^
+						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
+					);
+				);
+			);
+			StopAllUnits ias (
+				CheckForUnitsCompletition ias (
+					Check ias (
+						(CheckForUnits WaitForUnitsCompletitionLock [ (Resources.Units.LastAttackerDestroyed~ true) Ident (Resources.Units.LastDefenderDestroyed~ true) Ident WaitForUnitsCompletitionLock ])~ Exe
+					);
+					// wait for all units
+					(CheckForUnits false false),(CheckForUnits true false),(CheckForUnits false true) ias Check~ Exe;
+					(CheckForUnits true true) ias doNothing;
+					Check~ Exe
+				);
+				StopUnits ias (
+					StopUnit ias (
+						(Services.(SignalUnit Player Id~)->PlayerId Id~)^
+						(Services.(SignalUnit Player Id~)->To $~)^
+						(Services.(SignalUnit Player Id~)->CommandId kill)^
+						(Services.(SignalUnit Player Id~)->CommandParams ())^
+						Services.(SignalUnit Player Id~)~ Exe
+						((The player Id~ sent kill signal to unit $~) Ew.Output~) Do
+					);
+					($~ StopUnit~) ForEach
+				);
+				(Stop true)^
+				((The player Id~ is going to be stopped) Ew.Output~) Do
+				(CombinedUnits (Resources.Units.Attackers~ Resources.Units.Defenders~))^
+				((The player Id~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
+				(CombinedUnits~ StopUnits~) ForEach
+				((The player Id~ waits for units completition) Ew.Output~) Do
+				CheckForUnitsCompletition~ Exe
+				((The player Id~ all units finished) Ew.Output~) Do
+			);
+			HandlePlayerCommandOnModeAttack ias (
+				(Attack.CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(Attack.To (CommandDispatcher.Dispatch~ 1) Get)^
+				(Attack.CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				Attack~ Exe
+				PlayerLifeStep~ Exe
+			);
+			HandlePlayerCommandOnModeWait ias (
+				(Handle setmode) ias (
+					(RightMode false) ias doNothing;
+					(RightMode true) ias (
+						(Mode CommandParams~)^
+						((The player Id~ mode is Mode~) Ew.Output~) Do
+					);
+					(RightMode (AvailableModes~ CommandParams~) In)~ Exe
+				);
+				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Handle CommandId~)~ Exe
+				PlayerLifeStep~ Exe
+			);
+			HandlePlayerCommandOnModeDeal ias (
+				(Deal.CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(Deal.CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				Deal~ Exe
+				PlayerLifeStep~ Exe
+			);
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				CommandSet ias nil;
+				Handler ias nil;
+				CheckAndHandleCommand ias (
+					(RightCommand true) ias Handler~ Exe;
+					(RightCommand false) ias PlayerLifeStep~ Exe;
+					((The player Id~ received command Dispatch~ to dispatch) Ew.Output~) Do
+					(RightCommand (CommandSet~ (Dispatch~ 0) Get) In)~ Exe
+				);
+				(mode wait) ias (
+					(CommandSet AvailablePlayerCommandsOnModeWait~)^
+					(Handler HandlePlayerCommandOnModeWait~)^
+				);
+				(mode deal) ias (
+					(CommandSet AvailablePlayerCommandsOnModeDeal~)^
+					(Handler HandlePlayerCommandOnModeDeal~)^
+				);
+				(mode attack) ias (
+					(CommandSet AvailablePlayerCommandsOnModeAttack~)^
+					(Handler HandlePlayerCommandOnModeAttack~)^
+				);
+				(mode Mode~)~ Exe
+				CheckAndHandleCommand~ Exe
+			);
+			/* Player's lifestep */
+			PlayerLifeStep ias (
+				(Stop false) ias (
+					(ready false) ias (
+						(CommandDispatcher.Dispatch nil)^
+						PlayerLifeStep~ Exe
+					);
+					(ready true) ias (
+						(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
+						CommandDispatcher~ Exe
+					);
+					(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
+				);
+				(Stop true) ias (
+					StopAllUnits~ Exe
+					((The player Id~ stopped) Ew.Output~) Do
+				);
+				(Stop StopTheWorld~)~ Exe
+			);
+			lifeterm = (
+				((The player Id~ added and active) Ew.Output~) Do
+				(Resources.Quartals.Controlled ())^
+				(Resources.Quartals.Visible ())^
+				(Resources.Units.Attackers ())^
+				(Resources.Units.Defenders ())^
+				Resources.Account.Init~ Exe
+				(Services.SignalUnit Services.(SignalUnit Player Id~)) Born
+				PlayerLifeStep~ Exe
+			) Exe
+		);
+	);
+}

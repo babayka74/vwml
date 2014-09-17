@@ -14,6 +14,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationsCode;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.activate.VWMLOperationActivateHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.activatectx.VWMLOperationActivateContextHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.applytoctx.VWMLOperationApplyToContextHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.begin.VWMLOperationBeginHandler;
@@ -30,6 +31,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOp
 import com.vw.lang.sink.java.operations.processor.operations.handlers.find.VWMLOperationFindHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.first.VWMLOperationFirstHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.foreach.VWMLOperationForEachHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.gate.VWMLOperationGateHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.get.VWMLOperationGetHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.ident.VWMLOperationIdentHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.implicit.assemble.VWMLOperationImplicitAssembleHandler;
@@ -42,7 +44,9 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.join.VWMLO
 import com.vw.lang.sink.java.operations.processor.operations.handlers.last.VWMLOperationLastHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.onfringe.VWMLOperationOnFringeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.random.VWMLOperationRandomHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.recall.VWMLOperationRecallHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWMLOperationRelaxHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.repeat.VWMLOperationRepeatHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.rest.VWMLOperationRestHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.size.VWMLOperationSizeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.substruct.VWMLOperationSubstructHandler;
@@ -92,6 +96,10 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPCALLP),   				new VWMLOperationCallPHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPGET),   					new VWMLOperationGetHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPFIND),   				new VWMLOperationFindHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPGATE),   				new VWMLOperationGateHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPRECALL),   				new VWMLOperationRecallHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPREPEAT),   				new VWMLOperationRepeatHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATE),   			new VWMLOperationActivateHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());
@@ -141,7 +149,7 @@ public class VWMLOperationProcessor {
 		catch(Exception e) {
 			e.printStackTrace();
 			reportException(context, operation, e);
-			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'; operation '" + operation + "'");
+			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'; operation '" + operation + "'; debug info '" + operation.getDebugInfo() + "'");
 		}
 	}
 	

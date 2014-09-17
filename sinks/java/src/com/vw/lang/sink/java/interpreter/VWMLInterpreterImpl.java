@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLObject;
@@ -68,8 +69,15 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	private VWMLInterpreterImpl masterInterpreter = null;
 	// forced context is used on child interpreters, which are activated during some types of operations like forEach and ':'
 	private VWMLContext forcedContext = null;
-	// delayed task can be executed by interpreter on next iteration step
-	private VWMLInterpreterDeferredTask delayedTask = null;
+	// delayed tasks can be executed by interpreter on next iteration step
+	private List<VWMLInterpreterDeferredTask> delayedTasks = new ArrayList<VWMLInterpreterDeferredTask>();
+	// in case 'true' interpreter's data should be normalized.
+	// Parallel interpreter itself normalizes data and passes them to underlied reactive interpreters
+	private boolean normalization = true;
+	// used when new ring is created and new node is associated with cloned term
+	private boolean releaseClonedResource = false;
+	// clones master in case if implicit master is available only (usually used by parallel interpreter when new ring is activated)
+	private boolean cloneMasterOnSLFTermActivation = false;
 	
 	public VWMLInterpreterImpl() {
 		super("interpreter");
@@ -97,6 +105,13 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public VWMLContext getForcedContext() {
 		return forcedContext;
+	}
+
+	/**
+	 * Moves interpreter to another master
+	 */
+	public void move(VWMLInterpreterImpl master) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	
 	/**
@@ -128,6 +143,40 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	 * @throws Exception
 	 */
 	public void conditionalLoop(VWMLInterpreterListener listener) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+
+	/**
+	 * Asks interpreter for new activity
+	 * @param ringTerms
+	 * @param clonedFrom
+	 */
+	public void newActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+
+	/**
+	 * Runs one step execution process
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean oneStep() throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+
+	/**
+	 * Given node is be blocked on interpretation during oneStep
+	 * @param node
+	 */
+	public void addBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+
+	/**
+	 * Given node is be unblocked on interpretation during oneStep
+	 * @param node
+	 */
+	public void removeBlockedOnInterpretation(VWMLConflictRingNode node) throws Exception {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	
@@ -230,11 +279,16 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	}
 
 	public VWMLInterpreterDeferredTask getDeferredTask() {
-		return delayedTask;
+		VWMLInterpreterDeferredTask task = null;
+		if (delayedTasks.size() != 0) {
+			task = delayedTasks.get(0);
+			delayedTasks.remove(task);
+		}
+		return task;
 	}
 
 	public void setDeferredTask(VWMLInterpreterDeferredTask delayedTask) {
-		this.delayedTask = delayedTask;
+		delayedTasks.add(delayedTask);
 	}
 
 	public void pushInterpreterToChildStack(VWMLInterpreterImpl interpreter) {
@@ -303,5 +357,29 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 
 	public void setPushed(boolean pushed) {
 		this.pushed = pushed;
+	}
+
+	public boolean isNormalization() {
+		return normalization;
+	}
+
+	public void setNormalization(boolean normalization) {
+		this.normalization = normalization;
+	}
+
+	public boolean isReleaseClonedResource() {
+		return releaseClonedResource;
+	}
+
+	public void setReleaseClonedResource(boolean releaseClonedResource) {
+		this.releaseClonedResource = releaseClonedResource;
+	}
+
+	public boolean isCloneMasterOnSLFTermActivation() {
+		return cloneMasterOnSLFTermActivation;
+	}
+
+	public void setCloneMasterOnSLFTermActivation(boolean cloneMasterOnSLFTermActivation) {
+		this.cloneMasterOnSLFTermActivation = cloneMasterOnSLFTermActivation;
 	}
 }

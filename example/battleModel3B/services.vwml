@@ -1,0 +1,51 @@
+module Services {
+	MagicWorld ias (
+		Services ias (
+			SignalUnit ias (
+				PlayerId ias nil;
+				To ias nil;
+				CommandId ias nil;
+				CommandParams ias nil;
+				((Characters)->(Unit To~) Tx (PlayerId~ CommandId~ To~ CommandParams~)) Gate
+			);
+			PositionChecker ias (
+				Init ias doNothing;
+				CheckPosition ias (
+					(RightPosition true) ias (
+						(PosToBeSet~ PosToBeChecked~)^
+						(PosToBeChecked~ Ew.Maze true) Context
+					);
+					(RightPosition false) ias (
+						(PosToBeSet~ nil)^
+						((The pos PosToBeChecked~ does not belong to maze for unit Id~) Ew.Output~) Do
+					);
+					PosToBeChecked ias nil;
+					PosToBeSet ias nil;
+					OnMaze ias nil;
+					(RightPosition (OnMaze~ PosToBeChecked~) In)~ Exe
+ 				);
+				CheckGoalPositions ias (
+					Correct ias true;
+					T ias nil;
+					RollbackGoals ias ();
+					CheckGoal ias (
+						(NotCorrectGoal true) ias (
+							(Correct false)^
+							((The goals Goals~ are invalid for unit Id~) Ew.Output~) Do
+							(Goals RollbackGoals~)^
+							($ doNothing)^
+						);
+						(NotCorrectGoal false) ias doNothing;
+						(CheckPosition.PosToBeChecked $~)^
+						(CheckPosition.PosToBeSet T)^
+						(CheckPosition.OnMaze Ew.Maze.Nodes~)^
+						((Checking CheckPosition.PosToBeChecked~) Ew.Output~) Do
+						CheckPosition~ Exe
+						(NotCorrectGoal (T~ nil) Ident)~ Exe
+					);
+					(Goals~ CheckGoal~) ForEach
+				);
+			);
+		);
+	);
+}

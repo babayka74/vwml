@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.operations;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
@@ -11,7 +12,10 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
@@ -116,7 +120,7 @@ public class VWMLOperationUtils {
 	}
 	
 	/**
-	 * Activates term on separated interpreter
+	 * Activates term on separated interpreter, but current node is blocked
 	 * @param interpreter
 	 * @param component
 	 * @param term
@@ -175,6 +179,99 @@ public class VWMLOperationUtils {
 	}
 	
 	/**
+	 * Activates cloned term
+	 * @param ring
+	 * @param interpreter
+	 * @param cloned
+	 * @param clonedSourceLft
+	 * @throws Exception
+	 */
+	public static void activateClonedTerm(VWMLConflictRing ring, VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
+		// lookup for original
+		VWMLEntity p = clonedSourceLft;
+		while(p.getClonedFrom() != null) {
+			p = p.getClonedFrom();
+		}
+		VWMLConflictRingExecutionGroup group = ring.findGroupByEntityContext(p.getContext().getContext(), true);
+		if (group == null) {
+			throw new Exception("couldn't ring find group by context '" + clonedSourceLft.getContext().getContext() + "'");
+		}
+		VWMLConflictRingNode ringGroupMasterNode = findRingMasterNodeByGroup(group);
+		if (ringGroupMasterNode == null) {
+			throw new Exception("couldn't find ring node by context '" + clonedSourceLft.getContext().getContext() + "'");
+		}
+		VWMLInterpreterImpl clonedInterpreter = interpreter.clone();
+		if (interpreter.getMasterInterpreter() != ring.getRingInitialInterpreter()) {
+			clonedInterpreter.move(ring.getRingInitialInterpreter());
+		}
+		List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
+		tl.add(clonedSourceLft);
+		VWMLConflictRingNode clonedNode = ringGroupMasterNode.clone(clonedInterpreter);
+		// interpreter was instantiated as result of cloning entity => cloned.getClonedFrom()
+		// needed when resources should be released
+		clonedInterpreter.setClonedFromEntity(cloned);
+		clonedInterpreter.setCloned(true);
+		clonedInterpreter.setTerms(tl);
+		clonedNode.setExecutionGroup(group);
+		group.add(clonedNode);
+		clonedInterpreter.start();
+	}
+
+	/**
+	 * Activates given term; current node is not blocked; general case for activateClonedTerm method; takes 'real parallelism' into consideration
+	 * @param interpreter
+	 * @param context - context
+	 * @param term - (source | life | any); in case 'any' => term.getInterpreting;
+	 * @throws Exception
+	 */
+	public static void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
+		VWMLConflictRing operationalRing = null;
+		if (interpreter.isPushed()) {
+			if (interpreter.getRtNode() == null) {
+				throw new Exception("interpreter '" + interpreter + "' doesn't have associated RT node; context '" + context.getContext() + "'");
+			}
+			interpreter = interpreter.getRtNode().firstPushedInterpreter();
+			if (interpreter == null) {
+				throw new Exception("Didn't find first pushed interpreter; context '" + context.getContext() + "'");
+			}
+		}
+		operationalRing = VWMLResourceHostManagerFactory.hostManagerInstance().findMostFreeRing(interpreter.getConfig());
+		if (operationalRing == null) {
+			// all rings are overloaded; new one should be created
+			VWMLInterpreterImpl ii = interpreter;
+			while(ii.getMasterInterpreter() != null) {
+				ii = ii.getMasterInterpreter();
+			}
+			List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
+			tl.add(term);
+			ii.newActivity(tl, context);
+		}
+		else {
+			if (operationalRing != interpreter.getRing()) {
+				// sends message to add node and to activate it on another ring
+				System.out.println("Expand ring '" + operationalRing + "'");
+				operationalRing.askActivateNode(interpreter, context, term);
+			}
+			else {
+				VWMLOperationUtils.activateClonedTerm(operationalRing, interpreter, context, term);
+			}
+		}
+	}
+	
+	/**
+	 * Lookups for ring's master node based on given group
+	 * @param group
+	 * @return
+	 */
+	public static VWMLConflictRingNode findRingMasterNodeByGroup(VWMLConflictRingExecutionGroup group) {
+		VWMLConflictRingNode ringGroupMasterNode = group.findMasterNode();
+		if (ringGroupMasterNode == null) {
+			ringGroupMasterNode = group.findMasterInAnyCase();
+		}
+		return ringGroupMasterNode;
+	}
+	
+	/**
 	 * Returns entity which is related to argument entity, argument entity has format => ${arg place in complex entity}; used by CallP operation
 	 * @param interpreter
 	 * @param entity
@@ -183,27 +280,15 @@ public class VWMLOperationUtils {
 	public static VWMLEntity getRelatedEntityByArgument(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
 		VWMLEntity e = null;
 		if (entity.getAsArgPair() != null) {
-			if (entity.getAsArgPair().getArgAsRef() == null) {
-				if (entity.getAsArgPair().getPlaceNumber() != null &&
-					interpreter.getInterpretingEntityForArgEntity() != null &&
-					interpreter.getInterpretingEntityForArgEntity().isMarkedAsComplexEntity() &&
-					entity.isRecursiveInterpretationOnOriginal()) {
-					VWMLComplexEntity args = (VWMLComplexEntity)interpreter.getInterpretingEntityForArgEntity();
-					int num = Integer.valueOf(entity.getAsArgPair().getPlaceNumber());
-					if (num >= args.getLink().getLinkedObjectsOnThisTime()) {
-						throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getId() + "'");
-					}
-					e = (VWMLEntity)args.getLink().getConcreteLinkedEntity(num);
-					entity.getAsArgPair().setArgAsRef(e);
-				}
+			VWMLComplexEntity args = (VWMLComplexEntity)interpreter.getInterpretingEntityForArgEntity();
+			int num = Integer.valueOf(entity.getAsArgPair().getPlaceNumber());
+			if (num >= args.getLink().getLinkedObjectsOnThisTime()) {
+				throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getId() + "'");
 			}
-			else {
-				e = (VWMLEntity)entity.getAsArgPair().getArgAsRef();				
-			}
+			e = (VWMLEntity)args.getLink().getConcreteLinkedEntity(num);
 		}
 		return e;
 	}
-	
 	
 	private static void addToRepository(VWMLContext context, VWMLEntity newComplexEntity) throws Exception {
 		VWMLObjectsRepository.instance().remove(newComplexEntity);

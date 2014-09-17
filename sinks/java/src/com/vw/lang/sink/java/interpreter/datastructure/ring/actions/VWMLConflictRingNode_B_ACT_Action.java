@@ -13,10 +13,11 @@ public class VWMLConflictRingNode_B_ACT_Action extends VWMLConflictRingNodeAutom
 
 	@Override
 	public void action(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node) throws Exception {
+		node.setNodeInConflict(true);
 		// increase 'index' on linked nodes
-		incIndex(node);
+		incIndex(interpreter, node);
 		// resets input
-		resetInput(node, interpreter);
+		resetInput(interpreter, node);
 		// commands interpreter to perform next interpretation step
 		nextStep(interpreter);
 	}
