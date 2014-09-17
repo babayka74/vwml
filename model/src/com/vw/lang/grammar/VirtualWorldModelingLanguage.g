@@ -46,6 +46,7 @@ tokens {
     OPGATE='Gate';
     OPRECALL='Recall';
     OPREPEAT='Repeat';
+    OPACTIVATE='Activate';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1256,6 +1257,7 @@ opclist
     | OPGATE
     | OPRECALL
     | OPREPEAT
+    | OPACTIVATE
     ;
 
 directives

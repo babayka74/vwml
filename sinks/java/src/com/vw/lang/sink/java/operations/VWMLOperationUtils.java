@@ -12,6 +12,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -119,7 +120,7 @@ public class VWMLOperationUtils {
 	}
 	
 	/**
-	 * Activates term on separated interpreter
+	 * Activates term on separated interpreter, but current node is blocked
 	 * @param interpreter
 	 * @param component
 	 * @param term
@@ -216,6 +217,47 @@ public class VWMLOperationUtils {
 		clonedInterpreter.start();
 	}
 
+	/**
+	 * Activates given term; current node is not blocked; general case for activateClonedTerm method; takes 'real parallelism' into consideration
+	 * @param interpreter
+	 * @param context - context
+	 * @param term - (source | life | any); in case 'any' => term.getInterpreting;
+	 * @throws Exception
+	 */
+	public static void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
+		VWMLConflictRing operationalRing = null;
+		if (interpreter.isPushed()) {
+			if (interpreter.getRtNode() == null) {
+				throw new Exception("interpreter '" + interpreter + "' doesn't have associated RT node; context '" + context.getContext() + "'");
+			}
+			interpreter = interpreter.getRtNode().firstPushedInterpreter();
+			if (interpreter == null) {
+				throw new Exception("Didn't find first pushed interpreter; context '" + context.getContext() + "'");
+			}
+		}
+		operationalRing = VWMLResourceHostManagerFactory.hostManagerInstance().findMostFreeRing(interpreter.getConfig());
+		if (operationalRing == null) {
+			// all rings are overloaded; new one should be created
+			VWMLInterpreterImpl ii = interpreter;
+			while(ii.getMasterInterpreter() != null) {
+				ii = ii.getMasterInterpreter();
+			}
+			List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
+			tl.add(term);
+			ii.newActivity(tl, context);
+		}
+		else {
+			if (operationalRing != interpreter.getRing()) {
+				// sends message to add node and to activate it on another ring
+				System.out.println("Expand ring '" + operationalRing + "'");
+				operationalRing.askActivateNode(interpreter, context, term);
+			}
+			else {
+				VWMLOperationUtils.activateClonedTerm(operationalRing, interpreter, context, term);
+			}
+		}
+	}
+	
 	/**
 	 * Lookups for ring's master node based on given group
 	 * @param group

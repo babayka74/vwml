@@ -1,6 +1,5 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.clone;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLCloneFactory;
@@ -9,8 +8,6 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
-import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
@@ -79,27 +76,6 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	}
 	
 	private void activateSourceLifeTerm(VWMLInterpreterImpl interpreter, VWMLEntity cloned, VWMLEntity clonedSourceLft) throws Exception {
-		VWMLConflictRing operationalRing = null;
-		operationalRing = VWMLResourceHostManagerFactory.hostManagerInstance().findMostFreeRing(interpreter.getConfig());
-		if (operationalRing == null) {
-			// all rings are overloaded; new one should be created
-			VWMLInterpreterImpl ii = interpreter;
-			while(ii.getMasterInterpreter() != null) {
-				ii = ii.getMasterInterpreter();
-			}
-			List<VWMLEntity> tl = new ArrayList<VWMLEntity>();
-			tl.add(clonedSourceLft);
-			ii.newActivity(tl, cloned);
-		}
-		else {
-			if (operationalRing != interpreter.getRing()) {
-				// sends message to add node and to activate it on another ring
-				System.out.println("Expand ring '" + operationalRing + "'");
-				operationalRing.askActivateNode(interpreter, cloned, clonedSourceLft);
-			}
-			else {
-				VWMLOperationUtils.activateClonedTerm(operationalRing, interpreter, cloned, clonedSourceLft);
-			}
-		}
+		VWMLOperationUtils.activateTerm(interpreter, cloned, clonedSourceLft);
 	}	
 }
