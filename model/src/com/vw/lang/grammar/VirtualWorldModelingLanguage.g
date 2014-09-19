@@ -53,8 +53,12 @@ tokens {
     CPP='__cpp__';
     OBJECTIVEC='__objective_c__';
     // DIRECTIVES
-    DIRECTIVE_DEBUG='#if_debug';
-    DIRECTIVE_ENDIF='#endif';
+    P_DEBUG  = '#if_debug';
+    P_IF     = '#if';
+    P_ELSE   = '#else';
+    P_ENDIF  = '#endif';
+    P_OP_AND = '&';
+    P_OP_OR  = '|';
 }
 
 @header {
@@ -86,6 +90,7 @@ import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 
 // preprocessor
 import com.vw.lang.grammar.preprocessor.VWMLPreprocessor;
+import com.vw.lang.grammar.preprocessor.VWMLPreprocessor.VWMLPreprocessorIfDirective;
 
 // logger
 import org.apache.log4j.Logger;
@@ -104,6 +109,9 @@ package com.vw.lang.grammar;
     catch (RecognitionException e) {
         throw e;
     }
+    catch (Exception e) {
+    	rethrowVWMLExceptionAsRecognitionException(e);
+    }
 }
 
 
@@ -117,15 +125,6 @@ package com.vw.lang.grammar;
 		public VWMLCodeGeneratorRecognitionException(String message) {
 			initCause(new Throwable(message));
 		}
-	}
-
-	protected static class VWMLDirective {
-	}
-	
-	protected static class VWMLSkipOffDirective extends VWMLDirective {
-	}
-
-	protected static class VWMLDebugDirective extends VWMLSkipOffDirective {
 	}
 
 	private VWMLModelBuilder vwmlModelBuilder = VWMLModelBuilder.instance();
@@ -151,7 +150,7 @@ package com.vw.lang.grammar;
  	private List<String> deferredIncludes = new ArrayList<String>();
  	private List<String> externalContexts = new ArrayList<String>();
  	private List<String> externalEntities = new ArrayList<String>();
- 	private List<VWMLSkipOffDirective> skipOffDirectives = new ArrayList<VWMLSkipOffDirective>();
+ 	private VWMLPreprocessor preprocessor = VWMLPreprocessor.instance();
  	
  	private String lastProcessedIAS = null;
  	
@@ -675,25 +674,15 @@ package com.vw.lang.grammar;
 		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
 	}
 	
-	// DIRECTIVES
-	protected void pushSkipOffDirective(VWMLSkipOffDirective directive) {
-		boolean skipOffSwitch = !VWMLPreprocessor.isDebugDirectiveOn();
-		if (skipOffSwitch) {
-			skipOffDirectives.add(directive);
+	// DIRECTIVES	
+	protected boolean skipOff() throws RecognitionException {
+		try {
+			return !preprocessor.getResultOfProcessingDirectiveIf();
 		}
-	}
-	
-	protected VWMLSkipOffDirective popSkipOffDirective() {
-		VWMLSkipOffDirective d = null;
-		if (skipOffDirectives.size() != 0) {
-			skipOffDirectives.get(skipOffDirectives.size() - 1);
-			skipOffDirectives.remove(skipOffDirectives.size() - 1);
+		catch(Exception e) {
+			rethrowVWMLExceptionAsRecognitionException(e);
 		}
-		return d;
-	}
-	
-	protected boolean skipOff() {
-		return skipOffDirectives.size() != 0;
+		return false;
 	}
 }
 
@@ -993,7 +982,7 @@ body
 expression
     : (bunch_of_entity_decls IAS) => entity_def
     | check_term_def
-    | directives {System.out.println("Directive " + $directives.text);}
+    | pblock
     ;
 
 entity_def
@@ -1260,17 +1249,6 @@ opclist
     | OPACTIVATE
     ;
 
-directives
-     : DIRECTIVE_DEBUG
-     		{
-     			pushSkipOffDirective(new VWMLDebugDirective());
-     		}
-     | DIRECTIVE_ENDIF
-     		{
-     			popSkipOffDirective();
-     		}
-     ;
-
 termLanguages
     : JAVA
     | C
@@ -1281,6 +1259,63 @@ termLanguages
 string
     : STRING_LITERAL
     ;
+
+
+// PREPROCESSOR
+pblock
+    : pstart pexpressions 
+    		{
+    			preprocessor.processDirectiveIf();
+    		}
+    		(expression)?
+      pend
+    ;
+
+pexpressions
+    : '('	{
+    			preprocessor.getTopDirectiveIf().addExpressionItem();
+    		}	
+    	(pexpression)* 
+      ')'	{
+    			preprocessor.getTopDirectiveIf().removeTop();
+    		}
+    ;
+
+pstart
+    : P_IF 	{
+   			preprocessor.startDirectiveIf();
+    		}
+    ;
+
+pend
+    : P_ENDIF	{
+    			preprocessor.endDirectiveIf();
+    		}
+    | P_ELSE  	{
+    			preprocessor.reverseResultOfProcessingDirectiveIf();
+    		}
+    ;
+    
+pexpression
+    : pitem (poperation (pexpressions)*)*
+    ;
+    
+pitem
+    : ID	{
+    			preprocessor.getTopDirectiveIf().addRegularItem($ID.text);
+    		}
+    ;
+
+poperation
+    : P_OP_AND	{
+    			preprocessor.getTopDirectiveIf().addOperation($P_OP_AND.text);
+    		}
+    | P_OP_OR	{
+    			preprocessor.getTopDirectiveIf().addOperation($P_OP_OR.text);
+    		}
+    ;
+
+//////////////////////
         
 COMMA
     : ','
