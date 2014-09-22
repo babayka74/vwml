@@ -65,6 +65,8 @@ public class VWMLEntity extends VWMLObject {
 	private VWMLEntity specialLinkedEntity = null;
 	// context may consist form terms
 	private boolean isPartOfDynamicContext = false;
+	// setup on 'Activate' operation in case if entity is not life or source lifeterm
+	private boolean activated = false;
 	
 	public VWMLEntity(Object hashId) {
 		super(hashId);
@@ -430,6 +432,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setLifeTermAsSource(boolean isLifeTermAsSource) {
 		this.isLifeTermAsSource = isLifeTermAsSource;
+	}
+	
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
 	}
 
 	/**

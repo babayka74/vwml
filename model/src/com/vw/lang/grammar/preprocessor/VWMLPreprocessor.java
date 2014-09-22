@@ -207,6 +207,10 @@ public class VWMLPreprocessor {
 		
 		public VWMLPreprocessorItem execute() throws Exception {
 			String v = null;
+			if (operationsStack.size() == 0 && itemsStackSize() == 1) {
+				pushToOperationStack("&");
+				pushToItemStack(VWMLPreprocessorRegularItem.build("true"));
+			}
 			while ((v = popFromOperationsStack()) != null) {
 				VWMLPreprocessorOperation p = s_operationsProcessors.get(v);
 				if (p == null) {
@@ -352,6 +356,9 @@ public class VWMLPreprocessor {
 	}
 	
 	public boolean getResultOfProcessingDirectiveIf() throws Exception {
+		if (ifBlockStack.size() == 0) {
+			return true;
+		}
 		VWMLPreprocessorIfDirective d = getTopDirectiveIf();
 		if (d == null) {
 			throw new Exception("The stack of directive '#If' is empty");

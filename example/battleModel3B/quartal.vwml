@@ -189,9 +189,7 @@ module Quartal {
 						(State cp)^
 					);
 					(notrequestdone cnp),(notrequestdone onp) ias (
-#if_debug
 						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
-#endif
 					);
 					(Intention~ State~)~ Exe
 				);

@@ -68,6 +68,7 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 				}
 				else {
 					lft = activateEntity.getInterpreting();
+					lft.setLifeTermAsSource(true);
 					activateTerm(interpreter, activateEntity, lft);
 				}
 			}
@@ -75,6 +76,12 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 	}
 	
 	private void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
-		VWMLOperationUtils.activateTerm(interpreter, context, term);
+		if (!term.isActivated()) {
+			term.setActivated(true);
+			VWMLOperationUtils.activateTerm(interpreter, context, term);
+		}
+		else {
+			throw new Exception("trying to activate active term '" + term.getId() + "' belongs to context '" + term.getContext().getContext() + "'on context '" + context.getContext() + "'");
+		}
 	}
 }

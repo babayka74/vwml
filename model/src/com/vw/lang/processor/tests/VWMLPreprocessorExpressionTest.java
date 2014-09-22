@@ -128,5 +128,27 @@ public class VWMLPreprocessorExpressionTest {
 		p.processDirectiveIf();
 		Assert.assertTrue(p.getResultOfProcessingDirectiveIf());
 	}
+
+	@Test
+	public void test6() throws Exception {
+		VWMLPreprocessor p = VWMLPreprocessor.instance();
+		// (1)
+		VWMLPreprocessorIfDirective d = p.startDirectiveIf();
+		// 1
+		d.addRegularItem("1");
+		p.processDirectiveIf();
+		Assert.assertTrue(p.getResultOfProcessingDirectiveIf());
+	}
+
+	@Test
+	public void test7() throws Exception {
+		VWMLPreprocessor p = VWMLPreprocessor.instance();
+		// (0)
+		VWMLPreprocessorIfDirective d = p.startDirectiveIf();
+		// 0
+		d.addRegularItem("0");
+		p.processDirectiveIf();
+		Assert.assertFalse(p.getResultOfProcessingDirectiveIf());
+	}
 	
 }

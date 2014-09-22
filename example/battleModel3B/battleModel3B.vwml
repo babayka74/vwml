@@ -143,7 +143,7 @@ module battleModel3B {
 			);
 
 			source lifeterm = (
-#if_debug
+#if (debug)
 				((The initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
