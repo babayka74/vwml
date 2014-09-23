@@ -897,33 +897,40 @@ finges
     ;
 
 fringe
-    :  'fringe' ID 'ias' {
+    :  'fringe' ID 'ias'
+    		{
     			setActiveFringe($ID.getText());
-    		   }
-                   '(' creatures ')'
+    		}
+                '(' creatures ')'
     ;
 
 creatures
     : (creature)+
+    | pfringedefblock
     ;
 
 creature
-    @after {
-	if (codeGenerator != null) {
-		try {
-			codeGenerator.declareCreature(getLastDeclaredCreature(), getLastDeclaredCreatureProps(), getActiveFringe());
-		}
-		catch(Exception e) {
-	    		logger.error("Caught exception '" + e + "'");
-	    		rethrowVWMLExceptionAsRecognitionException(e);
-		}
-	}    
-    }
-    : ID {
-    		addLastDeclaredCreature($ID.getText());
-    	 } 'ias' string  {
+    @after 	{
+			if (codeGenerator != null && !skipOff()) {
+				try {
+					codeGenerator.declareCreature(getLastDeclaredCreature(), getLastDeclaredCreatureProps(), getActiveFringe());
+				}
+				catch(Exception e) {
+	    				logger.error("Caught exception '" + e + "'");
+	    				rethrowVWMLExceptionAsRecognitionException(e);
+				}
+			}    
+    		}
+    : ID 	{
+    			if (!skipOff()) {
+    				addLastDeclaredCreature($ID.getText());
+    			}
+    	 	} 'ias' string 
+    	 	{
+    	 		if (!skipOff()) {
     	 			addLastDeclaredCreatureProps(GeneralUtils.trimQuotes($string.text));
     	 		}
+    	 	}
     ;
 
 conflictring
@@ -982,7 +989,7 @@ body
 expression
     : (bunch_of_entity_decls IAS) => entity_def
     | check_term_def
-    | pblock
+    | pvwmlblock
     ;
 
 entity_def
@@ -1262,7 +1269,17 @@ string
 
 
 // PREPROCESSOR
-pblock
+pfringedefblock
+    : pstart pexpressions 
+    		{
+    			preprocessor.processDirectiveIf();
+    		}
+    		creatures
+      pend
+    ;
+
+
+pvwmlblock
     : pstart pexpressions 
     		{
     			preprocessor.processDirectiveIf();

@@ -9,6 +9,13 @@ options {
 			class = "com.vw.lang.sink.java.link.debug.visitor.dot.VWMLLinkDebugPreprocessorDotVisitor"
 			data = "c:\var\vwml/example1/diagram"
 		}
+		beyond {
+			fringe communication ias (
+#if (0 & 1)
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+#endif
+			)
+		}
 	}
 }
 
