@@ -1,0 +1,61 @@
+options {
+	language=__java__ {
+  		package = "com.win.strategy.hanoi.vwml.model"
+  		path = "c:\var\vwml/hanoitower/src"
+  		author = "Win Interactive"
+		project_name = "HanoiTower"
+  		description = "Model of hanoi tower"
+		beyond {
+			fringe communication ias (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module hanoitower {
+	HanoiTower ias (
+		Ew ias (
+			Input ias communication.in.read;
+			Output ias communication.in.write;
+			Compare ias services.math.compare;
+			Dec ias services.math.dec;
+			Disks ias 0;
+			A ias (0 1 2 3);
+			B ias ();
+			C ias ();
+		);
+		Move ias (
+			(Disk (HanoiProc.Source~~) Last)^
+			(HanoiProc.Source~ (HanoiProc.Source~~) Begin)^
+			(HanoiProc.Dest~ (HanoiProc.Dest~~ (Disk~)) Join)^
+			((Movement from HanoiProc.Source~ to HanoiProc.Dest~) Ew.Output~) Do
+		);
+		HanoiProc ias (
+			Disk ias $0;
+			Source ias $1;
+			Dest ias $2;
+			Spare ias $3;
+			
+			(Disk bottom true) ias Move~ Exe;
+			(Disk bottom false) ias (
+				((((Disk~) Ew.Dec~) Do Source~ Spare~ Dest~) HanoiProc~) CallP
+				Move~ Exe
+				((((Disk~) Ew.Dec~) Do Spare~ Dest~ Source~) HanoiProc~) CallP
+			);
+			(Disk bottom (Disk~ 1) Ident)~ Exe 
+		);
+		source lifeterm = (
+			((Number of disks Ew.Disks~ and movement from A to C) Ew.Output~) Do
+			((Peg A Ew.A~) Ew.Output~) Do
+			(Ew.Disks (Ew.A~) Size)^
+			((Ew.Disks~ Ew.A Ew.C Ew.B) HanoiProc~) CallP
+			((Peg C Ew.C~) Ew.Output~) Do
+			20000 Relax
+		) Exe
+	);
+}
