@@ -77,7 +77,6 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 	
 	private void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
 		if (!term.isActivated()) {
-			term.setActivated(true);
 			VWMLOperationUtils.activateTerm(interpreter, context, term);
 		}
 		else {

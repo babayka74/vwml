@@ -39,7 +39,7 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 																					   context,
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
-																					   VWMLOperationUtils.s_addIfUnknown);
+																					   VWMLOperationUtils.s_dontAddIfUnknown);
 		}
 		if (entity.getClonedFrom() != null) {
 			entity = entity.getClonedFrom();

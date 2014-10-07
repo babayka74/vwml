@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import com.vw.common.Debuggable;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageLexer;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageParser;
-import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps.IStep;
+import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps.Step;
 import com.vw.lang.processor.model.builder.specific.VWML2JavaSpecificSteps;
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
@@ -43,7 +43,7 @@ public class VWMLModelBuilder extends Debuggable {
 	 *
 	 */
 	public static enum BUILD_STEPS {
-		SOURCE, POM, COMPILE, TEST, ALL
+		SOURCE, POM, COMPILE, TEST, MAIN, ALL
 	}
 
 	/**
@@ -173,7 +173,7 @@ public class VWMLModelBuilder extends Debuggable {
 	/**
 	 * VWML's build steps
 	 */
-	private static Map<BUILD_STEPS, IStep> s_buildSteps = new HashMap<BUILD_STEPS, IStep>() {
+	private static Map<BUILD_STEPS, Step> s_buildSteps = new HashMap<BUILD_STEPS, Step>() {
 		/**
 		 * 
 		 */
@@ -184,6 +184,7 @@ public class VWMLModelBuilder extends Debuggable {
 			put(BUILD_STEPS.POM,     new VWML2JavaSpecificSteps.PomStep());
 			put(BUILD_STEPS.COMPILE, new VWML2JavaSpecificSteps.CompileStep());
 			put(BUILD_STEPS.TEST,    new VWML2JavaSpecificSteps.TestStep());
+			put(BUILD_STEPS.MAIN,    new VWML2JavaSpecificSteps.MainStep());
 		}
 	};
 
@@ -402,7 +403,7 @@ public class VWMLModelBuilder extends Debuggable {
 			throw new Exception("invalid sink type '" + getSinkType() + "'");
 		}
 		if (caux.getProgramSteps() != null) {
-			IStep step = s_buildSteps.get(this.getBuildSteps());
+			Step step = s_buildSteps.get(this.getBuildSteps());
 			if (step == null) {
 				throw new Exception("invalid or unsupported step '" + this.getBuildSteps() + "'");
 			}

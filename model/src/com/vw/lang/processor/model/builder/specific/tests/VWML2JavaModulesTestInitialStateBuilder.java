@@ -36,7 +36,7 @@ public class VWML2JavaModulesTestInitialStateBuilder {
 		final int BODY_INDEX   = 0x4;
 		String[] code = {
 				// 1. caption
-				prepareCaption() + "\r\n\r\n",
+				prepareCaption(projProps) + "\r\n\r\n",
 				// 2. package
 				"package test.java;\r\n\r\n",
 				null,				
@@ -65,8 +65,8 @@ public class VWML2JavaModulesTestInitialStateBuilder {
 	 * @param props
 	 * @return
 	 */
-	protected String prepareCaption() throws Exception {
-		return String.format(s_caption, "VWML dynamic state test builder", "");
+	protected String prepareCaption(JavaModuleStartProps projProps) throws Exception {
+		return String.format(s_caption, projProps.getAuthor(), projProps.getDate());
 	}
 	
 	private String prepareImports(JavaModuleStartProps projProps) {

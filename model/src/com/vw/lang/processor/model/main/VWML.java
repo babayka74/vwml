@@ -164,6 +164,20 @@ public final class VWML {
 	}
 
 	/**
+	 * Generates main entry for the project
+	 * @author ogibayev
+	 *
+	 */
+	public static class Main extends Operation {
+
+		@Override
+		public void run(VWMLArgs args) throws Exception {
+			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.MAIN);
+			super.run(args);
+		}
+	}
+	
+	/**
 	 * Defines interpretator's properties, it isn't in usage now
 	 * @author ogibayev
 	 *
@@ -199,7 +213,7 @@ public final class VWML {
 	 *
 	 */
 	public static class VWMLArgs {
-		@Option(name="-m", usage="execution mode {source | project | compile | test};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used;\r\ncompile - compiles project;\r\ntest - runs compiled project")
+		@Option(name="-m", usage="execution mode {source | project | compile | test | main};\r\nsource - generates source code from VWML only;\r\nproject - generates test executable project; used in order to test VW's (virtual world) start state - effective in case if visualizer is used;\r\ncompile - compiles project;\r\ntest - runs compiled project;\r\nmain - generates project and main entry")
 		private String mode;
 		@Option(name="-t", usage="test mode {none | static | dynamic | all};\r\nnone - no tests are run;\r\nstatic test is run only (checks linkages only);\r\ndynamic - executes dynamic tests;\r\nall - static and dynamic tests are run")
 		private String testMode;
@@ -315,6 +329,7 @@ public final class VWML {
 		{put("project", new Project());}
 		{put("compile", new Compile());}
 		{put("test",    new Test());   }
+		{put("main",    new Main());   }
 	};
 	
 	private static Logger logger = Logger.getLogger(VWML.class);

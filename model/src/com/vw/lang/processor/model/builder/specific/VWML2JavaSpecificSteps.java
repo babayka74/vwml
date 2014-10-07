@@ -10,7 +10,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -20,6 +23,7 @@ import org.apache.log4j.Logger;
 
 import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps;
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
+import com.vw.lang.processor.model.builder.specific.main.VWML2JavaModulesMainStateBuilder;
 import com.vw.lang.processor.model.builder.specific.tests.VWML2JavaModulesTestDynamicStateBuilder;
 import com.vw.lang.processor.model.builder.specific.tests.VWML2JavaModulesTestInitialStateBuilder;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
@@ -29,13 +33,23 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 
 	private Logger logger = Logger.getLogger(VWML2JavaSpecificSteps.class);
 	
+	public static abstract class JavaStep extends Step {
+		public void correctPoperties(StartModuleProps props) {
+			if (((JavaModuleStartProps)props).getDate() == null) {
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+				Date date = new Date();				
+				((JavaModuleStartProps)props).setDate(dateFormat.format(date));
+			}
+		}
+	}
+	
 	/**
 	 * Integrates sink's sources with generated sources (VWML -> targetLanguage)
 	 * @param codeGeneratorName
 	 * @param props
 	 * @throws Exception
 	 */
-	public static class SourceStep implements IStep {
+	public static class SourceStep extends JavaStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			// copies and unpacks sink's jar, generates necessary source code, etc...
 			((VWML2JavaSpecificSteps)stepProcessor).setupSinkSources(codeGeneratorName, props);
@@ -48,7 +62,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	 * @param props
 	 * @throws Exception
 	 */
-	public static class PomStep implements IStep {
+	public static class PomStep extends JavaStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			new SourceStep().step(stepProcessor, codeGeneratorName, props);
 			((VWML2JavaSpecificSteps)stepProcessor).processSinkPom(codeGeneratorName, props);
@@ -61,7 +75,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	 * @param props
 	 * @throws Exception
 	 */
-	public static class CompileStep implements IStep {
+	public static class CompileStep extends JavaStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
 			new PomStep().step(stepProcessor, codeGeneratorName, props);
 			((VWML2JavaSpecificSteps)stepProcessor).runMaven(codeGeneratorName, props);
@@ -74,8 +88,9 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	 * @param props
 	 * @throws Exception
 	 */
-	public static class TestStep implements IStep {
+	public static class TestStep extends JavaStep {
 		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
+			correctPoperties(props);
 			// builds {unit, functional}-test source files
 			new VWML2JavaModulesTestInitialStateBuilder().build((JavaModuleStartProps)props);
 			new VWML2JavaModulesTestDynamicStateBuilder().build((JavaModuleStartProps)props);
@@ -85,6 +100,24 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		}
 	}
 
+	/**
+	 * Generates main entry point of the project
+	 * @param codeGeneratorName
+	 * @param props
+	 * @throws Exception
+	 */
+	public static class MainStep extends JavaStep {
+		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
+			correctPoperties(props);
+			// builds {unit, functional}-test source files
+			new VWML2JavaModulesTestInitialStateBuilder().build((JavaModuleStartProps)props);
+			new VWML2JavaModulesMainStateBuilder().build((JavaModuleStartProps)props);
+			// compiles and runs maven as test
+			new CompileStep().step(stepProcessor, codeGeneratorName, props);
+			((VWML2JavaSpecificSteps)stepProcessor).runMavenAsTest(codeGeneratorName, props);
+		}
+	}
+	
 	private void setupSinkSources(String codeGeneratorName, StartModuleProps props) throws Exception {
 		String jars[] = {
 				"VWMLSink-" + codeGeneratorName + "-sources.jar",

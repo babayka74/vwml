@@ -155,6 +155,63 @@ public class VWMLPreprocessor {
 				expression.pushToItemStack(VWMLPreprocessorRegularItem.build(r));
 			}
 		}
+
+		protected static class VWMLPreprocessorBiggerOperation extends VWMLPreprocessorBinaryOperation {
+			public void handle(VWMLPreprocessorExpression expression) throws Exception {
+				if (expression.itemsStackSize() < 2) {
+					throw new Exception("Preprocessor's operation '>' requires 2 arguments");
+				}
+				prepare(expression);
+				String r = null;
+				try {
+					int v1 = Integer.valueOf(getV1().getValue()).intValue();
+					int v2 = Integer.valueOf(getV2().getValue()).intValue();
+					r = String.valueOf(v1 > v2);
+				}
+				catch(NumberFormatException e) {
+					throw new Exception("Operation '>' requires number for arguments; passed '" + getV1().getValue() + "' and '" + getV2().getValue() + "'");
+				}
+				expression.pushToItemStack(VWMLPreprocessorRegularItem.build(r));
+			}
+		}
+
+		protected static class VWMLPreprocessorLessOperation extends VWMLPreprocessorBinaryOperation {
+			public void handle(VWMLPreprocessorExpression expression) throws Exception {
+				if (expression.itemsStackSize() < 2) {
+					throw new Exception("Preprocessor's operation '<' requires 2 arguments");
+				}
+				prepare(expression);
+				String r = null;
+				try {
+					int v1 = Integer.valueOf(getV1().getValue()).intValue();
+					int v2 = Integer.valueOf(getV2().getValue()).intValue();
+					r = String.valueOf(v1 < v2);
+				}
+				catch(NumberFormatException e) {
+					throw new Exception("Operation '<' requires number for arguments; passed '" + getV1().getValue() + "' and '" + getV2().getValue() + "'");
+				}
+				expression.pushToItemStack(VWMLPreprocessorRegularItem.build(r));
+			}
+		}
+
+		protected static class VWMLPreprocessorEqualOperation extends VWMLPreprocessorBinaryOperation {
+			public void handle(VWMLPreprocessorExpression expression) throws Exception {
+				if (expression.itemsStackSize() < 2) {
+					throw new Exception("Preprocessor's operation '=' requires 2 arguments");
+				}
+				prepare(expression);
+				String r = null;
+				try {
+					int v1 = Integer.valueOf(getV1().getValue()).intValue();
+					int v2 = Integer.valueOf(getV2().getValue()).intValue();
+					r = String.valueOf(v1 == v2);
+				}
+				catch(NumberFormatException e) {
+					throw new Exception("Operation '=' requires number for arguments; passed '" + getV1().getValue() + "' and '" + getV2().getValue() + "'");
+				}
+				expression.pushToItemStack(VWMLPreprocessorRegularItem.build(r));
+			}
+		}
 		
 		private List<VWMLPreprocessorItem> itemsStack = new ArrayList<VWMLPreprocessorItem>();
 		private List<String> operationsStack = new ArrayList<String>();
@@ -164,6 +221,9 @@ public class VWMLPreprocessor {
 	        {
 	            put("&", new VWMLPreprocessorAndOperation());
 	            put("|", new VWMLPreprocessorOrOperation());
+	            put(">", new VWMLPreprocessorBiggerOperation());
+	            put("<", new VWMLPreprocessorLessOperation());
+	            put("=", new VWMLPreprocessorEqualOperation());
 	        }
 	    };		
 	

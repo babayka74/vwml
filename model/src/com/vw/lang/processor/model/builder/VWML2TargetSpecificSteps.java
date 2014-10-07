@@ -9,8 +9,9 @@ import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
  */
 public abstract class VWML2TargetSpecificSteps {
 	
-	public static interface IStep {
-		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception;
+	public static abstract class Step {
+		public abstract void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception;
+		public abstract void correctPoperties(StartModuleProps props);
 	}
 	
 }

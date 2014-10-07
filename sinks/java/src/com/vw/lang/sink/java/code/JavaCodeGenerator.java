@@ -2,8 +2,11 @@ package com.vw.lang.sink.java.code;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -723,6 +726,9 @@ public class JavaCodeGenerator implements ICodeGenerator {
 	public StartModuleProps buildProps() {
 		JavaModuleStartProps props = new JavaModuleStartProps();
 		props.setCodeGenerator(this);
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		Date date = new Date();				
+		props.setDate(dateFormat.format(date));
 		return props;
 	}
 	

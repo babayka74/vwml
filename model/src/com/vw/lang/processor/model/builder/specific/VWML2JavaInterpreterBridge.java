@@ -91,7 +91,7 @@ public class VWML2JavaInterpreterBridge {
 	 * @return
 	 */
 	protected String prepareCaption(StartModuleProps props) throws Exception {
-		return String.format(s_caption, ((JavaModuleStartProps)props).getAuthor(), "");
+		return String.format(s_caption, ((JavaModuleStartProps)props).getAuthor(), ((JavaModuleStartProps)props).getDate());
 	}
 	
 	private String prepareImports(JavaModuleStartProps projProps, Set<String> vwmlModules) {

@@ -59,6 +59,9 @@ tokens {
     P_ENDIF  = '#endif';
     P_OP_AND = '&';
     P_OP_OR  = '|';
+    P_OP_B   = '>';
+    P_OP_L   = '<';
+    P_OP_E   = '=';
 }
 
 @header {
@@ -684,6 +687,7 @@ package com.vw.lang.grammar;
 		}
 		return false;
 	}
+	
 }
 
 
@@ -1329,6 +1333,15 @@ poperation
     		}
     | P_OP_OR	{
     			preprocessor.getTopDirectiveIf().addOperation($P_OP_OR.text);
+    		}
+    | P_OP_B	{
+    			preprocessor.getTopDirectiveIf().addOperation($P_OP_B.text);
+    		}
+    | P_OP_L	{
+    			preprocessor.getTopDirectiveIf().addOperation($P_OP_L.text);
+    		}
+    | P_OP_E	{
+    			preprocessor.getTopDirectiveIf().addOperation($P_OP_E.text);
     		}
     ;
 

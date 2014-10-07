@@ -235,6 +235,7 @@ public class VWMLOperationUtils {
 				throw new Exception("Didn't find first pushed interpreter; context '" + context.getContext() + "'");
 			}
 		}
+		term.setActivated(true);
 		operationalRing = VWMLResourceHostManagerFactory.hostManagerInstance().findMostFreeRing(interpreter.getConfig());
 		if (operationalRing == null) {
 			// all rings are overloaded; new one should be created
