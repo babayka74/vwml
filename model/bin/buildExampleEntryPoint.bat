@@ -1,0 +1,1 @@
+vwml -m main -entity ue_im3 -p debug=true -debuginfo true -interpreter ../../example/%1/interpreter/interpreter.properties ../../example/%1/%1.vwml
