@@ -21,6 +21,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.begin.VWML
 import com.vw.lang.sink.java.operations.processor.operations.handlers.born.VWMLOperationBornHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.bp.VWMLOperationBreakPointHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.callp.VWMLOperationCallPHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.cartesian.VWMLOperationCartesianHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.clone.VWMLOperationCloneHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictend.VWMLOperationConflictSituationEndHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictstart.VWMLOperationConflictSituationStartHandler;
@@ -49,6 +50,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWML
 import com.vw.lang.sink.java.operations.processor.operations.handlers.repeat.VWMLOperationRepeatHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.rest.VWMLOperationRestHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.size.VWMLOperationSizeHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.squeeze.VWMLOperationSqueezeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.substruct.VWMLOperationSubstructHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
@@ -100,6 +102,8 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPRECALL),   				new VWMLOperationRecallHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPREPEAT),   				new VWMLOperationRepeatHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATE),   			new VWMLOperationActivateHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCARTESIAN),   			new VWMLOperationCartesianHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPSQU),   					new VWMLOperationSqueezeHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());
