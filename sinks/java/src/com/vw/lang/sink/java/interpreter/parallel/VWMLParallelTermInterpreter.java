@@ -5,6 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.vw.lang.beyond.java.fringe.entity.EWEntity;
+import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
+import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -129,6 +133,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			if (isRingCopyAsSecondary() == VWMLReactiveActivity.secondaryRing) {
 				interpreter.getRing().ringAsSecondaryCopy();
 			}
+			String activityName = "reactive_" + String.valueOf(interpreter.getRing().getId());
 			try {
 				if (isWaitTillStart()) {
 					started.getAndSet(true);
@@ -136,6 +141,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 						signalOnStart.notifyAll();
 					}
 				}
+				masterInterpreter.notifyActivityBroker(IVWMLGate.builtInCreateActivityCommandId, Thread.currentThread().getId(), activityName);
 				System.out.println("Ring started '" + interpreter.getRing() + "'");
 				interpreter.start();
 				System.out.println("Ring finished '" + interpreter.getRing() + "'");
@@ -145,7 +151,9 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				System.out.println("Ring finished with exception '" + interpreter.getRing() + "'");
 			}
+			masterInterpreter.notifyActivityBroker(IVWMLGate.builtInRemoveActivityCommandId, Thread.currentThread().getId(), activityName);
 			stopped = true;
 		}
 		
@@ -161,6 +169,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 	private static final int waitPeriodForCompletition = 10;
 	private List<VWMLReactiveActivity> activities = Collections.synchronizedList(new ArrayList<VWMLReactiveActivity>());
 	private Integer signalOnStop = new Integer(0x1235);
+	private IVWMLGate activityFringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getActivityBrokerFringeName());
 	
 	private VWMLParallelTermInterpreter() {
 	}
@@ -197,12 +206,15 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRing.instance().setRingVisitor(getConfig().getRingVisitor());
 		getConfig().setStepByStepInterpretation(true);
 		// activates rings
+		String activityName = "parallel_" + Thread.currentThread().getId();
+		notifyActivityBroker(IVWMLGate.builtInCreateActivityCommandId, Thread.currentThread().getId(), activityName);
 		// remember all execution groups belong to ring of parallel interpreter (this ring is not scheduled)
 		VWMLConflictRing.instance().normalize();
 		setRing(VWMLConflictRing.instance());
 		getRing().setMaster(true);
 		activateRings(getTerms(), null, VWMLReactiveActivity.masterRing, false, false);
 		waitForAll();
+		notifyActivityBroker(IVWMLGate.builtInRemoveActivityCommandId, Thread.currentThread().getId(), activityName);
 	}
 
 	@Override
@@ -278,5 +290,21 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 				i = -1;
 			}
 		}
+	}
+	
+	protected void notifyActivityBroker(String command, Long activityId, String activityName) {
+		if (activityFringeGate != null) {
+			activityFringeGate.invokeEW(command, buildActivityPropsArgsAsEntity(activityId, activityName));
+		}
+	}
+	
+	protected EWEntity buildActivityPropsArgsAsEntity(Long activityId, String activityName) {
+		String name = String.valueOf(Thread.currentThread().getId());
+		EWEntity activityPropsArgs = EWEntityBuilder.buildComplexEntity(name, null);
+		EWEntity idProp = EWEntityBuilder.buildSimpleEntity(String.valueOf(activityId), null);
+		EWEntity nameProp = EWEntityBuilder.buildSimpleEntity(activityName, null);
+		activityPropsArgs.getLink().link(idProp);
+		activityPropsArgs.getLink().link(nameProp);
+		return activityPropsArgs;
 	}
 }

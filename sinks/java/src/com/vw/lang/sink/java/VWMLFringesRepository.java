@@ -16,11 +16,12 @@ public class VWMLFringesRepository {
 	
 	private static String s_DebugFringeReservedName = "__vwml_debug_fringe__";
 	private static String s_TimeFringeReservedName  = "__vwml_time_fringe__";
+	private static String s_ActivityFringeReservedName  = "__vwml_activity_fringe__";
 	
 	private static VWMLFringesRepository s_instance = new VWMLFringesRepository();
 	
 	private VWMLFringesRepository() {
-		associateFringe2Gates(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
+		associatePredefinedFringes();
 	}
 	
 	public static VWMLFringesRepository instance() {
@@ -59,7 +60,7 @@ public class VWMLFringesRepository {
 	 */
 	public void removeAll() throws Exception {
 		fringeGates.clear();
-		associateFringe2Gates(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
+		associatePredefinedFringes();
 	}
 	
 	/**
@@ -69,6 +70,14 @@ public class VWMLFringesRepository {
 	public static String getTimerManagerFringeName() {
 		return s_TimeFringeReservedName;
 	}
+
+	/**
+	 * Returns built-in activity broker fringe's name
+	 * @return
+	 */
+	public static String getActivityBrokerFringeName() {
+		return s_ActivityFringeReservedName;
+	}
 	
 	protected void associateFringe2Gates(String fringe, IVWMLGate gate) {
 		fringeGates.put(fringe, gate);
@@ -76,5 +85,10 @@ public class VWMLFringesRepository {
 	
 	protected IVWMLGate getFringeGate(String fringe) {
 		return fringeGates.get(fringe);
+	}
+	
+	protected void associatePredefinedFringes() {
+		associateFringe2Gates(s_TimeFringeReservedName, com.vw.lang.beyond.java.fringe.gate.time.Time.instance());
+		associateFringe2Gates(s_ActivityFringeReservedName, com.vw.lang.beyond.java.fringe.gate.activity.ActivityBroker.instance());
 	}
 }
