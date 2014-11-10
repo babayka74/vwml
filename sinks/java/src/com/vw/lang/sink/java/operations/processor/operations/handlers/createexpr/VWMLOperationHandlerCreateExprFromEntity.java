@@ -77,6 +77,7 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 					e = argRef;
 				}
 				e.setInterpreting(e1);
+				VWMLOperationUtils.activateInterceptor(interpreter, e, e1);
 			}
 			else {
 				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);
@@ -116,6 +117,7 @@ public class VWMLOperationHandlerCreateExprFromEntity {
 					entity = argRef;
 				}
 				entity.setInterpreting(newComplexEntity);
+				VWMLOperationUtils.activateInterceptor(interpreter, entity, newComplexEntity);
 			}
 			else {
 				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);

@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
-import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -18,6 +20,7 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExec
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.interceptor.VWMLActivateInterceptorDeferredTask;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
 /**
@@ -385,6 +388,21 @@ public class VWMLOperationUtils {
 			newEntity = (VWMLEntity)VWMLObjectsRepository.instance().getEmptyEntity();
 		}
 		return newEntity;
+	}
+
+
+	/**
+	 * Activates interceptor on deferred task
+	 * @param interpreter
+	 * @param intercept
+	 * @param trigger
+	 */
+	public static void activateInterceptor(VWMLInterpreterImpl interpreter, VWMLEntity intercept, VWMLEntity trigger) {
+		VWMLInterceptor interceptor = VWMLInterceptorsRepository.instance().getInterceptor(intercept, trigger);
+		if (interceptor != null) {
+			VWMLActivateInterceptorDeferredTask task = new VWMLActivateInterceptorDeferredTask(interpreter, interceptor);
+			interpreter.setDeferredTask(task);
+		}
 	}
 	
 	private static boolean addToRepositoryIfTheSame(VWMLEntity e, VWMLEntity newComplexEntity, VWMLContext context) throws Exception {

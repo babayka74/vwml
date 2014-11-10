@@ -39,6 +39,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 					interpretedEntity = argRef;
 				}
 				interpretedEntity.setInterpreting(interpretingEntity);
+				VWMLOperationUtils.activateInterceptor(interpreter, interpretedEntity, interpretingEntity);
 			}
 			else {
 				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);
@@ -59,6 +60,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 					entity = argRef;
 				}
 				entity.setInterpreting(newComplexEntity);
+				VWMLOperationUtils.activateInterceptor(interpreter, entity, newComplexEntity);
 			}
 			else {
 				VWMLOperationCreateExprStrategy.stopInterpretation(interpreter);

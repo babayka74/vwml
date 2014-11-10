@@ -47,6 +47,7 @@ tokens {
     OPRECALL='Recall';
     OPREPEAT='Repeat';
     OPACTIVATE='Activate';
+    OPCOPY='Copy';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1258,6 +1259,7 @@ opclist
     | OPRECALL
     | OPREPEAT
     | OPACTIVATE
+    | OPCOPY
     ;
 
 termLanguages

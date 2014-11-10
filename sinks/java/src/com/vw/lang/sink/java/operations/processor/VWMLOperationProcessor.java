@@ -25,6 +25,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.cartesian.
 import com.vw.lang.sink.java.operations.processor.operations.handlers.clone.VWMLOperationCloneHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictend.VWMLOperationConflictSituationEndHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictstart.VWMLOperationConflictSituationStartHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.copy.VWMLOperationCopyHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr.VWMLOperationCreateExprHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.dyncontext.VWMLOperationDynamicContextAddressingHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.equal.VWMLOperationEqualHandler;
@@ -104,6 +105,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPACTIVATE),   			new VWMLOperationActivateHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCARTESIAN),   			new VWMLOperationCartesianHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPSQU),   					new VWMLOperationSqueezeHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCOPY),   				new VWMLOperationCopyHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());

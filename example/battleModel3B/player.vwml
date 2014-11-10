@@ -1,14 +1,31 @@
+include "playermain.vwml"
 include "playerattack.vwml"
 include "playerdeal.vwml"
 
 module Player {
 	MagicWorld ias (
+		Command ias (
+			Format ias (
+				ModeIndex ias 0;
+				CommandIndex ias 1;
+				ParamsIndex ias 3;
+				Battle ias (
+					UnitIdIndex ias 2;
+				);
+			);
+		);
+		ModeInfo ias (
+			ModeDeal ias deal;
+			ModeBattle ias attack;
+			ModeMain ias main;
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~);
+			AvailablePlayerCommandsOnModeAttack ias (create destroy movetopos startpos go stop exit select setprops getpos kill stop back attackerstopped defendersstopped);
+			AvailablePlayerCommandsOnModeMain   ias (setmode exit back dealstopped battlestopped);
+			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution stop back);
+		);
 		Player ias (
-			AvailableModes ias (wait attack deal);
-			AvailablePlayerCommandsOnModeAttack ias (create destroy movetopos startpos go stop exit select setprops getpos kill);
-			AvailablePlayerCommandsOnModeWait   ias (setmode);
-			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution);
-			Mode ias wait;
+			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~);
+			Mode ias main;
 			Id ias nil;
 			Stop ias false;
 			Resources ias (
@@ -66,60 +83,24 @@ module Player {
 					);
 				);
 			);
-			StopAllUnits ias (
-				CheckForUnitsCompletition ias (
-					Check ias (
-						(CheckForUnits WaitForUnitsCompletitionLock [ (Resources.Units.LastAttackerDestroyed~ true) Ident (Resources.Units.LastDefenderDestroyed~ true) Ident WaitForUnitsCompletitionLock ])~ Exe
-					);
-					// wait for all units
-					(CheckForUnits false false),(CheckForUnits true false),(CheckForUnits false true) ias Check~ Exe;
-					(CheckForUnits true true) ias doNothing;
-					Check~ Exe
-				);
-				StopUnits ias (
-					StopUnit ias (
-						(Services.(SignalUnit Player Id~)->PlayerId Id~)^
-						(Services.(SignalUnit Player Id~)->To $~)^
-						(Services.(SignalUnit Player Id~)->CommandId kill)^
-						(Services.(SignalUnit Player Id~)->CommandParams ())^
-						Services.(SignalUnit Player Id~)~ Exe
-						((The player Id~ sent kill signal to unit $~) Ew.Output~) Do
-					);
-					($~ StopUnit~) ForEach
-				);
-				(Stop true)^
-				((The player Id~ is going to be stopped) Ew.Output~) Do
-				(CombinedUnits (Resources.Units.Attackers~ Resources.Units.Defenders~))^
-				((The player Id~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
-				(CombinedUnits~ StopUnits~) ForEach
-				((The player Id~ waits for units completition) Ew.Output~) Do
-				CheckForUnitsCompletition~ Exe
-				((The player Id~ all units finished) Ew.Output~) Do
-			);
 			HandlePlayerCommandOnModeAttack ias (
-				(Attack.CommandId (CommandDispatcher.Dispatch~ 0) Get)^
-				(Attack.To (CommandDispatcher.Dispatch~ 1) Get)^
-				(Attack.CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Attack.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Attack.To (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.Battle.UnitIdIndex~) Get)^
+				(Attack.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				Attack~ Exe
 				PlayerLifeStep~ Exe
 			);
-			HandlePlayerCommandOnModeWait ias (
-				(Handle setmode) ias (
-					(RightMode false) ias doNothing;
-					(RightMode true) ias (
-						(Mode CommandParams~)^
-						((The player Id~ mode is Mode~) Ew.Output~) Do
-					);
-					(RightMode (AvailableModes~ CommandParams~) In)~ Exe
-				);
-				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
-				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
-				(Handle CommandId~)~ Exe
-				PlayerLifeStep~ Exe
+			HandlePlayerCommandOnModeMain ias (
+				(StopPlayer false) ias PlayerLifeStep~ Exe;
+				(StopPlayer true) ias ((The player Id~ stopped) Ew.Output~) Do;
+				(Main.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Main.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				Main~ Exe
+				(StopPlayer (ActiveModes~ ()) Ident)~ Exe
 			);
 			HandlePlayerCommandOnModeDeal ias (
-				(Deal.CommandId (CommandDispatcher.Dispatch~ 0) Get)^
-				(Deal.CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Deal.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Deal.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				Deal~ Exe
 				PlayerLifeStep~ Exe
 			);
@@ -131,18 +112,18 @@ module Player {
 					(RightCommand true) ias Handler~ Exe;
 					(RightCommand false) ias PlayerLifeStep~ Exe;
 					((The player Id~ received command Dispatch~ to dispatch) Ew.Output~) Do
-					(RightCommand (CommandSet~ (Dispatch~ 0) Get) In)~ Exe
+					(RightCommand (CommandSet~ (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get) In)~ Exe
 				);
-				(mode wait) ias (
-					(CommandSet AvailablePlayerCommandsOnModeWait~)^
-					(Handler HandlePlayerCommandOnModeWait~)^
+				(mode main) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeMain~)^
+					(Handler HandlePlayerCommandOnModeMain~)^
 				);
 				(mode deal) ias (
-					(CommandSet AvailablePlayerCommandsOnModeDeal~)^
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeDeal~)^
 					(Handler HandlePlayerCommandOnModeDeal~)^
 				);
 				(mode attack) ias (
-					(CommandSet AvailablePlayerCommandsOnModeAttack~)^
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeAttack~)^
 					(Handler HandlePlayerCommandOnModeAttack~)^
 				);
 				(mode Mode~)~ Exe
@@ -150,25 +131,20 @@ module Player {
 			);
 			/* Player's lifestep */
 			PlayerLifeStep ias (
-				(Stop false) ias (
-					(ready false) ias (
-						(CommandDispatcher.Dispatch nil)^
-						PlayerLifeStep~ Exe
-					);
-					(ready true) ias (
-						(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
-						CommandDispatcher~ Exe
-					);
-					(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
+				(ready false) ias (
+					(CommandDispatcher.Dispatch nil)^
+					PlayerLifeStep~ Exe
 				);
-				(Stop true) ias (
-					StopAllUnits~ Exe
-					((The player Id~ stopped) Ew.Output~) Do
+				(ready true) ias (
+					(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
+					CommandDispatcher~ Exe
 				);
-				(Stop StopTheWorld~)~ Exe
+				(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
 				((The player Id~ added and active) Ew.Output~) Do
+				(ActiveModes ActiveModes~ Exe)^
+				((The player Id~ has available modes ModeInfo.AvailableModes~ and active ActiveModes~) Ew.Output~) Do
 				(Resources.Quartals.Controlled ())^
 				(Resources.Quartals.Visible ())^
 				(Resources.Units.Attackers ())^

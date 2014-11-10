@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -68,6 +70,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	public Set<VWMLEntity> requestEntityAssociatedSet() {
 		return new HashSet<VWMLEntity>();
 	}
+
+	@Override
+	public Map<String, VWMLInterceptor> requestInterceptorsRepoContainer() {
+		return new HashMap<String, VWMLInterceptor>();
+	}
 	
 	@Override
 	public VWMLConflictRing findRingByExecutingTerm(VWMLEntity executingTerm) {
@@ -108,6 +115,22 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	
 	protected void objectsRepoDone(VWMLHostedResources r) {
 		r.setObjectsRepo(null);
+	}
+	
+	
+	protected void interceptorsRepoInit(VWMLHostedResources r) {
+		if (r.getInterceptorsRepo() == null) {
+			VWMLInterceptorsRepository repo = new VWMLInterceptorsRepository();
+			repo.init();
+			r.setInterceptorsRepo(repo);
+		}
+	}
+	
+	protected void interceptorsRepoDone(VWMLHostedResources r) {
+		if (r.getInterceptorsRepo() != null) {
+			r.getInterceptorsRepo().done();
+			r.setInterceptorsRepo(null);
+		}
 	}
 	
 	protected void ringInit(VWMLHostedResources r) {

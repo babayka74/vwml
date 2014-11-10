@@ -1,0 +1,34 @@
+module PlayerModeMain {
+	MagicWorld ias (
+		Player ias (
+			Main ias (
+				CommandId ias nil;
+				CommandParams ias nil;
+				(Handle setmode) ias (
+					(RightMode false) ias doNothing;
+					(RightMode true) ias (
+						(Mode CommandParams~)^
+						((The player Id~ mode is Mode~) Ew.Output~) Do
+					);
+					(RightMode (AvailableModes~ CommandParams~) In)~ Exe
+				);
+				(Handle back) ias (
+					(Player.Mode main)^
+					((The player Id~ stays in main mode) Ew.Output~) Do
+				);
+                                (Handle exit) ias (
+					Send ias ((Player Id~) Tx $~ Exe) Gate;
+					Commands ias (
+							(ModeInfo.ModeBattle~ stop Id~ ())
+							(ModeInfo.ModeDeal~ stop Id~ ())
+						);
+					(Commands~ Send~) ForEach
+					((The player Id~ executes Commands~ for exiting) Ew.Output~) Do
+				);
+				(Handle dealstopped) ias (ActiveModes (ActiveModes~ (ModeInfo.ModeDeal~)) Substruct)^;
+				(Handle battlestopped) ias (ActiveModes (ActiveModes~ (ModeInfo.ModeBattle~)) Substruct)^;
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

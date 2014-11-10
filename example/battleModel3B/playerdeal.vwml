@@ -4,6 +4,14 @@ module PlayerDeal {
 			Deal ias (
 				CommandId ias nil;
 				CommandParams ias nil;
+				StopQuartal ias (
+					((The player Id~ stops quartal $~) Ew.Output~) Do
+					((Quartal $~) Tx (Id~ exit ())) Gate
+				);
+				AllQuartalsStopped ias (
+					(Resources.Quartals.Visible ()) FinishInterception
+					((Player Id~) Tx (ModeInfo.ModeMain~ dealstopped Id~ ())) Gate
+				);
 				// (player 0 setintention (quartalId intention (...)))
  				(Handle setintention) ias (
 					(QuartalId (CommandParams~ 0) Get)^
@@ -22,7 +30,7 @@ module PlayerDeal {
 				);
 				(Handle unlinkquartal) ias (
 					(QuartalId (CommandParams~ 0) Get)^
-					(Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^
+					(Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^
 					((Quartal QuartalId~)->Linked false)^
 					((Quartal QuartalId~)->Owner nil)^
 					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~) Ew.Output~) Do
@@ -38,6 +46,19 @@ module PlayerDeal {
 				(Handle contribution) ias (
 					(Resources.Account.Value CommandParams~)^
 					Resources.Account.Recharge~ Exe
+				);
+				(Handle stop) ias (
+					(NoQuartals true) ias AllQuartalsStopped~ Exe;
+					(NoQuartals false) ias (
+						((The player Id~ is going to stop quartals Resources.Quartals.Visible~) Ew.Output~) Do
+						(Resources.Quartals.Visible () AllQuartalsStopped~) StartInterception
+						(Resources.Quartals.Visible~ StopQuartal~) ForEach
+					);
+					(NoQuartals (Resources.Quartals.Visible~ ()) Ident)~ Exe
+				);
+				(Handle back) ias (
+					(Player.Mode main)^
+					((The player Id~ returned to main mode) Ew.Output~) Do
 				);
 				(Handle CommandId~)~ Exe
 			);

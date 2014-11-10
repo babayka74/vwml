@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -25,6 +27,7 @@ public abstract class VWMLResourceHostManager {
 		private VWMLConflictRing ring = null;
 		private VWMLObjectsRepository objectsRepo = null;
 		private VWMLContextsRepository contextsRepo = null;
+		private VWMLInterceptorsRepository interceptorsRepo = null;
 		
 		public VWMLConflictRing getRing() {
 			return ring;
@@ -48,6 +51,14 @@ public abstract class VWMLResourceHostManager {
 
 		public void setContextsRepo(VWMLContextsRepository contextsRepo) {
 			this.contextsRepo = contextsRepo;
+		}
+
+		public VWMLInterceptorsRepository getInterceptorsRepo() {
+			return interceptorsRepo;
+		}
+
+		public void setInterceptorsRepo(VWMLInterceptorsRepository interceptorsRepo) {
+			this.interceptorsRepo = interceptorsRepo;
 		}
 	}
 	
@@ -133,6 +144,24 @@ public abstract class VWMLResourceHostManager {
 	}
 
 	/**
+	 * Requests interceptors' repository
+	 * @return
+	 */
+	public VWMLInterceptorsRepository requestInterceptorsRepo() {
+		VWMLHostedResources r = getHostedResource();
+		interceptorsRepoInit(r);
+		return r.getInterceptorsRepo();
+	}
+
+	/**
+	 * Removes interceptors repository from host storage, allowing it to be re-created upon next request
+	 */
+	public void markInterceptorsRepoAsInvalid() {
+		VWMLHostedResources r = getHostedResource();
+		interceptorsRepoDone(r);
+	}
+	
+	/**
 	 * The transportedEntity is sent to ring identified by ringDestTerm and handler identified by handlerDestTerm
 	 * The handler is interpreted by destination
 	 * @param ringDestTerm
@@ -203,6 +232,12 @@ public abstract class VWMLResourceHostManager {
 	public abstract Map<Object, VWMLObject> requestObjectsRepoContainer();
 	
 	/**
+	 * Requests container which is used by interceptor's repository
+	 * @return
+	 */
+	public abstract Map<String, VWMLInterceptor> requestInterceptorsRepoContainer();
+	
+	/**
 	 * Looks up for context which can be defined on remote ring
 	 * @param id
 	 * @return
@@ -261,6 +296,18 @@ public abstract class VWMLResourceHostManager {
 	 * @param r
 	 */
 	protected abstract void contextsRepoDone(VWMLHostedResources r);
+
+	/**
+	 * Initializes requested interceptor repository
+	 * @param r
+	 */
+	protected abstract void interceptorsRepoInit(VWMLHostedResources r);
+	
+	/**
+	 * Releases interceptors repository, next time will be create new one
+	 * @param r
+	 */
+	protected abstract void interceptorsRepoDone(VWMLHostedResources r);
 	
 	/**
 	 * Requests key depending on resources' strategy

@@ -1,10 +1,58 @@
 module PlayerAttack {
 	MagicWorld ias (
 		Player ias (
+			StopAllUnits ias (
+				StopUnits ias (
+					StopUnit ias (
+						(Services.(SignalUnit Player Id~)->PlayerId Id~)^
+						(Services.(SignalUnit Player Id~)->To $~)^
+						(Services.(SignalUnit Player Id~)->CommandId kill)^
+						(Services.(SignalUnit Player Id~)->CommandParams ())^
+						Services.(SignalUnit Player Id~)~ Exe
+						((The player Id~ sent kill signal to unit $~) Ew.Output~) Do
+					);
+					($~ StopUnit~) ForEach
+				);
+				AllAttackersStopped ias (
+					(Resources.Units.Attackers ()) FinishInterception
+					((Player Id~) Tx (ModeInfo.ModeBattle~ attackerstopped Id~ ())) Gate
+				);
+				AllDefendersStopped ias (
+					(Resources.Units.Defenders ()) FinishInterception
+					((Player Id~) Tx (ModeInfo.ModeBattle~ defendersstopped Id~ ())) Gate
+				);
+				BattleStopped ias (
+					(Attack.ExitCase ()) FinishInterception
+					((Player Id~) Tx (ModeInfo.ModeMain~ battlestopped Id~ ())) Gate
+				);
+				(NoUnits true true) ias (
+					AllAttackersStopped~ Exe
+					AllDefendersStopped~ Exe
+				);
+				(NoUnits false true) ias (
+					AllDefendersStopped~ Exe
+					(Resources.Units.Attackers () AllAttackersStopped~) StartInterception
+				);
+				(NoUnits true false) ias (
+					AllAttackersStopped~ Exe
+					(Resources.Units.Defenders () AllDefendersStopped~) StartInterception
+				);
+				(NoUnits false false) ias (
+					(Resources.Units.Attackers () AllAttackersStopped~) StartInterception
+					(Resources.Units.Defenders () AllDefendersStopped~) StartInterception
+				);
+				((The player Id~ is going to be stopped) Ew.Output~) Do
+                        	(Attack.ExitCase () BattleStopped~) StartInterception
+				(CombinedUnits (Resources.Units.Attackers~ Resources.Units.Defenders~))^
+				(NoUnits (Resources.Units.Attackers~ ()) Ident (Resources.Units.Defenders~ ()) Ident)~ Exe
+				((The player Id~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
+				(CombinedUnits~ StopUnits~) ForEach
+			);
 			Attack ias (
 				CommandId ias nil;
 				To ias nil;
 				CommandParams ias nil;
+				ExitCase ias (attackers defenders);
 				PropagateCommandToUnit ias (
 					(
 						Characters.(Unit ($$)->(Attack)->To~)
@@ -27,6 +75,23 @@ module PlayerAttack {
                                 (Handle destroy) ias (
 					((The player Id~ executes other actions) Ew.Output~) Do
 					(CommandDispatcher.Dispatch nil)^
+				);
+				(Handle stop) ias (
+					((The player Id~ stops all units) Ew.Output~) Do
+					StopAllUnits~ Exe
+				);
+				(Handle back) ias (
+					(Player.Mode main)^
+					((The player Id~ returned to main mode) Ew.Output~) Do
+				);
+				// sent from interceptor when last attacker was destroyed
+				(Handle attackerstopped) ias (
+					// ExitCase in case () will fire interceptor
+					(ExitCase (ExitCase~ (attackers)) Substruct)^
+				);
+				(Handle defendersstopped) ias (
+					// ExitCase in case () will fire interceptor
+					(ExitCase (ExitCase~ (defenders)) Substruct)^
 				);
 				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
 				(To (CommandDispatcher.Dispatch~ 1) Get)^

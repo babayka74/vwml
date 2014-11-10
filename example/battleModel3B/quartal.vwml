@@ -52,10 +52,10 @@ module Quartal {
 						((The sherif of quartal Id~ has following sum Banker.Account~ on account) Ew.Output~) Do
 					);
 					AskPaymentForQuartalInfo ias (
-						((Player Owner~) Tx (payquartalinfo Owner~ (Id~ Resource.Type~ Value~))) Gate
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ payquartalinfo Owner~ (Id~ Resource.Type~ Value~))) Gate
 					);
 					AskPaymentForBribe ias (
-						((Player Owner~) Tx (paybribe Owner~ (Id~ Resource.Type~ Value~))) Gate
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ paybribe Owner~ (Id~ Resource.Type~ Value~))) Gate
 					);
 					Pay ias (
 						(NoQuantums true) ias (
@@ -66,7 +66,7 @@ module Quartal {
 							(Resource.Quantums ((Resource.Quantums~) Ew.DecValue~) Do)^
 							((The banker of sherif of quartal Id~ pays to player Owner~ resource (Id~ Resource.Type~ Resource.Quantum~) and left Resource.Quantums~ payments) Ew.Output~) Do
 							/* sending contribution message to player */
-							((Player Owner~) Tx (contribution Owner~ (Id~ Resource.Type~ Resource.Quantum~))) Gate
+							((Player Owner~) Tx (ModeInfo.ModeDeal~ contribution Owner~ (Id~ Resource.Type~ Resource.Quantum~))) Gate
 							/* re-activates contribution */
 							(Resource.Period~ (Pay Id~) Pay~) Recall
 						);
@@ -191,6 +191,12 @@ module Quartal {
 					(notrequestdone cnp),(notrequestdone onp) ias (
 						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
 					);
+					(exit op),(exit cnp),(exit onp),(exit wtp) ias (
+						(StopQuartal true)^
+						// unlinks quartal from given player
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ unlinkquartal Owner~ (Id~))) Gate
+						((The sherif of quartal Id~ got message to exit) Ew.Output~) Do
+					);
 					(Intention~ State~)~ Exe
 				);
 			);
@@ -203,22 +209,20 @@ module Quartal {
 				Sherif.Behavior~ Exe
 			);
 			QuartalLifeStep ias (
-					(Stop false) ias (
-						(ready false) ias (
-							(CommandDispatcher.Dispatch nil)^
-						);
-						(ready true) ias (
-							(CommandDispatcher.Dispatch ((Quartal Id~) Rx) Gate)^
-							((The quartal Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
-							CommandDispatcher~ Exe
-						);
-						(ready (((Quartal Id~) Ready) Gate true) Ident)~ Exe
-						QuartalLifeStep~ Exe
-					);
-					(Stop true) ias (
-						((The Quartal Id~ stopped) Ew.Output~) Do
-					);
-					(Stop StopQuartal~)~ Exe
+				(ready false false) ias (
+					(CommandDispatcher.Dispatch nil)^
+					QuartalLifeStep~ Exe
+				);
+				(ready true false) ias (
+					(CommandDispatcher.Dispatch ((Quartal Id~) Rx) Gate)^
+					((The quartal Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+					CommandDispatcher~ Exe
+					QuartalLifeStep~ Exe
+				);
+				(ready false true),(ready true true) ias (
+					((The sherif of quartal Id~ reports about exiting) Ew.Output~) Do
+				);
+				(ready (((Quartal Id~) Ready) Gate true) Ident StopQuartal~)~ Exe
 			);
 			lifeterm = (
 				((The quartal Id~ added and active for owner Owner~) Ew.Output~) Do

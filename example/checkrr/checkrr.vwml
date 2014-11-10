@@ -1,0 +1,40 @@
+options {
+	language=__java__ {
+  		package = "com.win.strategy.hanoi.vwml.model"
+  		path = "c:\var\vwml/hanoitower/src"
+  		author = "Win Interactive"
+		project_name = "Check_RR"
+  		description = "Check re-arrangment"
+		beyond {
+			fringe communication ias (
+				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+			)
+			fringe services ias (
+				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
+			)
+		}
+	}
+}
+
+module checkrr {
+	CheckRR ias (
+		Ew ias (
+			Input ias communication.in.read;
+			Output ias communication.in.write;
+		);
+		RR ias (
+			t1 ias nil;
+			x ias RR.y~;
+			y ias RR.x~;
+			t ias (x~ y~);
+			((T1 before t1~) Ew.Output~) Do
+			(t1 t~ Exe)^
+			((T1 after t1~) Ew.Output~) Do
+		);
+		source lifeterm = (
+			RR~ Exe
+			20000 Relax
+		) Exe
+	);
+}

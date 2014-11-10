@@ -60,15 +60,16 @@ module battleModel3B {
 			Character ias nil;
 			Id ias nil;
 			UnitId ias nil;
+			CommandMode ias nil;
 			CommandId ias nil;
 			Params ias nil;
 
 			StopAll ias (AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 exit))) Join)^;
 			/* command is propagated to player */
 			PropagateCommand ias (
-				((Command CommandId~ is propagated to player Id~) Ew.Output~) Do
+				((Command CommandId~ is propagated to player Id~ to mode CommandMode~) Ew.Output~) Do
 				// activating gate on player's side (Tx mode)
-				((Player Id~) Tx (CommandId~ UnitId~ Params~)) Gate
+				((Player Id~) Tx (CommandMode~ CommandId~ UnitId~ Params~)) Gate
 				((Command CommandId~ propagated to player Id~) Ew.Output~) Do
 			);
 			(ManagerCommand true) ias (
@@ -87,7 +88,7 @@ module battleModel3B {
 						(Quartal.Owner Id~)^
 						(Quartal (Quartal $~)) Born
 						// links quartal to given player
-						((Player UnitId~) Tx (linkquartal UnitId~ ($~))) Gate
+						((Player UnitId~) Tx (Player.DealMode~ linkquartal UnitId~ ($~))) Gate
 					);
 					(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 				);
@@ -109,9 +110,10 @@ module battleModel3B {
 				ParseIncomingCommand ias (
 					(Character (Command~ 0) Get)^
 					(Id (Command~ 1) Get)^
-					(CommandId (Command~ 2) Get)^
-					(UnitId (Command~ 3) Get)^
-					(Params (Command~ 4) Get)^
+					(CommandMode (Command~ 2) Get)^
+					(CommandId (Command~ 3) Get)^
+					(UnitId (Command~ 4) Get)^
+					(Params (Command~ 5) Get)^
 				);
 				(Stop false) ias (
 					(WaitForCommand true) ias (
@@ -147,6 +149,7 @@ module battleModel3B {
 				((The initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
+				(ModeInfo.AvailableModes ModeInfo.AvailableModes~ Exe)^
 				((The game manager started and loads maze) Ew.Output~) Do
 				Ew.Maze~ Exe
 				((The game manager waits for commands) Ew.Output~) Do
@@ -158,39 +161,45 @@ module battleModel3B {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 playeradd 0)
-				(player 0 setmode 0 deal)
-				// create quartals for player 1
-				(manager 0 createquartals 0 ())
-				// publish intetion for player 0 and quartal 1
-				(player 0 setintention 0 (1 open (100)))
-				(player 0 setintention 0 (1 pay (950)))
+				(player 0 exit 0 ())
 			);
 		);
 
 /*
-   ===== ATTACK =====
-				(player 0 create 0 ( (type attacker)
-						     (attack (yes yes yes))
-						     (defence (no no yes))
-						   ))
-				(player 0 startpos 0 (0 39))
-				(player 0 movetopos 0 ((17 10)))
-				(player 0 go 0)
+   ===== DEAL   =====
+				(manager 0 playeradd 0)
+				(player 0 main setmode 0 deal)
+				// create quartals for player 1
+				(manager 0 createquartals 0 ())
+				// publish intetion for player 0 and quartal 1
+				(player 0 deal setintention 0 (1 open (100)))
+				(player 0 deal setintention 0 (1 pay (950)))
+*/
 
-				(player 0 create 1 ( (type attacker)
+/*
+   ===== ATTACK =====
+				(player 0 attack create 0 ( (type attacker)
 						     (attack (yes yes yes))
 						     (defence (no no yes))
 						   ))
-				(player 0 startpos 1 (5 39))
-				(player 0 movetopos 1 ((17 10)))
-				(player 0 go 1)
+				(player 0 attack startpos 0 (0 39))
+				(player 0 attack movetopos 0 ((17 10)))
+				(player 0 attack go 0)
+
+				(player 0 attack create 1 ( (type attacker)
+						     (attack (yes yes yes))
+						     (defence (no no yes))
+						   ))
+				(player 0 attack startpos 1 (5 39))
+				(player 0 attack movetopos 1 ((17 10)))
+				(player 0 attack go 1)
 	
-				(player 0 create 2 ( (type defender)
+				(player 0 attack create 2 ( (type defender)
 						     (attack (yes yes no))
 						     (defence (yes yes yes yes))
 						    ))
-				(player 0 startpos 2 (15 29))
-				(player 0 go 2)
+				(player 0 attack startpos 2 (15 29))
+				(player 0 attack go 2)
 */
 	);
 }

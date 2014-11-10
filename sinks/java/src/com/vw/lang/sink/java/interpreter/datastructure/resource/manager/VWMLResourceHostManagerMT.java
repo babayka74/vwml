@@ -8,9 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -29,8 +31,10 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	private static VWMLResourceHostManagerMT s_hostedManager = new VWMLResourceHostManagerMT();
 	private static VWMLContextsRepository s_contextsRepo = null;
 	private static VWMLObjectsRepository s_objectsRepo = null;
+	private static VWMLInterceptorsRepository s_interceptorsRepo = null;
 	private static AtomicInteger s_objectsRepoCounter = new AtomicInteger(0);
 	private static AtomicInteger s_contextsRepoCounter = new AtomicInteger(0);
+	private static AtomicInteger s_interceptorsRepoCounter = new AtomicInteger(0);
 	
 	private VWMLResourceHostManagerMT() {
 	}
@@ -79,6 +83,11 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	@Override
 	public Set<VWMLEntity> requestEntityAssociatedSet() {
 		return Collections.synchronizedSet(new HashSet<VWMLEntity>());
+	}
+
+	@Override
+	public Map<String, VWMLInterceptor> requestInterceptorsRepoContainer() {
+		return new ConcurrentHashMap<String, VWMLInterceptor>();
 	}
 	
 	@Override
@@ -222,6 +231,43 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 				r.setObjectsRepo(null);
 				if (s_objectsRepoCounter.decrementAndGet() == 0) {
 					s_objectsRepo = null;
+				}
+			}
+		}
+	}
+	
+	@Override
+	protected void interceptorsRepoInit(VWMLHostedResources r) {
+		if (r.getInterceptorsRepo() == null) {
+			synchronized(r) {
+				if (r.getInterceptorsRepo() != null) {
+					return;
+				}
+				if (s_interceptorsRepo == null) {
+					synchronized(VWMLInterceptorsRepository.class) {
+						if (s_interceptorsRepo == null) {
+							s_interceptorsRepo = new VWMLInterceptorsRepository();
+							s_interceptorsRepo.init();
+						}
+					}
+				}
+				r.setInterceptorsRepo(s_interceptorsRepo);
+				s_interceptorsRepoCounter.incrementAndGet();
+			}
+		}
+	}
+	
+	@Override
+	protected void interceptorsRepoDone(VWMLHostedResources r) {
+		if (r.getInterceptorsRepo() != null) {
+			synchronized(r) {
+				if (r.getInterceptorsRepo() == null) {
+					return;
+				}
+				r.setInterceptorsRepo(null);
+				if (s_interceptorsRepoCounter.decrementAndGet() == 0) {
+					s_interceptorsRepo.done();
+					s_interceptorsRepo = null;
 				}
 			}
 		}
