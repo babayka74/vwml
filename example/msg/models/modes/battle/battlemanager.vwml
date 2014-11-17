@@ -1,0 +1,60 @@
+module BattleManager {
+	MagicWorld ias (
+		Player ias (
+			BattleManager ias (
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+				BFId ias nil;
+				// battlefield is created upon player's request
+				CreateBattleField ias (
+					(Q (CommandParams~ 0) Get)^
+					(BattleField (BattleField (Id~ Q~))) Born
+					(BattleField (Id~ Q~))->Init~ Exe
+					((BattleField (Id~ Q~))->Id (Id~ Q~))^
+					((BattleField (Id~ Q~))->PlayerId Id~)^
+					((BattleField (Id~ Q~))->Quartal Q~)^
+					(Resources.Battles (Resources.Battles~ (BattleField (BattleField (Id~ Q~))->Id~)) Join)^
+					// default: here defence will be built
+					(Resources.SelectedBattle (BattleField (Id~ Q~))->Id~)^
+					((Player Id~ created battlefield (BattleField (BattleField (Id~ Q~))->Id~)) Ew.Output~) Do 
+				);
+				// battlefield is destroyed upon player's request
+				DestroyBattleField ias (
+					(SameBattle true) ias (Resources.SelectedBattle nil)^;
+					(SameBattle false) ias doNothing;
+					(BFId (Id~ (CommandParams~ 0) Get))^
+					(Resources.Battles (Resources.Battles~ (BattleField BFId~)) Substruct)^
+					(SameBattle ((BattleField (Id~ Q~))->Id~ BFId~) Ident)~ Exe
+					((Player Id~ destroyed battlefield (BattleField BFId~)) Ew.Output~) Do 
+				);
+				// Selects battle (becames active from player's point of view)
+				SelectBattleField ias (
+					(Allow false) ias ((Player Id~ selected invalid battlefield id BFId~) Ew.Output~) Do;
+					(Allow true) ias (Resources.SelectedBattle BFId)^;
+					(BFId (Id~ (CommandParams~ 0) Get))^
+					(Allow (Resources.Battles~ BFId~) In)~ Exe
+				);
+				(DelegateToBF false) ias (
+					(Handle createbf) ias CreateBattleField~ Exe;
+					(Handle destroybf) ias DestroyBattleField~ Exe;
+					// selects battlefield for defence building
+					(Handle selectbf) ias SelectBattleField~ Exe;
+					(Handle CommandId~)~ Exe
+				);
+				(DelegateToBF true) ias (
+					// delegating command to BF
+					(NotSelectedBF false) ias (
+						((BattleField Resources.SelectedBattle~)->CommandId CommandId~)^
+						((BattleField Resources.SelectedBattle~)->Destination To~)^
+						((BattleField Resources.SelectedBattle~)->CommandParams CommandParams~)^
+						(BattleField Resources.SelectedBattle~)~ Exe
+					);
+					(NotSelectedBF true) ias ((Player Id~ must select battlefield before) Ew.Output~) Do;
+					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe
+				);				
+				(DelegateToBF (BattleField.ExportedCommands~ CommandId~) In)~ Exe
+			);
+		);
+	);
+}

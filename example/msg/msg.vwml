@@ -18,26 +18,11 @@ options {
 		}
 	}
 	conflictring {
-          	"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsDefender.Create.LockDefenders" conflicts (
-			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Attacker.ActivityStrategy.Actions.Attack.LockDefenders"
-			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
-		)
-		"{MagicWorld.Player}.StopAllUnits.CheckForUnitsCompletition.Check.WaitForUnitsCompletitionLock" conflicts (
-			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsDefender.Destroy.LockDefenders"
-			"[MagicWorld.Characters.Unit].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
-		)
 		"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker" conflicts (
 			"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker"
 		)
-		"[MagicWorld.Characters.Unit].MagicWorld.PathFinder.UpdateUnitsSharedPath.RecalculatePathToAttacker.LockSharedStates" conflicts (
-			"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker"
-		)
-		"[MagicWorld.Characters.Unit].MagicWorld.Characters.Defender.ActivityStrategy.Actions.Defence.Observe.LockAttackers" conflicts (
-			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Create.LockAttackers"
-			"[MagicWorld.Player].MagicWorld.Characters.Unit.UnitAsAttacker.Destroy.LockAttackers"
-		)
-		"{MagicWorld.Characters.Unit}.UnitAsAttacker.Destroy.LockAttackers" conflicts (
-			"{MagicWorld.Characters.Unit}.UnitAsAttacker.Destroy.LockAttackers"
+		"{MagicWorld.Player}.Battle.Fields.Init.LockOnBattleFieldBuilding" conflicts (
+			"{MagicWorld.Player}.Battle.Fields.Init.LockOnBattleFieldBuilding"
 		)
 	}
 }
@@ -149,9 +134,8 @@ module battleModel3B {
 				((The initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
-				(ModeInfo.AvailableModes ModeInfo.AvailableModes~ Exe)^
-				((The game manager started and loads maze) Ew.Output~) Do
-				Ew.Maze~ Exe
+				ModeInfo.AvailableModes~
+				((The game manager started) Ew.Output~) Do
 				((The game manager waits for commands) Ew.Output~) Do
 				MainLoop~ Exe
 				3000 Relax
@@ -161,7 +145,7 @@ module battleModel3B {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 playeradd 0)
-				(player 0 exit 0 ())
+				(player 0 nil exit 0 ())
 			);
 		);
 
@@ -178,28 +162,29 @@ module battleModel3B {
 
 /*
    ===== ATTACK =====
-				(player 0 attack create 0 ( (type attacker)
+				(player 0 main setmode 0 battle)
+				(player 0 nil create 0 ( (type attacker)
 						     (attack (yes yes yes))
 						     (defence (no no yes))
 						   ))
-				(player 0 attack startpos 0 (0 39))
-				(player 0 attack movetopos 0 ((17 10)))
-				(player 0 attack go 0)
+				(player 0 nil startpos 0 (0 39))
+				(player 0 nil movetopos 0 ((17 10)))
+				(player 0 nil go 0)
 
-				(player 0 attack create 1 ( (type attacker)
+				(player 0 nil create 1 ( (type attacker)
 						     (attack (yes yes yes))
 						     (defence (no no yes))
 						   ))
-				(player 0 attack startpos 1 (5 39))
-				(player 0 attack movetopos 1 ((17 10)))
-				(player 0 attack go 1)
+				(player 0 nil startpos 1 (5 39))
+				(player 0 nil movetopos 1 ((17 10)))
+				(player 0 nil go 1)
 	
-				(player 0 attack create 2 ( (type defender)
+				(player 0 nil create 2 ( (type defender)
 						     (attack (yes yes no))
 						     (defence (yes yes yes yes))
 						    ))
-				(player 0 attack startpos 2 (15 29))
-				(player 0 attack go 2)
+				(player 0 nil startpos 2 (15 29))
+				(player 0 nil go 2)
 */
 	);
 }

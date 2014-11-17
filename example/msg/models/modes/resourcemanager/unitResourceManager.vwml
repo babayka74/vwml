@@ -1,0 +1,79 @@
+module PlayerResourceManager {
+	MagicWorld ias (
+		Player ias (
+			ResourceManager ias (
+				CommandId ias nil;
+				CommandParams ias nil;
+
+				TakeOnBoardUnit ias (
+					HiredUnitId ias nil;
+					(Unit attacker) ias (
+						(Resources.Units.Attackers (Resources.Units.Attackers~ (HiredUnitId~)) Join)^
+						((Player Id~ added attacker unit HiredUnitId~ available attackers Resources.Units.Attackers~) Ew.Output~) Do
+					);
+					(Unit defender) ias (
+						(Resources.Units.Defenders (Resources.Units.Defenders~ (HiredUnitId~)) Join)^
+						((Player Id~ added defender unit HiredUnitId~ available defenders Resources.Units.Defenders~) Ew.Output~) Do
+					);
+					(HiredUnitId (CommandParams~ 0) Get)^
+					(Unit Characters.(Unit HiredUnitId~)->Type~)~ Exe
+				);
+				
+				PushOutUnit ias (
+					HiredUnitId ias nil;
+					(attacker false) ias (
+						(defender false) ias doNothing;
+						(defender true) ias (
+							(Resources.Units.Defenders (Resources.Units.Defenders~ (HiredUnitId~)) Substruct)^
+							((Player Id~ removed defender unit HiredUnitId~ available defenders Resources.Units.Defenders~) Ew.Output~) Do
+						);
+						(defender (Resources.Units.Defenders~ HiredUnitId~) In)~ Exe
+					);
+					(attacker true) ias (
+						(Resources.Units.Attackers (Resources.Units.Attackers~ (HiredUnitId~)) Substruct)^
+						((Player Id~ removed attacker unit HiredUnitId~ available attackers Resources.Units.Attackers~) Ew.Output~) Do
+					);
+					(HiredUnitId (CommandParams~ 0) Get)^
+					(attacker (Resources.Units.Attackers~ HiredUnitId~) In)~ Exe
+				);
+
+				MarkUnitAsIsInAction ias (
+					HiredUnitId ias nil;
+					(UnitInAction true) ias ((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ rejectedunit HiredUnitId~ ())) Gate;
+					(UnitInAction false) ias (
+						(Characters.(Unit HiredUnitId~)->InAction true)^
+						((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ recruitedunit HiredUnitId~ ())) Gate
+					);
+					(HiredUnitId (CommandParams~ 0) Get)^
+					(UnitInAction Characters.(Unit HiredUnitId~)->InAction~)~ Exe
+				);
+
+				MarkUnitAsFree ias (
+					HiredUnitId ias nil;
+					(HiredUnitId (CommandParams~ 0) Get)^
+					(Characters.(Unit HiredUnitId~)->InAction true)^
+				);
+
+				// unit has been hired and must be associated with player
+				(Handle hireunit) ias (
+					TakeOnBoardUnit~ Exe
+					((Player Id~ hired unit TakeOffUnit.HiredUnitId~) Ew.Output~) Do
+				);
+				// unit's functionality doesn't need to player
+				(Handle dismissunit) ias (
+					PushOutUnit~ Exe
+					((Unit TakeOffUnit.HiredUnitId~)->StopUnit true)^
+					((Player Id~ dismissed unit TakeOffUnit.HiredUnitId~) Ew.Output~) Do
+				);
+				// remove stopped unit which was killed and stopped
+				(Hanlde releaseunit) ias PushOutUnit~ Exe;
+				// unit is in action (battle for example)
+				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe
+				// unit is returned from action, if wasn't killed
+				(Handle returnunit) ias MarkUnitAsFree~ Exe;
+
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

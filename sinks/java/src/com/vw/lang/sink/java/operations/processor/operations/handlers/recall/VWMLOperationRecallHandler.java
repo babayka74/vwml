@@ -59,22 +59,26 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 			throw new Exception("operation 'Recall' requires 2 arguments; check code");
 		}
 		int time = 0;
+		VWMLEntity argComponent = null;
 		VWMLEntity runOnTerminatedCompletition = null;
 		VWMLEntity timeEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 		VWMLEntity recallIdEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
 		VWMLEntity runOnRegularCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(2);
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfExArgs) {
 			runOnTerminatedCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(3);
+			if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() > s_numOfExArgs) {
+				argComponent = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);
+			}
 		}
 		try {
 			time = Integer.parseInt((String)timeEntity.getId());
 		}
 		finally {
 		}
-		recallImpl(context, interpreter, time, recallIdEntity, runOnRegularCompletition, runOnTerminatedCompletition);
+		recallImpl(context, interpreter, time, recallIdEntity, runOnRegularCompletition, runOnTerminatedCompletition, argComponent);
 	}
 	
-	protected void recallImpl(VWMLContext activeContext, VWMLInterpreterImpl interpreter, int time, VWMLEntity recallEntityId, VWMLEntity runOnRegularCompletition, VWMLEntity runOnTerminatedCompletition) throws Exception {
+	protected void recallImpl(VWMLContext activeContext, VWMLInterpreterImpl interpreter, int time, VWMLEntity recallEntityId, VWMLEntity runOnRegularCompletition, VWMLEntity runOnTerminatedCompletition, VWMLEntity argComponent) throws Exception {
 		if (time != 0) {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
@@ -90,6 +94,7 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 			}
 			VWMLOperationRecallTimerCallback callback = new VWMLOperationRecallTimerCallback(runOnRegularCompletition, runOnTerminatedCompletition);
 			if (interpreter.getTimerManager() != null) {
+				callback.setArgComponent(argComponent);
 				recallEntityId.setReadableId(null);
 				if (time != -1) {
 					interpreter.getTimerManager().addTimer(recallEntityId.buildReadableId(), time, Long.valueOf((String)e.getId()), interpreter, callback);

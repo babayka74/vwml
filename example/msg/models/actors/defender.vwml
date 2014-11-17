@@ -8,6 +8,8 @@ module Defender {
 				PlayerId ias nil;
 				/* unit selected by player */
 				Selected ias false;
+				// belongs to battlefield
+				BattleFieldId ias nil;
 
 				Init ias (
 					ActivityStrategy.Init~ Exe
@@ -53,22 +55,24 @@ module Defender {
 							Observe ias (
 								Position ias nil;	
 								CheckFireZone ias (
-									(AsKilled true) ias doNothing;
-									(AsKilled false) ias (
-										(OnFire false) ias doNothing;
-										(OnFire true) ias (
-											(OnFire (OnFire~ ($~)) Join)^
-											((The attacker $~ can be attacked by defender Id~) Ew.Output~) Do
+									(Unit defender) ias doNothing;
+									(Unit attacker) ias (
+										(AsKilled true) ias doNothing;
+										(AsKilled false) ias (
+											(OnFire false) ias doNothing;
+											(OnFire true) ias (
+												(OnFire (OnFire~ ($~)) Join)^
+												((The attacker $~ can be attacked by defender Id~) Ew.Output~) Do
+											);
+											(Unit $~)->GetCurrentPosition~ Exe
+											(OnFire (Position~ (Unit $~)->CurrentPosition~) Ident)~ Exe
 										);
-										(Unit $~)->GetCurrentPosition~ Exe
-										(OnFire (Position~ (Unit $~)->CurrentPosition~) Ident)~ Exe
+										(AsKilled (Unit $~)->MarkedAsKilled~)~ Exe
 									);
-									(AsKilled (Unit $~)->MarkedAsKilled~)~ Exe
+									(Unit (Unit $~)->Type~)~ Exe
 								);
 								(Position $~)^
-								LockAttackers [
-									((Player PlayerId~)->(Resources)->(Units)->Attackers~ CheckFireZone~) ForEach
-								LockAttackers ]
+								((BattleField BattleFieldId~)->(Participants)->Units~ CheckFireZone~) ForEach
 							);
 							(OnFire ())^
 							(Movement.State~~ Observe~) ForEach
@@ -78,18 +82,18 @@ module Defender {
 					Kill ias (
 						((The defender Id~ was killed) Ew.Output~) Do
 						(Characters)->(Unit Id~)->(UnitAsDefender)->Destroy~ Exe
-						((Characters)->(Unit Id~)->StopUnit true)^
 					);
 					/* movement's parameters (stubs almost) */
 					Movement ias (
 						/* unit's position */
 						State ias nil;
 						SetStartPos ias (
-							(InvalidPositon false) ias (Movement.State~ Ew.Maze.Defence.Nodes) Context;
+							(InvalidPositon false) ias (Movement.State~ (BattleField BattleFieldId~)->(Fields)->(Defence)->Nodes) Context;
 							(InvalidPositon true) ias doNothing;
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeCheckedCtx (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
-							(Services.(PositionChecker Id~)->(CheckPosition)->OnMaze Ew.Maze.Defence.Nodes~)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->OnMainField (BattleField BattleFieldId~)->(Fields)->(Defence)->Nodes~)^
                         	                        Services.(PositionChecker Id~)->CheckPosition~ Exe
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
 							(InvalidPositon (Movement.State~ nil) Ident)~ Exe

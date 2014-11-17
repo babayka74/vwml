@@ -32,14 +32,14 @@ public class VWMLOperationRecallTimerCallback extends VWMLInterpreterTimerCallba
 		if (completitionTerm != null) {
 			if (!delayExecution) {
 				try {
-					VWMLOperationUtils.activateTerm(interpreter, null, false, completitionTerm, "relaxCbk_", "Relax", null);
+					VWMLOperationUtils.activateTerm(interpreter, getArgComponent(), false, completitionTerm, "relaxCbk_", "Relax", null);
 				} catch (Exception e) { // swallow it for now
 				}
 			}
 			else {
 				VWMLInterpreterInterruptTimerDeferredTask task = new VWMLInterpreterInterruptTimerDeferredTask();
 				task.setActiveInterpreter(interpreter);
-				task.setArgs(null);
+				task.setArgs(getArgComponent());
 				task.setTerm(completitionTerm);
 				task.setContextPrefix("recallCbk_");
 				task.setOperation("Recall");

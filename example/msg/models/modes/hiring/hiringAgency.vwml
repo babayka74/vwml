@@ -1,0 +1,80 @@
+module BattleField {
+	MagicWorld ias (
+		HiringAgency ias (
+			Id ias nil
+			Owner ias nil;
+			HiringProcessTime ias nil;
+			StopAgency ias false;
+			GlobalHiringRequestId ias 0;
+
+			Agent ias (
+				Commands ias (starthiring cancelhiring exit);
+				Command ias nil;
+				Request ias nil;
+				RequestId ias 0;
+
+				// called when unit's request is ready (aka agent found and hired unit)
+				ProcessRequest ias (
+					(RqId ($~ 0) Get)^
+					(Rq ($~ 1) Get)^
+					((The hiring agent reports about processing request RqId~ for player Owner~ and sets props Rq~) Ew.Output~) Do
+					// creating unit (aka found)
+					(Characters.Unit.PlayerId Owner~)^
+					(Characters.Unit.Id RqId~)^
+					(Characters.Unit Characters.(Unit RqId~)) Born
+					// concrete mechanism of properties setting
+					(Rq~ Characters.(Unit RqId~)->PropertySetOperation~) ForEach
+					// notify player about success hiring operation
+					((Player Owner~) Tx ((Player Owner~)->(ModeInfo)->ModeResourceMgr~ hireunit Owner~ (RqId~))) Gate
+				);
+				Behavior ias (
+					(RightCommand false) ias doNothing;
+					(RightCommand true) ias (
+						(Command starthiring) ias (
+							(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
+							(HiringProcessTime~ (Hiring Id~ GlobalHiringRequestId~) ProcessRequest~ nil (GlobalHiringRequestId~ Request~)) Recall
+						);
+						(Command cancelhiring) ias (
+							(-1 (Hiring Id~ RequestId~) nil) Recall
+							((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
+						);
+						(Command exit) ias (StopAgency true)^
+						(Command Command~)~ Exe
+					);
+					(RightCommand (Commands~ Command~) In)~ Exe					
+				);
+			);
+
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				// (starthiring | cancelhiring RequestId Request)
+				// Request=> ((kind skeleton | zombie | monster) (type attacker | defender) (attack (yes yes yes)) (defence (no no yes))
+				(Agent.Command (Dispatch~ 0) Get)^
+				(Agent.RequestId (Dispatch~ 1) Get)^
+				(Agent.Request (Dispatch~ 2) Get)^
+				Agent.Behavior~ Exe
+			);
+			HiringAgencyLifeStep ias (
+				(ready false false) ias (
+					(CommandDispatcher.Dispatch nil)^
+					HiringAgencyLifeStep~ Exe
+				);
+				(ready true false) ias (
+					(CommandDispatcher.Dispatch ((HiringAgency Id~) Rx) Gate)^
+					((The hiring agency Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+					CommandDispatcher~ Exe
+					HiringAgencyLifeStep~ Exe
+				);
+				(ready false true),(ready true true) ias (
+					((The hiring agency Id~ of player Owner~ reports about exiting) Ew.Output~) Do
+				);
+				(ready (((HiringAgency Id~) Ready) Gate true) Ident StopAgency~)~ Exe
+			);
+			lifeterm = (
+				((The hiring agency Id~ activated for owner Owner~) Ew.Output~) Do
+				HiringAgencyLifeStep~ Exe
+			) Exe
+
+		);
+	);
+}

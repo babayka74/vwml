@@ -39,6 +39,8 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.ident.VWML
 import com.vw.lang.sink.java.operations.processor.operations.handlers.implicit.assemble.VWMLOperationImplicitAssembleHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.in.VWMLOperationInHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.include.VWMLOperationIncludeHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.interceptor.VWMLOperationFinishInterceptionHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.interceptor.VWMLOperationStartInterceptionHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.interpret.VWMLOperationInterpretHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.interrupt.VWMLOperationInterruptHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.intersect.VWMLOperationIntersectHandler;
@@ -106,6 +108,10 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPCARTESIAN),   			new VWMLOperationCartesianHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPSQU),   					new VWMLOperationSqueezeHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCOPY),   				new VWMLOperationCopyHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPSTARTINTERCEPTION),   	new VWMLOperationStartInterceptionHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPSTARTINTERCEPTION_S),   	new VWMLOperationStartInterceptionHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPFINISHINTERCEPTION),   	new VWMLOperationFinishInterceptionHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPFINISHINTERCEPTION_S),   new VWMLOperationFinishInterceptionHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());

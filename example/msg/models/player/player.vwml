@@ -1,5 +1,5 @@
 include "playermain.vwml"
-include "playerattack.vwml"
+include "playerbattle.vwml"
 include "playerdeal.vwml"
 
 module Player {
@@ -16,23 +16,28 @@ module Player {
 		);
 		ModeInfo ias (
 			ModeDeal ias deal;
-			ModeBattle ias attack;
+			ModeBattle ias battle;
 			ModeMain ias main;
-			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~);
-			AvailablePlayerCommandsOnModeAttack ias (create destroy movetopos startpos go stop exit select setprops getpos kill stop back attackerstopped defendersstopped);
+			ModeResourceMgr ias resourcemanager;
+			ModeHiring ias hiring;
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~);
+			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit);
+			AvailablePlayerCommandsOnModeHiring ias (starthiring cancelhiring);
+			AvailablePlayerCommandsOnModeBattle ias (createbf destroybf selectbf wishattackbf);
 			AvailablePlayerCommandsOnModeMain   ias (setmode exit back dealstopped battlestopped);
 			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution stop back);
+			(AvailableModes AvailableModes~ Exe)^
+			BattleField.ExportCommands~ Exe
+			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ (BattleField.ExportedCommands~)) Join)^
 		);
 		Player ias (
-			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~);
+			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);
 			Mode ias main;
 			Id ias nil;
 			Stop ias false;
 			Resources ias (
 				/* available units */
 				Units ias (
-					LastAttackerDestroyed ias true;
-					LastDefenderDestroyed ias true;
 					Attackers ias ();
 					Defenders ias ();
 					/* shared entity which stores units' current state (position) */
@@ -48,6 +53,10 @@ module Player {
 					/* player knows about these quartals but doesn't have control upon them */
 					Visible ias ();
 				);
+				/* set of player's battles */
+				Battles ias ();
+				/* Selected battle */
+				SelectedBattle ias nil;
 				/* Account's information */
 				Account ias (
 					Value ias nil;
@@ -82,12 +91,19 @@ module Player {
 						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
 					);
 				);
+				Init ias (
+					(Quartals.Controlled ())^
+					(Quartals.Visible ())^
+					(Units.Attackers ())^
+					(Units.Defenders ())^
+					Account.Init~ Exe
+				);
 			);
-			HandlePlayerCommandOnModeAttack ias (
-				(Attack.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
-				(Attack.To (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.Battle.UnitIdIndex~) Get)^
-				(Attack.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
-				Attack~ Exe
+			HandlePlayerCommandOnModeBattle ias (
+				(BattleManager.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(BattleManager.To (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.Battle.UnitIdIndex~) Get)^
+				(BattleManager.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				BattleManager~ Exe
 				PlayerLifeStep~ Exe
 			);
 			HandlePlayerCommandOnModeMain ias (
@@ -104,7 +120,20 @@ module Player {
 				Deal~ Exe
 				PlayerLifeStep~ Exe
 			);
+			HandlePlayerCommandsOnResourceManager ias (
+				(ResourceManager.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(ResourceManager.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				ResourceManager~ Exe
+				PlayerLifeStep~ Exe
+			);
+			HandlePlayerCommandsOnModeHiring ias (
+				(HiringBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(HiringBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				HiringBroker~ Exe
+				PlayerLifeStep~ Exe
+			);
 			CommandDispatcher ias (
+				ForcedMode ias nil;
 				Dispatch ias nil;
 				CommandSet ias nil;
 				Handler ias nil;
@@ -122,10 +151,24 @@ module Player {
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeDeal~)^
 					(Handler HandlePlayerCommandOnModeDeal~)^
 				);
-				(mode attack) ias (
-					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeAttack~)^
-					(Handler HandlePlayerCommandOnModeAttack~)^
+				(mode battle) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeBattle~)^
+					(Handler HandlePlayerCommandOnModeBattle~)^
 				);
+				(mode resourcemanager) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnResourceManager~)^
+					(Handler HandlePlayerCommandsOnResourceManager~)^
+				);
+				(mode hiring) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeHiring~)^
+					(Handler HandlePlayerCommandsOnModeHiring~)^
+				);
+
+				(ForcedMode true) ias (Mode ForcedMode~)^;
+				(ForcedMode false) ias doNothing;
+
+				(ForcedMode (Dispatch~ MagicWorld.Command.Format.ModeIndex~) Get)^
+				(ForcedMode (ForcedMode~ nil) Ident)~ Exe
 				(mode Mode~)~ Exe
 				CheckAndHandleCommand~ Exe
 			);
@@ -142,14 +185,11 @@ module Player {
 				(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
+				(Stop false)^
 				((The player Id~ added and active) Ew.Output~) Do
 				(ActiveModes ActiveModes~ Exe)^
 				((The player Id~ has available modes ModeInfo.AvailableModes~ and active ActiveModes~) Ew.Output~) Do
-				(Resources.Quartals.Controlled ())^
-				(Resources.Quartals.Visible ())^
-				(Resources.Units.Attackers ())^
-				(Resources.Units.Defenders ())^
-				Resources.Account.Init~ Exe
+				Resources.Init~ Exe
 				(Services.SignalUnit Services.(SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe
 			) Exe

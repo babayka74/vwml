@@ -1,0 +1,53 @@
+module BattleFieldStop {
+	MagicWorld ias (
+		BattleField ias (
+			StopAllUnits ias (
+				StopUnits ias (
+					StopUnit ias (
+						(Services.(SignalUnit Player PlayerId~)->PlayerId PlayerId~)^
+						(Services.(SignalUnit Player PlayerId~)->To $~)^
+						(Services.(SignalUnit Player PlayerId~)->CommandId kill)^
+						(Services.(SignalUnit Player PlayerId~)->CommandParams ())^
+						Services.(SignalUnit Player PlayerId~)~ Exe
+						((The player PlayerId~ sent kill signal to unit $~) Ew.Output~) Do
+					);
+					($~ StopUnit~) ForEach
+				);
+				AllAttackersStopped ias (
+					(Resources.Units.Attackers ()) FinishInterception
+					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ attackerstopped 0 ())) Gate
+				);
+				AllDefendersStopped ias (
+					(Resources.Units.Defenders ()) FinishInterception
+					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ defendersstopped 0 ())) Gate
+				);
+				BattleFieldStopped ias (
+					(BattleField.ExitCase ()) FinishInterception
+					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeMain~ battlestopped 0 ())) Gate
+				);
+				(NoUnits true true) ias (
+					AllAttackersStopped~ Exe
+					AllDefendersStopped~ Exe
+				);
+				(NoUnits false true) ias (
+					AllDefendersStopped~ Exe
+					(Resources.Units.Attackers () AllAttackersStopped~) StartInterception
+				);
+				(NoUnits true false) ias (
+					AllAttackersStopped~ Exe
+					(Resources.Units.Defenders () AllDefendersStopped~) StartInterception
+				);
+				(NoUnits false false) ias (
+					(Resources.Units.Attackers () AllAttackersStopped~) StartInterception
+					(Resources.Units.Defenders () AllDefendersStopped~) StartInterception
+				);
+				((The player Id~ is going to be stopped) Ew.Output~) Do
+                        	(BattleField.ExitCase () BattleFieldStopped~) StartInterception
+				(CombinedUnits (Resources.Units.Attackers~ Resources.Units.Defenders~))^
+				(NoUnits (Resources.Units.Attackers~ ()) Ident (Resources.Units.Defenders~ ()) Ident)~ Exe
+				((The player PlayerId~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
+				(CombinedUnits~ StopUnits~) ForEach
+			);
+		);
+	);
+}

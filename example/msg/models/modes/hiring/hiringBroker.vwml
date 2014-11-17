@@ -1,0 +1,18 @@
+module HiringBroker {
+	MagicWorld ias (
+		Player ias (
+			HiringBroker ias (
+				CommandId ias nil;
+				CommandParams ias nil;
+
+				(Handle starthiring) ias (
+					((HiringAgency Id~) Tx (CommandId~ CommandParams~)) Gate
+				);
+				(Handle cancelhiring) ias (
+					((HiringAgency Id~) Tx (CommandId~ CommandParams~)) Gate
+				);
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

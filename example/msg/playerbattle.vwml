@@ -1,0 +1,98 @@
+module PlayerBattle {
+	MagicWorld ias (
+		Battle ias (
+				Modes ias (defence attack);
+				Won ias (				
+					// notify player about battle's result
+					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlewon 0 ())) Gate
+				);
+				Lost ias (				
+					// notify player about battle's result
+					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlelost 0 ())) Gate
+				);
+				Fields ias (
+					Attack ias (
+						/* nodes marked as 'attacking' */
+						Nodes ias ();
+					);
+					Defence ias (
+						/* nodes marked as 'defence' */
+						Nodes ias ();
+					);
+					Main ias (
+						/* all battlefields'/mainfield's nodes */
+						Nodes ias ();
+					);
+					Init ias (
+						LockOnBattleFieldBuilding [
+							(Ew.BattleField.AttackZone Fields.Attack.Nodes)^
+							(Ew.BattleField.AttackZoneCtx Fields.Attack)^
+							(Ew.BattleField.DefenceZone Fields.Defence.Nodes)^
+							(Ew.BattleField.DefenceZoneCtx Fields.Defence)^
+							(Ew.BattleField.MainZone Fields.Main.Nodes)^
+							(Ew.BattleField.MainZoneCtx Fields.Main)^
+							Ew.BattleField.Build~ Exe
+						LockOnBattleFieldBuilding ]
+					);
+				);
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+				ExitCase ias (attackers defenders);
+				Init ias (
+					((The battle is initialized) Ew.Output~) Do
+					Fields.Init~ Exe
+				);
+				PropagateCommandToUnit ias (
+					(
+						Characters.(Unit ($$)->(Attack)->To~)
+						Tx
+						(Id~ ($$)->(Attack)->CommandId~ ($$)->(Attack)->To~ ($$)->(Attack)->CommandParams~)
+					) Gate
+				);
+				(Handle create) ias (
+					((The player Id~ creates unit To~) Ew.Output~) Do
+					(Characters.Unit.Id To~)^
+					(Characters.Unit.PlayerId Id~)^
+					(Characters.Unit Characters.(Unit ($$)->(Attack)->To~)) Born
+					(($$)->(Attack)->CommandParams~ Characters.(Unit ($$)->(Attack)->To~)->PropertySetOperation~) ForEach
+					(CommandDispatcher.Dispatch nil)^
+				);
+				(Handle movetopos),(Handle startpos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias (
+					PropagateCommandToUnit~ Exe
+					(CommandDispatcher.Dispatch nil)^
+				);
+                                (Handle destroy) ias (
+					((The player Id~ executes other actions) Ew.Output~) Do
+					(CommandDispatcher.Dispatch nil)^
+				);
+				(Handle stop) ias (
+					((The player Id~ stops all units) Ew.Output~) Do
+					StopAllUnits~ Exe
+				);
+				(Handle back) ias (
+					(Player.Mode main)^
+					((The player Id~ returned to main mode) Ew.Output~) Do
+				);
+				(Handle battlewon) ias (
+					((The player Id~ won battle) Ew.Output~) Do
+				);
+				(Handle battlelost) ias (
+					((The player Id~ lost battle) Ew.Output~) Do
+				);
+				// sent from interceptor when last attacker was destroyed
+				(Handle attackerstopped) ias (
+					// ExitCase in case () will fire interceptor
+					(ExitCase (ExitCase~ (attackers)) Substruct)^
+				);
+				(Handle defendersstopped) ias (
+					// ExitCase in case () will fire interceptor
+					(ExitCase (ExitCase~ (defenders)) Substruct)^
+				);
+				(CommandId (CommandDispatcher.Dispatch~ 0) Get)^
+				(To (CommandDispatcher.Dispatch~ 1) Get)^
+				(CommandParams (CommandDispatcher.Dispatch~ 2) Get)^
+				(Handle CommandId~)~ Exe
+		);
+	);
+}

@@ -96,6 +96,9 @@ public class VWMLContext extends VWMLObject {
 	 */
 	public static String constructContextNameInRunTime(String contextNameBuf, VWMLEntity e) {
 		String part = e.getReadableId();
+		if (e.getReadableId() == null) {
+			e.buildReadableId();
+		}
 		if (!VWMLContext.isDynamicContextPointsToSelf(e.getReadableId())) {
 			part = ((e.getContext() != null) ? (e.getContext().getContext() + ".") : "") + e.getReadableId();
 		}

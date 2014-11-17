@@ -32,8 +32,20 @@ module checkrr {
 			(t1 t~ Exe)^
 			((T1 after t1~) Ew.Output~) Do
 		);
+		(a b) ias (
+			f ias (
+				(c (l m) d) ias (
+					(q w) ias (
+						k ias 98;
+					);
+				);
+			);
+		);
+		x ias l;
+		y ias a;
+		g ias (q w);
 		source lifeterm = (
-			RR~ Exe
+			// (((y~ b)->(f)->(c (x~ m) d)->(g~)->k~) Ew.Output~) Do
 			20000 Relax
 		) Exe
 	);

@@ -46,6 +46,10 @@ public enum VWMLOperationsCode {
     OPREPEAT("Repeat"),
     OPACTIVATE("Activate"),
     OPCOPY("Copy"),
+    OPSTARTINTERCEPTION("StartInterception"),
+    OPFINISHINTERCEPTION("FinishInterception"),
+    OPSTARTINTERCEPTION_S("SI"),
+    OPFINISHINTERCEPTION_S("FI"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

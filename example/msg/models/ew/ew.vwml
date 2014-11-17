@@ -1,17 +1,13 @@
 module ExternalWorld {
 	Ew ias (
-		Maze ias (
-			Attack ias (
-				/* nodes marked as 'attacking' */
-				Nodes ias ();
-			);
-			Defence ias (
-				/* nodes marked as 'defence' */
-				Nodes ias ();
-			);
-			/* all maze's nodes */
-			Nodes ias ();
-			MazePrototype ias (
+		BattleField ias (
+			AttackZone ias nil;
+			AttackZoneCtx ias nil;
+			DefenceZone ias nil;
+			DefenceZoneCtx ias nil;
+			MainZone ias nil;
+			MainZoneCtx ias nil;
+			Prototype ias (
 				Stg ias nil;
 				Ctx ias nil;
 				(Node ($~ 0) Get)^
@@ -22,30 +18,33 @@ module ExternalWorld {
 				((Connecting Node~ with LinkedNodes~ and list of nodes Stg~~ on context Ctx~) Ew.Output~) Do
 			);
 			BuildMainZone ias (
-				(MazePrototype.Stg Nodes)^
-				(MazePrototype.Ctx Ew.Maze)^
-				MazePrototype~ Exe
+				(Prototype.Stg MainZone~)^
+				(Prototype.Ctx MainZoneCtx~)^
+				Prototype~ Exe
 			);
 			// attack firezones
 			BuildAttackFireZone ias (
-				(MazePrototype.Stg Attack.Nodes)^
-				(MazePrototype.Ctx Ew.Maze.Attack)^
-				MazePrototype~ Exe
+				(Prototype.Stg AttackZone~)^
+				(Prototype.Ctx AttackZoneCtx~)^
+				Prototype~ Exe
 			);
 			// defence firezone
 			BuildDefenceFireZone ias (
-				(MazePrototype.Stg Defence.Nodes)^
-				(MazePrototype.Ctx Ew.Maze.Defence)^
-				MazePrototype~ Exe
+				(Prototype.Stg DefenceZone~)^
+				(Prototype.Ctx DefenceZoneCtx~)^
+				Prototype~ Exe
 			);
-			Initial ias (	(battleField BuildMainZone Ew.Maze)
-					(attackFireZoneField BuildAttackFireZone Ew.Maze.Attack)  
-					(defenceFireZoneField BuildDefenceFireZone Ew.Maze.Defence)
+			Initial ias (	(battleField BuildMainZone)
+					(attackFireZoneField BuildAttackFireZone)  
+					(defenceFireZoneField BuildDefenceFireZone)
 				);
-			MazeBuilder ias (((($~ 0) Get) Ew.LoadGraph~ ($~ 2) Get) Do ($~ 1) Get ~) ForEach;
 			/* builds: battlefield, atackers' firezone, defenders' firezone */
-			(Initial~ MazeBuilder~) ForEach
+			Build ias (
+				Builder ias ((((($~ 0) Get) Ew.LoadGraph~) Do) ($~ 1) Get ~) ForEach;
+				(Initial~ Builder~) ForEach
+			);
 		);
+
 		QuartalsConf ias (
 			/* initial quartals (closed) per player */
 			QuartalsPerPlayer ias 2;
@@ -61,7 +60,7 @@ module ExternalWorld {
 		Input ias communication.in.read;
 		Output ias communication.in.write;
 		// MoveUnit ias communication.outchannel.move;
-		IncIteration ias services.math.inc;
+		IncValue ias services.math.inc;
 		DecValue ias services.math.dec;
 		Sum ias services.math.sum;
 		Sub ias services.math.substr;

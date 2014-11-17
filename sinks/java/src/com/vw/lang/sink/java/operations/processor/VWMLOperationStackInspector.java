@@ -149,6 +149,10 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			if (e == null) {
 				throw new Exception("Couldn't find entity '" + dynamicAddressedEntity.getReadableId() + "' on context '" + dynContext + "'");
 			}
+			if (e.getReadableId() == null && ((e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) || !e.isMarkedAsComplexEntity())) {
+				// looks like context which built during compilation time
+				e.setReadableId((String)e.getId());
+			}
 			e.setDynamicAddressedInRunTime(true);
 			pushEntityToReversedStack(e);
 			dynContext = null;

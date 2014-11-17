@@ -13,20 +13,23 @@ module Services {
 				CheckPosition ias (
 					(RightPosition true) ias (
 						(PosToBeSet~ PosToBeChecked~)^
-						(PosToBeChecked~ Ew.Maze true) Context
+						(PosToBeChecked~ PosToBeCheckedCtx~ true) Context
 					);
 					(RightPosition false) ias (
 						(PosToBeSet~ nil)^
-						((The pos PosToBeChecked~ does not belong to maze for unit Id~) Ew.Output~) Do
+						((The pos PosToBeChecked~ does not belong to battlefield for unit Id~) Ew.Output~) Do
 					);
 					PosToBeChecked ias nil;
 					PosToBeSet ias nil;
-					OnMaze ias nil;
-					(RightPosition (OnMaze~ PosToBeChecked~) In)~ Exe
+					PosToBeCheckedCtx ias nil;
+					OnMainField ias nil;
+					(RightPosition (OnMainField~ PosToBeChecked~) In)~ Exe
  				);
 				CheckGoalPositions ias (
 					Correct ias true;
 					T ias nil;
+					CheckedCtx ias nil;
+					Field ias nil;
 					RollbackGoals ias ();
 					CheckGoal ias (
 						(NotCorrectGoal true) ias (
@@ -38,7 +41,8 @@ module Services {
 						(NotCorrectGoal false) ias doNothing;
 						(CheckPosition.PosToBeChecked $~)^
 						(CheckPosition.PosToBeSet T)^
-						(CheckPosition.OnMaze Ew.Maze.Nodes~)^
+						(CheckPosition.PosToBeCheckedCtx CheckedCtx~)^
+						(CheckPosition.OnMainField Field~)^
 						((Checking CheckPosition.PosToBeChecked~) Ew.Output~) Do
 						CheckPosition~ Exe
 						(NotCorrectGoal (T~ nil) Ident)~ Exe

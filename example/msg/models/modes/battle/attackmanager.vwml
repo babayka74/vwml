@@ -1,0 +1,48 @@
+module AttackManager {
+	MagicWorld ias (
+		Player ias (
+			AttackManager ias (
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+				AttackingUnits ias ();
+				// Player is going to attack another player
+				StartInvasionToBattleField ias (
+					(AttackedPlayerId (CommandParams~ 0) Get)^
+					(AttackingUnits (CommandParams~ 1) Get)^
+					((Player Id~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
+					((Player AttackedPlayerId~) Tx ((Player AttackedPlayerId~)->(ModeInfo)->ModeBattle~ invasionbf AttackedPlayer~ (PlayerId~ AttackingUnits~))) Gate
+				);
+				// another player attacks
+				InvasionToBattleField ias (
+					(AttackingPlayerId (CommandParams~ 0) Get)^
+					(AttackingUnits (CommandParams~ 1) Get)^
+					((Player Id~ reports about invasion of player AttackingPlayerId~ with units AttackingUnits~) Ew.Output~) Do
+					((BattleField Resources.SelectedBattle~)->PlayerAttackerId AttackingPlayerId~)^
+					// triggering attack mode
+					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ setmode attack ())) Gate
+					// adds attacking units to the battlefield
+					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ setupattackers Id~ AttackingUnits~)) Gate
+					// ... and attack !!!
+					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ attack Id~ ())) Gate
+				);
+				(Hanlde recruitunit) ias (
+					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeResourceMgr~ takeunit Id~ (Destination~ attack))) Gate
+				);
+				// positive response on request unit
+				(Handle recruitedunit) ias (
+					AddUnitToBattleField~ Exe
+					((The unit Destination~ recruited to battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
+				);
+				// negative response on requestunit
+				(Handle rejectedunit) ias (
+					((The unit Destination~ can not be recruited by player PlayerId~) Ew.Output~) Do
+				);
+				// selects battlefield for attack
+				(Handle startinvasionbf) ias WishAttackBattleField~ Exe;
+				(Handle invasionbf) ias InvasionToBattleField~ Exe;
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

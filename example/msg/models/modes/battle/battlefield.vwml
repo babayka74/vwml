@@ -1,0 +1,223 @@
+module BattleField {
+	MagicWorld ias (
+		BattleField ias (
+			Modes ias (none builddefence attack);
+			// BattleField's id (may coincide with Quartal)
+			Id ias nil;
+			// belongs to player identified by id
+			PlayerId ias nil;
+			// who attacks player identified by PlayerId
+			PlayerAttackerId ias nil;
+			// to which quartal battlefield belongs
+			Quartal ias nil;
+			BattleStatus ias undefined;
+			// command to be parsed
+			CommandId ias nil;
+			Destination ias nil;
+			CommandParams ias nil;
+			// default mode on start
+			Mode ias none;
+			// exported commands, filled by ExportCommands term
+			ExportedCommands ias ();
+			ExportCommands ias (
+				(ExportedCommands ())^
+				Fill ias (ExportedCommands (ExportedCommands~ ($~~)) Join)^;
+				((BuildDefenceModeAvailableCommands AttackModeAvailableCommands NoneModeAvailableCommands) Fill~) ForEach
+				(ExportedCommands (ExportedCommands~) Squeeze)^
+			);
+			// battlefield's zones
+			// 1. Attack - player which attacks sets his units to 'Nodes'. 'Nodes' must be subgraph of 'Main' graph
+			// 2. Defence - player which defends quartal sets his units to 'Nodes'. 'Nodes' must be subgraph of 'Main' graph
+			Fields ias (
+				Attack ias (
+					/* nodes marked as 'attacking' */
+					Nodes ias ();
+				);
+				Defence ias (
+					/* nodes marked as 'defence' */
+					Nodes ias ();
+				);
+				Main ias (
+					/* all battlefields'/mainfield's nodes */
+					Nodes ias ();
+				);
+				Build ias (
+					LockOnBattleFieldBuilding [
+						(Ew.BattleField.AttackZone Fields.Attack.Nodes)^
+						(Ew.BattleField.AttackZoneCtx Fields.Attack.Nodes)^
+						(Ew.BattleField.DefenceZone Fields.Defence.Nodes)^
+						(Ew.BattleField.DefenceZoneCtx Fields.Defence.Nodes)^
+						(Ew.BattleField.MainZone Fields.Main.Nodes)^
+						(Ew.BattleField.MainZoneCtx Fields.Main.Nodes)^
+						Ew.BattleField.Build~ Exe
+					LockOnBattleFieldBuilding ]
+				);
+			);
+			// commands available on 'builddefence', 'attack' and 'none' modes
+			BuildDefenceModeAvailableCommands ias (setmode buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit);
+			AttackModeAvailableCommands ias (setmode setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled);
+			NoneModeAvailableCommands ias (setmode);
+			// battle's participants
+			Participants ias (
+				NumOfAttackers ias 0;
+				NumOfDefenders ias 0;
+				Units ias ();
+			);
+			Init ias (
+				(BattleStatus undefined)^
+				(Mode none)^
+				(PlayerAttackerId nil)^
+			);
+			SetModeAndBattleStatus ias (
+				(Mode Destination~)^
+				(BattleStatus Mode~)^
+			);
+			// Unit is added to battlefield
+			AddUnitToBattleField ias (
+				(added attacker) ias (Participants.NumOfAttackers ((Participants.NumOfAttackers~) Ew.IncValue~) Do)^;
+				(added defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.IncValue~) Do)^;
+				(Characters.(Unit Destination~)->(AssociateWithBattleField)->BFId Id~)^
+				Characters.(Unit Destination~)->AssociateWithBattleField~ Exe
+				(Participants.Units (Participants.Units~ (Destination~)) Join)^
+				(added Characters.(Unit Destination~)->Type~)~ Exe 
+			);
+			// unit is removed from battlefield when mode 'builddefence' is active
+			RemoveFromBattleField ias (
+				(removed attacker) ias (Participants.NumOfAttackers ((Participants.NumOfAttackers~) Ew.DecValue~) Do)^;
+				(removed defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.DecValue~) Do)^;
+				(Characters.(Unit Destination~)->(AssociateWithBattleField)->BFId nil)^
+				Characters.(Unit Destination~)->AssociateWithBattleField~ Exe
+				(Participants.Units (Participants.Units~ (Destination~)) Substruct)^
+				(removed Characters.(Unit Destination~)->Type~)~ Exe
+			);
+			// Add set of units (attackers in our case)
+			AddSetOfUnitsToBattleField ias (
+				AddUnit ias (
+					(Destination $~)^
+					AddUnitToBattleField~ Exe
+				);
+				(CommandParams~ AddUnit~) ForEach
+			);
+			// checks battle's status
+			CheckBattleStatus ias (
+				(AttackersDestroyed true) ias (
+					(BattleStatus stopped)^
+					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (won))) Gate
+					((Player PlayerAttackerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (loose))) Gate
+				);
+				(AttackersDestroyed false) ias doNothing;
+				(DefendersDestroyed true) ias (
+					(BattleStatus stopped)^
+					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (loose))) Gate
+					((Player PlayerAttackerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (won))) Gate
+				);
+				(DefendersDestroyed false) ias doNothing;
+				(AttackersDestroyed (Participants.NumOfAttackers~ 0) Ident)~ Exe
+				(DefendersDestroyed (Participants.NumOfDefenders~ 0) Ident)~ Exe
+			);
+			// sends command to concrete unit
+			PropagateCommandToUnit ias (
+				(BattleStarted true) ias (Characters.(Unit Destination~) Tx (Quartal~ CommandId~ Destination~ CommandParams~)) Gate;
+				(BattleStarted false) ias ((The command can not be propagated to unit Destination~ player PlayerId~ since battle was not started) Ew.Output~) Do;
+				(BattleStarted (BattleStatus~ started) Ident)~ Exe
+			);
+			// initial mode
+			(Mode none) ias (
+				(RightCommand false) ias doNothing;
+				(RightCommand true) ias (
+					// setting mode is allowed for all modes
+					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
+					(Handle CommandId~)~ Exe
+				);
+				(RightCommand (NoneModeAvailableCommands~ CommandId~) In)~ Exe
+			);
+			// building defence
+			(Mode builddefence) ias (
+				(RightCommand false) ias doNothing;
+				(RightCommand true) ias (
+					// setting mode is allowed for all modes
+					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
+					// builds battlefield's map
+					(Handle buildfield) ias (
+						((The battlefield is being built) Ew.Output~) Do
+						Fields.Build~ Exe
+					);
+					// links battlefield with quartal
+					(Handle linktoquartal) ias (Quartal Destination~)^;
+					// unlinks battlefield from the quartal and sets mode to 'none'
+					(Handle unlinkfromquartal) ias (
+						(Quartal nil)^
+						(Mode none)^
+					);
+					// battlefield is published to all players and marked as ready for attack by other players
+					(Handle apply) ias (
+					);
+					// battlefield is became invisible for players and can't be attacked by other players
+					(Handle reset) ias (
+						ReturnUnits ias (
+							(Pid Characters.(Unit $~)->PlayerId~)^
+							((Player Pid~) Tx ((Player Pid~)->(ModeInfo)->ModeResourceMgr~ returnunit Pid~ ($~))) Gate
+						);
+						(Participants.Units~ ReturnUnits~) ForEach
+					);
+					// player requests unit from resource manager to participate in battle, for defence.
+					// the unit is identified by Destination~
+					(Hanlde recruitunit) ias (
+						((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeResourceMgr~ takeunit PlayerId~ (Destination~ defence))) Gate
+					);
+					// positive response on request unit
+					(Handle recruitedunit) ias (
+						AddUnitToBattleField~ Exe
+						((The unit Destination~ recruited to battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
+					);
+					// negative response on requestunit
+					(Handle rejectedunit) ias (
+						((The unit Destination~ can not be recruited to battlefield Id~ player PlayerId~) Ew.Output~) Do
+					);
+					// returned - returned to player's resources
+					(Handle dismissunit) ias (
+						RemoveFromBattleField~ Exe
+						((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeResourceMgr~ returnunit PlayerId~ (Destination~))) Gate
+						((The unit Destination~ removed from battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
+					);
+					// setups units on battlefield's map (attackers and defenders)
+					(Handle startpos),(Handle setprops) ias PropagateCommandToUnit~ Exe;
+					(Handle CommandId~)~ Exe
+				);
+				(RightCommand (BuildDefenceModeAvailableCommands~ CommandId~) In)~ Exe
+			);
+			// attack
+			(Mode attack) ias (
+				(RightCommand false) ias doNothing;
+				(RightCommand true) ias (
+					// setting mode is allowed for all modes
+					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
+					(Handle movetopos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias PropagateCommandToUnit~ Exe;
+					(Handle setupattackers) ias AddSetOfUnitsToBattleField~ Exe;
+					(Handle attack) ias (
+						(BattleStatus started)^
+						((The battle between players PlayerId~ and PlayerAttackerId~ started) Ew.Output~) Do
+					);
+					(Handle unitkilled) ias (
+						RemoveFromBattleField~ Exe
+						CheckBattleStatus~ Exe
+						// unit is removed from player's resources
+						(Pid Characters.(Unit Destination~)->PlayerId~)^
+						((Player Pid~) Tx ((Player Pid~)->(ModeInfo)->ModeResourceMgr~ releaseunit Pid~ (Destination~))) Gate
+					);
+					(Handle battlestatus) ias (
+						(status won),(status loose) ias (
+							// performs resource transfer from loose side to winner side (PlayerId won)
+							(BattleStatus finished)^
+						);
+						(BattleStatus (CommandParams~ 0) Get)^
+						(status BattleStatus~)~ Exe
+					);
+					(Handle CommandId~)~ Exe
+				);
+				(RightCommand (AttackModeAvailableCommands~ CommandId~) In)~ Exe
+			);
+			(Mode Mode~)~ Exe
+		);
+	);
+}

@@ -48,6 +48,10 @@ tokens {
     OPREPEAT='Repeat';
     OPACTIVATE='Activate';
     OPCOPY='Copy';
+    OPSTARTINTERCEPTION='StartInterception';
+    OPFINISHINTERCEPTION='FinishInterception';
+    OPSTARTINTERCEPTION_S='SI';
+    OPFINISHINTERCEPTION_S='FI';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1259,7 +1263,11 @@ opclist
     | OPRECALL
     | OPREPEAT
     | OPACTIVATE
-    | OPCOPY
+    | OPCOPY    
+    | OPSTARTINTERCEPTION
+    | OPFINISHINTERCEPTION
+    | OPSTARTINTERCEPTION_S
+    | OPFINISHINTERCEPTION_S
     ;
 
 termLanguages

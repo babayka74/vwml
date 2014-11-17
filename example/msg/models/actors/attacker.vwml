@@ -9,12 +9,13 @@ module Attacker {
 				PlayerId ias nil;
 				/* unit selected by player */
 				Selected ias false;
+				// belongs to battlefield
+				BattleFieldId ias nil;
 
 				Init ias (
 					ActivityStrategy.Init~ Exe
 					((The attacker Id~ for user PlayerId~ initialized) Ew.Output~) Do
 				);
-				
 				ActivityStrategy ias (
 					// initialization steps
 					Init ias (
@@ -62,24 +63,26 @@ module Attacker {
 								);
 								(NoAttack (OnFire~ ()) Ident)~ Exe 
 							);
-							((The unit Id~ is on attacking position Position~ and looking for enemies in Position~~) Ew.Output~) Do
 							CheckFireZone ias (
-								(Killed true) ias doNothing;
-								(Killed false) ias (
-									(OnFire false) ias doNothing;
-									(OnFire true) ias (
-										(OnFire (OnFire~ ($~)) Join)^
-										((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
+								(Unit attacker) ias doNothing;
+								(Unit defender) ias (
+									(Killed true) ias doNothing;
+									(Killed false) ias (
+										(OnFire false) ias doNothing;
+										(OnFire true) ias (
+											(OnFire (OnFire~ ($~)) Join)^
+											((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
+										);
+										(Unit $~)->GetCurrentPosition~ Exe
+										(OnFire (Position~~ (Unit $~)->CurrentPosition~) In)~ Exe
 									);
-									(Unit $~)->GetCurrentPosition~ Exe
-									(OnFire (Position~~ (Unit $~)->CurrentPosition~) In)~ Exe
+									(Killed (Unit $~)->MarkedAsKilled~)~ Exe
 								);
-								(Killed (Unit $~)->MarkedAsKilled~)~ Exe
+								(Unit (Unit $~)->Type~)~ Exe
 							);
+							((The unit Id~ is on attacking position Position~ and looking for enemies in Position~~) Ew.Output~) Do
 							(OnFire ())^
-							LockDefenders [
-								((Player PlayerId~)->(Resources)->(Units)->Defenders~ CheckFireZone~) ForEach
-							LockDefenders ]
+							((BattleField BattleFieldId~)->(Participants)->Units~ CheckFireZone~) ForEach
 							SelectDefenderAndAttack~ Exe
 						);
 						/* attacker changes position */
@@ -88,7 +91,7 @@ module Attacker {
 							300 Relax
 							((Unit Id~)->CurrentPosition Movement.State~)^
 							(Movement.PrevState Movement.State~)^
-                                			(Movement.Iteration ((Movement.Iteration~) Ew.IncIteration~) Do)^
+                                			(Movement.Iteration ((Movement.Iteration~) Ew.IncValue~) Do)^
 							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
 							(Movement.Walking true)^ 
 						);
@@ -97,7 +100,6 @@ module Attacker {
 					Kill ias (
 						((The attacker Id~ was killed) Ew.Output~) Do
 						(Characters)->(Unit Id~)->(UnitAsAttacker)->Destroy~ Exe
-						((Characters)->(Unit Id~)->StopUnit true)^
 					);
 					/* movement's parameters */
 					Movement ias (
@@ -122,7 +124,7 @@ module Attacker {
 							(AttackNotPossible false) ias (NextAction Actions.Attack~)^;
 							/* check if current attacker's node is valid for attack */
 							(NextAction nil)^
-							(Actions.Attack.Position (Ew.Maze.Attack.Nodes~ Movement.PrevState~) Find)^
+							(Actions.Attack.Position ((BattleField BattleFieldId~)->(Fields)->(Attack)->Nodes~ Movement.PrevState~) Find)^
 							(AttackNotPossible (Actions.Attack.Position~ nil) Ident)~ Exe
 						);					
 						Result ias (
@@ -203,7 +205,8 @@ module Attacker {
 						SetStartPos ias (
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeSet Movement.State)^
-							(Services.(PositionChecker Id~)->(CheckPosition)->OnMaze Ew.Maze.Nodes~)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->OnMainField (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes~)^
+							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeCheckedCtx (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes)^
                                         	        Services.(PositionChecker Id~)->CheckPosition~ Exe
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
 							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
@@ -241,7 +244,9 @@ module Attacker {
 							);
 							(Services.(PositionChecker Id~)->(CheckGoalPositions)->RollbackGoals Movement.Goals~)^
 							(Movement.Goals (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
-							(Services.(PositionChecker Id~)->(CheckGoalPositions)->Correct true)^ 
+							(Services.(PositionChecker Id~)->(CheckGoalPositions)->Correct true)^
+							(Services.(PositionChecker Id~)->(CheckGoalPositions)->CheckedCtx (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes)^ 
+							(Services.(PositionChecker Id~)->(CheckGoalPositions)->Field (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes~)^ 
 							Services.(PositionChecker Id~)->CheckGoalPositions~ Exe
 							(MovementGoalCorrect Services.(PositionChecker Id~)->(CheckGoalPositions)->Correct~)~ Exe
 						);

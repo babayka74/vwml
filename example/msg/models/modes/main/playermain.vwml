@@ -10,7 +10,7 @@ module PlayerModeMain {
 						(Mode CommandParams~)^
 						((The player Id~ mode is Mode~) Ew.Output~) Do
 					);
-					(RightMode (AvailableModes~ CommandParams~) In)~ Exe
+					(RightMode (ModeInfo.AvailableModes~ CommandParams~) In)~ Exe
 				);
 				(Handle back) ias (
 					(Player.Mode main)^
@@ -22,6 +22,7 @@ module PlayerModeMain {
 							(ModeInfo.ModeBattle~ stop Id~ ())
 							(ModeInfo.ModeDeal~ stop Id~ ())
 						);
+					(Stop true)^
 					(Commands~ Send~) ForEach
 					((The player Id~ executes Commands~ for exiting) Ew.Output~) Do
 				);

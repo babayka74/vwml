@@ -1,0 +1,144 @@
+module DpfAPEx {
+	/* Depth-first search algorithm. Modification A. Graph based. Non-inversed */
+	DpfSearchMkAParallelEx ias (
+		Locker ias (
+			Lock ias false;
+			Latch ias nil;
+			(Lock false) ias doNothing;
+			(Lock true) ias Latch~;
+			(Lock Lock~)~ Exe
+		);
+		/* aux. entities; cached by caller */
+		/* algorithm's goals */
+		Goals ias $0;
+		SharedGoals ias $1;
+		/* current state */
+		State ias $2;
+		/* shared structure which contains coordinates where units have already been */
+		StateSet ias $3;
+		/* resulting path */
+		SeqStates ias $4;
+		CompletitionCallback ias $5;
+		/* called upon shared goal */
+		SharedGoalFoundCallback ias $6;
+		/* fringe for decreasinbg number of future steps */
+		DecreaseValue ias $7;
+		/* requested steps */
+		RequestedSteps ias $8;
+		/* number of forecasted steps for algorithm, actually used when goals are 'quasi' known */
+		NumOfRequestedSteps ias $9;
+		/* sets to 'true' in case if there are no available steps */
+		NoSteps ias $10;
+		Uid ias $11;
+		Lock ias $12;
+
+		NextStates ias ();
+		ChoiceSet ias ();
+		NewState ias nil;
+		AvailableSteps ias false;
+
+		CheckAndRemoveFromSharedGoals ias (
+			(InSharedGoals false) ias doNothing;
+			(InSharedGoals true) ias (
+				(SharedGoals~ (SharedGoals~~ (State~~)) Substruct)^
+				SharedGoalFoundCallback~~ Exe
+			);
+			(InSharedGoals (SharedGoals~~ State~~) In)~ Exe
+		);
+		
+		CollectRequestedSteps ias (
+			StepsCollected ias false;
+                        (StepsCollected false) ias doNothing;
+			(StepsCollected true) ias (StepsCollected true)^;
+			CheckAndRemoveFromSharedGoals~ Exe
+			(RequestedSteps~ (RequestedSteps~~ (State~~)) Join)^
+			(NumOfRequestedSteps~ ((NumOfRequestedSteps~~) Ew.DecValue~) Do)^
+			(StepsCollected (NumOfRequestedSteps~~ 0) Ident)~ Exe
+		);
+		HaveAvailableSteps ias (
+			Step ias $;
+			(StepIn true) ias doNothing;
+			(StepIn false) ias (
+				(AvailableSteps true)^
+				($ doNothing)^
+			);
+			(Locker.Latch MagicWorld.Player.Resources.Units.UnitsStateSetLocker)^
+			(Locker.Lock Lock~)^
+			(StepIn Locker~ Exe [ (StateSet~~ Step~~) In Locker~ Exe ])~ Exe
+		);
+		/* actually looks for next states  */
+		GetNextStates ias (NextStates State~~~)^;
+		CheckIfHaveAvailableSteps ias (
+			GetNextStates~ Exe
+			(AvailableSteps false)^
+			(NextStates~ HaveAvailableSteps~) ForEach
+		);
+		/* acually sets new state */
+		GetNewState ias (NewState ChoiceSet~~ Random)^;
+		Search ias (EndSearch (Goals~~ State~~) In)~ Exe;
+		/* one of goal's targets has achieved */
+		(EndSearch true) ias (
+			((Goal State~~ is removed for Uid~~) Ew.Output~) Do
+			(Goals~ (Goals~~ (State~~)) Substruct)^
+			CompletitionCallback~~ Exe
+			(CollectRequestedSteps.StepsCollected true)^
+		);
+		/* continue walking... */
+		(EndSearch false) ias (
+			GetNextStates~ Exe
+			(Locker.Latch MagicWorld.Player.Resources.Units.UnitsStateSetLocker)^
+			(Locker.Lock Lock~)^
+			Locker~ Exe [
+				//((by Uid~~ substructing NextStates~ from StateSet~~) Ew.Output~) Do
+				(ChoiceSet~ (NextStates~ StateSet~~) Substruct)^
+				//((Changed by Uid~~ substructed choices ChoiceSet~~ next NextStates~) Ew.Output~) Do
+			Locker~ Exe ]
+			(Return (ChoiceSet~~ ()) Ident)~ Exe
+		);
+		/* pop state from stack and set last state to current state */
+		(Return true) ias (
+			(SeqStatesEmpty true) ias (
+				(AvailableSteps true) ias Search~ Exe;
+	 			(AvailableSteps false) ias (
+					(NoSteps~ true)^
+					CompletitionCallback~~ Exe
+					(CollectRequestedSteps.StepsCollected true)^
+				);
+				(SeqStates~ (SeqStates~~ (State~~)) Join)^
+				CheckIfHaveAvailableSteps~ Exe
+				(AvailableSteps AvailableSteps~)~ Exe
+			);
+			(SeqStatesEmpty false) ias Run~ Exe;
+			//((by Uid~~ seq states set SeqStates~~) Ew.Output~) Do
+			(State~ (SeqStates~~) Last)^
+			(SeqStates~ (SeqStates~~) Begin)^
+			CollectRequestedSteps~ Exe
+			(SeqStatesEmpty (SeqStates~~ ()) Ident)~ Exe
+		);
+		(Return false) ias (
+			//((choice set ChoiceSet~~) Ew.Output~) Do
+			GetNewState~ Exe
+			//((new state NewState~) Ew.Output~) Do
+			(State~ NewState~)^
+			(SeqStates~ (SeqStates~~ (State~~)) Join)^
+			// ((Added state State~~) Ew.Output~) Do
+			(Locker.Latch MagicWorld.Player.Resources.Units.UnitsStateSetLocker)^
+			(Locker.Lock Lock~)^
+			Locker~ Exe [
+				//((Changed by Uid~~ joined) Ew.Output~) Do
+				(StateSet~ (StateSet~~ (State~~)) Join)^
+			Locker~ Exe ]
+			CollectRequestedSteps~ Exe
+			Run~ Exe
+		);
+		Run ias (
+			(CollectRequestedSteps true) ias doNothing;
+			(CollectRequestedSteps false) ias Search~ Exe;
+			(CollectRequestedSteps CollectRequestedSteps.StepsCollected~)~ Exe
+		);
+
+		(CollectRequestedSteps.StepsCollected false)^
+		((Goals for Uid~~ Goals~~) Ew.Output~) Do
+		Run~ Exe
+	);
+}
