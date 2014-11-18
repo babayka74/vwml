@@ -1,0 +1,16 @@
+module AttackBroker {
+	MagicWorld ias (
+		Player ias (
+			AttackBroker ias (
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+
+				((AttackManager Id~)->CommandId CommandId~)^
+				((AttackManager Id~)->To To~)^
+				((AttackManager Id~)->CommandParams CommandParams~)^
+				(AttackManager Id~)~ Exe
+			);
+		);
+	);
+}
