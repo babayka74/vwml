@@ -50,11 +50,34 @@ module ExternalWorld {
 			QuartalsPerPlayer ias 2;
 			/* selected per quartal in random way */
 			SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
-			/* available resource types */
+			/* available resource types and their initial value */
 			ResourceTypes ias ((vodka 10000) (gold 20000) (food 300000));
 			/* available quartal's resources */
+			/*
+				index:
+					0 => type
+					1 => quantum (payment per period)
+					2 => period
+					3 => number of payment's periods
+					4 => quartal's open time
+					5 => minimal resource's quantum when sherif agrees to open information about quartal
+
+			 */
 			Resources ias ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50));
 		);
+
+		CharactersConf ias (
+			/*
+				index:
+					0 => resource type
+					1 => quantum of resources needed to hire one character
+					2 => time (in ms) needed to hire one character
+			*/
+			skeleton ias (vodka 500 10000);
+			zombac ias (gold 100 3000);
+			vampire ias (food 1000 20000);
+		);
+
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;

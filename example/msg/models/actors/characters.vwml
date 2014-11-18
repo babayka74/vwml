@@ -14,8 +14,10 @@ module Characters {
 				Id ias nil;
 				/* associated with player */
 				PlayerId ias nil;
-				/* concrete unit (defines unit's specific logic) */
+				/* concrete unit (defines unit's specific logic => attacker or defender) */
 				ConcreteUnit ias nil;
+				/* switched unit's entity */
+				SwitchedConcreteUnit ias nil;
 				/* unit's current position */
 				CurrentPosition ias nil;
 				/* true in case if unit should be stopped */
@@ -55,7 +57,7 @@ module Characters {
 					);
 					Destroy ias (
 						(MarkedAsKilled true)^
-						((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ unitkilled Id~ (BattleFieldId~ attaker))) Gate;
+						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ attaker))) Gate;
 						((The attacker Id~ destroyed) Ew.Output~) Do
 					);
 				);
@@ -70,7 +72,7 @@ module Characters {
 					);
 					Destroy ias (
 						(MarkedAsKilled true)^
-						((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ unitkilled Id~ (BattleFieldId~ defender))) Gate;
+						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ defender))) Gate;
 						((The defender Id~ destroyed) Ew.Output~) Do
 					);
 				);
@@ -82,30 +84,29 @@ module Characters {
 						((The unit Id~ can not set invalid property named by Prop~) Ew.Output~) Do
 					);
 					(RightProp true) ias (
-						(Property kind) ias (
-							(Kind Value~)^
-							((The unit Id~ has kind Kind~) Ew.Output~) Do
-						);
-						(Property type) ias (
-							(Create attacker) ias UnitAsAttacker.Create~ Exe;
-							(Create defender) ias UnitAsDefender.Create~ Exe;
-							(Type Value~)^
-							(Create Type~)~ Exe
-							((The concrete unit ConcreteUnit~) Ew.Output~) Do
-							((ConcreteUnit~)->BattleFieldId BattleFieldId~)^
-							(ConcreteUnit~)->Init~ Exe
-						);
-						(Property attack) ias (
-							(Power.Attack Value~)^
-							((The unit Id~ has attack power Power.Attack~) Ew.Output~) Do
-						);
-						(Property defence) ias (
-							(Power.Defence Value~)^
-							((The unit Id~ has defence power Power.Defence~) Ew.Output~) Do
+						(Pass true) ias doNothing;
+						(Pass false) ias (
+							(Property kind) ias (
+								(Kind Value~)^
+								((The unit Id~ has kind Kind~) Ew.Output~) Do
+							);
+							(Property type) ias (
+								(Type Value~)^
+								CreateConcreteUnitByType~ Exe
+							);
+							(Property attack) ias (
+								(Power.Attack Value~)^
+								((The unit Id~ has attack power Power.Attack~) Ew.Output~) Do
+							);
+							(Property defence) ias (
+								(Power.Defence Value~)^
+								((The unit Id~ has defence power Power.Defence~) Ew.Output~) Do
+							);
+							(Property Prop~)~ Exe
 						);
 						(Value ($~ 1) Get)^
 						((The unit Id~ processes property Prop~ and value Value~) Ew.Output~) Do
-						(Property Prop~)~ Exe
+						(Pass (Value~ nil) Ident)~ Exe
 					);
 					(Prop ($~ 0) Get)^
 					((The unit Id~ received property Prop~) Ew.Output~) Do
@@ -126,6 +127,14 @@ module Characters {
 					);
 					(NotCreatedYet (ConcreteUnit~ nil) Ident)~ Exe
 				);
+				CreateConcreteUnitByType ias (
+					(Create attacker) ias UnitAsAttacker.Create~ Exe;
+					(Create defender) ias UnitAsDefender.Create~ Exe;
+					(Create Type~)~ Exe
+					((ConcreteUnit~)->BattleFieldId BattleFieldId~)^
+					(ConcreteUnit~)->Init~ Exe
+					((The concrete unit ConcreteUnit~) Ew.Output~) Do
+				);
 				/* unit receives commands in deferred manner */
 				CommandDispatcher ias (
 					Dispatch ias nil;
@@ -133,44 +142,64 @@ module Characters {
 					UnitCommandId ias stay;
 					UnitId ias nil;
 					UnitCommandParams ias nil;
-
-					(Handle stay) ias (
-						UnitLifeStep~ Exe
+					// concrete unit's type not specialized
+					(ns true) is (
+						(Handle stay) ias (
+							UnitLifeStep~ Exe
+						);
+						(Handle stop) ias (
+							((The unit Id~ received command stop) Ew.Output~) Do	
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
+						(Handle setprops) ias (
+							(UnitCommandParams~ PropertySetOperation~) ForEach
+							UnitLifeStep~ Exe
+						);
+                                                (Handle kill),(Handle go),(Handle movetopos),(Handle startpos),(Handle getpos),(Handle select) ias doNothing;
+						(Handle UnitCommandId~)~ Exe
 					);
-					(Handle stop) ias (
-						((The unit Id~ received command stop) Ew.Output~) Do	
-						(UnitCommandId stay)^
-						UnitLifeStep~ Exe
-					);
-					(Handle go) ias (
-						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->CheckAndStart~ Exe
-						UnitLifeStep~ Exe
-					);
-					(Handle movetopos) ias (
-						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe
-						UnitLifeStep~ Exe
-					);
-					(Handle startpos) ias (
-						(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe
-						UnitLifeStep~ Exe
-					);
-					(Handle getpos) ias (
-						UpdateCurrentPosition~ Exe
-						((The unit Id~ has position CurrentPosition~) Ew.Output~) Do
-						UnitLifeStep~ Exe
-					);
-					(Handle select) ias (
-						(UnitCommandId LastUnitCommandId~)^
-						UnitLifeStep~ Exe
-					);
-					(Handle setprops) ias (
-						(UnitCommandParams~ PropertySetOperation~) ForEach
-						UnitLifeStep~ Exe
-					);
-					(Handle kill) ias (
-						(ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe
-						(UnitCommandId stay)^
-						UnitLifeStep~ Exe
+					// concrete unit's type specialized
+					(ns false) ias (
+						(Handle stay) ias (
+							UnitLifeStep~ Exe
+						);
+						(Handle stop) ias (
+							((The unit Id~ received command stop) Ew.Output~) Do	
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
+						(Handle setprops) ias (
+							(UnitCommandParams~ PropertySetOperation~) ForEach
+							UnitLifeStep~ Exe
+						);
+						(Handle kill) ias (
+							(ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
+						(Handle go) ias (
+							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->CheckAndStart~ Exe
+							UnitLifeStep~ Exe
+						);
+						(Handle movetopos) ias (
+							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe
+							UnitLifeStep~ Exe
+						);
+						(Handle startpos) ias (
+							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe
+							UnitLifeStep~ Exe
+						);
+						(Handle getpos) ias (
+							UpdateCurrentPosition~ Exe
+							((The unit Id~ has position CurrentPosition~) Ew.Output~) Do
+							UnitLifeStep~ Exe
+						);
+						(Handle select) ias (
+							(UnitCommandId LastUnitCommandId~)^
+							UnitLifeStep~ Exe
+						);
+						(Handle UnitCommandId~)~ Exe
 					);
 					(NothingToDispatch true) ias doNothing;
 					(NothingToDispatch false) ias (
@@ -180,7 +209,7 @@ module Characters {
 						(UnitCommandParams (Dispatch~ 3) Get)^
 					);
 					(NothingToDispatch (Dispatch~ nil) Ident)~ Exe
-					(Handle UnitCommandId~)~ Exe
+					(ns (ConcreteUnit~ nil) Ident)~ Exe
 				);
 				/* unit's lifestep */
 				UnitLifeStep ias (

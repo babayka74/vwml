@@ -1,7 +1,3 @@
-include "playermain.vwml"
-include "playerbattle.vwml"
-include "playerdeal.vwml"
-
 module Player {
 	MagicWorld ias (
 		Command ias (
@@ -20,15 +16,18 @@ module Player {
 			ModeMain ias main;
 			ModeResourceMgr ias resourcemanager;
 			ModeHiring ias hiring;
-			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~);
+			ModeAttack ias attack;
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit);
 			AvailablePlayerCommandsOnModeHiring ias (starthiring cancelhiring);
-			AvailablePlayerCommandsOnModeBattle ias (createbf destroybf selectbf wishattackbf);
+			AvailablePlayerCommandsOnModeBattle ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain   ias (setmode exit back dealstopped battlestopped);
 			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution stop back);
+			AvailablePlayerCommandsOnModeAttack ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
 			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ (BattleField.ExportedCommands~)) Join)^
+			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ (AttackManager.ExportedCommands~)) Join)^
 		);
 		Player ias (
 			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);
@@ -38,8 +37,7 @@ module Player {
 			Resources ias (
 				/* available units */
 				Units ias (
-					Attackers ias ();
-					Defenders ias ();
+					Hired ias ();
 					/* shared entity which stores units' current state (position) */
 					UnitsStateSet ias ();
 					UnitsStateSetLocker ias nil;
@@ -94,8 +92,7 @@ module Player {
 				Init ias (
 					(Quartals.Controlled ())^
 					(Quartals.Visible ())^
-					(Units.Attackers ())^
-					(Units.Defenders ())^
+					(Units.Hired ())^
 					Account.Init~ Exe
 				);
 			);
@@ -132,6 +129,12 @@ module Player {
 				HiringBroker~ Exe
 				PlayerLifeStep~ Exe
 			);
+			HandlePlayerCommandsOnModeAttack ias (
+				(AttackBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(AttackBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				AttackBroker~ Exe
+				PlayerLifeStep~ Exe
+			);
 			CommandDispatcher ias (
 				ForcedMode ias nil;
 				Dispatch ias nil;
@@ -162,6 +165,10 @@ module Player {
 				(mode hiring) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeHiring~)^
 					(Handler HandlePlayerCommandsOnModeHiring~)^
+				);
+				(mode attack) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeAttack~)^
+					(Handler HandlePlayerCommandsOnModeAttack~)^
 				);
 
 				(ForcedMode true) ias (Mode ForcedMode~)^;

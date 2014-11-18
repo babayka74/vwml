@@ -4,45 +4,27 @@ module PlayerResourceManager {
 			ResourceManager ias (
 				CommandId ias nil;
 				CommandParams ias nil;
+				HiredUnitId ias nil;
 
 				TakeOnBoardUnit ias (
-					HiredUnitId ias nil;
-					(Unit attacker) ias (
-						(Resources.Units.Attackers (Resources.Units.Attackers~ (HiredUnitId~)) Join)^
-						((Player Id~ added attacker unit HiredUnitId~ available attackers Resources.Units.Attackers~) Ew.Output~) Do
-					);
-					(Unit defender) ias (
-						(Resources.Units.Defenders (Resources.Units.Defenders~ (HiredUnitId~)) Join)^
-						((Player Id~ added defender unit HiredUnitId~ available defenders Resources.Units.Defenders~) Ew.Output~) Do
-					);
 					(HiredUnitId (CommandParams~ 0) Get)^
-					(Unit Characters.(Unit HiredUnitId~)->Type~)~ Exe
+					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^
+					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 				);
 				
 				PushOutUnit ias (
-					HiredUnitId ias nil;
-					(attacker false) ias (
-						(defender false) ias doNothing;
-						(defender true) ias (
-							(Resources.Units.Defenders (Resources.Units.Defenders~ (HiredUnitId~)) Substruct)^
-							((Player Id~ removed defender unit HiredUnitId~ available defenders Resources.Units.Defenders~) Ew.Output~) Do
-						);
-						(defender (Resources.Units.Defenders~ HiredUnitId~) In)~ Exe
-					);
-					(attacker true) ias (
-						(Resources.Units.Attackers (Resources.Units.Attackers~ (HiredUnitId~)) Substruct)^
-						((Player Id~ removed attacker unit HiredUnitId~ available attackers Resources.Units.Attackers~) Ew.Output~) Do
-					);
 					(HiredUnitId (CommandParams~ 0) Get)^
-					(attacker (Resources.Units.Attackers~ HiredUnitId~) In)~ Exe
+					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Substruct)^
+					((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 				);
 
 				MarkUnitAsIsInAction ias (
-					HiredUnitId ias nil;
-					(UnitInAction true) ias ((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ rejectedunit HiredUnitId~ ())) Gate;
+					(UnitInAction true) ias ((Player Id~) Tx (ModeInfo.ModeBattle~ rejectedunit HiredUnitId~ ())) Gate;
 					(UnitInAction false) ias (
+						(Characters.(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
+						Characters.(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
 						(Characters.(Unit HiredUnitId~)->InAction true)^
-						((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ recruitedunit HiredUnitId~ ())) Gate
+						((Player Id~) Tx (ModeInfo.ModeBattle~ recruitedunit HiredUnitId~ ())) Gate
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(UnitInAction Characters.(Unit HiredUnitId~)->InAction~)~ Exe
@@ -51,7 +33,7 @@ module PlayerResourceManager {
 				MarkUnitAsFree ias (
 					HiredUnitId ias nil;
 					(HiredUnitId (CommandParams~ 0) Get)^
-					(Characters.(Unit HiredUnitId~)->InAction true)^
+					(Characters.(Unit HiredUnitId~)->InAction false)^
 				);
 
 				// unit has been hired and must be associated with player

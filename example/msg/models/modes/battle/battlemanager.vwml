@@ -35,11 +35,21 @@ module BattleManager {
 					(BFId (Id~ (CommandParams~ 0) Get))^
 					(Allow (Resources.Battles~ BFId~) In)~ Exe
 				);
+				// requested battle status is returned to requester
+				GetBattleStatus ias (
+					// player
+					(RPId (CommandParams~ 0) Get)^
+					// its mode where response is sent
+					(RPIdMode (CommandParams~ 1) Get)^
+					// sent to requested with player's identifier and current battle status
+					((Player RPId~) Tx (RPIdMode~ responsebattlestatusbf RPId~ (Id~ (BattleField Resources.SelectedBattle~)->BattleStatus~))) Gate
+				);
 				(DelegateToBF false) ias (
 					(Handle createbf) ias CreateBattleField~ Exe;
 					(Handle destroybf) ias DestroyBattleField~ Exe;
 					// selects battlefield for defence building
 					(Handle selectbf) ias SelectBattleField~ Exe;
+					(Handle requestbattlestatusbf) ias GetBattleStatus~ Exe;
 					(Handle CommandId~)~ Exe
 				);
 				(DelegateToBF true) ias (

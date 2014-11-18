@@ -102,14 +102,14 @@ module BattleField {
 			CheckBattleStatus ias (
 				(AttackersDestroyed true) ias (
 					(BattleStatus stopped)^
-					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (won))) Gate
-					((Player PlayerAttackerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (loose))) Gate
+					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (won))) Gate
+					((Player PlayerAttackerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (loose))) Gate
 				);
 				(AttackersDestroyed false) ias doNothing;
 				(DefendersDestroyed true) ias (
 					(BattleStatus stopped)^
-					((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (loose))) Gate
-					((Player PlayerAttackerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeBattle~ battlestatus Id~ (won))) Gate
+					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (loose))) Gate
+					((Player PlayerAttackerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (won))) Gate
 				);
 				(DefendersDestroyed false) ias doNothing;
 				(AttackersDestroyed (Participants.NumOfAttackers~ 0) Ident)~ Exe
@@ -119,7 +119,7 @@ module BattleField {
 			PropagateCommandToUnit ias (
 				(BattleStarted true) ias (Characters.(Unit Destination~) Tx (Quartal~ CommandId~ Destination~ CommandParams~)) Gate;
 				(BattleStarted false) ias ((The command can not be propagated to unit Destination~ player PlayerId~ since battle was not started) Ew.Output~) Do;
-				(BattleStarted (BattleStatus~ started) Ident)~ Exe
+				(BattleStarted (BattleStatus~ attaked) Ident)~ Exe
 			);
 			// initial mode
 			(Mode none) ias (
@@ -135,8 +135,6 @@ module BattleField {
 			(Mode builddefence) ias (
 				(RightCommand false) ias doNothing;
 				(RightCommand true) ias (
-					// setting mode is allowed for all modes
-					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
 					// builds battlefield's map
 					(Handle buildfield) ias (
 						((The battlefield is being built) Ew.Output~) Do
@@ -151,19 +149,24 @@ module BattleField {
 					);
 					// battlefield is published to all players and marked as ready for attack by other players
 					(Handle apply) ias (
+						(BattleStatus readyforattack)^
+						(Mode none)^
+						((The battlefield Id~ for player PlayerId~ is ready for attack) Ew.Output~) Do
 					);
 					// battlefield is became invisible for players and can't be attacked by other players
 					(Handle reset) ias (
 						ReturnUnits ias (
 							(Pid Characters.(Unit $~)->PlayerId~)^
-							((Player Pid~) Tx ((Player Pid~)->(ModeInfo)->ModeResourceMgr~ returnunit Pid~ ($~))) Gate
+							((Player Pid~) Tx (ModeInfo.ModeResourceMgr~ returnunit Pid~ ($~))) Gate
 						);
+						(BattleStatus undefined)^
 						(Participants.Units~ ReturnUnits~) ForEach
+						(Mode none)^
 					);
 					// player requests unit from resource manager to participate in battle, for defence.
 					// the unit is identified by Destination~
 					(Hanlde recruitunit) ias (
-						((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeResourceMgr~ takeunit PlayerId~ (Destination~ defence))) Gate
+						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ takeunit PlayerId~ (Destination~ defender))) Gate
 					);
 					// positive response on request unit
 					(Handle recruitedunit) ias (
@@ -177,7 +180,7 @@ module BattleField {
 					// returned - returned to player's resources
 					(Handle dismissunit) ias (
 						RemoveFromBattleField~ Exe
-						((Player PlayerId~) Tx ((Player PlayerId~)->(ModeInfo)->ModeResourceMgr~ returnunit PlayerId~ (Destination~))) Gate
+						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ returnunit PlayerId~ (Destination~))) Gate
 						((The unit Destination~ removed from battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
 					);
 					// setups units on battlefield's map (attackers and defenders)
@@ -190,12 +193,10 @@ module BattleField {
 			(Mode attack) ias (
 				(RightCommand false) ias doNothing;
 				(RightCommand true) ias (
-					// setting mode is allowed for all modes
-					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
 					(Handle movetopos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias PropagateCommandToUnit~ Exe;
 					(Handle setupattackers) ias AddSetOfUnitsToBattleField~ Exe;
 					(Handle attack) ias (
-						(BattleStatus started)^
+						(BattleStatus attacked)^
 						((The battle between players PlayerId~ and PlayerAttackerId~ started) Ew.Output~) Do
 					);
 					(Handle unitkilled) ias (
@@ -203,12 +204,13 @@ module BattleField {
 						CheckBattleStatus~ Exe
 						// unit is removed from player's resources
 						(Pid Characters.(Unit Destination~)->PlayerId~)^
-						((Player Pid~) Tx ((Player Pid~)->(ModeInfo)->ModeResourceMgr~ releaseunit Pid~ (Destination~))) Gate
+						((Player Pid~) Tx (ModeInfo.ModeResourceMgr~ releaseunit Pid~ (Destination~))) Gate
 					);
 					(Handle battlestatus) ias (
 						(status won),(status loose) ias (
 							// performs resource transfer from loose side to winner side (PlayerId won)
 							(BattleStatus finished)^
+							(Mode none)^
 						);
 						(BattleStatus (CommandParams~ 0) Get)^
 						(status BattleStatus~)~ Exe

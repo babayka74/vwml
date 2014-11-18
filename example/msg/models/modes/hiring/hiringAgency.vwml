@@ -25,7 +25,7 @@ module BattleField {
 					// concrete mechanism of properties setting
 					(Rq~ Characters.(Unit RqId~)->PropertySetOperation~) ForEach
 					// notify player about success hiring operation
-					((Player Owner~) Tx ((Player Owner~)->(ModeInfo)->ModeResourceMgr~ hireunit Owner~ (RqId~))) Gate
+					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (RqId~))) Gate
 				);
 				Behavior ias (
 					(RightCommand false) ias doNothing;

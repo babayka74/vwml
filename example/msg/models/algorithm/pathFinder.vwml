@@ -43,11 +43,15 @@ module PathFinder {
 					LockSharedStates ]
 				);
 				UpdatePath ias (
-					(Ignore true) ias doNothing;
-					(Ignore false) ias RecalculatePathToAttacker~ Exe;
-					(Ignore ($~ AttackedAttacker~) Ident)~ Exe
+					(type attacker) ias (
+						(Ignore true) ias doNothing;
+						(Ignore false) ias RecalculatePathToAttacker~ Exe;
+						(Ignore ($~ AttackedAttacker~) Ident)~ Exe
+					);
+					(type defender) ias doNothing;
+					(type (Unit $~)->Type~)~ Exe
 				);
-				((Player PlayerId~)->(Resources)->(Units)->Attackers~ UpdatePath~) ForEach
+				((BattleField (Player PlayerId~)->(Resources)->SelectedBattle~)->(Participants)->Units~ UpdatePath~) ForEach
 			);
 		);
 	);

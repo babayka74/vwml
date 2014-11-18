@@ -1,48 +1,80 @@
 module AttackManager {
 	MagicWorld ias (
-		Player ias (
-			AttackManager ias (
-				CommandId ias nil;
-				To ias nil;
-				CommandParams ias nil;
-				AttackingUnits ias ();
-				// Player is going to attack another player
-				StartInvasionToBattleField ias (
-					(AttackedPlayerId (CommandParams~ 0) Get)^
-					(AttackingUnits (CommandParams~ 1) Get)^
-					((Player Id~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
-					((Player AttackedPlayerId~) Tx ((Player AttackedPlayerId~)->(ModeInfo)->ModeBattle~ invasionbf AttackedPlayer~ (PlayerId~ AttackingUnits~))) Gate
-				);
-				// another player attacks
-				InvasionToBattleField ias (
-					(AttackingPlayerId (CommandParams~ 0) Get)^
-					(AttackingUnits (CommandParams~ 1) Get)^
-					((Player Id~ reports about invasion of player AttackingPlayerId~ with units AttackingUnits~) Ew.Output~) Do
-					((BattleField Resources.SelectedBattle~)->PlayerAttackerId AttackingPlayerId~)^
-					// triggering attack mode
-					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ setmode attack ())) Gate
-					// adds attacking units to the battlefield
-					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ setupattackers Id~ AttackingUnits~)) Gate
-					// ... and attack !!!
-					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeBattle~ attack Id~ ())) Gate
-				);
-				(Hanlde recruitunit) ias (
-					((Player Id~) Tx ((Player Id~)->(ModeInfo)->ModeResourceMgr~ takeunit Id~ (Destination~ attack))) Gate
-				);
-				// positive response on request unit
-				(Handle recruitedunit) ias (
-					AddUnitToBattleField~ Exe
-					((The unit Destination~ recruited to battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
-				);
-				// negative response on requestunit
-				(Handle rejectedunit) ias (
-					((The unit Destination~ can not be recruited by player PlayerId~) Ew.Output~) Do
-				);
-				// selects battlefield for attack
-				(Handle startinvasionbf) ias WishAttackBattleField~ Exe;
-				(Handle invasionbf) ias InvasionToBattleField~ Exe;
-				(Handle CommandId~)~ Exe
+		AttackManager ias (
+			CommandId ias nil;
+			To ias nil;
+			CommandParams ias nil;
+			Id ias nil;
+			PlayerId ias nil;
+			ExportedCommands ias (prepareinvasion invasion recruitunit recruitedunit rejectedunit dismissunit);
+
+			AttackingUnits ias ();
+			// initialization steps
+			Init ias (
+				(AttackingUnits ())^
 			);
+			AddUnitToAttackingGroup ias (
+				(AttackingUnits (AttackingUnits~ (To~)) Join)^
+				((The unit To~ recruited to attacking group of player PlayerId~) Ew.Output~) Do
+			);
+			RemoveUnitFromAttackingGroup ias (
+				(UnitExist true) ias (
+					(AttackingUnits (AttackingUnits~ (To~)) Substruct)^
+					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ returnunit PlayerId~ (To~))) Gate
+					((The unit To~ dismissed from attacking group of player PlayerId~) Ew.Output~) Do
+				);
+				(UnitExist false) ias (
+					((The unit To~ does not belong to attacking group of player PlayerId~) Ew.Output~) Do
+				);
+				(UnitExist (AttackingUnits~ To~) In)~ Exe
+			);
+			// Player is going to attack another player (attack is allowed only in case if opponent's battlestatus is readyforattack)
+			PrepareInvasion ias (
+				(AttackedPlayerId (CommandParams~ 0) Get)^
+				((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate
+			);
+			// response on battle status request of attacked player
+			EvaluateChanceOnInvasion ias (
+				(OpponentReadyForAttack false) ias (
+					((Can not attack player AttackedPlayerId~ since it has not built defence yet) Ew.Output~) Do
+				);
+				(OpponentReadyForAttack true) ias (
+					((Player Id~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
+					// reaction is defined by 'Invasion' on AttackedPlayerId~
+					((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ invasion AttackedPlayerId~ (PlayerId~ AttackingUnits~))) Gate
+				);
+				(AttackedPlayerId (CommandParams~ 0) Get)^
+				(AttackedPlayerBattleStatus (CommandParams~ 1) Get)^
+				(OpponentReadyForAttack (AttackedPlayerBattleStatus~ readyforattack) Ident)~ Exe
+			);
+			// another player attacks
+			Invasion ias (
+				(AttackingPlayerId (CommandParams~ 0) Get)^
+				(InvasiveGroup (CommandParams~ 1) Get)^
+				((Player Id~ reports about invasion of player AttackingPlayerId~ with units InvasiveGroup~) Ew.Output~) Do
+				((BattleField (Player PlayerId~)->(Resources)->SelectedBattle~)->PlayerAttackerId AttackingPlayerId~)^
+				// triggering attack mode
+				((Player PlayerId~) Tx (ModeInfo.ModeBattle~ setmode attack ())) Gate
+				// adds attacking units to the battlefield
+				((Player PlayerId~) Tx (ModeInfo.ModeBattle~ setupattackers PlayerId~ InvasiveGroup~)) Gate
+				// ... and attack !!!
+				((Player PlayerId~) Tx (ModeInfo.ModeBattle~ attack PlayerId~ ())) Gate
+			);
+			(Hanlde recruitunit) ias ((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ takeunit PlayerId~ (To~ attacker))) Gate;
+			// positive response on request unit
+			(Handle recruitedunit) ias AddUnitToAttackingGroup~ Exe;
+			// negative response on requestunit
+			(Handle rejectedunit) ias (
+				((The unit To~ can not be recruited by player PlayerId~) Ew.Output~) Do
+			);
+			// unit is returned to player's resources
+			(Handle dismissunit) ias RemoveUnitFromAttackingGroup~ Exe;
+			// selects battlefield for attack
+			(Handle prepareinvasion) ias PrepareInvasion~ Exe;
+			// sent on request requestbattlestatusbf which is sent during invasion's preparation steps
+			(Handle responsebattlestatusbf) ias EvaluateChanceOnInvasion~ Exe;
+			(Handle invasion) ias Invasion~ Exe;
+			(Handle CommandId~)~ Exe
 		);
 	);
 }
