@@ -57,7 +57,7 @@ module Characters {
 					);
 					Destroy ias (
 						(MarkedAsKilled true)^
-						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ attaker))) Gate;
+						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ attaker))) Gate
 						((The attacker Id~ destroyed) Ew.Output~) Do
 					);
 				);
@@ -72,7 +72,7 @@ module Characters {
 					);
 					Destroy ias (
 						(MarkedAsKilled true)^
-						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ defender))) Gate;
+						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ defender))) Gate
 						((The defender Id~ destroyed) Ew.Output~) Do
 					);
 				);
@@ -143,7 +143,7 @@ module Characters {
 					UnitId ias nil;
 					UnitCommandParams ias nil;
 					// concrete unit's type not specialized
-					(ns true) is (
+					(ns true) ias (
 						(Handle stay) ias (
 							UnitLifeStep~ Exe
 						);

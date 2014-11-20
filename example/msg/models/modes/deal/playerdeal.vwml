@@ -22,18 +22,23 @@ module PlayerDeal {
 					((Quartal QuartalId~) Tx (Id~ Intention~ IntentionParams~)) Gate
 				);
 				(Handle linkquartal) ias (
-					(QuartalId (CommandParams~ 0) Get)^
-					(Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^
+					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Join)^;
+					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^;					(QuartalId (CommandParams~ 0) Get)^
 					((Quartal QuartalId~)->Linked true)^
 					((Quartal QuartalId~)->Owner Id~)^
-					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~) Ew.Output~) Do
+					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
+					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
+					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
 				);
 				(Handle unlinkquartal) ias (
+					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^;
+					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;					(QuartalId (CommandParams~ 0) Get)^
 					(QuartalId (CommandParams~ 0) Get)^
-					(Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^
 					((Quartal QuartalId~)->Linked false)^
 					((Quartal QuartalId~)->Owner nil)^
-					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~) Ew.Output~) Do
+					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
+					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
+					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
 				);
 				(Handle paybribe),(Handle payquartalinfo) ias (
 					(Result true) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (confirmed))) Gate;

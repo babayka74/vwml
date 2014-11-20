@@ -12,6 +12,7 @@ module AttackManager {
 			// initialization steps
 			Init ias (
 				(AttackingUnits ())^
+				((The attack manager of player PlayerId~ initialized) Ew.Output~) Do
 			);
 			AddUnitToAttackingGroup ias (
 				(AttackingUnits (AttackingUnits~ (To~)) Join)^

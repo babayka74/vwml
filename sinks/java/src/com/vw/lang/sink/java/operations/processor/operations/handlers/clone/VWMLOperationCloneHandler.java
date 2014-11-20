@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.vw.lang.sink.java.VWMLCloneFactory;
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -60,6 +61,10 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
 		}
 		VWMLEntity cloned = clone(origEntity, clonedObject);
+		if (cloned.getReadableId() == null) {
+			cloned.buildReadableId();
+		}
+		VWMLObjectsRepository.instance().remove(clonedObject);
 		if (cloned.getInterpreting() != null && interpreter.getRing() != null) {
 			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();
 			if (clonedSourceLft != null) {

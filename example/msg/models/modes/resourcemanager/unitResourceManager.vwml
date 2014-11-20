@@ -31,7 +31,6 @@ module PlayerResourceManager {
 				);
 
 				MarkUnitAsFree ias (
-					HiredUnitId ias nil;
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(Characters.(Unit HiredUnitId~)->InAction false)^
 				);
@@ -39,18 +38,18 @@ module PlayerResourceManager {
 				// unit has been hired and must be associated with player
 				(Handle hireunit) ias (
 					TakeOnBoardUnit~ Exe
-					((Player Id~ hired unit TakeOffUnit.HiredUnitId~) Ew.Output~) Do
+					((Player Id~ hired unit HiredUnitId~) Ew.Output~) Do
 				);
 				// unit's functionality doesn't need to player
 				(Handle dismissunit) ias (
 					PushOutUnit~ Exe
-					((Unit TakeOffUnit.HiredUnitId~)->StopUnit true)^
-					((Player Id~ dismissed unit TakeOffUnit.HiredUnitId~) Ew.Output~) Do
+					((Unit HiredUnitId~)->StopUnit true)^
+					((Player Id~ dismissed unit HiredUnitId~) Ew.Output~) Do
 				);
 				// remove stopped unit which was killed and stopped
 				(Hanlde releaseunit) ias PushOutUnit~ Exe;
 				// unit is in action (battle for example)
-				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe
+				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe;
 				// unit is returned from action, if wasn't killed
 				(Handle returnunit) ias MarkUnitAsFree~ Exe;
 

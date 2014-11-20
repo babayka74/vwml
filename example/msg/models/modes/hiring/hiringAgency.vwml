@@ -1,11 +1,16 @@
-module BattleField {
+module HiringAgency {
 	MagicWorld ias (
 		HiringAgency ias (
-			Id ias nil
+			Id ias nil;
 			Owner ias nil;
 			HiringProcessTime ias nil;
 			StopAgency ias false;
 			GlobalHiringRequestId ias 0;
+
+			Init ias (
+				(StopAgency false)^
+				((The hiring agency for player Id~ initialized) Ew.Output~) Do
+			);
 
 			Agent ias (
 				Commands ias (starthiring cancelhiring exit);
@@ -38,7 +43,7 @@ module BattleField {
 							(-1 (Hiring Id~ RequestId~) nil) Recall
 							((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
 						);
-						(Command exit) ias (StopAgency true)^
+						(Command exit) ias (StopAgency true)^;
 						(Command Command~)~ Exe
 					);
 					(RightCommand (Commands~ Command~) In)~ Exe					
@@ -74,7 +79,6 @@ module BattleField {
 				((The hiring agency Id~ activated for owner Owner~) Ew.Output~) Do
 				HiringAgencyLifeStep~ Exe
 			) Exe
-
 		);
 	);
 }

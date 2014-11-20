@@ -41,15 +41,36 @@ module Player {
 					/* shared entity which stores units' current state (position) */
 					UnitsStateSet ias ();
 					UnitsStateSetLocker ias nil;
+					Init ias (
+						(Hired ())^
+						((Player Id~ initialized hired units storage) Ew.Output~) Do
+					);
 				);
 				/* controlled/own/visible quartals */
 				Quartals ias (
 					/* player is owner, at least, of one quartal */
-					Own ias nil;
+					Own ias ();
 					/* set of quartals controlled by player */
 					Controlled ias ();
 					/* player knows about these quartals but doesn't have control upon them */
 					Visible ias ();
+					Init ias (
+						ActivateQuartal ias (
+							// quartal's configuration
+							(Quartal.Id (Id~ $~))^
+							(Quartal.Owner Id~)^
+							(Quartal (Quartal (Id~ $~))) Born
+							// links quartal to given player
+							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
+							// create battlefield and associate it with quartal
+							((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ $~)))) Gate
+
+						);
+						(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
+						(Controlled ())^
+						(Visible ())^
+						((Player Id~ created and initialized own quartals) Ew.Output~) Do
+					);
 				);
 				/* set of player's battles */
 				Battles ias ();
@@ -68,6 +89,7 @@ module Player {
 							((Player Id~ initialized with resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
 						);
 						(Ew.QuartalsConf.ResourceTypes~ AssociateByRt~) ForEach
+						((Player Id~ initialized account resources) Ew.Output~) Do 
 					);
 					Recharge ias (
 						(ByRtType (Rt (Value~ 1) Get))^
@@ -89,11 +111,28 @@ module Player {
 						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
 					);
 				);
+				Hiring ias (
+					Init ias (
+						(HiringAgency.Id Id~)^
+						(HiringAgency.Owner Id~)^
+						(HiringAgency (HiringAgency Id~)) Born
+						(HiringAgency Id~)->Init~ Exe
+					);
+				);
+				Attacking ias (
+					Init ias (
+						(AttackManager.Id Id~)^
+						(AttackManager.PlayerId Id~)^
+						(AttackManager (AttackManager Id~)) Born
+						(AttackManager Id~)->Init~ Exe
+					);
+				);
 				Init ias (
-					(Quartals.Controlled ())^
-					(Quartals.Visible ())^
-					(Units.Hired ())^
+					Units.Init~ Exe
+					Quartals.Init~ Exe
 					Account.Init~ Exe
+					Hiring.Init~ Exe
+					Attacking.Init~ Exe
 				);
 			);
 			HandlePlayerCommandOnModeBattle ias (
@@ -136,14 +175,14 @@ module Player {
 				PlayerLifeStep~ Exe
 			);
 			CommandDispatcher ias (
-				ForcedMode ias nil;
+				NonForcedMode ias nil;
 				Dispatch ias nil;
 				CommandSet ias nil;
 				Handler ias nil;
 				CheckAndHandleCommand ias (
 					(RightCommand true) ias Handler~ Exe;
 					(RightCommand false) ias PlayerLifeStep~ Exe;
-					((The player Id~ received command Dispatch~ to dispatch) Ew.Output~) Do
+					((The player Id~ received command Dispatch~ to dispatch commands set CommandSet~) Ew.Output~) Do
 					(RightCommand (CommandSet~ (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get) In)~ Exe
 				);
 				(mode main) ias (
@@ -170,12 +209,11 @@ module Player {
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeAttack~)^
 					(Handler HandlePlayerCommandsOnModeAttack~)^
 				);
+				(NonForcedMode false) ias (Mode NonForcedMode~)^;
+				(NonForcedMode true) ias doNothing;
 
-				(ForcedMode true) ias (Mode ForcedMode~)^;
-				(ForcedMode false) ias doNothing;
-
-				(ForcedMode (Dispatch~ MagicWorld.Command.Format.ModeIndex~) Get)^
-				(ForcedMode (ForcedMode~ nil) Ident)~ Exe
+				(NonForcedMode (Dispatch~ MagicWorld.Command.Format.ModeIndex~) Get)^
+				(NonForcedMode (NonForcedMode~ nil) Ident)~ Exe
 				(mode Mode~)~ Exe
 				CheckAndHandleCommand~ Exe
 			);

@@ -1,10 +1,10 @@
 options {
 	language=__java__ {
-  		package = "com.win.strategy.battle.vwml.model"
-  		path = "c:\var\vwml/battleModel3B/src"
+  		package = "com.win.strategy.msg.vwml.model"
+  		path = "c:\var\vwml/msg/src"
   		author = "Win Interactive"
-		project_name = "battleModel3B"
-  		description = "Strategy battle model 3B"
+		project_name = "MafiaStrategyGame"
+  		description = "Mafia strategy game model"
 		beyond {
 			fringe communication ias (
 				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
@@ -21,23 +21,43 @@ options {
 		"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker" conflicts (
 			"[MagicWorld.Characters.Unit].MagicWorld.Player.Resources.Units.UnitsStateSetLocker"
 		)
-		"{MagicWorld.Player}.Battle.Fields.Init.LockOnBattleFieldBuilding" conflicts (
-			"{MagicWorld.Player}.Battle.Fields.Init.LockOnBattleFieldBuilding"
+		"[MagicWorld.Player].MagicWorld.BattleField.Fields.Build.LockOnBattleFieldBuilding" conflicts (
+			"[MagicWorld.Player].MagicWorld.BattleField.Fields.Build.LockOnBattleFieldBuilding"
 		)
 	}
 }
 
-include "../algorithms/DpfAPEx/DpfAPEx.vwml"
-include "ew.vwml"
-include "services.vwml"
-include "pathFinder.vwml"
-include "quartal.vwml"
-include "characters.vwml"
-include "player.vwml"
-include "attacker.vwml"
-include "defender.vwml"
+include "models/actors/attacker.vwml"
+include "models/actors/characters.vwml"
 
-module battleModel3B {
+include "models/actors/defender.vwml"
+
+include "models/algorithm/DpfAPEx.vwml"
+include "models/algorithm/pathFinder.vwml"
+
+include "models/ew/ew.vwml"
+
+include "models/modes/battle/attackbroker.vwml"
+include "models/modes/battle/attackmanager.vwml"
+include "models/modes/battle/battlefield.vwml"
+include "models/modes/battle/battlefieldstop.vwml"
+include "models/modes/battle/battlemanager.vwml"
+
+include "models/modes/deal/playerdeal.vwml"
+include "models/modes/deal/quartal.vwml"
+
+include "models/modes/hiring/hiringAgency.vwml"
+include "models/modes/hiring/hiringBroker.vwml"
+
+include "models/modes/main/playermain.vwml"
+
+include "models/modes/resourcemanager/unitResourceManager.vwml"
+
+include "models/player/player.vwml"
+
+include "models/services/services.vwml"
+
+module msg {
 	MagicWorld ias (
 		StopTheWorld ias false;
 		Manager ias (
@@ -63,19 +83,6 @@ module battleModel3B {
 					(Player.Id UnitId~)^
 					(Player.Stop false)^
 					(Player (Player UnitId~)) Born
-				);
-				// creates initial set of quartals for player
-				(Command createquartals) ias (
-					QuartalId ias 0;
-					ActivateQuartal ias (
-						// quartal's configuration
-						(Quartal.Id $~)^
-						(Quartal.Owner Id~)^
-						(Quartal (Quartal $~)) Born
-						// links quartal to given player
-						((Player UnitId~) Tx (Player.DealMode~ linkquartal UnitId~ ($~))) Gate
-					);
-					(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 				);
 				// stops game model
 				(Command exit) ias (
@@ -134,7 +141,7 @@ module battleModel3B {
 				((The initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
-				ModeInfo.AvailableModes~
+				ModeInfo~ Exe
 				((The game manager started) Ew.Output~) Do
 				((The game manager waits for commands) Ew.Output~) Do
 				MainLoop~ Exe
@@ -144,10 +151,16 @@ module battleModel3B {
 
 		AutoCommands ias (
 			Injection ias (
-				(manager 0 playeradd 0)
-				(player 0 nil exit 0 ())
+				(manager 0 nil playeradd 0 nil)
 			);
 		);
+
+/*
+				(manager 0 playeradd 0)
+				(player 0 nil exit 0 ())
+
+*/
+
 
 /*
    ===== DEAL   =====

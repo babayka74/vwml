@@ -10,10 +10,10 @@ module BattleManager {
 				CreateBattleField ias (
 					(Q (CommandParams~ 0) Get)^
 					(BattleField (BattleField (Id~ Q~))) Born
-					(BattleField (Id~ Q~))->Init~ Exe
 					((BattleField (Id~ Q~))->Id (Id~ Q~))^
 					((BattleField (Id~ Q~))->PlayerId Id~)^
 					((BattleField (Id~ Q~))->Quartal Q~)^
+					(BattleField (Id~ Q~))->Init~ Exe
 					(Resources.Battles (Resources.Battles~ (BattleField (BattleField (Id~ Q~))->Id~)) Join)^
 					// default: here defence will be built
 					(Resources.SelectedBattle (BattleField (Id~ Q~))->Id~)^

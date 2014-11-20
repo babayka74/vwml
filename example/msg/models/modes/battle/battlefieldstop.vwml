@@ -15,11 +15,10 @@ module BattleFieldStop {
 					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ allunitstopped 0 ())) Gate
 				);
 				(NoUnits true) ias AllUnitsStopped~ Exe;
-				(NoUnits false) ias (Resources.Units () AllUnitsStopped~) StartInterception;
+				(NoUnits false) ias (Participants.Units () AllUnitsStopped~) StartInterception;
 				((The player Id~ is going to be stopped) Ew.Output~) Do
-                        	(BattleField.ExitCase () BattleFieldStopped~) StartInterception
 				(NoUnits (Participants.Units~ ()) Ident)~ Exe
-				((The player PlayerId~ sends kill signal to units CombinedUnits~) Ew.Output~) Do
+				((The player PlayerId~ sends kill signal to units Participants.Units~) Ew.Output~) Do
 				(Participants.Units~ StopUnit~) ForEach
 			);
 		);

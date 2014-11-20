@@ -10,7 +10,7 @@ module BattleField {
 			PlayerAttackerId ias nil;
 			// to which quartal battlefield belongs
 			Quartal ias nil;
-			BattleStatus ias undefined;
+			BattleStatus ias none;
 			// command to be parsed
 			CommandId ias nil;
 			Destination ias nil;
@@ -21,9 +21,13 @@ module BattleField {
 			ExportedCommands ias ();
 			ExportCommands ias (
 				(ExportedCommands ())^
-				Fill ias (ExportedCommands (ExportedCommands~ ($~~)) Join)^;
+				Fill ias (
+					F ias (ExportedCommands (ExportedCommands~ ($~)) Join)^;
+					($~~ F~) ForEach
+				);
 				((BuildDefenceModeAvailableCommands AttackModeAvailableCommands NoneModeAvailableCommands) Fill~) ForEach
 				(ExportedCommands (ExportedCommands~) Squeeze)^
+				((The battlefields exported commands are ExportedCommands~) Ew.Output~) Do
 			);
 			// battlefield's zones
 			// 1. Attack - player which attacks sets his units to 'Nodes'. 'Nodes' must be subgraph of 'Main' graph
@@ -54,8 +58,8 @@ module BattleField {
 				);
 			);
 			// commands available on 'builddefence', 'attack' and 'none' modes
-			BuildDefenceModeAvailableCommands ias (setmode buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit);
-			AttackModeAvailableCommands ias (setmode setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled);
+			BuildDefenceModeAvailableCommands ias (buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit);
+			AttackModeAvailableCommands ias (setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled);
 			NoneModeAvailableCommands ias (setmode);
 			// battle's participants
 			Participants ias (
@@ -64,9 +68,10 @@ module BattleField {
 				Units ias ();
 			);
 			Init ias (
-				(BattleStatus undefined)^
+				(BattleStatus none)^
 				(Mode none)^
 				(PlayerAttackerId nil)^
+				((The battlefield for player PlayerId~ linked to quartal Quartal~ has id Id~ battle status BattleStatus~) Ew.Output~) Do
 			);
 			SetModeAndBattleStatus ias (
 				(Mode Destination~)^
@@ -137,7 +142,7 @@ module BattleField {
 				(RightCommand true) ias (
 					// builds battlefield's map
 					(Handle buildfield) ias (
-						((The battlefield is being built) Ew.Output~) Do
+						((The battlefield for player PlayerId~ is being built) Ew.Output~) Do
 						Fields.Build~ Exe
 					);
 					// links battlefield with quartal
@@ -159,7 +164,7 @@ module BattleField {
 							(Pid Characters.(Unit $~)->PlayerId~)^
 							((Player Pid~) Tx (ModeInfo.ModeResourceMgr~ returnunit Pid~ ($~))) Gate
 						);
-						(BattleStatus undefined)^
+						(BattleStatus none)^
 						(Participants.Units~ ReturnUnits~) ForEach
 						(Mode none)^
 					);
