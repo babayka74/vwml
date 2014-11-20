@@ -64,7 +64,6 @@ module Player {
 							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
 							// create battlefield and associate it with quartal
 							((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ $~)))) Gate
-
 						);
 						(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 						(Controlled ())^

@@ -683,7 +683,7 @@ public class VWMLConflictRing {
 	
 	private VWMLConflictRingExecutionGroup buildArtificialGroupAndAssociatedNode(String context) {
 		VWMLConflictRingExecutionGroup g = null;
-		String id = context + "." + "artificialId_" + artificialId;
+		String id = context; // + "." + "artificialId_" + artificialId;
 		conflictDef2TermAssociation.put(id, context);
 		g = VWMLConflictRingExecutionGroup.build(this, id, id);
 		VWMLConflictRingNode n = VWMLConflictRingNode.build(id, id);

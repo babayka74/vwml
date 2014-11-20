@@ -47,7 +47,7 @@ module ExternalWorld {
 
 		QuartalsConf ias (
 			/* initial quartals (closed) per player */
-			QuartalsPerPlayer ias 1;
+			QuartalsPerPlayer ias 2;
 			/* selected per quartal in random way */
 			SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
 			/* available resource types and their initial value */
