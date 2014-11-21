@@ -3,14 +3,10 @@ module HiringBroker {
 		Player ias (
 			HiringBroker ias (
 				CommandId ias nil;
+				RequestId ias nil;
 				CommandParams ias nil;
 
-				(Handle starthiring) ias (
-					((HiringAgency Id~) Tx (CommandId~ CommandParams~)) Gate
-				);
-				(Handle cancelhiring) ias (
-					((HiringAgency Id~) Tx (CommandId~ CommandParams~)) Gate
-				);
+				(Handle starthiring),(Handle cancelhiring),(Handle paymentresult) ias ((HiringAgency Id~) Tx (CommandId~ RequestId~ CommandParams~)) Gate;
 				(Handle CommandId~)~ Exe
 			);
 		);

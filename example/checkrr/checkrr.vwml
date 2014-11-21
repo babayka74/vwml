@@ -41,11 +41,22 @@ module checkrr {
 				);
 			);
 		);
+		mm ias (
+			(aa b) ias 1;
+			x ias (
+			);
+		);
 		x ias l;
 		y ias a;
 		g ias (q w);
+		z ias b;
+		v ias 2;
 		source lifeterm = (
-			// (((y~ b)->(f)->(c (x~ m) d)->(g~)->k~) Ew.Output~) Do
+			(mm.x (x 2) defer) Born
+			((mm)->(x v~)) Activate
+			(((mm)->(aa z~)~) Ew.Output~ ) Do
+			(((mm)->(aa z~)) Ew.Output~ ) Do
+			(((y~ b)->(f)->(c (x~ m) d)->(g~)->k~) Ew.Output~) Do
 			20000 Relax
 		) Exe
 	);

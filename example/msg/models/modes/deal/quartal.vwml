@@ -34,6 +34,7 @@ module Quartal {
 					(Quantums (ResourceConf~ 3) Get)^
 					(OpenTime (ResourceConf~ 4) Get)^
 					(DesiredOpenInfoPrice (ResourceConf~ 5) Get)^
+					((Quartal Id~) Tx (Id~ check ())) Gate
 				);
 			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
@@ -196,6 +197,9 @@ module Quartal {
 						// unlinks quartal from given player
 						((Player Owner~) Tx (ModeInfo.ModeDeal~ unlinkquartal Owner~ (Id~))) Gate
 						((The sherif of quartal Id~ got message to exit) Ew.Output~) Do
+					);
+					(check op),(check cnp),(check onp),(check wtp) ias (
+						((The sherif of quartal Id~ which belongs to player Owner~ got self test message) Ew.Output~) Do
 					);
 					(Intention~ State~)~ Exe
 				);

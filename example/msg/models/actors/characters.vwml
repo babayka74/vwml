@@ -38,6 +38,7 @@ module Characters {
 					(MarkedAsKilled false)^
 					(BattleField nil)^
 					(InAction false)^
+					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
 				/* each unit has following properties: power of attack and defence */
 				Power ias (
@@ -49,9 +50,9 @@ module Characters {
 				/* to be attacker */
 				UnitAsAttacker ias (
 					Create ias (
-						(Attacker.Id Id~)^
-						(Attacker.PlayerId PlayerId~)^
 						(Attacker (Attacker Id~)) Born
+						((Attacker Id~)->Id Id~)^
+						((Attacker Id~)->PlayerId PlayerId~)^
 						(ConcreteUnit Characters.(Attacker Id~))^
 						((The attacker Id~ created) Ew.Output~) Do
 					);
@@ -64,9 +65,9 @@ module Characters {
 				/* to be defender */
 				UnitAsDefender ias (
 					Create ias (
-						(Defender.Id Id~)^
-						(Defender.PlayerId PlayerId~)^
 						(Defender (Defender Id~)) Born
+						((Defender Id~)->Id Id~)^
+						((Defender Id~)->PlayerId PlayerId~)^
 						(ConcreteUnit Characters.(Defender Id~))^
 						((The defender Id~ created) Ew.Output~) Do
 					);
@@ -144,6 +145,11 @@ module Characters {
 					UnitCommandParams ias nil;
 					// concrete unit's type not specialized
 					(ns true) ias (
+						(Handle check) ias (
+							((The unit Id~ belongs to player PlayerId~ self test ok) Ew.Output~) Do
+							Stay~ Exe
+							UnitLifeStep~ Exe
+						);
 						(Handle stay) ias (
 							UnitLifeStep~ Exe
 						);
@@ -161,6 +167,11 @@ module Characters {
 					);
 					// concrete unit's type specialized
 					(ns false) ias (
+						(Handle check) ias (
+							((The unit Id~ belongs to player PlayerId~ self test ok) Ew.Output~) Do
+							Stay~ Exe
+							UnitLifeStep~ Exe
+						);
 						(Handle stay) ias (
 							UnitLifeStep~ Exe
 						);

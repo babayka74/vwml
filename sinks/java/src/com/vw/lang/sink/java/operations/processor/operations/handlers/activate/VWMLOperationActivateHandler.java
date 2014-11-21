@@ -54,7 +54,7 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 		if (!entity.isMarkedAsComplexEntity() || ((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_numOfArgs) {
 			throw new Exception("operation 'Activate' requires 1 argument; check code");
 		}
-		VWMLEntity activateEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
+		VWMLEntity activateEntity = entity;
 		if (activateEntity.getInterpreting() != null && interpreter.getRing() != null) {
 			VWMLEntity lft = activateEntity.getInterpreting().getContext().findSourceLifeTerm();
 			if (lft != null) {

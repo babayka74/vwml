@@ -48,7 +48,16 @@ module PlayerDeal {
 					Resources.Account.Withdraw~ Exe
 					(Result Resources.Account.Result~)~ Exe
 				);
-				(Handle contribution) ias (
+				(Handle payforunit) ias (
+					OrigRequest ias nil;
+					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ paymentresult Id~ (confirmed OrigRequest~))) Gate;
+					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ paymentresult Id~ (declined OrigRequest~))) Gate;
+					(OrigRequest (CommandParams~ 0) Get)^
+					(Resources.Account.Value CommandParams~)^
+					Resources.Account.Withdraw~ Exe
+					(Result Resources.Account.Result~)~ Exe
+				);
+				(Handle contribution),(Handle returnpayment) ias (
 					(Resources.Account.Value CommandParams~)^
 					Resources.Account.Recharge~ Exe
 				);

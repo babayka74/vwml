@@ -24,6 +24,8 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
+		// specific for this operation - no need to assemble all entities into the one (this operation can't be conducted by any operation, including ->)
+		inspector.setAssemblyEntity(false);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		if (entities.size() == 1) { // specific case where only one entity on stack

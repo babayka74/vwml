@@ -64,7 +64,7 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 		VWMLEntity timeEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 		VWMLEntity recallIdEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
 		VWMLEntity runOnRegularCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(2);
-		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfExArgs) {
+		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() >= s_numOfExArgs) {
 			runOnTerminatedCompletition = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(3);
 			if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() > s_numOfExArgs) {
 				argComponent = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);

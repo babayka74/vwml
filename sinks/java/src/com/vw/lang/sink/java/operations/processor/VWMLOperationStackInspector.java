@@ -20,7 +20,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 	private boolean inspectMustReturn = false;
 	private VWMLContext operationalContext = null;
 	private VWMLInterpreterImpl interpreter = null;
-	private boolean assemblyEntity = false;
+	private boolean assemblyEntity = true;
 	
 	public VWMLOperationStackInspector(VWMLInterpreterImpl interpreter, VWMLContext context) {
 		setInterpreter(interpreter);

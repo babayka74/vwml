@@ -7,41 +7,93 @@ module HiringAgency {
 			StopAgency ias false;
 			GlobalHiringRequestId ias 0;
 
+			// command format
+			CmdFormat ias (
+				// information about unit's hiring properties
+				RqHiringInfoIndex ias 0;
+				// hiring property - cost
+				RqCostPropIndex ias 0;
+				// hiring property - hiring time
+				RqHTimePropIndex ias 1;
+				// hiring property - character id
+				RqIdPropIndex ias 2;
+				// information about hiring unit
+				RqCharacterInfoIndex ias 1;
+			);
+
 			Init ias (
 				(StopAgency false)^
 				((The hiring agency for player Id~ initialized) Ew.Output~) Do
 			);
 
 			Agent ias (
-				Commands ias (starthiring cancelhiring exit);
+				Commands ias (starthiring cancelhiring paymentresult exit);
 				Command ias nil;
 				Request ias nil;
 				RequestId ias 0;
+				RequestsInProgress ias ();
 
 				// called when unit's request is ready (aka agent found and hired unit)
 				ProcessRequest ias (
 					(RqId ($~ 0) Get)^
 					(Rq ($~ 1) Get)^
-					((The hiring agent reports about processing request RqId~ for player Owner~ and sets props Rq~) Ew.Output~) Do
+					(RequestsInProgress (RequestsInProgress~ (RqId~)) Substruct)^
+					(CharacterIdInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+					(CharacterProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 					// creating unit (aka found)
-					(Characters.Unit.PlayerId Owner~)^
-					(Characters.Unit.Id RqId~)^
-					(Characters.Unit Characters.(Unit RqId~)) Born
+					(UnitId (CharacterIdInfo~ 1) Get)^
+					((The hiring agent reports about processing request RqId~ for player Owner~ and sets props CharacterProps~ for unit UnitId~) Ew.Output~) Do
+					(Characters.Unit (Unit UnitId~) defer) Born
+					((Characters)->(Unit UnitId~)->PlayerId Owner~)^
+					((Characters)->(Unit UnitId~)->Id UnitId~)^
+					((Characters)->(Unit UnitId~)) Activate
 					// concrete mechanism of properties setting
-					(Rq~ Characters.(Unit RqId~)->PropertySetOperation~) ForEach
+					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
 					// notify player about success hiring operation
-					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (RqId~))) Gate
+					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (UnitId~))) Gate
 				);
 				Behavior ias (
 					(RightCommand false) ias doNothing;
 					(RightCommand true) ias (
 						(Command starthiring) ias (
-							(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
-							(HiringProcessTime~ (Hiring Id~ GlobalHiringRequestId~) ProcessRequest~ nil (GlobalHiringRequestId~ Request~)) Recall
+							// get cost and check if player has enough resources
+							(CostInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+							// (cost <resource> <value>)
+							// Request => original request
+							((Player Owner~) Tx (ModeInfo.ModeDeal~ payforunit Owner~ (Request~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
+						);
+						(Command paymentresult) ias (
+							(payment confirmed) ias (
+								// confirmed primary request
+								(ConfRq (Request~ 1) Get)^
+								// getting hiring info (time to hire unit)
+								(TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^
+								(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
+								// save request for processing time (need in case if cancel operation is received)
+								(GlobalHiringRequestId~ ConfRq~)^
+								(RequestsInProgress (RequestsInProgress~ (GlobalHiringRequestId~)) Join)^
+								// (HiringInfo~ 1) Get => time needed to hire specified unit
+								((TimeToHireInfo~ 1) Get (Hiring Id~ GlobalHiringRequestId~) ProcessRequest~ nil (GlobalHiringRequestId~ ConfRq~)) Recall
+								// player may use GlobalHiringRequestId~ in order to cancel hiring operation
+								((The hiring agent Id~ started hiring request GlobalHiringRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
+							);
+							(payment declined) ias (
+								((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
+							);
+							(payment (Request~ 0) Get)~ Exe
 						);
 						(Command cancelhiring) ias (
-							(-1 (Hiring Id~ RequestId~) nil) Recall
-							((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
+							(InProgress false) ias ((Invalid request id RequestId~) Ew.Output~) Do;
+							(InProgress true) ias (
+								// here RequestId must coincide with one of processed GlobalHiringRequestId~
+								(RequestId (RequestsInProgress~ RequestId~) Find)^
+								(-1 (Hiring Id~ RequestId~) nil) Recall
+								((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
+								// player's account must be recharged
+								(CostInfo ((RequestId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+								((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
+							);
+							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
 						);
 						(Command exit) ias (StopAgency true)^;
 						(Command Command~)~ Exe
@@ -53,7 +105,7 @@ module HiringAgency {
 			CommandDispatcher ias (
 				Dispatch ias nil;
 				// (starthiring | cancelhiring RequestId Request)
-				// Request=> ((kind skeleton | zombie | monster) (type attacker | defender) (attack (yes yes yes)) (defence (no no yes))
+				// Request=> (((cost vodka 2000)(hiringtime 20000)(id 2))((kind skeleton | zombie | monster) (attack (yes yes yes)) (defence (no no yes)))
 				(Agent.Command (Dispatch~ 0) Get)^
 				(Agent.RequestId (Dispatch~ 1) Get)^
 				(Agent.Request (Dispatch~ 2) Get)^

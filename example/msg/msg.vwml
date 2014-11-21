@@ -78,11 +78,12 @@ module msg {
 				((Command CommandId~ propagated to player Id~) Ew.Output~) Do
 			);
 			(ManagerCommand true) ias (
-				// cretes player
+				// creates player
 				(Command playeradd) ias (
-					(Player.Id UnitId~)^
-					(Player.Stop false)^
-					(Player (Player UnitId~)) Born
+					(Player (Player UnitId~) defer) Born
+					((Player UnitId~)->Id UnitId~)^
+					((Player UnitId~)->Stop false)^
+					((Player UnitId~)) Activate
 				);
 				// stops game model
 				(Command exit) ias (
@@ -152,10 +153,12 @@ module msg {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 nil playeradd 0 nil)
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 			);
 		);
 
 /*
+				(player 0 hiring cancelhiring 1 ()) 
 				(manager 0 playeradd 0)
 				(player 0 nil exit 0 ())
 

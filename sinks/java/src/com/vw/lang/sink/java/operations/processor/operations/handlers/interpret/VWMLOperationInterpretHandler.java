@@ -28,6 +28,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLStack stack = context.getStack();
 		VWMLEntity interpretingEntity = null;
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
+		inspector.setAssemblyEntity(true);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		List<VWMLEntity> entities = inspector.getReversedStack();

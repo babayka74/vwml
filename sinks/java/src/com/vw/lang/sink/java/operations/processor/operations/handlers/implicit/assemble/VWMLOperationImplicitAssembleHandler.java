@@ -27,14 +27,20 @@ public class VWMLOperationImplicitAssembleHandler extends VWMLOperationHandler {
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
-		VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
-																							  entities,
-																							  entities.size() - 1,
-																							  originalContext,
-																							  originalContext,
-																							  context.getEntityInterpretationHistorySize(),
-																							  context.getLinkOperationVisitor(),
-																							  VWMLOperationUtils.s_addIfUnknown);
+		VWMLEntity entity = null;
+		if (entities.size() == 1 && entities.get(0).isDynamicAddressedInRunTime()) {
+			entity = entities.get(0);
+		}
+		else {
+			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
+																					  entities,
+																					  entities.size() - 1,
+																					  originalContext,
+																					  originalContext,
+																					  context.getEntityInterpretationHistorySize(),
+																					  context.getLinkOperationVisitor(),
+																					  VWMLOperationUtils.s_addIfUnknown);
+		}
 		inspector.clear();
 		entities.clear();
 		stack.push(entity);

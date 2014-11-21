@@ -8,6 +8,9 @@ module Player {
 				Battle ias (
 					UnitIdIndex ias 2;
 				);
+				Hiring ias (
+					RequestIdIndex ias 2;
+				);
 			);
 		);
 		ModeInfo ias (
@@ -19,10 +22,10 @@ module Player {
 			ModeAttack ias attack;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit);
-			AvailablePlayerCommandsOnModeHiring ias (starthiring cancelhiring);
+			AvailablePlayerCommandsOnModeHiring ias (starthiring cancelhiring paymentresult);
 			AvailablePlayerCommandsOnModeBattle ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain   ias (setmode exit back dealstopped battlestopped);
-			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payquartalinfo paybribe contribution stop back);
+			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payforunit payquartalinfo paybribe contribution returnpayment stop back);
 			AvailablePlayerCommandsOnModeAttack ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
@@ -59,7 +62,10 @@ module Player {
 							// quartal's configuration
 							(Quartal.Id (Id~ $~))^
 							(Quartal.Owner Id~)^
-							(Quartal (Quartal (Id~ $~))) Born
+							(Quartal (Quartal (Id~ $~)) defer) Born
+							((Quartal (Id~ $~))->Id (Id~ $~))^
+							((Quartal (Id~ $~))->Owner Id~)^
+							((Quartal (Id~ $~))) Activate
 							// links quartal to given player
 							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
 							// create battlefield and associate it with quartal
@@ -112,17 +118,18 @@ module Player {
 				);
 				Hiring ias (
 					Init ias (
-						(HiringAgency.Id Id~)^
-						(HiringAgency.Owner Id~)^
-						(HiringAgency (HiringAgency Id~)) Born
+						(HiringAgency (HiringAgency Id~) defer) Born
+						((HiringAgency Id~)->Id Id~)^
+						((HiringAgency Id~)->Owner Id~)^
 						(HiringAgency Id~)->Init~ Exe
+						((HiringAgency Id~)) Activate
 					);
 				);
 				Attacking ias (
 					Init ias (
-						(AttackManager.Id Id~)^
-						(AttackManager.PlayerId Id~)^
 						(AttackManager (AttackManager Id~)) Born
+						((AttackManager Id~)->Id Id~)^
+						((AttackManager Id~)->PlayerId Id~)^
 						(AttackManager Id~)->Init~ Exe
 					);
 				);
@@ -163,6 +170,7 @@ module Player {
 			);
 			HandlePlayerCommandsOnModeHiring ias (
 				(HiringBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(HiringBroker.RequestId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.Hiring.RequestIdIndex~) Get)^
 				(HiringBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				HiringBroker~ Exe
 				PlayerLifeStep~ Exe

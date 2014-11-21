@@ -28,25 +28,35 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
-		if (entities.size() == 0 || entities.size() > 2) {
-			throw new Exception("arguments != 2 for operation 'OPCLONE/OPBORN'");
+		if (entities.size() == 0 || entities.size() > 3) {
+			throw new Exception("arguments != 2 | 3 for operation 'OPCLONE/OPBORN'");
 		}
 		if (entities.size() == 1) {
 			if (!entities.get(0).isMarkedAsComplexEntity()) {
 				throw new Exception("at least one entity should be complex; operation 'OPCLONE/OPBORN'");
 			}
-			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == 2) {
+			VWMLEntity deferExecution = null;
+			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() >= 2) {
+				if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == 3) {
+					deferExecution = (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(2);
+				}
 				handleCloneOperation(interpreter,
 									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0),
-									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1));
+									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1),
+									 deferExecution);
 			}
 			else {
-				throw new Exception("arguments != 2 for operation 'OPCLONE/OPBORN'");
+				throw new Exception("arguments != 2 | 3 for operation 'OPCLONE/OPBORN'");
 			}
 		}
 		else
-		if (entities.size() == 2) {
-			handleCloneOperation(interpreter, entities.get(1), entities.get(0));
+		if (entities.size() >= 2) {
+			if (entities.size() == 3) {
+				handleCloneOperation(interpreter, entities.get(2), entities.get(1), entities.get(0));
+			}
+			else {
+				handleCloneOperation(interpreter, entities.get(1), entities.get(0), null);
+			}
 		}
 		inspector.clear();
 		entities.clear();
@@ -56,7 +66,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId(), false);
 	}
 
-	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
+	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject, VWMLEntity deferExecution) throws Exception {
 		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getId())) != null) {
 			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
 		}
@@ -65,7 +75,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 			cloned.buildReadableId();
 		}
 		VWMLObjectsRepository.instance().remove(clonedObject);
-		if (cloned.getInterpreting() != null && interpreter.getRing() != null) {
+		if (cloned.getInterpreting() != null && interpreter.getRing() != null && deferExecution == null) {
 			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();
 			if (clonedSourceLft != null) {
 				activateSourceLifeTerm(interpreter, cloned, clonedSourceLft);
