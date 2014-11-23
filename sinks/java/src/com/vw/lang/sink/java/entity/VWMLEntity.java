@@ -67,6 +67,8 @@ public class VWMLEntity extends VWMLObject {
 	private boolean isPartOfDynamicContext = false;
 	// setup on 'Activate' operation in case if entity is not life or source lifeterm
 	private boolean activated = false;
+	// sets during release operation in order to mark entity as removed from context and related storage
+	private boolean removed = false;
 	
 	public VWMLEntity(Object hashId) {
 		super(hashId);
@@ -205,6 +207,7 @@ public class VWMLEntity extends VWMLObject {
 															  getInterpretationHistorySize(),
 															  VWMLObjectsRepository.asOriginal,
 															  getLink().getLinkOperationVisitor());
+			//System.out.println("cloned (IAS) '" + eIAS.getId() + "' context '" + eIASArgAsPairContext.getContext() + "'");
 		}
 		if (eIAS != null && !recursion) {
 			interpretingEntity = eIAS.clone( null,
@@ -240,6 +243,8 @@ public class VWMLEntity extends VWMLObject {
 				for(; it.isCorrect(); it.next()) {
 					cloned.getLink().link(proto.getLink().getConcreteLinkedEntity(it.getIt()));
 				}
+				cloned.setReadableId(null);
+				//System.out.println("cloned (ORG -> FI) '" + cloned.buildReadableId() + "' context '" + context.getContext() + "'");
 			}
 		}
 		auxCache.add(this, cloned);
@@ -273,16 +278,58 @@ public class VWMLEntity extends VWMLObject {
 							              bornMode);
 					cloned.getLink().link(linked);
 				}
+				cloned.setReadableId(null);
+//				System.out.println("cloned (ORG -> IE) '" + cloned.buildReadableId() + "' context '" + context.getContext() + "'");
 			}
 		}
 		return cloned;
+	}
+	
+	public void release() {
+		if (getClonedFrom() == null || removed) {
+			return;
+		}
+		if (getInterpreting() != null) {
+			if (!getOriginalInterpreting().isRecursiveInterpretationOnRuntime()) {
+				getInterpreting().release();
+			}
+		}
+		VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
+		if (type == VWMLObjectBuilder.VWMLObjectType.TERM) {
+			VWMLEntity et = ((VWMLTerm)this).getAssociatedEntity();
+			if (et != null) {
+				et.release();
+				((VWMLTerm)this).setAssociatedEntity(null);
+			}
+		}
+		for(VWMLObject e : getLink().getLinkedObjects()) {
+			((VWMLEntity)e).release();
+			e.getLink().getLinkedObjects().clear();
+			e.getLink().setParent(null);
+		}
+/*		
+		if (buildReadableId() != null) {
+			System.out.println("removed '" + buildReadableId() + "' context '" + ((context != null) ? context.getContext() : "null") + "'");
+		}
+*/		
+		VWMLObjectsRepository.instance().removeWithoutContextCleaning(this);
+		setReadableId("__removed__" + buildReadableId());
+		setId("__removed__");
+		getLink().getLinkedObjects().clear();
+		getLink().setParent(null);
+		removed = true;
 	}
 	
 	@Override
 	public String buildReadableId() {
 		if (getReadableId() == null) {
 			if (isTerm()) {
-				return ((VWMLTerm)this).getAssociatedEntity().buildReadableId();
+				if (((VWMLTerm)this).getAssociatedEntity() != null) {
+					return ((VWMLTerm)this).getAssociatedEntity().buildReadableId();
+				}
+				else {
+					return null; // removed term
+				}
 			}
 			else {
 				return (String)getId();

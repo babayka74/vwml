@@ -53,7 +53,7 @@ module Characters {
 						(Attacker (Attacker Id~)) Born
 						((Attacker Id~)->Id Id~)^
 						((Attacker Id~)->PlayerId PlayerId~)^
-						(ConcreteUnit Characters.(Attacker Id~))^
+						(ConcreteUnit (Characters)->(Attacker Id~))^
 						((The attacker Id~ created) Ew.Output~) Do
 					);
 					Destroy ias (
@@ -68,7 +68,7 @@ module Characters {
 						(Defender (Defender Id~)) Born
 						((Defender Id~)->Id Id~)^
 						((Defender Id~)->PlayerId PlayerId~)^
-						(ConcreteUnit Characters.(Defender Id~))^
+						(ConcreteUnit (Characters)->(Defender Id~))^
 						((The defender Id~ created) Ew.Output~) Do
 					);
 					Destroy ias (
@@ -134,7 +134,13 @@ module Characters {
 					(Create Type~)~ Exe
 					((ConcreteUnit~)->BattleFieldId BattleFieldId~)^
 					(ConcreteUnit~)->Init~ Exe
-					((The concrete unit ConcreteUnit~) Ew.Output~) Do
+					((The concrete unit ConcreteUnit~ created) Ew.Output~) Do
+				);
+				ReleaseConcreteUnit ias (
+					((ConcreteUnit~)->BattleFieldId nil)^
+					(ConcreteUnit~)->Done~ Exe
+					(ConcreteUnit~) Release
+					((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
 				);
 				/* unit receives commands in deferred manner */
 				CommandDispatcher ias (

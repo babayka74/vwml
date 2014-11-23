@@ -29,8 +29,8 @@ module Player {
 			AvailablePlayerCommandsOnModeAttack ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
-			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ (BattleField.ExportedCommands~)) Join)^
-			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ (AttackManager.ExportedCommands~)) Join)^
+			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ BattleField.ExportedCommands~) Join)^
+			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ AttackManager.ExportedCommands~) Join)^
 		);
 		Player ias (
 			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);

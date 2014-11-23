@@ -158,8 +158,26 @@ module msg {
 		);
 
 /*
-				(player 0 hiring cancelhiring 1 ()) 
-				(manager 0 playeradd 0)
+  ===== DEFENCE BUILDING and RECRUTING UNITS ======
+				(manager 0 nil playeradd 0 nil)
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 battle setmode builddefence ())
+				(player 0 battle recruitunit 2 ())
+				(player 0 battle dismissunit 2 ())
+*/
+
+/*
+  ===== HIRING and CANCELING ======
+				(manager 0 nil playeradd 0 nil)
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring cancelhiring 1 ())
+
+*/
+
+/*
+  ===== ADDING and REMOVING PLAYER ======
+
+				(manager 0 nil playeradd 0 nil) 
 				(player 0 nil exit 0 ())
 
 */

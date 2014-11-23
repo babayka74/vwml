@@ -61,7 +61,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @throws Exception
 	 */
 	public static void releaseCloned(VWMLContext clonedContext) throws Exception {
-		VWMLContextsRepository.instance().release(clonedContext);
+		VWMLContextsRepository.instance().releaseClonedImpl(clonedContext);
 	}
 	
 	/**
@@ -295,12 +295,17 @@ public class VWMLContextsRepository extends VWMLRepository {
 			}
 		}
 	}
+
+	protected void releaseClonedImpl(VWMLContext context) {
+		release(context);
+		if (context.getLink().getParent() != null) {
+			context.getLink().getParent().getLink().getLinkedObjects().remove(context);
+			context.getLink().setParent(null);
+		}
+	}
 	
 	protected void release(VWMLContext context) {
-		for(VWMLEntity e : context.getAssociatedEntities()) {
-			// release entity's relations
-			e.getLink().unlinkFromAll();
-		}
+		//System.out.println("release context '" + context.getContext() + "'");
 		VWMLLinkIncrementalIterator it = context.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
@@ -310,10 +315,10 @@ public class VWMLContextsRepository extends VWMLRepository {
 				}
 			}
 		}
-		if (context.getLink().getParent() != null) {
-			context.getLink().setParent(null);
-		}
 		context.getLink().clear();
+		for(VWMLEntity e : context.getAssociatedEntities()) {
+			e.release();
+		}
 		context.removeAllAssociatedEntities();
 	}
 	

@@ -50,6 +50,7 @@ public enum VWMLOperationsCode {
     OPFINISHINTERCEPTION("FinishInterception"),
     OPSTARTINTERCEPTION_S("SI"),
     OPFINISHINTERCEPTION_S("FI"),
+    OPRELEASE("Release"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

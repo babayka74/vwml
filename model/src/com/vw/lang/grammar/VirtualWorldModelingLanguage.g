@@ -52,6 +52,7 @@ tokens {
     OPFINISHINTERCEPTION='FinishInterception';
     OPSTARTINTERCEPTION_S='SI';
     OPFINISHINTERCEPTION_S='FI';
+    OPRELEASE='Release';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1268,6 +1269,7 @@ opclist
     | OPFINISHINTERCEPTION
     | OPSTARTINTERCEPTION_S
     | OPFINISHINTERCEPTION_S
+    | OPRELEASE
     ;
 
 termLanguages

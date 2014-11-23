@@ -58,6 +58,7 @@ module BattleManager {
 						((BattleField Resources.SelectedBattle~)->CommandId CommandId~)^
 						((BattleField Resources.SelectedBattle~)->Destination To~)^
 						((BattleField Resources.SelectedBattle~)->CommandParams CommandParams~)^
+						((Player Id~ battlemanager delegates command CommandId~ to battlefield (BattleField Resources.SelectedBattle~)) Ew.Output~) Do
 						(BattleField Resources.SelectedBattle~)~ Exe
 					);
 					(NotSelectedBF true) ias ((Player Id~ must select battlefield before) Ew.Output~) Do;

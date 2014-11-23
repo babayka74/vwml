@@ -19,20 +19,30 @@ module PlayerResourceManager {
 				);
 
 				MarkUnitAsIsInAction ias (
-					(UnitInAction true) ias ((Player Id~) Tx (ModeInfo.ModeBattle~ rejectedunit HiredUnitId~ ())) Gate;
-					(UnitInAction false) ias (
-						(Characters.(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
-						Characters.(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
-						(Characters.(Unit HiredUnitId~)->InAction true)^
-						((Player Id~) Tx (ModeInfo.ModeBattle~ recruitedunit HiredUnitId~ ())) Gate
+					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit true) ias (
+						(UnitInAction true) ias ((Player Id~) Tx (ModeInfo.ModeBattle~ rejectedunit HiredUnitId~ ())) Gate;
+						(UnitInAction false) ias (
+							((Characters)->(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
+							(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
+							((Characters)->(Unit HiredUnitId~)->InAction true)^
+							((Player Id~) Tx (ModeInfo.ModeBattle~ recruitedunit HiredUnitId~ ())) Gate
+						);
+						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
-					(UnitInAction Characters.(Unit HiredUnitId~)->InAction~)~ Exe
+					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
 				);
 
 				MarkUnitAsFree ias (
+					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit true) ias (
+						((Characters)->(Unit HiredUnitId~)->InAction false)^
+						(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
+						((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
+					);
 					(HiredUnitId (CommandParams~ 0) Get)^
-					(Characters.(Unit HiredUnitId~)->InAction false)^
+					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
 				);
 
 				// unit has been hired and must be associated with player
@@ -42,9 +52,13 @@ module PlayerResourceManager {
 				);
 				// unit's functionality doesn't need to player
 				(Handle dismissunit) ias (
-					PushOutUnit~ Exe
-					((Unit HiredUnitId~)->StopUnit true)^
-					((Player Id~ dismissed unit HiredUnitId~) Ew.Output~) Do
+					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit true) ias (
+						PushOutUnit~ Exe
+						((Characters)->(Unit HiredUnitId~)->StopUnit true)^
+						((Player Id~ dismissed unit HiredUnitId~) Ew.Output~) Do
+					);
+					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
 				);
 				// remove stopped unit which was killed and stopped
 				(Hanlde releaseunit) ias PushOutUnit~ Exe;

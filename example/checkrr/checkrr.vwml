@@ -52,6 +52,7 @@ module checkrr {
 		z ias b;
 		v ias 2;
 		source lifeterm = (
+			((mm.(aa z~)~) Ew.Output~) Do
 			(mm.x (x 2) defer) Born
 			((mm)->(x v~)) Activate
 			(((mm)->(aa z~)~) Ew.Output~ ) Do
