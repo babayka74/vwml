@@ -85,6 +85,7 @@ module msg {
 					((Player UnitId~)->Stop false)^
 					((Player UnitId~)) Activate
 				);
+				(Command delay) ias ((Params~ 0) Get) Relax;
 				// stops game model
 				(Command exit) ias (
 					(StopTheWorld true)^
@@ -153,23 +154,71 @@ module msg {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 nil playeradd 0 nil)
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (7500))
+				(player 0 attack recruitunit (0 2) ())
+				(player 0 attack recruitunit (0 3) ())
+				(manager 0 nil playeradd 1 nil)
+				(manager 0 nil delay 0 (500))
+				(player 0 attack prepareinvasion 0 (1))
 			);
 		);
 
 /*
   ===== DEFENCE BUILDING and RECRUTING UNITS ======
 				(manager 0 nil playeradd 0 nil)
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 battle setmode builddefence ())
-				(player 0 battle recruitunit 2 ())
-				(player 0 battle dismissunit 2 ())
+				(player 0 battle recruitunit (0 2) ())
+				(player 0 battle dismissunit (0 2) ())
 */
 
 /*
+  ===== DEFENCE BUILDING and RECRUTING MULTIPLE UNITS and RESET BATTLEFIELD TO INITIAL STATE ======
+				(manager 0 nil playeradd 0 nil)
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (500))
+				(player 0 battle setmode builddefence ())
+				(player 0 battle recruitunit (0 2) ())
+				(player 0 battle recruitunit (0 3) ())
+				(player 0 battle reset 0 ())
+*/
+
+
+/*
+  ===== BUILDING ATTACKING GROUP and RESET IT TO INITIAL STATE ======
+				(manager 0 nil playeradd 0 nil)
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (500))
+				(player 0 attack recruitunit (0 2) ())
+				(player 0 attack recruitunit (0 3) ())
+                                (player 0 attack reset 0 ())
+*/
+
+/*
+  ===== BUILDING ATTACKING GROUP and CREATING ADDITIONAL USER and TRYING TO ATTACK ======
+				(manager 0 nil playeradd 0 nil)
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (500))
+				(player 0 attack recruitunit (0 2) ())
+				(player 0 attack recruitunit (0 3) ())
+				(manager 0 nil playeradd 1 nil)
+				(player 0 attack prepareinvasion 0 (1))
+				
+/*
   ===== HIRING and CANCELING ======
 				(manager 0 nil playeradd 0 nil)
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring cancelhiring 1 ())
 
 */
@@ -177,7 +226,8 @@ module msg {
 /*
   ===== ADDING and REMOVING PLAYER ======
 
-				(manager 0 nil playeradd 0 nil) 
+				(manager 0 nil playeradd 0 nil)
+				(manager 0 nil delay 0 (500)) 
 				(player 0 nil exit 0 ())
 
 */

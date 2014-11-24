@@ -11,6 +11,9 @@ module Player {
 				Hiring ias (
 					RequestIdIndex ias 2;
 				);
+				Attack ias (
+					UnitIdIndex ias 2;
+				);
 			);
 		);
 		ModeInfo ias (
@@ -177,6 +180,7 @@ module Player {
 			);
 			HandlePlayerCommandsOnModeAttack ias (
 				(AttackBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(AttackBroker.To (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.Attack.UnitIdIndex~) Get)^
 				(AttackBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				AttackBroker~ Exe
 				PlayerLifeStep~ Exe

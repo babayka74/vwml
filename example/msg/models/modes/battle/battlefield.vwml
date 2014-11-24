@@ -90,17 +90,22 @@ module BattleField {
 			);
 			// unit is removed from battlefield when mode 'builddefence' is active
 			RemoveFromBattleField ias (
-				(CorrectUnit false) ias ((The unit Destination~ was not recruited to battlefield Id~ of player PlayerId~) Ew.Output~) Do;
+				U ias nil;
+				PId ias nil;
+				RetAs ias nil;
+				(CorrectUnit false) ias ((The unit U~ was not recruited to battlefield Id~ of player PId~) Ew.Output~) Do;
 				(CorrectUnit true) ias (
 					(removed attacker) ias (Participants.NumOfAttackers ((Participants.NumOfAttackers~) Ew.DecValue~) Do)^;
 					(removed defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.DecValue~) Do)^;
-					((Characters)->(Unit Destination~)->(AssociateWithBattleField)->BFId nil)^
-					(Characters)->(Unit Destination~)->AssociateWithBattleField~ Exe
-					(Participants.Units (Participants.Units~ (Destination~)) Substruct)^
-					(removed (Characters)->(Unit Destination~)->Type~)~ Exe
+					((Characters)->(Unit U~)->(AssociateWithBattleField)->BFId nil)^
+					(Characters)->(Unit U~)->AssociateWithBattleField~ Exe
+					(Participants.Units (Participants.Units~ (U~)) Substruct)^
+					(removed (Characters)->(Unit U~)->Type~)~ Exe
+					((Unit U~ of player PId~ returned to resource manager as RetAs~) Ew.Output~) Do
+					((Player PId~) Tx (ModeInfo.ModeResourceMgr~ RetAs~ PId~ (U~))) Gate
 					((The battlefield Id~ has attackers Participants.NumOfAttackers~ and defenders Participants.NumOfDefenders~) Ew.Output~) Do
 				);
-				(CorrectUnit (Participants.Units~ Destination~) In)~ Exe
+				(CorrectUnit (Participants.Units~ U~) In)~ Exe
 			);
 			// Add set of units (attackers in our case)
 			AddSetOfUnitsToBattleField ias (
@@ -168,17 +173,21 @@ module BattleField {
 					// battlefield is became invisible for players and can't be attacked by other players
 					(Handle reset) ias (
 						ReturnUnits ias (
-							(Pid (Characters)->(Unit $~)->PlayerId~)^
-							((Player Pid~) Tx (ModeInfo.ModeResourceMgr~ returnunit Pid~ ($~))) Gate
+							(PId (Characters)->(Unit $~)->PlayerId~)^
+							(RemoveFromBattleField.U $~)^
+							(RemoveFromBattleField.RetAs returnunit)^
+							(RemoveFromBattleField.PId PId~)^
+							RemoveFromBattleField~ Exe
 						);
 						(BattleStatus none)^
-						(Participants.Units~ ReturnUnits~) ForEach
 						(Mode none)^
+						(Participants.Units~ ReturnUnits~) ForEach
+						((The battlefield Id~ for player PlayerId~ was resetted to initial state) Ew.Output~) Do
 					);
 					// player requests unit from resource manager to participate in battle, for defence.
 					// the unit is identified by Destination~
 					(Handle recruitunit) ias (
-						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ takeunit PlayerId~ (Destination~ defender))) Gate
+						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ takeunit PlayerId~ (Destination~ defender battle))) Gate
 					);
 					// positive response on request unit
 					(Handle recruitedunit) ias (
@@ -191,8 +200,10 @@ module BattleField {
 					);
 					// returned - returned to player's resources
 					(Handle dismissunit) ias (
+						(RemoveFromBattleField.U Destination~)^
+						(RemoveFromBattleField.PId PlayerId~)^
+						(RemoveFromBattleField.RetAs returnunit)^
 						RemoveFromBattleField~ Exe
-						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ returnunit PlayerId~ (Destination~))) Gate
 						((The unit Destination~ removed from battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
 					);
 					// setups units on battlefield's map (attackers and defenders)
@@ -212,11 +223,13 @@ module BattleField {
 						((The battle between players PlayerId~ and PlayerAttackerId~ started) Ew.Output~) Do
 					);
 					(Handle unitkilled) ias (
+						// unit is removed from player's resources
+						(PId (Characters)->(Unit Destination~)->PlayerId~)^
+						(RemoveFromBattleField.U Destination~)^
+						(RemoveFromBattleField.PId PId~)^
+						(RemoveFromBattleField.RetAs releaseunit)^
 						RemoveFromBattleField~ Exe
 						CheckBattleStatus~ Exe
-						// unit is removed from player's resources
-						(Pid (Characters)->(Unit Destination~)->PlayerId~)^
-						((Player Pid~) Tx (ModeInfo.ModeResourceMgr~ releaseunit Pid~ (Destination~))) Gate
 					);
 					(Handle battlestatus) ias (
 						(status won),(status loose) ias (

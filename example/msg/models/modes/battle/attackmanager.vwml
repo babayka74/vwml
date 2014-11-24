@@ -6,7 +6,7 @@ module AttackManager {
 			CommandParams ias nil;
 			Id ias nil;
 			PlayerId ias nil;
-			ExportedCommands ias (prepareinvasion invasion recruitunit recruitedunit rejectedunit dismissunit);
+			ExportedCommands ias (prepareinvasion invasion recruitunit recruitedunit rejectedunit dismissunit reset);
 
 			AttackingUnits ias ();
 			// initialization steps
@@ -14,33 +14,49 @@ module AttackManager {
 				(AttackingUnits ())^
 				((The attack manager of player PlayerId~ initialized) Ew.Output~) Do
 			);
+			// adds unit to attacking group
 			AddUnitToAttackingGroup ias (
 				(AttackingUnits (AttackingUnits~ (To~)) Join)^
-				((The unit To~ recruited to attacking group of player PlayerId~) Ew.Output~) Do
+				((The unit To~ recruited to attacking group AttackingUnits~ of player PlayerId~) Ew.Output~) Do
 			);
+			// returns recruited unit to player's resources
 			RemoveUnitFromAttackingGroup ias (
+				U ias nil;
 				(UnitExist true) ias (
-					(AttackingUnits (AttackingUnits~ (To~)) Substruct)^
-					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ returnunit PlayerId~ (To~))) Gate
-					((The unit To~ dismissed from attacking group of player PlayerId~) Ew.Output~) Do
+					(AttackingUnits (AttackingUnits~ (U~)) Substruct)^
+					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ returnunit PlayerId~ (U~))) Gate
+					((The unit U~ dismissed from attacking group AttackingUnits~ of player PlayerId~) Ew.Output~) Do
 				);
 				(UnitExist false) ias (
-					((The unit To~ does not belong to attacking group of player PlayerId~) Ew.Output~) Do
+					((The unit U~ does not belong to attacking group of player PlayerId~) Ew.Output~) Do
 				);
-				(UnitExist (AttackingUnits~ To~) In)~ Exe
+				(UnitExist (AttackingUnits~ U~) In)~ Exe
+			);
+			// returns all units which belong to attacking group back to player's resources
+			RemoveAllUnitsFromAttackingGroup ias (
+				ReturnUnit ias (
+					(RemoveUnitFromAttackingGroup.U $~)^
+					RemoveUnitFromAttackingGroup~ Exe
+				);
+				(AttackingUnits~ ReturnUnit~) ForEach
 			);
 			// Player is going to attack another player (attack is allowed only in case if opponent's battlestatus is readyforattack)
+			// see EvaluateReadinessOnInvasion
 			PrepareInvasion ias (
+				(AttackHimself false) ias ((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate;
+				(AttackHimself true) ias (
+					((Player PlayerId~ can not attack himself) Ew.Output~) Do
+				);
 				(AttackedPlayerId (CommandParams~ 0) Get)^
-				((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate
+				(AttackHimself (AttackedPlayerId~ PlayerId~) Ident)~ Exe
 			);
 			// response on battle status request of attacked player
-			EvaluateChanceOnInvasion ias (
+			EvaluateReadinessOnInvasion ias (
 				(OpponentReadyForAttack false) ias (
 					((Can not attack player AttackedPlayerId~ since it has not built defence yet) Ew.Output~) Do
 				);
 				(OpponentReadyForAttack true) ias (
-					((Player Id~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
+					((Player PlayerId~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
 					// reaction is defined by 'Invasion' on AttackedPlayerId~
 					((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ invasion AttackedPlayerId~ (PlayerId~ AttackingUnits~))) Gate
 				);
@@ -61,7 +77,7 @@ module AttackManager {
 				// ... and attack !!!
 				((Player PlayerId~) Tx (ModeInfo.ModeBattle~ attack PlayerId~ ())) Gate
 			);
-			(Hanlde recruitunit) ias ((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ takeunit PlayerId~ (To~ attacker))) Gate;
+			(Handle recruitunit) ias ((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ takeunit PlayerId~ (To~ attacker attack))) Gate;
 			// positive response on request unit
 			(Handle recruitedunit) ias AddUnitToAttackingGroup~ Exe;
 			// negative response on requestunit
@@ -69,11 +85,16 @@ module AttackManager {
 				((The unit To~ can not be recruited by player PlayerId~) Ew.Output~) Do
 			);
 			// unit is returned to player's resources
-			(Handle dismissunit) ias RemoveUnitFromAttackingGroup~ Exe;
+			(Handle dismissunit) ias (
+				(RemoveUnitFromAttackingGroup.U To~)^
+				RemoveUnitFromAttackingGroup~ Exe
+			);
+			// resets attacking group by returning all units back to player's resources
+			(Handle reset) ias RemoveAllUnitsFromAttackingGroup~ Exe;
 			// selects battlefield for attack
 			(Handle prepareinvasion) ias PrepareInvasion~ Exe;
 			// sent on request requestbattlestatusbf which is sent during invasion's preparation steps
-			(Handle responsebattlestatusbf) ias EvaluateChanceOnInvasion~ Exe;
+			(Handle responsebattlestatusbf) ias EvaluateReadinessOnInvasion~ Exe;
 			(Handle invasion) ias Invasion~ Exe;
 			(Handle CommandId~)~ Exe
 		);

@@ -67,6 +67,6 @@ public class VWMLOperationReleaseHandler extends VWMLOperationHandler {
 				VWMLContextsRepository.releaseCloned(c);
 			}
 		}
-		entity.release();
+		VWMLObjectsRepository.instance().remove(entity);
 	}
 }

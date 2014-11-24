@@ -21,12 +21,12 @@ module PlayerResourceManager {
 				MarkUnitAsIsInAction ias (
 					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
 					(CorrectUnit true) ias (
-						(UnitInAction true) ias ((Player Id~) Tx (ModeInfo.ModeBattle~ rejectedunit HiredUnitId~ ())) Gate;
+						(UnitInAction true) ias ((Player Id~) Tx ((CommandParams~ 2) Get rejectedunit HiredUnitId~ ())) Gate;
 						(UnitInAction false) ias (
 							((Characters)->(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
 							(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
 							((Characters)->(Unit HiredUnitId~)->InAction true)^
-							((Player Id~) Tx (ModeInfo.ModeBattle~ recruitedunit HiredUnitId~ ())) Gate
+							((Player Id~) Tx ((CommandParams~ 2) Get recruitedunit HiredUnitId~ ())) Gate
 						);
 						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);

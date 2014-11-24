@@ -16,12 +16,21 @@ module Attacker {
 					ActivityStrategy.Init~ Exe
 					((The attacker Id~ for user PlayerId~ initialized) Ew.Output~) Do
 				);
+				Done ias (
+					ActivityStrategy.Done~ Exe
+					((The attacker Id~ for user PlayerId~ uninitialized) Ew.Output~) Do
+				);
 				ActivityStrategy ias (
 					// initialization steps
 					Init ias (
-						(Services.PositionChecker Services.(PositionChecker Id~)) Born
-						(Services.SignalUnit Services.(SignalUnit Id~)) Born
+						(Services.PositionChecker (PositionChecker Id~)) Born
+						(Services.SignalUnit (SignalUnit Id~)) Born
 						(DpfSearchMkAParallelEx (DpfSearchMkAParallelEx Id~)) Born
+					);
+					Done ias (
+						((Services)->(PositionChecker Id~)) Release
+						((Services)->(SignalUnit Id~)) Release
+						((DpfSearchMkAParallelEx Id~)) Release
 					);
 					Actions ias (
 						/* attacker attacks */
@@ -256,3 +265,4 @@ module Attacker {
 		);
 	);
 }
+
