@@ -219,7 +219,8 @@ public class AsyncConsole implements IVWMLGate {
 		}
 		else
 		if (commandId.equals(Console.getOutMethod())) {
-			cout.write(commandArgs);
+			//cout.write(commandArgs);
+			System.out.println(commandArgs.getReadableId());
 		}		
 		return e;
 	}

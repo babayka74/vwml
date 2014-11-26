@@ -46,7 +46,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param bornMode
 	 * @return
 	 */
-	public static VWMLContext clone(Object newContextId, VWMLContext context, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
+	public static synchronized VWMLContext clone(Object newContextId, VWMLContext context, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
 		context = VWMLContextsRepository.instance().get(VWMLContextsRepository.instance().normalizeContext(context.getContext()));
 		String[] clonedContextFullPath = context.getContextPath().clone();
 		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
@@ -60,7 +60,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param clonedContext
 	 * @throws Exception
 	 */
-	public static void releaseCloned(VWMLContext clonedContext) throws Exception {
+	public static synchronized void releaseCloned(VWMLContext clonedContext) throws Exception {
 		VWMLContextsRepository.instance().releaseClonedImpl(clonedContext);
 	}
 	
@@ -77,7 +77,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	/**
 	 * Releases all contexts
 	 */
-	public void removeAll() {
+	public synchronized void removeAll() {
 		VWMLContextsRepository.instance().release(VWMLContextsRepository.instance().getRootContext());
 		contextsMap.clear();
 		lookup.clear();
@@ -89,7 +89,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param entity
 	 * @param context
 	 */
-	public static void removeAssociatedEntityFromContext(VWMLEntity entity, VWMLContext context) {
+	public static synchronized void removeAssociatedEntityFromContext(VWMLEntity entity, VWMLContext context) {
 		if (entity != null && context != null) {
 			VWMLContextsRepository.instance().removeAssociatedEntity(entity, context);
 			entity.getLink().unlinkFromAll();
@@ -101,7 +101,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param context
 	 * @return
 	 */
-	public boolean belong(String context) {
+	public synchronized boolean belong(String context) {
 		return lookup.contains(context);
 	}
 	
@@ -122,7 +122,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param contextId
 	 * @return
 	 */
-	public VWMLContext createContextIfNotExists(Object contextId) {
+	public synchronized VWMLContext createContextIfNotExists(Object contextId) {
 		contextId = normalizeContext((String)contextId);
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
 		return createFromContextPath(contextPath);
@@ -133,7 +133,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param contextPath
 	 * @return
 	 */
-	public VWMLContext createFromContextPath(String[] contextPath) {
+	public synchronized VWMLContext createFromContextPath(String[] contextPath) {
 		String rootContext = null;
 		int startCtxIndex = 1;
 		if (contextPath == null || contextPath.length == 0 || contextPath[0].length() == 0) {
@@ -161,7 +161,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param contextId
 	 * @return
 	 */
-	public VWMLContext get(Object contextId) {
+	public synchronized VWMLContext get(Object contextId) {
 		contextId = normalizeContext((String)contextId);
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
 		String rootContext = null;
@@ -197,7 +197,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param contextElement
 	 * @return
 	 */
-	public VWMLContext getByParsedPath(VWMLContext root, String[] contextPath, int pos, String contextElement) {
+	public synchronized VWMLContext getByParsedPath(VWMLContext root, String[] contextPath, int pos, String contextElement) {
 		int len = contextPath.length;
 		VWMLContext context = null;
 		for(int i = len; i >= 0 && context == null; i--) {

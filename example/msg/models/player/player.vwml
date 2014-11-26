@@ -63,18 +63,15 @@ module Player {
 					Init ias (
 						ActivateQuartal ias (
 							// quartal's configuration
-							(Quartal.Id (Id~ $~))^
-							(Quartal.Owner Id~)^
-							(Quartal (Quartal (Id~ $~)) defer) Born
-							((Quartal (Id~ $~))->Id (Id~ $~))^
-							((Quartal (Id~ $~))->Owner Id~)^
-							((Quartal (Id~ $~))) Activate
+							((Quartal (Id~ 0))->Id (Id~ 0))^
+							((Quartal (Id~ 0))->Owner Id~)^
+							((Quartal (Id~ 0))) Activate
 							// links quartal to given player
-							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
+							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ 0)))) Gate
 							// create battlefield and associate it with quartal
-							((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ $~)))) Gate
+							((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
 						);
-						(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
+						ActivateQuartal~ Exe
 						(Controlled ())^
 						(Visible ())^
 						((Player Id~ created and initialized own quartals) Ew.Output~) Do
@@ -121,7 +118,6 @@ module Player {
 				);
 				Hiring ias (
 					Init ias (
-						(HiringAgency (HiringAgency Id~) defer) Born
 						((HiringAgency Id~)->Id Id~)^
 						((HiringAgency Id~)->Owner Id~)^
 						(HiringAgency Id~)->Init~ Exe
@@ -130,7 +126,6 @@ module Player {
 				);
 				Attacking ias (
 					Init ias (
-						(AttackManager (AttackManager Id~)) Born
 						((AttackManager Id~)->Id Id~)^
 						((AttackManager Id~)->PlayerId Id~)^
 						(AttackManager Id~)->Init~ Exe
@@ -138,10 +133,10 @@ module Player {
 				);
 				Init ias (
 					Units.Init~ Exe
-					Quartals.Init~ Exe
 					Account.Init~ Exe
 					Hiring.Init~ Exe
 					Attacking.Init~ Exe
+					Quartals.Init~ Exe
 				);
 			);
 			HandlePlayerCommandOnModeBattle ias (
@@ -243,6 +238,7 @@ module Player {
 			lifeterm = (
 				(Stop false)^
 				((The player Id~ added and active) Ew.Output~) Do
+				((Player Id~) Register blocked) Gate
 				(ActiveModes ActiveModes~ Exe)^
 				((The player Id~ has available modes ModeInfo.AvailableModes~ and active ActiveModes~) Ew.Output~) Do
 				Resources.Init~ Exe

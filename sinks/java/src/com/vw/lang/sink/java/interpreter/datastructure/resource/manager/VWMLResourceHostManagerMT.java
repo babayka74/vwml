@@ -8,10 +8,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -32,9 +34,11 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	private static VWMLContextsRepository s_contextsRepo = null;
 	private static VWMLObjectsRepository s_objectsRepo = null;
 	private static VWMLInterceptorsRepository s_interceptorsRepo = null;
+	private static VWMLGatesRepository s_gatesRepo = null;
 	private static AtomicInteger s_objectsRepoCounter = new AtomicInteger(0);
 	private static AtomicInteger s_contextsRepoCounter = new AtomicInteger(0);
 	private static AtomicInteger s_interceptorsRepoCounter = new AtomicInteger(0);
+	private static AtomicInteger s_gatesRepoCounter = new AtomicInteger(0);
 	
 	private VWMLResourceHostManagerMT() {
 	}
@@ -89,7 +93,12 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	public Map<String, VWMLInterceptor> requestInterceptorsRepoContainer() {
 		return new ConcurrentHashMap<String, VWMLInterceptor>();
 	}
-	
+
+	@Override
+	public Map<String, VWMLGate> requestGatesRepoContainer() {
+		return new ConcurrentHashMap<String, VWMLGate>();
+	}
+
 	@Override
 	public VWMLConflictRing findRingByExecutingTerm(VWMLEntity executingTerm) {
 		VWMLConflictRing ring = null;
@@ -268,6 +277,43 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 				if (s_interceptorsRepoCounter.decrementAndGet() == 0) {
 					s_interceptorsRepo.done();
 					s_interceptorsRepo = null;
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void gatesRepoInit(VWMLHostedResources r) {
+		if (r.getGatesRepo() == null) {
+			synchronized(r) {
+				if (r.getGatesRepo() != null) {
+					return;
+				}
+				if (s_gatesRepo == null) {
+					synchronized(VWMLGatesRepository.class) {
+						if (s_gatesRepo == null) {
+							s_gatesRepo = new VWMLGatesRepository();
+							s_gatesRepo.init();
+						}
+					}
+				}
+				r.setGatesRepo(s_gatesRepo);
+				s_gatesRepoCounter.incrementAndGet();
+			}
+		}
+	}
+
+	@Override
+	protected void gatesRepoDone(VWMLHostedResources r) {
+		if (r.getGatesRepo() != null) {
+			synchronized(r) {
+				if (r.getGatesRepo() == null) {
+					return;
+				}
+				r.setGatesRepo(null);
+				if (s_gatesRepoCounter.decrementAndGet() == 0) {
+					s_gatesRepo.done();
+					s_gatesRepo = null;
 				}
 			}
 		}

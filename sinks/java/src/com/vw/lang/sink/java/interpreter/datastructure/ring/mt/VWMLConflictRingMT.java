@@ -3,8 +3,10 @@ package com.vw.lang.sink.java.interpreter.datastructure.ring.mt;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
@@ -60,7 +62,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 					break;
 				}
 				stallCounter++;
-				if (stallCounter > 10000000) {
+				if (stallCounter > 100000) {
 					throw new Exception("Stalled event '" + getId() + "'; from node '" + getFrom().getId() + "' ring '" + getRing() + "' on thread '" + Thread.currentThread().getId() + "'");
 				}
 				Thread.sleep(0);
@@ -172,18 +174,41 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		@Override
 		public void handle(VWMLConflictRing ring) throws Exception {
 			try {
-				VWMLOperationUtils.activateClonedTerm(ring, interpreter, cloned, clonedSourceLft);
+				synchronized(VWMLConflictRingMT.class) {
+					VWMLOperationUtils.activateClonedTerm(ring, interpreter, cloned, clonedSourceLft);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			super.handle(ring);
 		}
 	}
+	
+	protected static class VWMLRingBlockEvent extends VWMLRingEventMT {
+
+		public VWMLRingBlockEvent() {
+			super(VWMLRingEvent.REVENT.BLOCK);
+		}
+		
+		@Override
+		public void handle(VWMLConflictRing ring) throws Exception {
+			synchronized(ring) {
+				try {
+					System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
+					ring.wait();
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+	}
+	
 
 	private volatile boolean stopped = false;
 	private ConcurrentLinkedQueue<VWMLRingEvent> eventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
 	private ConcurrentLinkedQueue<VWMLRingEvent> deferredEventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
 	private ConcurrentHashMap<String, ConcurrentLinkedQueue<VWMLRingEvent>> nonAckGateEventQueue = new ConcurrentHashMap<String, ConcurrentLinkedQueue<VWMLRingEvent>>();
+	private AtomicInteger blockedNodes = new AtomicInteger(0);
+	private VWMLGate blockedByGate = null;
 	
 	/**
 	 * Puts node on wait state
@@ -236,13 +261,63 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 	
 	/**
+	 * Increments number of blocked nodes (called when gate blocks node - waits for data)
+	 */
+	public void incrementNumOfBlockedNodes(VWMLGate gate) throws Exception {
+		if (blockedNodes.get() >= calculateNumberOfNodes()) {
+			return;
+		}
+		blockedNodes.incrementAndGet();
+		if (blockedNodes.intValue() == calculateNumberOfNodes()) {
+			blockRing(gate);
+		}
+	}
+
+	/**
+	 * Decrements number of blocked nodes (called when gate blocks node - waits for data)
+	 */
+	public void decrementNumOfBlockedNodes() throws Exception {
+		if (blockedNodes.intValue() > 0) {
+			blockedNodes.decrementAndGet();
+			if (blockedNodes.intValue() < calculateNumberOfNodes()) {
+				unblockRing();
+			}
+		}
+	}
+	
+	/**
+	 * Blocks ring's thread (actual for MT strategy only)
+	 */
+	public boolean blockRing(VWMLGate gate) throws Exception {
+		if (blockedByGate == null) {
+			postEvent(new VWMLRingBlockEvent());
+			blockedByGate = gate;
+		}
+		return true;
+	}
+
+	/**
+	 * Unblocks ring's thread (actual for MT strategy only)
+	 */
+	public boolean unblockRing() throws Exception {
+		if (blockedByGate != null) {
+			synchronized(this) {
+				this.notifyAll();
+			}
+			blockedByGate = null;
+			System.out.println("Ring '" + this + "' unblocked");
+		}
+		return true;
+	}
+	
+	/**
 	 * Returns number of operational nodes
 	 * @return
 	 */
 	@Override
 	public int calculateNumberOfNodes() {
 		int nodes = 0;
-		synchronized(this) {
+		synchronized(VWMLConflictRingMT.class) {
 			nodes = super.calculateNumberOfNodes();
 		}
 		return nodes;
@@ -256,10 +331,24 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	@Override
 	public VWMLConflictRingNode findNodeExecutingTerm(VWMLEntity term) {
 		VWMLConflictRingNode node = null;
-		synchronized(this) {
+		synchronized(VWMLConflictRingMT.class) {
 			node = super.findNodeExecutingTerm(term);
 		}
 		return node;
+	}
+	
+	/**
+	 * Lookups requested conflict node by id
+	 * @param id
+	 * @return
+	 */
+	@Override
+	public VWMLConflictRingNode findConflictNode(Object id) {
+		VWMLConflictRingNode n = null;
+		synchronized(VWMLConflictRingMT.class) {
+			n = super.findConflictNode(id);
+		}
+		return n;
 	}
 	
 	/**
@@ -360,7 +449,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingActivateNodeEvent event = new VWMLRingActivateNodeEvent(interpreter, cloned, clonedSourceLft);
 		event.setRtNode(interpreter.getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
-		sendEvent(event);
+		postEvent(event);
 	}
 
 	/**
@@ -380,7 +469,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingEvent event = null;
 		while ((event = eventQueue.poll()) != null) {
 			event.handle(this);
-			//System.out.println("Read event '" + event + "' from '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
+			System.out.println("Read event '" + event + "' from '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
 			if (event.isHandleAgain()) {
 				deferredEventQueue.offer(event);
 				//System.out.println("event '" + event + "' from '" + this + "' should be handled again; thread '" + Thread.currentThread().getId() + "'");
@@ -394,12 +483,18 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 
 	protected VWMLRingEvent postEvent(VWMLRingEvent event) throws Exception {
-		//System.out.println("Post event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
+		if (blockedByGate != null) {
+			blockedByGate.unblockActivity();
+		}
+		System.out.println("Post event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'; size " + eventQueue.size());
 		eventQueue.offer(event);
 		return event;
 	}
 	
 	protected VWMLRingEvent sendEvent(VWMLRingEvent event) throws Exception {
+		if (blockedByGate != null) {
+			blockedByGate.unblockActivity();
+		}
 		//System.out.println("Sent event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
 		eventQueue.offer(event);
 		waitForResult(event);

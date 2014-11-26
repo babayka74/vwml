@@ -230,6 +230,7 @@ module Quartal {
 			);
 			lifeterm = (
 				((The quartal Id~ added and active for owner Owner~) Ew.Output~) Do
+				((Quartal Id~) Register blocked) Gate
 				Resource.Init~ Exe
 				QuartalLifeStep~ Exe
 			) Exe

@@ -5,10 +5,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -28,6 +30,7 @@ public abstract class VWMLResourceHostManager {
 		private VWMLObjectsRepository objectsRepo = null;
 		private VWMLContextsRepository contextsRepo = null;
 		private VWMLInterceptorsRepository interceptorsRepo = null;
+		private VWMLGatesRepository gatesRepo = null;
 		
 		public VWMLConflictRing getRing() {
 			return ring;
@@ -60,6 +63,15 @@ public abstract class VWMLResourceHostManager {
 		public void setInterceptorsRepo(VWMLInterceptorsRepository interceptorsRepo) {
 			this.interceptorsRepo = interceptorsRepo;
 		}
+
+		public VWMLGatesRepository getGatesRepo() {
+			return gatesRepo;
+		}
+
+		public void setGatesRepo(VWMLGatesRepository gatesRepo) {
+			this.gatesRepo = gatesRepo;
+		}
+		
 	}
 	
 	private Map<Long, VWMLHostedResources> hostedResources = new ConcurrentHashMap<Long, VWMLHostedResources>();
@@ -162,18 +174,33 @@ public abstract class VWMLResourceHostManager {
 	}
 	
 	/**
+	 * Requests gates' repository
+	 * @return
+	 */
+	public VWMLGatesRepository requestGatesRepo() {
+		VWMLHostedResources r = getHostedResource();
+		gatesRepoInit(r);
+		return r.getGatesRepo();
+	}
+
+	/**
+	 * Removes gates repository from host storage, allowing it to be re-created upon next request
+	 */
+	public void markGatesRepoAsInvalid() {
+		VWMLHostedResources r = getHostedResource();
+		gatesRepoDone(r);
+	}
+	
+	/**
 	 * The transportedEntity is sent to ring identified by ringDestTerm and handler identified by handlerDestTerm
 	 * The handler is interpreted by destination
+	 * @param ring
 	 * @param ringDestTerm
 	 * @param transportedEntity
 	 * @param handlerDestTerm
 	 * @throws Exception
 	 */
-	public void activateGate(VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
-		VWMLConflictRing ring = findRingByExecutingTerm(ringDestTerm);
-		if (ring == null) {
-			throw new Exception("couldn't find ring by destination term '" + ringDestTerm.getInterpretationHistorySize() + "'");
-		}
+	public void activateGate(VWMLConflictRing ring, VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
 		ring.askActivateGate(ringDestTerm, transportedEntity, handlerDestTerm);
 	}
 	
@@ -236,6 +263,12 @@ public abstract class VWMLResourceHostManager {
 	 * @return
 	 */
 	public abstract Map<String, VWMLInterceptor> requestInterceptorsRepoContainer();
+
+	/**
+	 * Requests container which is used by gate's repository
+	 * @return
+	 */
+	public abstract Map<String, VWMLGate> requestGatesRepoContainer();
 	
 	/**
 	 * Looks up for context which can be defined on remote ring
@@ -308,6 +341,18 @@ public abstract class VWMLResourceHostManager {
 	 * @param r
 	 */
 	protected abstract void interceptorsRepoDone(VWMLHostedResources r);
+
+	/**
+	 * Initializes requested gate repository
+	 * @param r
+	 */
+	protected abstract void gatesRepoInit(VWMLHostedResources r);
+	
+	/**
+	 * Releases gate repository, next time will be create new one
+	 * @param r
+	 */
+	protected abstract void gatesRepoDone(VWMLHostedResources r);
 	
 	/**
 	 * Requests key depending on resources' strategy

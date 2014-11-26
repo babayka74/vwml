@@ -35,8 +35,11 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 
 	private void cbkHandler(VWMLInterpreterTimer timer, VWMLEntity completitionTerm, boolean delayExecution) {
 		VWMLInterpreterImpl interpreter = (VWMLInterpreterImpl)timer.getUserData();
-		if (interpreter != null && interpreter.getObserver() != null) {
+		if ((interpreter != null && !(interpreter.getObserver().getBlockedByGate() != null))) {
 			interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
+		}
+		if (interpreter.getObserver().getBlockedByGate() != null) {
+			interpreter.getObserver().getBlockedByGate().unblockActivity();
 		}
 		if (completitionTerm != null) {
 			if (!delayExecution) {

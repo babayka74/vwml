@@ -6,6 +6,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
@@ -31,6 +32,10 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 	private static final String modeRx     = "Rx";
 	// checks if something is in queue
 	private static final String modeReady  = "Ready";
+	// registers itself on internal repository
+	private static final String modeRegister  = "Register";
+	// unregisters itself on internal repository
+	private static final String modeUnregister  = "Unregister";
 	
 	// regular args (destination ring's term and mode)
 	private static final int s_numOfArgs   = 2;
@@ -50,7 +55,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			throw new Exception("operation 'Gate' requires 3 arguments; check code");
 		}
 		if (entities.size() == 1) {
-			result = handleGateOnComplexEntity(entities.get(0), context);
+			result = handleGateOnComplexEntity(interpreter, entities.get(0), context);
 		}
 		else {
 			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
@@ -61,7 +66,8 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 					   context.getEntityInterpretationHistorySize(),
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
-			result = handleGateOnComplexEntity(entity, context);
+			result = handleGateOnComplexEntity(interpreter, entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();
@@ -71,7 +77,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		}
 	}
 	
-	protected VWMLEntity handleGateOnComplexEntity(VWMLEntity entity, VWMLContext context) throws Exception {
+	protected VWMLEntity handleGateOnComplexEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity, VWMLContext context) throws Exception {
 		if (!entity.isMarkedAsComplexEntity() || ((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_numOfArgs) {
 			throw new Exception("operation 'Gate' requires 2 arguments at least; check code");
 		}
@@ -87,15 +93,11 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			handlerDestTerm = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(3);
 		}
 		if (mode.getId().equals(modeTx)) {
-			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(ringDestTerm, transportedEntity, handlerDestTerm);
+			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(unblockGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
 		}
 		else
 		if (mode.getId().equals(modeRx)) {
-			VWMLConflictRing ring = VWMLResourceHostManagerFactory.hostManagerInstance().findRingByExecutingTerm(ringDestTerm);
-			if (ring == null) {
-				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
-			}
-			VWMLRingActivateGateEvent event = (VWMLRingActivateGateEvent)ring.fromGate(ringDestTerm);
+			VWMLRingActivateGateEvent event = (VWMLRingActivateGateEvent)getGate(ringDestTerm).getRing().fromGate(ringDestTerm);
 			if (event != null) {
 				result = event.getTransportedEntity();
 			}
@@ -105,14 +107,51 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		}
 		else
 		if (mode.getId().equals(modeReady)) {
-			VWMLConflictRing ring = VWMLResourceHostManagerFactory.hostManagerInstance().findRingByExecutingTerm(ringDestTerm);
-			if (ring == null) {
-				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
+			VWMLGate gate = getGate(ringDestTerm);
+			boolean b = gate.getRing().isGateOpened(ringDestTerm);
+			if (!b && gate.isBlockedMode()) {
+				gate.blockActivity(interpreter);
 			}
-			boolean b = ring.isGateOpened(ringDestTerm);
 			result = (b) ? 	(VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_trueEntityId, VWMLContextsRepository.instance().getDefaultContext()) : 
 				  			(VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
 		}
+		else
+		if (mode.getId().equals(modeRegister)) {
+			VWMLConflictRing ring = null;
+			if (interpreter.getRtNode() == null) {
+				ring = VWMLResourceHostManagerFactory.hostManagerInstance().findRingByExecutingTerm(ringDestTerm);
+			}
+			else {
+				ring = interpreter.getRtNode().getExecutionGroup().getRing();
+			}
+			boolean blocked = false;
+			if (transportedEntity != null && transportedEntity.getId().equals(VWMLGate.s_blockedMode)) {
+				blocked = true;
+			}
+			if (ring == null) {
+				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
+			}
+			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), new VWMLGate(ring, (String)(ringDestTerm.getId()), blocked));
+		}
+		else
+		if (mode.getId().equals(modeUnregister)) {
+			unblockGate(ringDestTerm);
+			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().unregisterGate((String)ringDestTerm.getId());
+		}
 		return result;
+	}
+	
+	private VWMLGate getGate(VWMLEntity ringDestTerm) throws Exception {
+		VWMLGate gate = VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().getGate((String)ringDestTerm.getId());
+		if (gate == null) {
+			throw new Exception("Couldn't find gate by term '" + ringDestTerm.getId() + "'");
+		}
+		return gate;
+	}
+	
+	private VWMLGate unblockGate(VWMLEntity ringDestTerm) throws Exception {
+		VWMLGate gate = getGate(ringDestTerm);
+		gate.unblockActivity();
+		return gate;
 	}
 }

@@ -129,6 +129,7 @@ module HiringAgency {
 			);
 			lifeterm = (
 				((The hiring agency Id~ activated for owner Owner~) Ew.Output~) Do
+				((HiringAgency Id~) Register blocked) Gate
 				HiringAgencyLifeStep~ Exe
 			) Exe
 		);

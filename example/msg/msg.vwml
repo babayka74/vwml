@@ -60,6 +60,7 @@ include "models/services/services.vwml"
 module msg {
 	MagicWorld ias (
 		StopTheWorld ias false;
+		RPCounter ias 0;
 		Manager ias (
 			Command ias nil;
 			Character ias nil;
@@ -80,7 +81,6 @@ module msg {
 			(ManagerCommand true) ias (
 				// creates player
 				(Command playeradd) ias (
-					(Player (Player UnitId~) defer) Born
 					((Player UnitId~)->Id UnitId~)^
 					((Player UnitId~)->Stop false)^
 					((Player UnitId~)) Activate
@@ -112,12 +112,22 @@ module msg {
 				(Stop false) ias (
 					(WaitForCommand true) ias (
 						(NoAutoCommand false) ias (
-							(Command (AutoCommands.Injection~) First)^
-							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
-							((The auto command Command~) Ew.Output~) Do
-							ParseIncomingCommand~ Exe
-							((The auto command Command~ character Character~) Ew.Output~) Do
-							(ManagerCommand (Character~ manager) Ident)~ Exe
+							(R false) ias (
+								(Command (AutoCommands.Injection~) First)^
+								(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
+								(RPCounter ((RPCounter~) Ew.IncValue~) Do)^
+								(AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 nil playeradd RPCounter~ nil))) Join)^
+								((The auto command Command~) Ew.Output~) Do
+								ParseIncomingCommand~ Exe
+								((The auto command Command~ character Character~) Ew.Output~) Do
+								(ManagerCommand (Character~ manager) Ident)~ Exe
+							);
+							(R true) ias (
+								(AutoCommands.Injection ())^
+								1025 Bp
+								MainLoop~ Exe
+							);
+							(R (RPCounter~ 1) Ident)~ Exe
 						);
 						(NoAutoCommand true) ias doNothing;
 						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
@@ -137,6 +147,15 @@ module msg {
 				);
 				(Stop StopTheWorld~)~ Exe
 			);
+			PlayerPool ias (
+				AddToPool ias (
+					(Player (Player $~) defer) Born
+					(HiringAgency (HiringAgency $~) defer) Born
+					(AttackManager (AttackManager $~)) Born
+					(Quartal (Quartal ($~ 0)) defer) Born
+				);
+				(10 AddToPool~) Repeat
+			);
 
 			source lifeterm = (
 #if (debug)
@@ -144,6 +163,7 @@ module msg {
 #endif
 				3000 Relax
 				ModeInfo~ Exe
+				PlayerPool~ Exe
 				((The game manager started) Ew.Output~) Do
 				((The game manager waits for commands) Ew.Output~) Do
 				MainLoop~ Exe
@@ -154,15 +174,6 @@ module msg {
 		AutoCommands ias (
 			Injection ias (
 				(manager 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (7500))
-				(player 0 attack recruitunit (0 2) ())
-				(player 0 attack recruitunit (0 3) ())
-				(manager 0 nil playeradd 1 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 attack prepareinvasion 0 (1))
 			);
 		);
 
@@ -170,7 +181,7 @@ module msg {
   ===== DEFENCE BUILDING and RECRUTING UNITS ======
 				(manager 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2)) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 battle setmode builddefence ())
 				(player 0 battle recruitunit (0 2) ())
 				(player 0 battle dismissunit (0 2) ())
@@ -208,10 +219,11 @@ module msg {
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (500))
+				(manager 0 nil delay 0 (7500))
 				(player 0 attack recruitunit (0 2) ())
 				(player 0 attack recruitunit (0 3) ())
 				(manager 0 nil playeradd 1 nil)
+				(manager 0 nil delay 0 (500))
 				(player 0 attack prepareinvasion 0 (1))
 				
 /*

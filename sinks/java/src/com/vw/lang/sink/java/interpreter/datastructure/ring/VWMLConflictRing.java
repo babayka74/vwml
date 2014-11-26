@@ -10,6 +10,7 @@ import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
@@ -30,7 +31,8 @@ public class VWMLConflictRing {
 			LOCK,
 			UNLOCK,
 			CONTEXTFIND,
-			ACTIVATENODE
+			ACTIVATENODE,
+			BLOCK
 		}
 		
 		private REVENT id;
@@ -314,6 +316,34 @@ public class VWMLConflictRing {
 		this.ringInitialInterpreter = ringInitialInterpreter;
 	}
 
+	/**
+	 * For MT strategy only
+	 * Increments number of blocked nodes (called when gate blocks node - waits for data)
+	 */
+	public void incrementNumOfBlockedNodes(VWMLGate gate) throws Exception  {
+	}
+
+	/**
+	 * For MT strategy only
+	 * Decrements number of blocked nodes (called when gate blocks node - waits for data)
+	 */
+	public void decrementNumOfBlockedNodes() throws Exception  {
+	}
+	
+	/**
+	 * Blocks ring's thread (actual for MT strategy only)
+	 */
+	public boolean blockRing(VWMLGate gate) throws Exception  {
+		return false;
+	}
+
+	/**
+	 * Unblocks ring's thread (actual for MT strategy only)
+	 */
+	public boolean unblockRing() throws Exception  {
+		return false;
+	}
+	
 	/**
 	 * Returns number of operational nodes
 	 * @return

@@ -46,6 +46,6 @@ public class VWMLCloneFactory {
 	 */
 	public static void releaseClonedContext(VWMLEntity clonedFrom, VWMLContext clonedContext) throws Exception {
 		VWMLContextsRepository.releaseCloned(clonedContext);
-		clonedFrom.release();
+		VWMLObjectsRepository.instance().remove(clonedFrom);
 	}
 }

@@ -6,10 +6,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -74,6 +76,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	@Override
 	public Map<String, VWMLInterceptor> requestInterceptorsRepoContainer() {
 		return new HashMap<String, VWMLInterceptor>();
+	}
+
+	@Override
+	public Map<String, VWMLGate> requestGatesRepoContainer() {
+		return new HashMap<String, VWMLGate>();
 	}
 	
 	@Override
@@ -157,5 +164,20 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	@Override
 	protected void contextsRepoDone(VWMLHostedResources r) {
 		r.setContextsRepo(null);
+	}
+
+	@Override
+	protected void gatesRepoInit(VWMLHostedResources r) {
+		if (r.getGatesRepo() == null) {
+			VWMLGatesRepository repo = new VWMLGatesRepository();
+			repo.init();
+			r.setGatesRepo(repo);
+		}
+		
+	}
+
+	@Override
+	protected void gatesRepoDone(VWMLHostedResources r) {
+		r.setGatesRepo(null);
 	}
 }

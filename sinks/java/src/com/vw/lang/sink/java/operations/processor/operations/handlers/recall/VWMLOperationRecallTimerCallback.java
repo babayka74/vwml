@@ -29,6 +29,9 @@ public class VWMLOperationRecallTimerCallback extends VWMLInterpreterTimerCallba
 
 	private void cbkHandler(VWMLInterpreterTimer timer, VWMLEntity completitionTerm, boolean delayExecution) {
 		VWMLInterpreterImpl interpreter = (VWMLInterpreterImpl)timer.getUserData();
+		if (interpreter.getObserver().getBlockedByGate() != null) {
+			interpreter.getObserver().getBlockedByGate().unblockActivity();
+		}
 		if (completitionTerm != null) {
 			if (!delayExecution) {
 				try {

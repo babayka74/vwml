@@ -28,6 +28,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	// but this node has all conflicts' links which can be used during clone operation
 	private VWMLConflictRingNode implicitMaster = null;
 	private VWMLConflictRing ring = null;
+	private int activeNodes = 0;
 	
 	public VWMLConflictRingExecutionGroup(Object hashId) {
 		super(hashId);
@@ -89,20 +90,26 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			group.remove(0);
 		}
 	}
-	
+
 	public void add(VWMLConflictRingNode n) {
 		n.setExecutionGroup(this);
 		group.add(n);
+		activeNodes = group.size();
 		lookup.add((String)n.getId());
 	}
 	
 	public void remove(VWMLConflictRingNode n) {
 		group.remove(n);
+		activeNodes = group.size();
 		lookup.remove((String)n.getId());
 	}
 	
 	public boolean belong(String id) {
 		return lookup.contains(id);
+	}
+	
+	public int getActiveNodes() {
+		return activeNodes;
 	}
 	
 	/**
@@ -169,10 +176,9 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 	public int nodes() {
 		int nodes = 0;
 		for(VWMLConflictRingNode n : group) {
-			nodes++;
 			nodes += n.getGroup().size();
 		}
-		return nodes;
+		return nodes + getActiveNodes();
 	}
 	
 	public void balance() {
@@ -241,7 +247,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 			}
 		}
 		group.clear();
-		group.add(master);
+		add(master);
 	}
 	
 	public boolean isStopped() {
@@ -311,7 +317,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 					if (rIndex >= i) {
 						if (rIndex > 0) rIndex--;
 					}
-					group.remove(i);
+					remove(i);
 					break;
 				}
 			}
@@ -334,5 +340,12 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 
 	public void setImplicitMaster(VWMLConflictRingNode implicitMaster) {
 		this.implicitMaster = implicitMaster;
+	}
+	
+	protected void remove(int index) {
+		VWMLConflictRingNode n = group.get(index);
+		group.remove(index);
+		activeNodes = group.size();
+		lookup.remove((String)n.getId());
 	}
 }

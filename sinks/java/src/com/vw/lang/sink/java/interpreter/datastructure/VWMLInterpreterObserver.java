@@ -3,6 +3,7 @@ package com.vw.lang.sink.java.interpreter.datastructure;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 
 /**
@@ -52,6 +53,7 @@ public class VWMLInterpreterObserver {
 	public static String s_waitContext = "__waitContext__";
 	// interpreter is in active state, so no operation OPCONFLICTSITUATIONSTART or OPCONFLICTSITUATIONEND is executed
 	private Map<String, VWMLInterpreterObserverData> observed = new HashMap<String, VWMLInterpreterObserverData>();
+	private VWMLGate blockedByGate = null;
 	private String activeConflictContext = null;
 	
 	public static String getWaitContext() {
@@ -134,5 +136,13 @@ public class VWMLInterpreterObserver {
 			timerId = data.getAssociatedTimer();
 		}
 		return timerId;
+	}
+
+	public VWMLGate getBlockedByGate() {
+		return blockedByGate;
+	}
+
+	public void setBlockedByGate(VWMLGate blockedByGate) {
+		this.blockedByGate = blockedByGate;
 	}
 }

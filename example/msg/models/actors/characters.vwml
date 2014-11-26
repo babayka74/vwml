@@ -249,6 +249,7 @@ module Characters {
 
 				lifeterm = (
 					((The unit Id~ was born) Ew.Output~) Do
+					((Unit Id~) Register blocked) Gate
 					Init~ Exe
 					UnitLifeStep~ Exe
 				) Exe
