@@ -48,6 +48,7 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
 			handleRecallOnComplexEntity(entity, context, interpreter);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

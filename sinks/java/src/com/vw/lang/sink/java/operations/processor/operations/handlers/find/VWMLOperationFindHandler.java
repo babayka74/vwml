@@ -48,6 +48,7 @@ public class VWMLOperationFindHandler extends VWMLOperationHandler {
 																							   context.getLinkOperationVisitor(),
 																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleFindOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

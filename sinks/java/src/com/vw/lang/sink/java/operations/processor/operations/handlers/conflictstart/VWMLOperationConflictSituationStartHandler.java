@@ -29,10 +29,12 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 		// since inspector reads until empty mark we should read entity's original context
 		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
+		boolean clear = false;
 		if (entities.size() == 1) {
 			entity = entities.get(0);
 		}
 		else {
+			clear = true;
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
 																					   originalContext,
@@ -47,6 +49,10 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 		reportInterpreterInternalState((String)entity.getId(), interpreter);
 		inspector.clear();
 		entities.clear();
+		if (clear) {
+			entity.getLink().clear();
+			entity = null;
+		}
 	}
 
 	/**

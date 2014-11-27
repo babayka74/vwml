@@ -47,6 +47,7 @@ public class VWMLOperationSqueezeHandler extends VWMLOperationHandler {
 																							   context.getLinkOperationVisitor(),
 																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleSqueezeOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

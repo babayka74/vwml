@@ -43,6 +43,8 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_dontAddIfUnknown);
 			activatedContextId = entity.buildReadableId();
+			entity.getLink().clear();
+			entity = null;
 		}
 		VWMLContext activatedContext = VWMLContextsRepository.instance().get(activatedContextId);
 		if (activatedContext == null) {

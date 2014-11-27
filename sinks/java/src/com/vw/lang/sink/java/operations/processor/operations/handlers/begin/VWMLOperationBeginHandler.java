@@ -47,6 +47,7 @@ public class VWMLOperationBeginHandler extends VWMLOperationHandler {
 																							   context.getLinkOperationVisitor(),
 																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleBeginOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

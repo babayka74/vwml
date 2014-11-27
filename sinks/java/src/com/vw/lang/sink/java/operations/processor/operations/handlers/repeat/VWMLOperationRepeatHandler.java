@@ -43,6 +43,8 @@ public class VWMLOperationRepeatHandler extends VWMLOperationHandler {
 																									   context.getLinkOperationVisitor(),
 																									   VWMLOperationUtils.s_dontAddIfUnknown);
 				handleRepeatOnComplexEntity(interpreter, entity, context);
+				entity.getLink().clear();
+				entity = null;
 			}
 		}
 		inspector.clear();

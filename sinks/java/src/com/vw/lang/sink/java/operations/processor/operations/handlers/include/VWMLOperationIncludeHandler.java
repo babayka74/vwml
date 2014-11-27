@@ -52,6 +52,7 @@ public class VWMLOperationIncludeHandler extends VWMLOperationHandler {
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleIncludeOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

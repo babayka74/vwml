@@ -42,6 +42,8 @@ public class VWMLOperationStartInterceptionHandler extends VWMLOperationHandler 
 																									   context.getLinkOperationVisitor(),
 																									   VWMLOperationUtils.s_dontAddIfUnknown);
 				handleStartInterceptionOnComplexEntity(interpreter, entity, context);
+				entity.getLink().clear();
+				entity = null;
 			}
 		}
 		inspector.clear();

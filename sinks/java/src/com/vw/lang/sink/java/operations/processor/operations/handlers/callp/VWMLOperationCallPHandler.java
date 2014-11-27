@@ -42,6 +42,8 @@ public class VWMLOperationCallPHandler extends VWMLOperationHandler {
 																									   context.getLinkOperationVisitor(),
 																									   VWMLOperationUtils.s_dontAddIfUnknown);
 				handleCallPOnComplexEntity(interpreter, entity, context);
+				entity.getLink().clear();
+				entity = null;
 			}
 		}
 		inspector.clear();

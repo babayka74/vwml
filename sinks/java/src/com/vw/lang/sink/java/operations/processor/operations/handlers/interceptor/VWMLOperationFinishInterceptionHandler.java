@@ -41,6 +41,8 @@ public class VWMLOperationFinishInterceptionHandler extends VWMLOperationHandler
 																									   context.getLinkOperationVisitor(),
 																									   VWMLOperationUtils.s_dontAddIfUnknown);
 				handleFinishInterceptionOnComplexEntity(interpreter, entity, context);
+				entity.getLink().clear();
+				entity = null;
 			}
 		}
 		inspector.clear();

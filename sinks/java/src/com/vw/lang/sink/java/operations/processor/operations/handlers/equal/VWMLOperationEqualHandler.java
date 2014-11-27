@@ -50,6 +50,7 @@ public class VWMLOperationEqualHandler extends VWMLOperationHandler {
 																							   context.getLinkOperationVisitor(),
 																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleEqualOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

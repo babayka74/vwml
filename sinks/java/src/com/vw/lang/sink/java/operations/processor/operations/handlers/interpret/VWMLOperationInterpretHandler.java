@@ -23,7 +23,6 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
-		VWMLEntity entity = null;
 		VWMLContext originalContext = context.peekContext();
 		VWMLStack stack = context.getStack();
 		VWMLEntity interpretingEntity = null;
@@ -32,6 +31,26 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
 		List<VWMLEntity> entities = inspector.getReversedStack();
+		interpretingEntity = getInterpretationOf(entities, interpreter, linkage, context, originalContext, operation);
+		inspector.clear();
+		entities.clear();
+		stack.push(interpretingEntity);
+	}
+
+	/**
+	 * Gets interpretation of assembled entity
+	 * @param entities
+	 * @param interpreter
+	 * @param linkage
+	 * @param context
+	 * @param originalContext
+	 * @param operation
+	 * @return
+	 * @throws Exception
+	 */
+	public VWMLEntity getInterpretationOf(List<VWMLEntity> entities, VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLContext originalContext, VWMLOperation operation) throws Exception {
+		VWMLEntity entity = null;
+		VWMLEntity interpretingEntity = null;
 		if (entities.size() == 1) {
 			interpretingEntity = interpretationOfArgumentPair(interpreter, entities.get(0));
 			if (interpretingEntity == null) {
@@ -52,8 +71,6 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 			
 			interpretingEntity = deduceInterpretingEntity(interpreter, entity);
 		}
-		inspector.clear();
-		entities.clear();
 		if (interpretingEntity == null) {
 			if (entity.getContext() != null && entity.getContext().getLink().getParent() != null) {
 				// sometimes we need search for entity starting from parent. Usually it happens when assemble operation
@@ -72,9 +89,9 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		if (argRef != null) {
 			interpretingEntity = argRef;
 		}
-		stack.push(interpretingEntity);
+		return interpretingEntity;
 	}
-
+	
 	protected VWMLEntity deduceInterpretingEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
 		if (entity == null) {
 			return null;
@@ -88,6 +105,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		}
 		return interpretingEntity;
 	}
+
 	
 	protected VWMLEntity interpretSingleEntity(VWMLInterpreterImpl interpreter, VWMLEntity entity, VWMLContext originalContext) throws Exception {
 		VWMLEntity initialEntity = entity;

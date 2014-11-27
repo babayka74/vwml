@@ -111,6 +111,14 @@ public class VWMLInterpreterTimerManager {
 		}
 	}
 	
+	/**
+	 * Return number of active timers
+	 * @return
+	 */
+	public int timers() {
+		return timers.size();
+	}
+	
 	protected void init() {
 		
 	}

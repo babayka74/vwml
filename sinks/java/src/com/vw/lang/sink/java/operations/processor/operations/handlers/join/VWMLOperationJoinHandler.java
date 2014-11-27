@@ -50,6 +50,7 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 																								   context.getLinkOperationVisitor(),
 																								   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleJoinOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

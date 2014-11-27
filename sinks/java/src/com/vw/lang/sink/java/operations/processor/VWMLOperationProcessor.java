@@ -30,6 +30,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.createexpr
 import com.vw.lang.sink.java.operations.processor.operations.handlers.dyncontext.VWMLOperationDynamicContextAddressingHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.equal.VWMLOperationEqualHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.exe.VWMLOperationExeHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.existsi.VWMLOperationExistsIHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.find.VWMLOperationFindHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.first.VWMLOperationFirstHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.foreach.VWMLOperationForEachHandler;
@@ -114,6 +115,8 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPFINISHINTERCEPTION),   	new VWMLOperationFinishInterceptionHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPFINISHINTERCEPTION_S),   new VWMLOperationFinishInterceptionHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPRELEASE),   				new VWMLOperationReleaseHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPEXISTSI),   				new VWMLOperationExistsIHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPEXISTSI_S),   			new VWMLOperationExistsIHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());
@@ -165,6 +168,16 @@ public class VWMLOperationProcessor {
 			reportException(context, operation, e);
 			throw new Exception("Operation processor caught exception '" + e + "' on context '" + context.getContext() + "'; operation '" + operation + "'; debug info '" + operation.getDebugInfo() + "'");
 		}
+	}
+	
+
+	/**
+	 * Exports operation handler
+	 * @param opCode
+	 * @return
+	 */
+	public VWMLOperationHandler exportOperationHandler(VWMLOperationsCode opCode) {
+		return s_processorMap.get(new VWMLOperation(opCode));
 	}
 	
 	public VWMLInterpreterObserver getObserver() {

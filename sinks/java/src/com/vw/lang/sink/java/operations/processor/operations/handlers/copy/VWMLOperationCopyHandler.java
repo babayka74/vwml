@@ -48,6 +48,7 @@ public class VWMLOperationCopyHandler extends VWMLOperationHandler {
 																							   context.getLinkOperationVisitor(),
 																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleCopyOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

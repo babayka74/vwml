@@ -45,6 +45,7 @@ public class VWMLOperationSizeHandler extends VWMLOperationHandler {
 																							   context.getLinkOperationVisitor(),
 																							   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleSizeOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		

@@ -194,8 +194,13 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		public void handle(VWMLConflictRing ring) throws Exception {
 			synchronized(ring) {
 				try {
-					System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
-					ring.wait();
+					if (((VWMLConflictRingMT)ring).isActuallyBlocked()) {
+						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
+						ring.wait();
+					}
+					else {
+						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
+					}
 				} catch (InterruptedException e) {
 				}
 			}
@@ -208,6 +213,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	private ConcurrentLinkedQueue<VWMLRingEvent> deferredEventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
 	private ConcurrentHashMap<String, ConcurrentLinkedQueue<VWMLRingEvent>> nonAckGateEventQueue = new ConcurrentHashMap<String, ConcurrentLinkedQueue<VWMLRingEvent>>();
 	private AtomicInteger blockedNodes = new AtomicInteger(0);
+	private AtomicBoolean actuallyBlocked = new AtomicBoolean(false);
 	private VWMLGate blockedByGate = null;
 	
 	/**
@@ -289,9 +295,15 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	 * Blocks ring's thread (actual for MT strategy only)
 	 */
 	public boolean blockRing(VWMLGate gate) throws Exception {
-		if (blockedByGate == null) {
-			postEvent(new VWMLRingBlockEvent());
-			blockedByGate = gate;
+		if (getRingInitialInterpreter().getTimerManager().timers() != 0) {
+			System.out.println("The ring '" + this + "' can't be blocked due to active timers");
+		}
+		else {
+			if (blockedByGate == null) {
+				blockedByGate = gate;
+				setActuallyBlocked(true);
+				postEvent(new VWMLRingBlockEvent());
+			}
 		}
 		return true;
 	}
@@ -301,6 +313,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	 */
 	public boolean unblockRing() throws Exception {
 		if (blockedByGate != null) {
+			setActuallyBlocked(false);
 			synchronized(this) {
 				this.notifyAll();
 			}
@@ -449,6 +462,9 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingActivateNodeEvent event = new VWMLRingActivateNodeEvent(interpreter, cloned, clonedSourceLft);
 		event.setRtNode(interpreter.getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
+		if (blockedByGate != null) {
+			blockedByGate.unblockActivity();
+		}
 		postEvent(event);
 	}
 
@@ -483,9 +499,6 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 
 	protected VWMLRingEvent postEvent(VWMLRingEvent event) throws Exception {
-		if (blockedByGate != null) {
-			blockedByGate.unblockActivity();
-		}
 		System.out.println("Post event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'; size " + eventQueue.size());
 		eventQueue.offer(event);
 		return event;
@@ -512,5 +525,13 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			nonAckGateEventQueue.put((String)event.getRingDestTerm().getId(), q);
 		}
 		q.offer(event);
+	}
+	
+	protected void setActuallyBlocked(boolean blocked) {
+		actuallyBlocked.set(blocked);
+	}
+	
+	protected boolean isActuallyBlocked() {
+		return actuallyBlocked.get();
 	}
 }

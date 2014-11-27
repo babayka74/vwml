@@ -53,6 +53,8 @@ tokens {
     OPSTARTINTERCEPTION_S='SI';
     OPFINISHINTERCEPTION_S='FI';
     OPRELEASE='Release';
+    OPEXISTSI='ExistsI';
+    OPEXISTSI_S='EI';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1270,6 +1272,8 @@ opclist
     | OPSTARTINTERCEPTION_S
     | OPFINISHINTERCEPTION_S
     | OPRELEASE
+    | OPEXISTSI
+    | OPEXISTSI_S
     ;
 
 termLanguages

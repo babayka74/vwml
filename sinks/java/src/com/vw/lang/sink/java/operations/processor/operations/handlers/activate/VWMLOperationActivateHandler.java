@@ -44,6 +44,7 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
 			handleActivateOperation(entity, context, interpreter);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

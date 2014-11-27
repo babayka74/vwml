@@ -46,6 +46,7 @@ public class VWMLOperationLastHandler extends VWMLOperationHandler {
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
 			result = handleLastOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

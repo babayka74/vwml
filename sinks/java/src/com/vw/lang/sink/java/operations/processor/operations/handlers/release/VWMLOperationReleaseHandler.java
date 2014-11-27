@@ -43,6 +43,7 @@ public class VWMLOperationReleaseHandler extends VWMLOperationHandler {
 					   context.getLinkOperationVisitor(),
 					   VWMLOperationUtils.s_dontAddIfUnknown);
 			handleReleaseOnComplexEntity(entity, context);
+			entity.getLink().clear();
 			entity = null;
 		}
 		inspector.clear();

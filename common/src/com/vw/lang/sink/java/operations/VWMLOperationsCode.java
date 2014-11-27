@@ -51,6 +51,8 @@ public enum VWMLOperationsCode {
     OPSTARTINTERCEPTION_S("SI"),
     OPFINISHINTERCEPTION_S("FI"),
     OPRELEASE("Release"),
+    OPEXISTSI("ExistsI"),
+    OPEXISTSI_S("EI"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

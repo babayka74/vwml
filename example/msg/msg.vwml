@@ -127,7 +127,7 @@ module msg {
 								1025 Bp
 								MainLoop~ Exe
 							);
-							(R (RPCounter~ 1) Ident)~ Exe
+							(R (RPCounter~ 10) Ident)~ Exe
 						);
 						(NoAutoCommand true) ias doNothing;
 						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
@@ -154,7 +154,7 @@ module msg {
 					(AttackManager (AttackManager $~)) Born
 					(Quartal (Quartal ($~ 0)) defer) Born
 				);
-				(10 AddToPool~) Repeat
+				(20 AddToPool~) Repeat
 			);
 
 			source lifeterm = (
