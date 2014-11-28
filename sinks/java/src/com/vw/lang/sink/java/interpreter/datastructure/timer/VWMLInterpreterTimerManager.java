@@ -1,7 +1,8 @@
 package com.vw.lang.sink.java.interpreter.datastructure.timer;
 
-import java.util.LinkedList;
 import java.util.List;
+
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 
 /**
  * Reactive timer manager
@@ -9,16 +10,14 @@ import java.util.List;
  *
  */
 public class VWMLInterpreterTimerManager {
-	private List<VWMLInterpreterTimer> timers = new LinkedList<VWMLInterpreterTimer>();
+	private List<VWMLInterpreterTimer> timers = VWMLResourceHostManagerFactory.hostManagerInstance().requestTimerManagerContainer();
 	
-	private VWMLInterpreterTimerManager() {
+	public VWMLInterpreterTimerManager() {
 		
 	}
 	
-	public static synchronized VWMLInterpreterTimerManager instance() {
-		VWMLInterpreterTimerManager instance = new VWMLInterpreterTimerManager();
-		instance.init();
-		return instance;
+	public static VWMLInterpreterTimerManager instance() {
+		return VWMLResourceHostManagerFactory.hostManagerInstance().requestTimerManager();
 	}
 
 	/**
@@ -119,11 +118,11 @@ public class VWMLInterpreterTimerManager {
 		return timers.size();
 	}
 	
-	protected void init() {
+	public void init() {
 		
 	}
 	
-	protected void done() {
+	public void done() {
 		timers.clear();
 	}
 }

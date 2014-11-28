@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,8 +16,11 @@ import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.timer.TimerManagerBroker;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
 
 /**
  * Managers resources which are active on the same host
@@ -31,6 +35,7 @@ public abstract class VWMLResourceHostManager {
 		private VWMLContextsRepository contextsRepo = null;
 		private VWMLInterceptorsRepository interceptorsRepo = null;
 		private VWMLGatesRepository gatesRepo = null;
+		private TimerManagerBroker timerManagerBroker = null;
 		
 		public VWMLConflictRing getRing() {
 			return ring;
@@ -71,7 +76,14 @@ public abstract class VWMLResourceHostManager {
 		public void setGatesRepo(VWMLGatesRepository gatesRepo) {
 			this.gatesRepo = gatesRepo;
 		}
-		
+
+		public TimerManagerBroker getTimerManagerBroker() {
+			return timerManagerBroker;
+		}
+
+		public void setTimerManagerBroker(TimerManagerBroker timerManagerBroker) {
+			this.timerManagerBroker = timerManagerBroker;
+		}
 	}
 	
 	private Map<Long, VWMLHostedResources> hostedResources = new ConcurrentHashMap<Long, VWMLHostedResources>();
@@ -190,6 +202,24 @@ public abstract class VWMLResourceHostManager {
 		VWMLHostedResources r = getHostedResource();
 		gatesRepoDone(r);
 	}
+
+	/**
+	 * Requests timer manager
+	 * @return
+	 */
+	public VWMLInterpreterTimerManager requestTimerManager() {
+		VWMLHostedResources r = getHostedResource();
+		timerManagerInit(r);
+		return r.getTimerManagerBroker().getTimerManager();
+	}
+
+	/**
+	 * Removes timer manager from host storage, allowing it to be re-created upon next request
+	 */
+	public void markTimerManagerAsInvalid() {
+		VWMLHostedResources r = getHostedResource();
+		timerManagerDone(r);
+	}
 	
 	/**
 	 * The transportedEntity is sent to ring identified by ringDestTerm and handler identified by handlerDestTerm
@@ -269,6 +299,12 @@ public abstract class VWMLResourceHostManager {
 	 * @return
 	 */
 	public abstract Map<String, VWMLGate> requestGatesRepoContainer();
+
+	/**
+	 * Requests container which is used by timer manager
+	 * @return
+	 */
+	public abstract List<VWMLInterpreterTimer> requestTimerManagerContainer();
 	
 	/**
 	 * Looks up for context which can be defined on remote ring
@@ -353,6 +389,18 @@ public abstract class VWMLResourceHostManager {
 	 * @param r
 	 */
 	protected abstract void gatesRepoDone(VWMLHostedResources r);
+
+	/**
+	 * Timer manager initialization depending on MT strategy
+	 * @param r
+	 */
+	protected abstract void timerManagerInit(VWMLHostedResources r);
+
+	/**
+	 * Timer manager uninitialization depending on MT strategy
+	 * @param r
+	 */
+	protected abstract void timerManagerDone(VWMLHostedResources r);
 	
 	/**
 	 * Requests key depending on resources' strategy

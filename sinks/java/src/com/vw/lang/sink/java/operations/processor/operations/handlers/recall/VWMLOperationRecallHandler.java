@@ -94,6 +94,7 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 				}
 			}
 			VWMLOperationRecallTimerCallback callback = new VWMLOperationRecallTimerCallback(runOnRegularCompletition, runOnTerminatedCompletition);
+			callback.setRing(interpreter.getRtNode().getExecutionGroup().getRing());
 			if (interpreter.getTimerManager() != null) {
 				callback.setArgComponent(argComponent);
 				recallEntityId.setReadableId(null);

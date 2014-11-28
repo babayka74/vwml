@@ -7,13 +7,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.gate.VWMLGate;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.recall.VWMLOperationRecallTimerCallback;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.relax.VWMLOperationRelaxTimerCallback;
 
 /**
  * Conflict ring for MT strategy
@@ -207,7 +212,44 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		}
 	}
 	
+	protected static class VWMLRingProcessRelaxTimerCbkEvent extends VWMLRingEventMT {
 
+		private VWMLInterpreterInterruptTimerDeferredTask task = null;
+		
+		public VWMLRingProcessRelaxTimerCbkEvent(VWMLInterpreterInterruptTimerDeferredTask task) {
+			super(VWMLRingEvent.REVENT.RELAXTIMER);
+			this.task = task;
+		}
+
+		@Override
+		public void handle(VWMLConflictRing ring) throws Exception {
+			if (task.getActiveInterpreter().getStatus() != VWMLInterpreterImpl.stopProcessing && task.getActiveInterpreter().getStatus() != VWMLInterpreterImpl.stopped) {
+				VWMLOperationRelaxTimerCallback cbk = new VWMLOperationRelaxTimerCallback();
+				cbk.unblockActivity(task.getActiveInterpreter());
+				task.getActiveInterpreter().setDeferredTask(task);
+			}			
+		}		
+	}
+
+	protected static class VWMLRingProcessRecallTimerCbkEvent extends VWMLRingEventMT {
+
+		private VWMLInterpreterInterruptTimerDeferredTask task = null;
+		
+		public VWMLRingProcessRecallTimerCbkEvent(VWMLInterpreterInterruptTimerDeferredTask task) {
+			super(VWMLRingEvent.REVENT.RECALLTIMER);
+			this.task = task;
+		}
+
+		@Override
+		public void handle(VWMLConflictRing ring) throws Exception {
+			if (task.getActiveInterpreter().getStatus() != VWMLInterpreterImpl.stopProcessing && task.getActiveInterpreter().getStatus() != VWMLInterpreterImpl.stopped) {
+				VWMLOperationRecallTimerCallback cbk = new VWMLOperationRecallTimerCallback();
+				cbk.unblockActivity(task.getActiveInterpreter());
+				task.getActiveInterpreter().setDeferredTask(task);
+			}			
+		}		
+	}
+	
 	private volatile boolean stopped = false;
 	private ConcurrentLinkedQueue<VWMLRingEvent> eventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
 	private ConcurrentLinkedQueue<VWMLRingEvent> deferredEventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
@@ -295,7 +337,8 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	 * Blocks ring's thread (actual for MT strategy only)
 	 */
 	public boolean blockRing(VWMLGate gate) throws Exception {
-		if (getRingInitialInterpreter().getTimerManager().timers() != 0) {
+		VWMLInterpreterConfiguration.RESOURCE_STRATEGY st = VWMLResourceHostManagerFactory.getResourceStrategy();
+		if (st == VWMLInterpreterConfiguration.RESOURCE_STRATEGY.ST && getRingInitialInterpreter().getTimerManager().timers() != 0) {
 			System.out.println("The ring '" + this + "' can't be blocked due to active timers");
 		}
 		else {
@@ -468,6 +511,36 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		postEvent(event);
 	}
 
+	/**
+	 * Posts request to process relax timer's callback on specified ring
+	 * @param task
+	 * @throws Exception
+	 */
+	public void askProcessingForRelaxTimerCbk(VWMLInterpreterInterruptTimerDeferredTask task) throws Exception {
+		VWMLRingProcessRelaxTimerCbkEvent event = new VWMLRingProcessRelaxTimerCbkEvent(task);
+		event.setRtNode(task.getActiveInterpreter().getRtNode());
+		event.setRing(event.getRtNode().getExecutionGroup().getRing());
+		if (blockedByGate != null) {
+			blockedByGate.unblockActivity();
+		}
+		postEvent(event);
+	}
+
+	/**
+	 * Posts request to process recall timer's callback on specified ring
+	 * @param task
+	 * @throws Exception
+	 */
+	public void askProcessingForRecallTimerCbk(VWMLInterpreterInterruptTimerDeferredTask task) throws Exception {
+		VWMLRingProcessRecallTimerCbkEvent event = new VWMLRingProcessRecallTimerCbkEvent(task);
+		event.setRtNode(task.getActiveInterpreter().getRtNode());
+		event.setRing(event.getRtNode().getExecutionGroup().getRing());
+		if (blockedByGate != null) {
+			blockedByGate.unblockActivity();
+		}
+		postEvent(event);
+	}
+	
 	/**
 	 * Posts 'context find' request to ring
 	 * @param id

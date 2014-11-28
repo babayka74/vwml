@@ -75,6 +75,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
 			VWMLOperationRelaxTimerCallback callback = new VWMLOperationRelaxTimerCallback(runOnRegularCompletition, runOnTerminatedCompletition);
+			callback.setRing(interpreter.getRtNode().getExecutionGroup().getRing());
 			if (interpreter.getObserver() != null) {
 				interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
 			}

@@ -3,10 +3,9 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.relax;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerCallback;
-import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
-import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 
 /**
  * Called when timer is expired or interrupted
@@ -18,9 +17,34 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 	private VWMLEntity runOnRegularCompletition = null;
 	private VWMLEntity runOnTerminatedCompletition = null;
 	
+	public VWMLOperationRelaxTimerCallback() {
+		
+	}
+	
 	public VWMLOperationRelaxTimerCallback(VWMLEntity runOnRegularCompletition, VWMLEntity runOnTerminatedCompletition) {
 		this.runOnRegularCompletition = runOnRegularCompletition;
 		this.runOnTerminatedCompletition = runOnTerminatedCompletition;
+	}
+
+	@Override
+	public void askDeferredProcessingForTimerCbk(VWMLInterpreterInterruptTimerDeferredTask task) {
+		if (getRing() != null) {
+			try {
+				getRing().askProcessingForRelaxTimerCbk(task);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}	
+	
+	@Override
+	public void unblockActivity(VWMLInterpreterImpl interpreter) {
+		if ((interpreter != null && !(interpreter.getObserver().getBlockedByGate() != null))) {
+			interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
+		}
+		if (interpreter.getObserver().getBlockedByGate() != null) {
+			interpreter.getObserver().getBlockedByGate().unblockActivity();
+		}
 	}
 	
 	@Override
@@ -33,30 +57,13 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 		cbkHandler(timer, runOnTerminatedCompletition, true);
 	}
 
-	private void cbkHandler(VWMLInterpreterTimer timer, VWMLEntity completitionTerm, boolean delayExecution) {
-		VWMLInterpreterImpl interpreter = (VWMLInterpreterImpl)timer.getUserData();
-		if ((interpreter != null && !(interpreter.getObserver().getBlockedByGate() != null))) {
-			interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
-		}
-		if (interpreter.getObserver().getBlockedByGate() != null) {
-			interpreter.getObserver().getBlockedByGate().unblockActivity();
-		}
-		if (completitionTerm != null) {
-			if (!delayExecution) {
-				try {
-					VWMLOperationUtils.activateTerm(interpreter, null, false, completitionTerm, "relaxCbk_", "Relax", null);
-				} catch (Exception e) { // swallow it for now
-				}
-			}
-			else {
-				VWMLInterpreterInterruptTimerDeferredTask task = new VWMLInterpreterInterruptTimerDeferredTask();
-				task.setActiveInterpreter(interpreter);
-				task.setArgs(null);
-				task.setTerm(completitionTerm);
-				task.setContextPrefix("relaxCbk_");
-				task.setOperation("Relax");
-				interpreter.setDeferredTask(task);
-			}
-		}
+	@Override
+	public String getTaskName() {
+		return "Relax";
 	}
+	
+	private void cbkHandler(VWMLInterpreterTimer timer, VWMLEntity completitionTerm, boolean delayExecution) {
+		defCallback(timer, completitionTerm, delayExecution);
+	}
+
 }

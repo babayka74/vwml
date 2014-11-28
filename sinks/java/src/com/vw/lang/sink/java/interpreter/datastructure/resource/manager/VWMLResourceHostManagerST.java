@@ -1,7 +1,9 @@
 package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,8 +18,10 @@ import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.timer.st.VWMLTimerManagerSTBroker;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 
 /**
@@ -81,6 +85,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	@Override
 	public Map<String, VWMLGate> requestGatesRepoContainer() {
 		return new HashMap<String, VWMLGate>();
+	}
+	
+	@Override
+	public List<VWMLInterpreterTimer> requestTimerManagerContainer() {
+		return new ArrayList<VWMLInterpreterTimer>();
 	}
 	
 	@Override
@@ -179,5 +188,22 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	@Override
 	protected void gatesRepoDone(VWMLHostedResources r) {
 		r.setGatesRepo(null);
+	}
+
+	@Override
+	protected void timerManagerInit(VWMLHostedResources r) {
+		if (r.getTimerManagerBroker() == null) {
+			VWMLTimerManagerSTBroker timerManagerBroker = new VWMLTimerManagerSTBroker();
+			timerManagerBroker.init();
+			r.setTimerManagerBroker(timerManagerBroker);
+		}
+	}
+
+	@Override
+	protected void timerManagerDone(VWMLHostedResources r) {
+		if (r.getTimerManagerBroker() != null) {
+			r.getTimerManagerBroker().done();
+			r.setTimerManagerBroker(null);
+		}
 	}
 }

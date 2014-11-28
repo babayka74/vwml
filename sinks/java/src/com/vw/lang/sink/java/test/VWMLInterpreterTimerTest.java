@@ -2,6 +2,8 @@ package com.vw.lang.sink.java.test;
 
 import org.junit.Test;
 
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerCallback;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerManager;
@@ -50,6 +52,23 @@ public class VWMLInterpreterTimerTest {
 		
 		public boolean expiredAll() {
 			return expired == expectedToExpire;
+		}
+
+		@Override
+		public void unblockActivity(VWMLInterpreterImpl interpreter) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public String getTaskName() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void askDeferredProcessingForTimerCbk(VWMLInterpreterInterruptTimerDeferredTask task) {
+			// TODO Auto-generated method stub
 		}
 	}
 	

@@ -1,7 +1,9 @@
 package com.vw.lang.sink.java.interpreter.datastructure.resource.manager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,10 +20,12 @@ import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.timer.mt.VWMLTimerManagerMTBroker;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingMT;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.mt.VWMLConflictRingNodeMT;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 
 /**
  * Multithreaded manager
@@ -35,10 +39,12 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 	private static VWMLObjectsRepository s_objectsRepo = null;
 	private static VWMLInterceptorsRepository s_interceptorsRepo = null;
 	private static VWMLGatesRepository s_gatesRepo = null;
+	private static VWMLTimerManagerMTBroker s_timerManagerMTBroker = null;
 	private static AtomicInteger s_objectsRepoCounter = new AtomicInteger(0);
 	private static AtomicInteger s_contextsRepoCounter = new AtomicInteger(0);
 	private static AtomicInteger s_interceptorsRepoCounter = new AtomicInteger(0);
 	private static AtomicInteger s_gatesRepoCounter = new AtomicInteger(0);
+	private static AtomicInteger s_timerManagerBrokerCounter = new AtomicInteger(0);
 	
 	private VWMLResourceHostManagerMT() {
 	}
@@ -99,6 +105,11 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		return new ConcurrentHashMap<String, VWMLGate>();
 	}
 
+	@Override
+	public List<VWMLInterpreterTimer> requestTimerManagerContainer() {
+		return Collections.synchronizedList(new ArrayList<VWMLInterpreterTimer>());
+	}
+	
 	@Override
 	public VWMLConflictRing findRingByExecutingTerm(VWMLEntity executingTerm) {
 		VWMLConflictRing ring = null;
@@ -354,4 +365,41 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 			}
 		}
 	}
+	
+	@Override
+	protected void timerManagerInit(VWMLHostedResources r) {
+		if (r.getTimerManagerBroker() == null) {
+			synchronized(r) {
+				if (r.getTimerManagerBroker() != null) {
+					return;
+				}
+				if (s_timerManagerMTBroker == null) {
+					synchronized(VWMLTimerManagerMTBroker.class) {
+						if (s_timerManagerMTBroker == null) {
+							s_timerManagerMTBroker = VWMLTimerManagerMTBroker.instance();
+							s_timerManagerMTBroker.init();
+						}
+					}
+				}
+				r.setTimerManagerBroker(s_timerManagerMTBroker);
+				s_timerManagerBrokerCounter.incrementAndGet();
+			}
+		}
+	}
+
+	@Override
+	protected void timerManagerDone(VWMLHostedResources r) {
+		if (r.getTimerManagerBroker() != null) {
+			synchronized(r) {
+				if (r.getTimerManagerBroker() == null) {
+					return;
+				}
+				r.setTimerManagerBroker(null);
+				if (s_timerManagerBrokerCounter.decrementAndGet() == 0) {
+					r.getTimerManagerBroker().done();
+				}
+			}
+		}
+	}
+	
 }

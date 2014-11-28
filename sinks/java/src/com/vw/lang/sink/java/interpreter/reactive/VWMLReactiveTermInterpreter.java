@@ -123,7 +123,10 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			continueExecution = false;
 		}
 		else {
-			spinTimerManager(getTimerManager(), timeFringeGate);
+			VWMLInterpreterConfiguration.RESOURCE_STRATEGY strategy = VWMLResourceHostManagerFactory.getResourceStrategy();
+			if (strategy != VWMLInterpreterConfiguration.RESOURCE_STRATEGY.MT) {
+				spinTimerManager(getTimerManager(), timeFringeGate);
+			}
 			if (!isBlocked(node)) {
 				node.operate();
 			}

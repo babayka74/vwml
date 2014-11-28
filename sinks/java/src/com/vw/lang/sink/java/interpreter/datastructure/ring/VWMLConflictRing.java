@@ -14,6 +14,7 @@ import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
+import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.utils.GeneralUtils;
 
@@ -32,7 +33,9 @@ public class VWMLConflictRing {
 			UNLOCK,
 			CONTEXTFIND,
 			ACTIVATENODE,
-			BLOCK
+			BLOCK,
+			RELAXTIMER,
+			RECALLTIMER
 		}
 		
 		private REVENT id;
@@ -522,6 +525,23 @@ public class VWMLConflictRing {
 		}
 	}
 	
+	/**
+	 * Posts request to process relax timer's callback on specified ring
+	 * @param task
+	 * @throws Exception
+	 */
+	public void askProcessingForRelaxTimerCbk(VWMLInterpreterInterruptTimerDeferredTask task) throws Exception {
+		throw new Exception("for MT strategy only");
+	}
+
+	/**
+	 * Posts request to process recall timer's callback on specified ring
+	 * @param task
+	 * @throws Exception
+	 */
+	public void askProcessingForRecallTimerCbk(VWMLInterpreterInterruptTimerDeferredTask task) throws Exception {
+		throw new Exception("for MT strategy only");
+	}
 	/**
 	 * Activates node
 	 * @param interpreter
