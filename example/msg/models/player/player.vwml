@@ -23,13 +23,15 @@ module Player {
 			ModeResourceMgr ias resourcemanager;
 			ModeHiring ias hiring;
 			ModeAttack ias attack;
-			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~);
+			ModeBanking ias banking;
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit);
-			AvailablePlayerCommandsOnModeHiring ias (starthiring cancelhiring paymentresult);
-			AvailablePlayerCommandsOnModeBattle ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain   ias (setmode exit back dealstopped battlestopped);
-			AvailablePlayerCommandsOnModeDeal   ias (setintention linkquartal unlinkquartal payforunit payquartalinfo paybribe contribution returnpayment stop back);
-			AvailablePlayerCommandsOnModeAttack ias (requestbattlestatusbf responsebattlestatusbf);
+			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult);
+			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
+			AvailablePlayerCommandsOnModeMain    ias (setmode exit back dealstopped battlestopped);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal payforunit payquartalinfo paybribe contribution returnpayment stop back);
+			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
+			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
 			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ BattleField.ExportedCommands~) Join)^
@@ -160,6 +162,12 @@ module Player {
 				Deal~ Exe
 				PlayerLifeStep~ Exe
 			);
+			HandlePlayerCommandOnModeBanking ias (
+				(Banking.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Banking.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				Banking~ Exe
+				PlayerLifeStep~ Exe
+			);
 			HandlePlayerCommandsOnResourceManager ias (
 				(ResourceManager.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 				(ResourceManager.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
@@ -198,6 +206,10 @@ module Player {
 				(mode deal) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeDeal~)^
 					(Handler HandlePlayerCommandOnModeDeal~)^
+				);
+				(mode banking) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeBanking~)^
+					(Handler HandlePlayerCommandOnModeBanking~)^
 				);
 				(mode battle) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeBattle~)^

@@ -17,6 +17,8 @@ module BattleField {
 			CommandParams ias nil;
 			// default mode on start
 			Mode ias none;
+			// battle cost
+			BattleCost ias 0;
 			// exported commands, filled by ExportCommands term
 			ExportedCommands ias ();
 			ExportCommands ias (
@@ -58,8 +60,8 @@ module BattleField {
 				);
 			);
 			// commands available on 'builddefence', 'attack' and 'none' modes
-			BuildDefenceModeAvailableCommands ias (buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit);
-			AttackModeAvailableCommands ias (setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled);
+			BuildDefenceModeAvailableCommands ias (buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit battlecost);
+			AttackModeAvailableCommands ias (setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled battlecost surrender);
 			NoneModeAvailableCommands ias (setmode);
 			// battle's participants
 			Participants ias (
@@ -120,13 +122,13 @@ module BattleField {
 				(AttackersDestroyed true) ias (
 					(BattleStatus stopped)^
 					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (won))) Gate
-					((Player PlayerAttackerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (loose))) Gate
+					((Player PlayerAttackerId~) Tx (ModeInfo.ModeAttack~ battlestatus Id~ (loose PlayerId~ BattleCost~))) Gate
 				);
 				(AttackersDestroyed false) ias doNothing;
 				(DefendersDestroyed true) ias (
 					(BattleStatus stopped)^
 					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (loose))) Gate
-					((Player PlayerAttackerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (won))) Gate
+					((Player PlayerAttackerId~) Tx (ModeInfo.ModeAttack~ battlestatus Id~ (won PlayerId~ BattleCost~))) Gate
 				);
 				(DefendersDestroyed false) ias doNothing;
 				(AttackersDestroyed (Participants.NumOfAttackers~ 0) Ident)~ Exe
@@ -137,6 +139,22 @@ module BattleField {
 				(BattleStarted true) ias ((Characters)->(Unit Destination~) Tx (Quartal~ CommandId~ Destination~ CommandParams~)) Gate;
 				(BattleStarted false) ias ((The command can not be propagated to unit Destination~ player PlayerId~ since battle was not started) Ew.Output~) Do;
 				(BattleStarted (BattleStatus~ attaked) Ident)~ Exe
+			);
+			// all units which belong to given user are returned to player's pool
+			ReturnUnit ias (
+				U ias nil;
+				PId ias nil;
+				(PId (Characters)->(Unit U~)->PlayerId~)^
+				(RemoveFromBattleField.U U~)^
+				(RemoveFromBattleField.PId PId~)^
+				(RemoveFromBattleField.RetAs returnunit)^
+				RemoveFromBattleField~ Exe
+				((The unit U~ removed from battlefield Id~ to player PId~ from player PlayerId~ units Participants.Units~) Ew.Output~) Do
+			);
+			// battlefield's cost is passed to player who won battle
+			SetBattleCost ias (
+				(BattleCost (CommandParams~ 0) Get)^
+				((The battlefield Id~ of player PlayerId~ has cost BattleCost~) Ew.Output~) Do
 			);
 			// initial mode
 			(Mode none) ias (
@@ -171,13 +189,10 @@ module BattleField {
 						((The battlefield Id~ for player PlayerId~ is ready for attack) Ew.Output~) Do
 					);
 					// battlefield is became invisible for players and can't be attacked by other players
-					(Handle reset) ias (
+					(Handle reset),(Handle fullback) ias (
 						ReturnUnits ias (
-							(PId (Characters)->(Unit $~)->PlayerId~)^
-							(RemoveFromBattleField.U $~)^
-							(RemoveFromBattleField.RetAs returnunit)^
-							(RemoveFromBattleField.PId PId~)^
-							RemoveFromBattleField~ Exe
+							(ReturnUnit.U $~)^
+							ReturnUnit~ Exe
 						);
 						(BattleStatus none)^
 						(Mode none)^
@@ -200,12 +215,10 @@ module BattleField {
 					);
 					// returned - returned to player's resources
 					(Handle dismissunit) ias (
-						(RemoveFromBattleField.U Destination~)^
-						(RemoveFromBattleField.PId PlayerId~)^
-						(RemoveFromBattleField.RetAs returnunit)^
-						RemoveFromBattleField~ Exe
-						((The unit Destination~ removed from battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
+						(ReturnUnit.U Destination~)^
+						ReturnUnit~ Exe
 					);
+					(Handle battlecost) ias SetBattleCost~ Exe;
 					// setups units on battlefield's map (attackers and defenders)
 					(Handle startpos),(Handle setprops) ias PropagateCommandToUnit~ Exe;
 					(Handle CommandId~)~ Exe
@@ -218,6 +231,7 @@ module BattleField {
 				(RightCommand true) ias (
 					(Handle movetopos),(Handle go),(Handle stop),(Handle select),(Handle setprops),(Handle getpos),(Handle kill) ias PropagateCommandToUnit~ Exe;
 					(Handle setupattackers) ias AddSetOfUnitsToBattleField~ Exe;
+					(Handle battlecost) ias SetBattleCost~ Exe;
 					(Handle attack) ias (
 						(BattleStatus attacked)^
 						((The battle between players PlayerId~ and PlayerAttackerId~ started) Ew.Output~) Do
@@ -231,14 +245,32 @@ module BattleField {
 						RemoveFromBattleField~ Exe
 						CheckBattleStatus~ Exe
 					);
+					// sent from CheckBattleStatus when either attackers or defenders
 					(Handle battlestatus) ias (
 						(status won),(status loose) ias (
 							// performs resource transfer from loose side to winner side (PlayerId won)
+							((The battle between players PlayerId~ and PlayerAttackerId~ finished with status BattleStatus~) Ew.Output~) Do
 							(BattleStatus finished)^
 							(Mode none)^
 						);
+						// status is sent by implementation of concrete battlefield
 						(BattleStatus (CommandParams~ 0) Get)^
 						(status BattleStatus~)~ Exe
+					);
+					// all units (attackers in this case) are returned to player's resource pool (attacker lost battle)
+					(Handle surrender) ias (
+						FA ias (
+							(t attacker) ias (
+								(ReturnUnit.U $~)^
+								ReturnUnit~ Exe
+							);
+							(t defender) ias doNothing;
+							(t (Characters)->(Unit $~)->Type~)~ Exe
+						);
+						(Participants.Units~ FA~) ForEach
+						(Mode none)^
+						(Participants.NumOfAttackers 0)^
+						CheckBattleStatus~ Exe
 					);
 					(Handle CommandId~)~ Exe
 				);

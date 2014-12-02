@@ -1,0 +1,41 @@
+module PlayerBanking {
+	MagicWorld ias (
+		Player ias (
+			Banking ias (
+				CommandId ias nil;
+				CommandParams ias nil;
+				PrepareAccountValue ias (
+					RMode ias nil;
+					Who ias nil;
+					RqId ias nil;
+					BCmd ias nil;
+					(Result true) ias (Who~ Tx (RMode~ BCmd~ Id~ (confirmed RqId~))) Gate;
+					(Result false) ias (Who~ Tx (RMode~ BCmd~ Id~ (declined RqId~))) Gate;
+					(Who (CommandParams~ 0) Get)^
+					(RMode (CommandParams~ 1) Get)^
+					(RqId (CommandParams~ 2) Get)^
+					(BCmd (CommandParams~ 3) Get)^
+					(Resources.Account.Value (CommandParams~ 4) Get)^
+				);
+				(Handle withdraw) ias (
+					(Result true) ias PrepareAccountValue.(Result true)~ Exe;
+					(Result false) ias PrepareAccountValue.(Result false)~ Exe;
+					PrepareAccountValue~ Exe
+					Resources.Account.Withdraw~ Exe
+					(Result Resources.Account.Result~)~ Exe
+				);
+				(Handle recharge) ias (
+					(Result true) ias PrepareAccountValue.(Result true)~ Exe;
+					(Result false) ias PrepareAccountValue.(Result false)~ Exe;
+					PrepareAccountValue~ Exe
+					Resources.Account.Recharge~ Exe
+				);
+				(Handle back) ias (
+					(Player.Mode main)^
+					((The player Id~ returned to main mode) Ew.Output~) Do
+				);
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

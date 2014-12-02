@@ -1,0 +1,58 @@
+module PlayersManager {
+	MagicWorld ias (
+		PlayersManager ias (
+			CommandMode ias nil;
+			PlayerId ias nil;
+			CommandId ias nil;
+			Destination ias nil;
+			Params ias nil;
+			ExportedCommands ias (playeradd playerleave playerstop);
+
+			Init ias (
+				Pool ias (
+					// initial quantity of elements in pool
+					Elements ias 30;
+					Fill ias (
+						// player's related components are created, but not activated
+						(Player (Player $~) defer) Born
+						(HiringAgency (HiringAgency $~) defer) Born
+						(AttackManager (AttackManager $~)) Born
+						(Quartal (Quartal ($~ 0)) defer) Born
+					);
+					(Elements~ Fill~) Repeat
+				);
+				ModeInfo~ Exe
+				Pool~ Exe
+				(GlobalBanker (GlobalBanker 0) defer) Born
+				(GlobalBanker 0)->Init~ Exe
+				((GlobalBanker 0)->Id 0)^
+				((GlobalBanker 0)) Activate
+			);
+			// propagating command to concrete player
+			PropagateCommand ias (
+				((Command CommandId~ is propagated to player PlayerId~ to mode CommandMode~) Ew.Output~) Do
+				// activating gate on player's side (Tx mode)
+				((Player PlayerId~) Tx (CommandMode~ CommandId~ Destination~ Params~)) Gate
+				((Command CommandId~ propagated to player PlayerId~) Ew.Output~) Do
+			);
+			(ManagerCommand true) ias (
+				// creates player and adds to session
+				(Command playeradd) ias (
+					((Adding player PlayerId~) Ew.Output~) Do
+					((Player PlayerId~)->Id PlayerId~)^
+					((Player PlayerId~)->Stop false)^
+					((Player PlayerId~)) Activate
+				);
+				// player leaves session, but world is not stopped
+				(Command playerleave) ias (
+				);
+				// plater leaves session and world is going to be stopped
+				(Command playerstop) ias (
+				);
+				(Command CommandId~)~ Exe
+			);
+			(ManagerCommand false) ias PropagateCommand~ Exe;
+			(ManagerCommand (ExportedCommands~ CommandId~) In)~ Exe			
+		);
+	);
+}

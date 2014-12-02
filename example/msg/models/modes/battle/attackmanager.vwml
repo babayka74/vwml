@@ -6,7 +6,7 @@ module AttackManager {
 			CommandParams ias nil;
 			Id ias nil;
 			PlayerId ias nil;
-			ExportedCommands ias (prepareinvasion invasion recruitunit recruitedunit rejectedunit dismissunit reset);
+			ExportedCommands ias (prepareinvasion invasion recruitunit recruitedunit rejectedunit dismissunit reset battlestatus);
 
 			AttackingUnits ias ();
 			// initialization steps
@@ -43,11 +43,15 @@ module AttackManager {
 			// Player is going to attack another player (attack is allowed only in case if opponent's battlestatus is readyforattack)
 			// see EvaluateReadinessOnInvasion
 			PrepareInvasion ias (
-				(AttackHimself false) ias ((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate;
+				(AttackHimself false) ias (
+					((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate
+				);
 				(AttackHimself true) ias (
 					((Player PlayerId~ can not attack himself) Ew.Output~) Do
 				);
+				// attacked player id
 				(AttackedPlayerId (CommandParams~ 0) Get)^
+				// check attack correctness
 				(AttackHimself (AttackedPlayerId~ PlayerId~) Ident)~ Exe
 			);
 			// response on battle status request of attacked player

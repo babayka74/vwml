@@ -32,7 +32,37 @@ module HiringAgency {
 				Request ias nil;
 				RequestId ias 0;
 				RequestsInProgress ias ();
+				NewRequestId ias nil;
 
+				// starts hiring process when user's payment operation approved
+				ActuallyStartHiringRequest ias (
+					// confirmed primary request
+					(ConfRq (Request~ 1) Get)^
+					// getting hiring info (time to hire unit)
+					(TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^
+					(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
+					// generate new request id
+					(NewRequestId (Id~ GlobalHiringRequestId~))^
+					// save request for processing time (need in case if cancel operation is received)
+					(NewRequestId~ ConfRq~)^
+					(RequestsInProgress (RequestsInProgress~ (NewRequestId~)) Join)^
+					// (HiringInfo~ 1) Get => time needed to hire specified unit
+					((TimeToHireInfo~ 1) Get (Hiring Id~ NewRequestId~) ProcessRequest~ nil (NewRequestId~ ConfRq~)) Recall
+					// player may use GlobalHiringRequestId~ in order to cancel hiring operation
+					((The hiring agent Id~ started hiring request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
+				);
+ 				// cancels existing hiring request which was activated by 'ActuallyStartHiringRequest'
+				ActuallyCancelHiringRequest ias (
+					// here RequestId must coincide with one of processed GlobalHiringRequestId~
+					(RequestId (RequestsInProgress~ RequestId~) Find)^
+					(-1 (Hiring Id~ RequestId~) nil) Recall
+					((The hiring agent cancelled request RequestId~ for player Owner~) Ew.Output~) Do
+					// remove request from waiting list
+					(RequestsInProgress (RequestsInProgress~ (RequestId~)) Substruct)^
+					// player's account must be recharged
+					(CostInfo ((RequestId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+					((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
+				);
 				// called when unit's request is ready (aka agent found and hired unit)
 				ProcessRequest ias (
 					(RqId ($~ 0) Get)^
@@ -63,20 +93,7 @@ module HiringAgency {
 							((Player Owner~) Tx (ModeInfo.ModeDeal~ payforunit Owner~ (Request~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
 						);
 						(Command paymentresult) ias (
-							(payment confirmed) ias (
-								// confirmed primary request
-								(ConfRq (Request~ 1) Get)^
-								// getting hiring info (time to hire unit)
-								(TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^
-								(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
-								// save request for processing time (need in case if cancel operation is received)
-								(GlobalHiringRequestId~ ConfRq~)^
-								(RequestsInProgress (RequestsInProgress~ (GlobalHiringRequestId~)) Join)^
-								// (HiringInfo~ 1) Get => time needed to hire specified unit
-								((TimeToHireInfo~ 1) Get (Hiring Id~ GlobalHiringRequestId~) ProcessRequest~ nil (GlobalHiringRequestId~ ConfRq~)) Recall
-								// player may use GlobalHiringRequestId~ in order to cancel hiring operation
-								((The hiring agent Id~ started hiring request GlobalHiringRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
-							);
+							(payment confirmed) ias ActuallyStartHiringRequest~ Exe;
 							(payment declined) ias (
 								((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
 							);
@@ -84,15 +101,7 @@ module HiringAgency {
 						);
 						(Command cancelhiring) ias (
 							(InProgress false) ias ((Invalid request id RequestId~) Ew.Output~) Do;
-							(InProgress true) ias (
-								// here RequestId must coincide with one of processed GlobalHiringRequestId~
-								(RequestId (RequestsInProgress~ RequestId~) Find)^
-								(-1 (Hiring Id~ RequestId~) nil) Recall
-								((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
-								// player's account must be recharged
-								(CostInfo ((RequestId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
-								((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
-							);
+							(InProgress true) ias ActuallyCancelHiringRequest~ Exe;
 							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
 						);
 						(Command exit) ias (StopAgency true)^;

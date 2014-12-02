@@ -53,7 +53,13 @@ include "models/modes/main/playermain.vwml"
 
 include "models/modes/resourcemanager/unitResourceManager.vwml"
 
+include "models/modes/banking/playerbanking.vwml"
+
 include "models/player/player.vwml"
+include "models/player/playersManager.vwml"
+
+include "models/gbanker/globalBankerBroker.vwml"
+include "models/gbanker/globalBanker.vwml"
 
 include "models/services/services.vwml"
 
@@ -70,34 +76,66 @@ module msg {
 			CommandId ias nil;
 			Params ias nil;
 
+			AddressedCharacters ias (manager pm player gbanker);
 			StopAll ias (AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 exit))) Join)^;
 			/* command is propagated to player */
 			PropagateCommand ias (
-				((Command CommandId~ is propagated to player Id~ to mode CommandMode~) Ew.Output~) Do
-				// activating gate on player's side (Tx mode)
-				((Player Id~) Tx (CommandMode~ CommandId~ UnitId~ Params~)) Gate
-				((Command CommandId~ propagated to player Id~) Ew.Output~) Do
-			);
-			(ManagerCommand true) ias (
-				// creates player
-				(Command playeradd) ias (
-					((Player UnitId~)->Id UnitId~)^
-					((Player UnitId~)->Stop false)^
-					((Player UnitId~)) Activate
-				);
-				(Command delay) ias ((Params~ 0) Get) Relax;
-				// stops game model
-				(Command exit) ias (
-					(StopTheWorld true)^
-				);
-				((manager command CommandId~) Ew.Output~) Do
-				(Command CommandId~)~ Exe
+				(PlayersManager.CommandMode CommandMode~)^
+                                (PlayersManager.PlayerId Id~)^
+				(PlayersManager.CommandId CommandId~)^
+				(PlayersManager.Destination UnitId~)^
+				(PlayersManager.Params Params~)^
+				PlayersManager~ Exe
 			);
 			(ManagerCommand false) ias (
 				((Not manager command propagating) Ew.Output~) Do
 				/* passes for processing */
 				PropagateCommand~ Exe
 			);
+			// dispatches incoming request
+			AddressedTo ias (
+				(RightCharacter false) ias ((Invalid addressed character Character~) Ew.Output~) Do;
+				(RightCharacter true) ias (
+					// for game manager
+					(To manager) ias (
+						(Command delay) ias ((Params~ 0) Get) Relax;
+						// stops game model
+						(Command exit) ias (
+							(StopTheWorld true)^
+						);
+						((manager command CommandId~) Ew.Output~) Do
+						(Command CommandId~)~ Exe
+					);
+					// for players manager
+					(To pm) ias (
+						(PlayersManager.CommandMode CommandMode~)^
+                                		(PlayersManager.PlayerId UnitId~)^
+						(PlayersManager.CommandId CommandId~)^
+						(PlayersManager.Destination 0)^
+						(PlayersManager.Params nil)^
+						PlayersManager~ Exe
+					);
+					// for concrete player
+					(To player) ias (
+						(PlayersManager.CommandMode CommandMode~)^
+                                		(PlayersManager.PlayerId Id~)^
+						(PlayersManager.CommandId CommandId~)^
+						(PlayersManager.Destination UnitId~)^
+						(PlayersManager.Params Params~)^
+						PlayersManager~ Exe
+					);
+					// for global banker
+					(To gbanker) ias (
+						(GlobalBankerBroker.GBankerId Id~)^
+						(GlobalBankerBroker.Mode CommandMode~)^
+						(GlobalBankerBroker.CommandId CommandId~)^
+						(GlobalBankerBroker.Params Params~)^
+						GlobalBankerBroker~ Exe
+					);
+					(To Character~)~ Exe
+				);
+				(RightCharacter (AddressedCharacters~ Character~) In)~ Exe
+ 			);
 			/* main loop where model waits for incoming commands and dispatches them */
 			MainLoop ias (
 				/* decomposes incoming command */
@@ -116,18 +154,18 @@ module msg {
 								(Command (AutoCommands.Injection~) First)^
 								(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
 								(RPCounter ((RPCounter~) Ew.IncValue~) Do)^
-								(AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 nil playeradd RPCounter~ nil))) Join)^
+								(AutoCommands.Injection (AutoCommands.Injection~ ((pm 0 nil playeradd RPCounter~ nil))) Join)^
 								((The auto command Command~) Ew.Output~) Do
 								ParseIncomingCommand~ Exe
 								((The auto command Command~ character Character~) Ew.Output~) Do
-								(ManagerCommand (Character~ manager) Ident)~ Exe
+								AddressedTo~ Exe
 							);
 							(R true) ias (
 								(AutoCommands.Injection ())^
 								1025 Bp
 								MainLoop~ Exe
 							);
-							(R (RPCounter~ 20) Ident)~ Exe
+							(R (RPCounter~ 2) Ident)~ Exe
 						);
 						(NoAutoCommand true) ias doNothing;
 						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
@@ -135,7 +173,7 @@ module msg {
 					);
 					(WaitForCommand false) ias (
 						ParseIncomingCommand~ Exe
-						(ManagerCommand (Character~ manager) Ident)~ Exe
+						AddressedTo~ Exe
 						MainLoop~ Exe
 					);
 					/* waiting for command, in non-blocking manner */ 
@@ -147,24 +185,14 @@ module msg {
 				);
 				(Stop StopTheWorld~)~ Exe
 			);
-			PlayerPool ias (
-				AddToPool ias (
-					(Player (Player $~) defer) Born
-					(HiringAgency (HiringAgency $~) defer) Born
-					(AttackManager (AttackManager $~)) Born
-					(Quartal (Quartal ($~ 0)) defer) Born
-				);
-				(30 AddToPool~) Repeat
-			);
 
 			source lifeterm = (
 #if (debug)
 				((The initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
-				ModeInfo~ Exe
-				PlayerPool~ Exe
 				((The game manager started) Ew.Output~) Do
+				PlayersManager.Init~ Exe
 				((The game manager waits for commands) Ew.Output~) Do
 				MainLoop~ Exe
 				3000 Relax
@@ -173,13 +201,20 @@ module msg {
 
 		AutoCommands ias (
 			Injection ias (
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 			);
 		);
 
 /*
+  ===== TRANSFER RESOURCES AMONG PLAYERS ======
+				(pm 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 1 nil)
+				(gbanker 0 transfer starttransfer none (0 1 (cost vodka 200)))
+*/
+
+/*
   ===== DEFENCE BUILDING and RECRUTING UNITS ======
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 battle setmode builddefence ())
@@ -189,7 +224,7 @@ module msg {
 
 /*
   ===== DEFENCE BUILDING and RECRUTING MULTIPLE UNITS and RESET BATTLEFIELD TO INITIAL STATE ======
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -203,7 +238,7 @@ module msg {
 
 /*
   ===== BUILDING ATTACKING GROUP and RESET IT TO INITIAL STATE ======
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -215,7 +250,7 @@ module msg {
 
 /*
   ===== BUILDING ATTACKING GROUP and CREATING ADDITIONAL USER and TRYING TO ATTACK ======
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -228,17 +263,17 @@ module msg {
 				
 /*
   ===== HIRING and CANCELING ======
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring cancelhiring 1 ())
+				(player 0 hiring cancelhiring (0 1) ())
 
 */
 
 /*
   ===== ADDING and REMOVING PLAYER ======
 
-				(manager 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 0 nil)
 				(manager 0 nil delay 0 (500)) 
 				(player 0 nil exit 0 ())
 
@@ -247,7 +282,7 @@ module msg {
 
 /*
    ===== DEAL   =====
-				(manager 0 playeradd 0)
+				(pm 0 playeradd 0)
 				(player 0 main setmode 0 deal)
 				// create quartals for player 1
 				(manager 0 createquartals 0 ())

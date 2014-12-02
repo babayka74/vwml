@@ -1,0 +1,25 @@
+module GlobalBankerBroker {
+	MagicWorld ias (
+		GlobalBankerBroker ias (
+			GBankerId ias nil;
+			Mode ias nil;
+			Sender ias 0;
+			CommandId ias nil;
+			Params ias nil;
+			ExportedCommands ias (starttransfer);
+
+			// propagating command to concrete player
+			PropagateCommand ias (
+				((Command CommandId~ is propagated to global banker GBankerId~ to mode Mode~) Ew.Output~) Do
+				// activating gate on global banker's side (Tx mode)
+				((GlobalBanker GBankerId~) Tx (Mode~ CommandId~ Sender~ Params~)) Gate
+				((Command CommandId~ propagated to global banker GBankerId~) Ew.Output~) Do
+			);
+			(BankerCommand true) ias PropagateCommand~ Exe;
+			(BankerCommand false) ias (
+				((Invalid command CommandId~) Ew.Output~) Do
+			);
+			(BankerCommand (ExportedCommands~ CommandId~) In)~ Exe			
+		);
+	);
+}

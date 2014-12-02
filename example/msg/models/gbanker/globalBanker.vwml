@@ -1,0 +1,151 @@
+module GlobalBanker {
+	MagicWorld ias (
+		Command ias (
+			Format ias (
+				GBanker ias (
+					ParamsIndex ias 3;
+				);
+			);
+		);
+		GlobalBanker ias (
+
+			Id ias nil;
+			TransferCommands ias (starttransfer transfer1sideresult transfer2sideresult);
+			Mode ias transfer;
+			Stop ias false;
+
+			Init ias (
+				(Mode transfer)^
+				(Stop false)^
+			);
+			Transfer ias (
+				CommandId ias nil;
+				Params ias nil;
+				From ias nil;
+				To ias nil;
+				Quantum ias nil;
+				GlobalTransferRequestId ias 0;
+				ActiveTransfers ias ();
+				// initiates transfer procedure
+				StartTransfer ias (
+					Tid ias nil;
+					(From (Params~ 0) Get)^
+					(To (Params~ 1) Get)^
+					// Quantum => (cost {resource_name} {resource quantum value}) => (cost vodka 300)
+					(Quantum (Params~ 2) Get)^
+					// update transaction by adding its body
+					(Tid (From~ To~ Quantum~))^
+					// storing transaction
+					(ActiveTransfers (ActiveTransfers~ (Tid~)) Join)^
+					((The player From~ is going to transfer resource Quantum~ to To~ tid is Tid~) Ew.Output~) Do
+					// asks player to withdraw something...
+					((Player From~) Tx (ModeInfo.ModeBanking~ withdraw From~ ((GlobalBanker Id~) transfer Tid~ transfer1sideresult (cost (Quantum~ 1) Get (Quantum~ 2) Get)))) Gate
+				);
+
+				(Command starttransfer) ias (
+					(GlobalTransferRequestId ((GlobalTransferRequestId~) Ew.IncValue~) Do)^
+					(Tid (Id~ GlobalTransferRequestId~))^
+					// prepare transaction and its status 'start'
+					StartTransfer~ Exe
+				);
+				// response on withdraw (side 1)
+				(Command transfer1sideresult) ias (
+					Tid ias nil;
+					(Result confirmed) ias (
+						(Correct false) ias (
+							((Invalid Tid~ detected) Ew.Output~) Do
+						);
+						(Correct true) ias (
+							(Tid (ActiveTransfers~ Tid~) Find)^
+							(From (Tid~ 0) Get)^
+							(To (Tid~ 1) Get)^
+							(Quantum (Tid~ 2) Get)^
+							((Player To~) Tx (ModeInfo.ModeBanking~ recharge To~ ((GlobalBanker Id~) transfer Tid~ transfer2sideresult (cost (Quantum~ 1) Get (Quantum~ 2) Get)))) Gate
+						);
+						(Correct (ActiveTransfers~ Tid~) In)~ Exe
+					);
+					(Result declined) ias (
+						((Withdraw operation identified by Tid~ declined) Ew.Output~) Do
+					);
+					(Result (Params~ 0) Get)^
+					(Tid (Params~ 1) Get)^
+					(Result Result~)~ Exe
+				);
+				// response on recharge (side 2)
+				(Command transfer2sideresult) ias (
+					Tid ias nil;
+					(Result confirmed) ias (
+						(Correct false) ias (
+							((Invalid Tid~ detected) Ew.Output~) Do
+						);
+						(Correct true) ias (
+							((The player From~ transferred resource Quantum~ to To~) Ew.Output~) Do
+						);
+						(Correct (ActiveTransfers~ Tid~) In)~ Exe
+					);
+					(Result declined) ias (
+						((Recharge operation identified by Tid~ declined) Ew.Output~) Do
+					);
+					(Result (Params~ 0) Get)^
+					(Tid (Params~ 1) Get)^
+					(Result Result~)~ Exe
+					(ActiveTransfers (ActiveTransfers~ (Tid~)) Substruct)^
+				);
+				(Command CommandId~)~ Exe
+			);
+			Handlers ias (
+				HandleTransfer ias (
+					(Transfer.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+					(Transfer.Params (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.GBanker.ParamsIndex~) Get)^
+					Transfer~ Exe
+					GBankerLifeStep~ Exe
+				);
+			);
+			CommandDispatcher ias (
+				NonForcedMode ias nil;
+				Dispatch ias nil;
+				CommandSet ias nil;
+				Handler ias nil;
+
+				CheckAndHandleCommand ias (
+					(RightCommand true) ias Handler~ Exe;
+					(RightCommand false) ias GBankerLifeStep~ Exe;
+					((The global banker Id~ received command Dispatch~ to dispatch commands set CommandSet~) Ew.Output~) Do
+					(RightCommand (CommandSet~ (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get) In)~ Exe
+				);
+
+				(mode transfer) ias (
+					(CommandSet TransferCommands~)^
+					(Handler Handlers.HandleTransfer~)^
+				);
+
+				(NonForcedMode false) ias (Mode NonForcedMode~)^;
+				(NonForcedMode true) ias doNothing;
+
+				(NonForcedMode (Dispatch~ MagicWorld.Command.Format.ModeIndex~) Get)^
+				(NonForcedMode (NonForcedMode~ nil) Ident)~ Exe
+				(mode Mode~)~ Exe
+				CheckAndHandleCommand~ Exe
+			);
+			/* Player's lifestep */
+			GBankerLifeStep ias (
+				(ready false) ias (
+					(CommandDispatcher.Dispatch nil)^
+					GBankerLifeStep~ Exe
+				);
+				(ready true) ias (
+					(CommandDispatcher.Dispatch ((GlobalBanker Id~) Rx) Gate)^
+					CommandDispatcher~ Exe
+				);
+				(ready (((GlobalBanker Id~) Ready) Gate true) Ident)~ Exe
+			);
+			lifeterm = (
+				(Stop false)^
+				((The global banker Id~ added and active) Ew.Output~) Do
+				((GlobalBanker Id~) Register blocked) Gate
+				GBankerLifeStep~ Exe
+			) Exe
+
+		);
+	);
+}
