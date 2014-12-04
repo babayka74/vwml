@@ -43,16 +43,22 @@ module AttackManager {
 			// Player is going to attack another player (attack is allowed only in case if opponent's battlestatus is readyforattack)
 			// see EvaluateReadinessOnInvasion
 			PrepareInvasion ias (
-				(AttackHimself false) ias (
-					((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate
+				(AttackingUnitsNotReady true) ias (
+					((Player PlayerId~ must create attacking group before) Ew.Output~) Do
 				);
-				(AttackHimself true) ias (
-					((Player PlayerId~ can not attack himself) Ew.Output~) Do
+				(AttackingUnitsNotReady false) ias (
+					(AttackHimself false) ias (
+						((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate
+					);
+					(AttackHimself true) ias (
+						((Player PlayerId~ can not attack himself) Ew.Output~) Do
+					);
+					// attacked player id
+					(AttackedPlayerId (CommandParams~ 0) Get)^
+					// check attack correctness
+					(AttackHimself (AttackedPlayerId~ PlayerId~) Ident)~ Exe
 				);
-				// attacked player id
-				(AttackedPlayerId (CommandParams~ 0) Get)^
-				// check attack correctness
-				(AttackHimself (AttackedPlayerId~ PlayerId~) Ident)~ Exe
+				(AttackingUnitsNotReady (AttackingUnits~ ()) Ident)~ Exe
 			);
 			// response on battle status request of attacked player
 			EvaluateReadinessOnInvasion ias (
@@ -62,7 +68,8 @@ module AttackManager {
 				(OpponentReadyForAttack true) ias (
 					((Player PlayerId~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
 					// reaction is defined by 'Invasion' on AttackedPlayerId~
-					((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ invasion AttackedPlayerId~ (PlayerId~ AttackingUnits~))) Gate
+					((Player AttackedPlayerId~) Tx (ModeInfo.ModeAttack~ invasion AttackedPlayerId~ (PlayerId~ AttackingUnits~))) Gate
+					(AttackingUnits ())^
 				);
 				(AttackedPlayerId (CommandParams~ 0) Get)^
 				(AttackedPlayerBattleStatus (CommandParams~ 1) Get)^
@@ -100,6 +107,11 @@ module AttackManager {
 			// sent on request requestbattlestatusbf which is sent during invasion's preparation steps
 			(Handle responsebattlestatusbf) ias EvaluateReadinessOnInvasion~ Exe;
 			(Handle invasion) ias Invasion~ Exe;
+			// result of invasion
+			(Handle battlestatus) ias (
+				(BattleStatus (CommandParams~ 0) Get)^
+				((The attacker PlayerId~ finished with status BattleStatus~) Ew.Output~) Do
+			);
 			(Handle CommandId~)~ Exe
 		);
 	);

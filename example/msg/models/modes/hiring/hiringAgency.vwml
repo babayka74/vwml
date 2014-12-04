@@ -23,17 +23,37 @@ module HiringAgency {
 
 			Init ias (
 				(StopAgency false)^
-				((The hiring agency for player Id~ initialized) Ew.Output~) Do
+				((The hiring agency for player Owner~ initialized) Ew.Output~) Do
 			);
-
+			Done ias (
+				((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (hiringagency))) Gate
+				((The hiring agency for player Owner~ uninitialized) Ew.Output~) Do
+			);
 			Agent ias (
-				Commands ias (starthiring cancelhiring paymentresult exit);
+				Commands ias (starthiring cancelhiring paymentresult check exit);
 				Command ias nil;
 				Request ias nil;
 				RequestId ias 0;
 				RequestsInProgress ias ();
 				NewRequestId ias nil;
 
+				StopAgencyProcess ias (
+					UnblockAndStop ias (
+						(StopAgency true)^
+						((HiringAgency Id~) Tx (check 0 ())) Gate
+					);
+					(NoRequestsInProgress true) ias UnblockAndStop~ Exe;
+					(NoRequestsInProgress false) ias (
+						StopHiringRequest ias (
+							(CancelHiringRequest.RqId $~)^
+							CancelHiringRequest~ Exe
+						);
+						(RequestsInProgress~ StopHiringRequest~) ForEach
+						(RequestsInProgress ())^
+						UnblockAndStop~ Exe
+					);
+					(NoRequestsInProgress (RequestsInProgress~ ()) Ident)~ Exe
+				);
 				// starts hiring process when user's payment operation approved
 				ActuallyStartHiringRequest ias (
 					// confirmed primary request
@@ -51,17 +71,22 @@ module HiringAgency {
 					// player may use GlobalHiringRequestId~ in order to cancel hiring operation
 					((The hiring agent Id~ started hiring request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
 				);
+				CancelHiringRequest ias (
+					RqId ias nil;
+					(-1 (Hiring Id~ RqId~) nil) Recall
+					((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
+					// player's account must be recharged
+					(CostInfo ((RqId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+					((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
+				);
  				// cancels existing hiring request which was activated by 'ActuallyStartHiringRequest'
 				ActuallyCancelHiringRequest ias (
 					// here RequestId must coincide with one of processed GlobalHiringRequestId~
 					(RequestId (RequestsInProgress~ RequestId~) Find)^
-					(-1 (Hiring Id~ RequestId~) nil) Recall
-					((The hiring agent cancelled request RequestId~ for player Owner~) Ew.Output~) Do
+					(CancelHiringRequest.RqId RequestId~)^
+					CancelHiringRequest~ Exe
 					// remove request from waiting list
 					(RequestsInProgress (RequestsInProgress~ (RequestId~)) Substruct)^
-					// player's account must be recharged
-					(CostInfo ((RequestId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
-					((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
 				);
 				// called when unit's request is ready (aka agent found and hired unit)
 				ProcessRequest ias (
@@ -104,7 +129,8 @@ module HiringAgency {
 							(InProgress true) ias ActuallyCancelHiringRequest~ Exe;
 							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
 						);
-						(Command exit) ias (StopAgency true)^;
+						(Command check) ias ((Hiring agency Id~ received self test ok) Ew.Output~) Do;
+						(Command exit) ias StopAgencyProcess~ Exe;
 						(Command Command~)~ Exe
 					);
 					(RightCommand (Commands~ Command~) In)~ Exe					
@@ -139,7 +165,11 @@ module HiringAgency {
 			lifeterm = (
 				((The hiring agency Id~ activated for owner Owner~) Ew.Output~) Do
 				((HiringAgency Id~) Register blocked) Gate
+				((HiringAgency Id~) Tx (check 0 ())) Gate
 				HiringAgencyLifeStep~ Exe
+				((HiringAgency Id~) Unregister) Gate
+				Done~ Exe
+				((The hiring agency Id~ deactivated for owner Owner~) Ew.Output~) Do
 			) Exe
 		);
 	);

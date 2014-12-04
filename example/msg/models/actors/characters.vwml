@@ -40,6 +40,10 @@ module Characters {
 					(InAction false)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
+				StopActivity ias (
+					(StopUnit true)^
+					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ unitstopped Id~ (Id~))) Gate
+				);
 				/* each unit has following properties: power of attack and defence */
 				Power ias (
 					Attack ias ();
@@ -140,6 +144,7 @@ module Characters {
 					((ConcreteUnit~)->BattleFieldId nil)^
 					(ConcreteUnit~)->Done~ Exe
 					(ConcreteUnit~) Release
+					(ConcreteUnit nil)^
 					((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
 				);
 				/* unit receives commands in deferred manner */
@@ -168,6 +173,7 @@ module Characters {
 							(UnitCommandParams~ PropertySetOperation~) ForEach
 							UnitLifeStep~ Exe
 						);
+						(Handle exit) ias StopActivity~ Exe;
                                                 (Handle kill),(Handle go),(Handle movetopos),(Handle startpos),(Handle getpos),(Handle select) ias doNothing;
 						(Handle UnitCommandId~)~ Exe
 					);
@@ -216,6 +222,7 @@ module Characters {
 							(UnitCommandId LastUnitCommandId~)^
 							UnitLifeStep~ Exe
 						);
+						(Handle exit) ias StopActivity~ Exe;
 						(Handle UnitCommandId~)~ Exe
 					);
 					(NothingToDispatch true) ias doNothing;
@@ -252,6 +259,7 @@ module Characters {
 					((Unit Id~) Register blocked) Gate
 					Init~ Exe
 					UnitLifeStep~ Exe
+					((Unit Id~) Unregister) Gate
 				) Exe
 			);
 		);

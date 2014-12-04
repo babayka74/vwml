@@ -25,11 +25,11 @@ module Player {
 			ModeAttack ias attack;
 			ModeBanking ias banking;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
-			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit);
-			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult);
+			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit unitstopped exit);
+			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode exit back dealstopped battlestopped);
-			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal payforunit payquartalinfo paybribe contribution returnpayment stop back);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal payforunit payquartalinfo paybribe contribution returnpayment back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
@@ -38,6 +38,7 @@ module Player {
 			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ AttackManager.ExportedCommands~) Join)^
 		);
 		Player ias (
+			Activities ias (resourcemanager quartals battlefield hiringagency);
 			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);
 			Mode ias main;
 			Id ias nil;
@@ -65,20 +66,45 @@ module Player {
 					Init ias (
 						ActivateQuartal ias (
 							// quartal's configuration
-							((Quartal (Id~ 0))->Id (Id~ 0))^
-							((Quartal (Id~ 0))->Owner Id~)^
-							((Quartal (Id~ 0))) Activate
+							((Quartal (Id~ $~))->Id (Id~ $~))^
+							((Quartal (Id~ $~))->Owner Id~)^
+							((Quartal (Id~ $~))) Activate
 							// links quartal to given player
-							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ 0)))) Gate
-							// create battlefield and associate it with quartal
-							((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
+							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
 						);
-						ActivateQuartal~ Exe
 						(Controlled ())^
 						(Visible ())^
+						(Own ())^
+						(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
+						// create battlefield and associate it with quartal
+						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
 						((Player Id~ created and initialized own quartals) Ew.Output~) Do
 					);
+					Done ias (
+						AllOwnQurtalsClosed ias (
+							(Own () AllOwnQurtalsClosed~) FinishInterception
+							// send message to player about closing all own quartals
+							((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (quartals))) Gate
+						);
+						(NoQuartals true) ias (
+						);
+						(NoQuartals false) ias (
+							// sent 'exit' command and quartal sends 'unlinkquartal' back as response
+							(Own () AllOwnQurtalsClosed~) StartInterception
+							DeactivateQuartal ias ((Player Id~) Tx (ModeInfo.ModeDeal~ releasequartal Id~ ($~))) Gate;
+							(Own~ DeactivateQuartal~) ForEach
+						);
+						(NoQuartals (Own~ ()) Ident)~ Exe
+					);
 				);
+				BattleFieldDone ias (
+					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
+					(NotSelectedBF false) ias (
+						((Player Id~) Tx (ModeInfo.ModeBattle~ exit Id~ ())) Gate
+					);
+					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe 
+				);
+				ResourceManagerDone ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ exit Id~ ())) Gate;
 				/* set of player's battles */
 				Battles ias ();
 				/* Selected battle */
@@ -125,6 +151,12 @@ module Player {
 						(HiringAgency Id~)->Init~ Exe
 						((HiringAgency Id~)) Activate
 					);
+					Done ias (
+						(HiringBroker.CommandId exit)^
+						(HiringBroker.RequestId nil)^
+						(HiringBroker.CommandParams ())^
+						HiringBroker~ Exe
+					);
 				);
 				Attacking ias (
 					Init ias (
@@ -140,6 +172,12 @@ module Player {
 					Attacking.Init~ Exe
 					Quartals.Init~ Exe
 				);
+				Done ias (
+					BattleFieldDone~ Exe
+					Hiring.Done~ Exe
+					Quartals.Done~ Exe
+					ResourceManagerDone~ Exe
+				);
 			);
 			HandlePlayerCommandOnModeBattle ias (
 				(BattleManager.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
@@ -154,7 +192,7 @@ module Player {
 				(Main.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 				(Main.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				Main~ Exe
-				(StopPlayer (ActiveModes~ ()) Ident)~ Exe
+				(StopPlayer (Stop~ true) Ident)~ Exe
 			);
 			HandlePlayerCommandOnModeDeal ias (
 				(Deal.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
@@ -194,10 +232,15 @@ module Player {
 				CommandSet ias nil;
 				Handler ias nil;
 				CheckAndHandleCommand ias (
+					Cmd ias nil;
 					(RightCommand true) ias Handler~ Exe;
-					(RightCommand false) ias PlayerLifeStep~ Exe;
+					(RightCommand false) ias (
+						((The player Id~ received unsupported command Cmd~) Ew.Output~) Do
+						PlayerLifeStep~ Exe
+					);
+					(Cmd (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 					((The player Id~ received command Dispatch~ to dispatch commands set CommandSet~) Ew.Output~) Do
-					(RightCommand (CommandSet~ (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get) In)~ Exe
+					(RightCommand (CommandSet~ Cmd~) In)~ Exe
 				);
 				(mode main) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeMain~)^
@@ -227,6 +270,7 @@ module Player {
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeAttack~)^
 					(Handler HandlePlayerCommandsOnModeAttack~)^
 				);
+				(mode global) ias HandlePlayerGlobalCommand~ Exe;
 				(NonForcedMode false) ias (Mode NonForcedMode~)^;
 				(NonForcedMode true) ias doNothing;
 
@@ -254,8 +298,10 @@ module Player {
 				(ActiveModes ActiveModes~ Exe)^
 				((The player Id~ has available modes ModeInfo.AvailableModes~ and active ActiveModes~) Ew.Output~) Do
 				Resources.Init~ Exe
-				(Services.SignalUnit Services.(SignalUnit Player Id~)) Born
+				(Services.SignalUnit (SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe
+				((Services)->(SignalUnit Player Id~)) Release
+				((Player Id~) Unregister) Gate
 			) Exe
 		);
 	);

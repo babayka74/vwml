@@ -19,6 +19,8 @@ module BattleField {
 			Mode ias none;
 			// battle cost
 			BattleCost ias 0;
+			// global banker's id (for now we have only one banker with id 0)
+			GBankerId ias 0;
 			// exported commands, filled by ExportCommands term
 			ExportedCommands ias ();
 			ExportCommands ias (
@@ -60,19 +62,25 @@ module BattleField {
 				);
 			);
 			// commands available on 'builddefence', 'attack' and 'none' modes
-			BuildDefenceModeAvailableCommands ias (buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit battlecost);
-			AttackModeAvailableCommands ias (setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled battlecost surrender);
-			NoneModeAvailableCommands ias (setmode);
+			BuildDefenceModeAvailableCommands ias (buildfield linktoquartal unlinkfromquartal apply reset startpos setprops dismissunit recruitunit recruitedunit rejectedunit battlecost fullback surrender exit);
+			AttackModeAvailableCommands ias (attack setupattackers startpos setprops movetopos go stop select getpos kill battlestatus unitkilled battlecost surrender fullback exit);
+			NoneModeAvailableCommands ias (setmode exit);
 			// battle's participants
 			Participants ias (
 				NumOfAttackers ias 0;
 				NumOfDefenders ias 0;
 				Units ias ();
+				Init ias (
+					(NumOfAttackers 0)^
+					(NumOfDefenders 0)^
+					(Units ())^
+				);
 			);
 			Init ias (
 				(BattleStatus none)^
 				(Mode none)^
 				(PlayerAttackerId nil)^
+				Participants.Init~ Exe
 				((The battlefield for player PlayerId~ linked to quartal Quartal~ has id Id~ battle status BattleStatus~) Ew.Output~) Do
 			);
 			SetModeAndBattleStatus ias (
@@ -101,7 +109,6 @@ module BattleField {
 					(removed defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.DecValue~) Do)^;
 					((Characters)->(Unit U~)->(AssociateWithBattleField)->BFId nil)^
 					(Characters)->(Unit U~)->AssociateWithBattleField~ Exe
-					(Participants.Units (Participants.Units~ (U~)) Substruct)^
 					(removed (Characters)->(Unit U~)->Type~)~ Exe
 					((Unit U~ of player PId~ returned to resource manager as RetAs~) Ew.Output~) Do
 					((Player PId~) Tx (ModeInfo.ModeResourceMgr~ RetAs~ PId~ (U~))) Gate
@@ -121,14 +128,14 @@ module BattleField {
 			CheckBattleStatus ias (
 				(AttackersDestroyed true) ias (
 					(BattleStatus stopped)^
-					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (won))) Gate
-					((Player PlayerAttackerId~) Tx (ModeInfo.ModeAttack~ battlestatus Id~ (loose PlayerId~ BattleCost~))) Gate
+					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (won defender))) Gate
+					((Player PlayerAttackerId~) Tx (ModeInfo.ModeAttack~ battlestatus Id~ (loose attacker PlayerId~ BattleCost~))) Gate
 				);
 				(AttackersDestroyed false) ias doNothing;
 				(DefendersDestroyed true) ias (
 					(BattleStatus stopped)^
-					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (loose))) Gate
-					((Player PlayerAttackerId~) Tx (ModeInfo.ModeAttack~ battlestatus Id~ (won PlayerId~ BattleCost~))) Gate
+					((Player PlayerId~) Tx (ModeInfo.ModeBattle~ battlestatus Id~ (loose defender))) Gate
+					((Player PlayerAttackerId~) Tx (ModeInfo.ModeAttack~ battlestatus Id~ (won attacker PlayerId~ BattleCost~))) Gate
 				);
 				(DefendersDestroyed false) ias doNothing;
 				(AttackersDestroyed (Participants.NumOfAttackers~ 0) Ident)~ Exe
@@ -151,6 +158,18 @@ module BattleField {
 				RemoveFromBattleField~ Exe
 				((The unit U~ removed from battlefield Id~ to player PId~ from player PlayerId~ units Participants.Units~) Ew.Output~) Do
 			);
+			ReturnAllRemainedUnits ias (
+				ReturnUnits ias (
+					(ReturnUnit.U $~)^
+					ReturnUnit~ Exe
+				);
+				(Participants.Units~ ReturnUnits~) ForEach
+				(Participants.Units ())^
+				(Participants.NumOfDefenders 0)^
+				(Participants.NumOfAttackers 0)^
+			);
+			// notifies player about returning all units
+			NotifyAboutReturnedUnits ias ((Player PlayerId~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
 			// battlefield's cost is passed to player who won battle
 			SetBattleCost ias (
 				(BattleCost (CommandParams~ 0) Get)^
@@ -162,6 +181,10 @@ module BattleField {
 				(RightCommand true) ias (
 					// setting mode is allowed for all modes
 					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
+					(Handle exit) ias (
+						ReturnAllRemainedUnits~ Exe
+						NotifyAboutReturnedUnits~ Exe
+					);
 					(Handle CommandId~)~ Exe
 				);
 				(RightCommand (NoneModeAvailableCommands~ CommandId~) In)~ Exe
@@ -184,19 +207,21 @@ module BattleField {
 					);
 					// battlefield is published to all players and marked as ready for attack by other players
 					(Handle apply) ias (
-						(BattleStatus readyforattack)^
-						(Mode none)^
-						((The battlefield Id~ for player PlayerId~ is ready for attack) Ew.Output~) Do
+						(NotReady true) ias (
+							((The battlefield Id~ must recruit units before) Ew.Output~) Do
+						);
+						(NotReady false) ias (
+							(BattleStatus readyforattack)^
+							(Mode none)^
+							((The battlefield Id~ for player PlayerId~ is ready for attack) Ew.Output~) Do
+						);
+						(NotReady (Participants.Units~ ()) Ident)~ Exe
 					);
 					// battlefield is became invisible for players and can't be attacked by other players
-					(Handle reset),(Handle fullback) ias (
-						ReturnUnits ias (
-							(ReturnUnit.U $~)^
-							ReturnUnit~ Exe
-						);
+					(Handle reset),(Handle fullback),(Handle surrender) ias (
+						ReturnAllRemainedUnits~ Exe
 						(BattleStatus none)^
 						(Mode none)^
-						(Participants.Units~ ReturnUnits~) ForEach
 						((The battlefield Id~ for player PlayerId~ was resetted to initial state) Ew.Output~) Do
 					);
 					// player requests unit from resource manager to participate in battle, for defence.
@@ -216,11 +241,16 @@ module BattleField {
 					// returned - returned to player's resources
 					(Handle dismissunit) ias (
 						(ReturnUnit.U Destination~)^
-						ReturnUnit~ Exe
+						ReturnUnit~ Exe	
+						(Participants.Units (Participants.Units~ (Destination~)) Substruct)^
 					);
 					(Handle battlecost) ias SetBattleCost~ Exe;
 					// setups units on battlefield's map (attackers and defenders)
 					(Handle startpos),(Handle setprops) ias PropagateCommandToUnit~ Exe;
+					(Handle exit) ias (
+						ReturnAllRemainedUnits~ Exe
+						NotifyAboutReturnedUnits~ Exe
+					);
 					(Handle CommandId~)~ Exe
 				);
 				(RightCommand (BuildDefenceModeAvailableCommands~ CommandId~) In)~ Exe
@@ -243,34 +273,39 @@ module BattleField {
 						(RemoveFromBattleField.PId PId~)^
 						(RemoveFromBattleField.RetAs releaseunit)^
 						RemoveFromBattleField~ Exe
+						(Participants.Units (Participants.Units~ (Destination~)) Substruct)^
 						CheckBattleStatus~ Exe
 					);
 					// sent from CheckBattleStatus when either attackers or defenders
 					(Handle battlestatus) ias (
-						(status won),(status loose) ias (
-							// performs resource transfer from loose side to winner side (PlayerId won)
-							((The battle between players PlayerId~ and PlayerAttackerId~ finished with status BattleStatus~) Ew.Output~) Do
-							(BattleStatus finished)^
+						(status won) ias (
+							// perfroms resource's transfer
+							((GlobalBanker GBankerId~) Tx (transfer starttransfer Id~ (PlayerAttackerId~ PlayerId~ BattleCost~))) Gate
+							ReturnAllRemainedUnits~ Exe
+							(Mode none)^
+						);
+						(status loose) ias (
+							// perfroms resource's transfer
+							((GlobalBanker GBankerId~) Tx (transfer starttransfer Id~ (PlayerId~ PlayerAttackerId~ BattleCost~))) Gate
+							ReturnAllRemainedUnits~ Exe
 							(Mode none)^
 						);
 						// status is sent by implementation of concrete battlefield
 						(BattleStatus (CommandParams~ 0) Get)^
 						(status BattleStatus~)~ Exe
+						// performs resource transfer from loose side to winner side (PlayerId won)
+						((The battle between players PlayerId~ and PlayerAttackerId~ finished with status BattleStatus~) Ew.Output~) Do
+						(BattleStatus finished)^
 					);
-					// all units (attackers in this case) are returned to player's resource pool (attacker lost battle)
-					(Handle surrender) ias (
-						FA ias (
-							(t attacker) ias (
-								(ReturnUnit.U $~)^
-								ReturnUnit~ Exe
-							);
-							(t defender) ias doNothing;
-							(t (Characters)->(Unit $~)->Type~)~ Exe
-						);
-						(Participants.Units~ FA~) ForEach
+					// all units are returned to player's resource pool (attacker lost battle)
+					(Handle surrender),(Handle fullback) ias (
 						(Mode none)^
 						(Participants.NumOfAttackers 0)^
 						CheckBattleStatus~ Exe
+					);
+					(Handle exit) ias (
+						ReturnAllRemainedUnits~ Exe
+						NotifyAboutReturnedUnits~ Exe
 					);
 					(Handle CommandId~)~ Exe
 				);

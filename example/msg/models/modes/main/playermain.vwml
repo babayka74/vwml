@@ -4,6 +4,10 @@ module PlayerModeMain {
 			Main ias (
 				CommandId ias nil;
 				CommandParams ias nil;
+				NotifyAboutActivitiesStopped ias (
+					(Activities () NotifyAboutActivitiesStopped~) FinishInterception
+					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldstopped Id~ ())) Gate
+				);
 				(Handle setmode) ias (
 					(RightMode false) ias doNothing;
 					(RightMode true) ias (
@@ -16,18 +20,22 @@ module PlayerModeMain {
 					(Player.Mode main)^
 					((The player Id~ stays in main mode) Ew.Output~) Do
 				);
-                                (Handle exit) ias (
-					Send ias ((Player Id~) Tx $~ Exe) Gate;
-					Commands ias (
-							(ModeInfo.ModeBattle~ stop Id~ ())
-							(ModeInfo.ModeDeal~ stop Id~ ())
-						);
-					(Stop true)^
-					(Commands~ Send~) ForEach
-					((The player Id~ executes Commands~ for exiting) Ew.Output~) Do
+				// manager received command to stop the world 
+				(Handle requeststopplayerworld) ias (
+					((The player Id~ is going to be stopped) Ew.Output~) Do
+					(Activities () NotifyAboutActivitiesStopped~) StartInterception
+					Resources.Done~ Exe
 				);
-				(Handle dealstopped) ias (ActiveModes (ActiveModes~ (ModeInfo.ModeDeal~)) Substruct)^;
-				(Handle battlestopped) ias (ActiveModes (ActiveModes~ (ModeInfo.ModeBattle~)) Substruct)^;
+				(Handle partclosed) ias (
+					(Params (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+					(Activities (Activities~ ((Params~ 0) Get)) Substruct)^
+					((The player Id~ stopped activity Params~ left Activities~) Ew.Output~) Do
+				);
+				(Handle playerworldstopped) ias (
+					(Activities () NotifyAboutActivitiesStopped~) FinishInterception
+					(Stop true)^
+					((The player Id~ all activities stopped) Ew.Output~) Do
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);

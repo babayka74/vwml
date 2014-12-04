@@ -6,6 +6,35 @@ module PlayerResourceManager {
 				CommandParams ias nil;
 				HiredUnitId ias nil;
 
+				// stops all hired units. 
+				// The unit sends 'unitstopped' command to resource manager in order to notify about stopping activity
+				StopAllUnits ias (
+					NotifyAboutExiting ias (
+						(Resources.Units.Hired () NotifyAboutExiting~) FinishInterception
+						((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (resourcemanager))) Gate
+					);
+					(NoHired true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (resourcemanager))) Gate;
+					(NoHired false) ias (
+						StopUnit ias (
+							(DismissUnit.U $~)^
+							DismissUnit~ Exe
+						);
+						(Resources.Units.Hired () NotifyAboutExiting~) StartInterception
+						(Resources.Units.Hired~ StopUnit~) ForEach
+					);
+					(NoHired (Resources.Units.Hired~ ()) Ident)~ Exe
+				);
+
+				DismissUnit ias (
+					U ias nil;
+					(CorrectUnit false) ias ((Unit U~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit true) ias (
+						((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate
+						((Player Id~ dismissed unit U~) Ew.Output~) Do
+					);
+					(CorrectUnit (Resources.Units.Hired~ U~) In)~ Exe
+				);
+
 				TakeOnBoardUnit ias (
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^
@@ -52,21 +81,19 @@ module PlayerResourceManager {
 				);
 				// unit's functionality doesn't need to player
 				(Handle dismissunit) ias (
-					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
-					(CorrectUnit true) ias (
-						PushOutUnit~ Exe
-						((Characters)->(Unit HiredUnitId~)->StopUnit true)^
-						((Player Id~ dismissed unit HiredUnitId~) Ew.Output~) Do
-					);
-					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
+					(DismissUnit.U HiredUnitId~)^
+					DismissUnit~ Exe
+					PushOutUnit~ Exe
 				);
 				// remove stopped unit which was killed and stopped
-				(Hanlde releaseunit) ias PushOutUnit~ Exe;
+				// unitstopped is sent when command exit is sent to unit and unit finishes its work
+				(Handle releaseunit),(Handle unitstopped) ias PushOutUnit~ Exe;
 				// unit is in action (battle for example)
 				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe;
 				// unit is returned from action, if wasn't killed
 				(Handle returnunit) ias MarkUnitAsFree~ Exe;
-
+				// stop all hired units
+				(Handle exit) ias StopAllUnits~ Exe;
 				(Handle CommandId~)~ Exe
 			);
 		);

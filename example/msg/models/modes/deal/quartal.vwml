@@ -194,8 +194,8 @@ module Quartal {
 					);
 					(exit op),(exit cnp),(exit onp),(exit wtp) ias (
 						(StopQuartal true)^
-						// unlinks quartal from given player
-						((Player Owner~) Tx (ModeInfo.ModeDeal~ unlinkquartal Owner~ (Id~))) Gate
+						// unblocks quartal's gate
+						((Quartal Id~) Tx (Id~ check ())) Gate
 						((The sherif of quartal Id~ got message to exit) Ew.Output~) Do
 					);
 					(check op),(check cnp),(check onp),(check wtp) ias (
@@ -233,6 +233,7 @@ module Quartal {
 				((Quartal Id~) Register blocked) Gate
 				Resource.Init~ Exe
 				QuartalLifeStep~ Exe
+				((Quartal Id~) Unregister) Gate
 			) Exe
 		);
 	);

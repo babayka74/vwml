@@ -289,9 +289,11 @@ public class VWMLEntity extends VWMLObject {
 		if (getClonedFrom() == null || removed) {
 			return;
 		}
-		if (getInterpreting() != null) {
-			if (!getOriginalInterpreting().isRecursiveInterpretationOnRuntime()) {
-				getInterpreting().release();
+		removed = true;
+		if (getOriginalInterpreting() != null) {
+			if (!getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
+//				System.out.println("interpreting release '" + getOriginalInterpreting().buildReadableId() + "'");
+				getOriginalInterpreting().release();
 			}
 		}
 		VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
@@ -313,11 +315,10 @@ public class VWMLEntity extends VWMLObject {
 		}
 */		
 		VWMLObjectsRepository.instance().removeWithoutContextCleaning(this);
-		setReadableId("__removed__" + buildReadableId());
-		setId("__removed__");
+		//setReadableId("__removed__" + buildReadableId());
+		//setId("__removed__");
 		getLink().getLinkedObjects().clear();
 		getLink().setParent(null);
-		removed = true;
 	}
 	
 	@Override

@@ -14,7 +14,7 @@ module BattleManager {
 					((BattleField (Id~ Q~))->PlayerId Id~)^
 					((BattleField (Id~ Q~))->Quartal Q~)^
 					(BattleField (Id~ Q~))->Init~ Exe
-					(Resources.Battles (Resources.Battles~ (BattleField (BattleField (Id~ Q~))->Id~)) Join)^
+					(Resources.Battles (Resources.Battles~ ((BattleField (Id~ Q~))->Id~)) Join)^
 					// default: here defence will be built
 					(Resources.SelectedBattle (BattleField (Id~ Q~))->Id~)^
 					((Player Id~ created battlefield (BattleField (BattleField (Id~ Q~))->Id~)) Ew.Output~) Do 

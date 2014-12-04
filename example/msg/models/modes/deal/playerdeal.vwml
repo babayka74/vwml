@@ -4,13 +4,15 @@ module PlayerDeal {
 			Deal ias (
 				CommandId ias nil;
 				CommandParams ias nil;
-				StopQuartal ias (
-					((The player Id~ stops quartal $~) Ew.Output~) Do
-					((Quartal $~) Tx (Id~ exit ())) Gate
-				);
-				AllQuartalsStopped ias (
-					(Resources.Quartals.Visible ()) FinishInterception
-					((Player Id~) Tx (ModeInfo.ModeMain~ dealstopped Id~ ())) Gate
+				QuartalId ias nil;
+				UnlinkQ ias (
+					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^;
+					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;
+					((Quartal QuartalId~)->Linked false)^
+					((Quartal QuartalId~)->Owner nil)^
+					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
+					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
+					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
 				);
 				// (player 0 setintention (quartalId intention (...)))
  				(Handle setintention) ias (
@@ -31,14 +33,13 @@ module PlayerDeal {
 					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
 				);
 				(Handle unlinkquartal) ias (
-					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^;
-					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;					(QuartalId (CommandParams~ 0) Get)^
 					(QuartalId (CommandParams~ 0) Get)^
-					((Quartal QuartalId~)->Linked false)^
-					((Quartal QuartalId~)->Owner nil)^
-					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
-					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
-					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
+					UnlinkQ~ Exe
+				);
+				(Handle releasequartal) ias (
+					(QuartalId (CommandParams~ 0) Get)^
+					UnlinkQ~ Exe
+					((Quartal QuartalId~) Tx (Id~ exit ())) Gate
 				);
 				(Handle paybribe),(Handle payquartalinfo) ias (
 					(Result true) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (confirmed))) Gate;
@@ -60,15 +61,6 @@ module PlayerDeal {
 				(Handle contribution),(Handle returnpayment) ias (
 					(Resources.Account.Value CommandParams~)^
 					Resources.Account.Recharge~ Exe
-				);
-				(Handle stop) ias (
-					(NoQuartals true) ias AllQuartalsStopped~ Exe;
-					(NoQuartals false) ias (
-						((The player Id~ is going to stop quartals Resources.Quartals.Visible~) Ew.Output~) Do
-						(Resources.Quartals.Visible () AllQuartalsStopped~) StartInterception
-						(Resources.Quartals.Visible~ StopQuartal~) ForEach
-					);
-					(NoQuartals (Resources.Quartals.Visible~ ()) Ident)~ Exe
 				);
 				(Handle back) ias (
 					(Player.Mode main)^

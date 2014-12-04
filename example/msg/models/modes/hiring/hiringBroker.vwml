@@ -6,7 +6,7 @@ module HiringBroker {
 				RequestId ias nil;
 				CommandParams ias nil;
 
-				(Handle starthiring),(Handle cancelhiring),(Handle paymentresult) ias ((HiringAgency Id~) Tx (CommandId~ RequestId~ CommandParams~)) Gate;
+				(Handle starthiring),(Handle cancelhiring),(Handle paymentresult),(Handle exit),(Handle check) ias ((HiringAgency Id~) Tx (CommandId~ RequestId~ CommandParams~)) Gate;
 				(Handle CommandId~)~ Exe
 			);
 		);
