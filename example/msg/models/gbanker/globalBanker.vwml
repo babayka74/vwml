@@ -12,7 +12,6 @@ module GlobalBanker {
 			Id ias nil;
 			TransferCommands ias (starttransfer transfer1sideresult transfer2sideresult);
 			Mode ias transfer;
-			Stop ias false;
 
 			Init ias (
 				(Mode transfer)^
@@ -106,12 +105,13 @@ module GlobalBanker {
 				Dispatch ias nil;
 				CommandSet ias nil;
 				Handler ias nil;
+				Cmd ias nil;
 
 				CheckAndHandleCommand ias (
 					(RightCommand true) ias Handler~ Exe;
 					(RightCommand false) ias GBankerLifeStep~ Exe;
 					((The global banker Id~ received command Dispatch~ to dispatch commands set CommandSet~) Ew.Output~) Do
-					(RightCommand (CommandSet~ (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get) In)~ Exe
+					(RightCommand (CommandSet~ Cmd~) In)~ Exe
 				);
 
 				(mode transfer) ias (
@@ -119,13 +119,19 @@ module GlobalBanker {
 					(Handler Handlers.HandleTransfer~)^
 				);
 
-				(NonForcedMode false) ias (Mode NonForcedMode~)^;
-				(NonForcedMode true) ias doNothing;
+				(Stop false) ias (
+					(NonForcedMode false) ias (Mode NonForcedMode~)^;
+					(NonForcedMode true) ias doNothing;
 
-				(NonForcedMode (Dispatch~ MagicWorld.Command.Format.ModeIndex~) Get)^
-				(NonForcedMode (NonForcedMode~ nil) Ident)~ Exe
-				(mode Mode~)~ Exe
-				CheckAndHandleCommand~ Exe
+					(NonForcedMode (Dispatch~ MagicWorld.Command.Format.ModeIndex~) Get)^
+					(NonForcedMode (NonForcedMode~ nil) Ident)~ Exe
+					(mode Mode~)~ Exe
+					CheckAndHandleCommand~ Exe
+				);
+				(Stop true) ias ((The global banker Id~ stopped) Ew.Output~) Do;
+
+				(Cmd (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Stop (Cmd~ exit) Ident)~ Exe
 			);
 			/* Player's lifestep */
 			GBankerLifeStep ias (
@@ -140,10 +146,10 @@ module GlobalBanker {
 				(ready (((GlobalBanker Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
-				(Stop false)^
 				((The global banker Id~ added and active) Ew.Output~) Do
 				((GlobalBanker Id~) Register blocked) Gate
 				GBankerLifeStep~ Exe
+				((GlobalBanker Id~) Unregister) Gate
 			) Exe
 
 		);

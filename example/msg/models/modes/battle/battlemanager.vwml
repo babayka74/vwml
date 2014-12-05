@@ -21,12 +21,10 @@ module BattleManager {
 				);
 				// battlefield is destroyed upon player's request
 				DestroyBattleField ias (
-					(SameBattle true) ias (Resources.SelectedBattle nil)^;
-					(SameBattle false) ias doNothing;
 					(BFId (Id~ (CommandParams~ 0) Get))^
 					(Resources.Battles (Resources.Battles~ (BattleField BFId~)) Substruct)^
-					(SameBattle ((BattleField (Id~ Q~))->Id~ BFId~) Ident)~ Exe
-					((Player Id~ destroyed battlefield (BattleField BFId~)) Ew.Output~) Do 
+					((Player Id~ is going to destroy battlefield (BattleField BFId~)) Ew.Output~) Do 
+					((Player Id~) Tx (ModeInfo.ModeBattle~ exit Id~ ())) Gate
 				);
 				// Selects battle (becames active from player's point of view)
 				SelectBattleField ias (

@@ -20,6 +20,10 @@ public class VWMLInterpreterTimerManager {
 		return VWMLResourceHostManagerFactory.hostManagerInstance().requestTimerManager();
 	}
 
+	public static void invalidate() {
+		VWMLResourceHostManagerFactory.hostManagerInstance().markTimerManagerAsInvalid();
+	}
+	
 	/**
 	 * Stops all timers and clears resources
 	 */

@@ -6,7 +6,7 @@ module GlobalBankerBroker {
 			Sender ias 0;
 			CommandId ias nil;
 			Params ias nil;
-			ExportedCommands ias (starttransfer);
+			ExportedCommands ias (starttransfer exit);
 
 			// propagating command to concrete player
 			PropagateCommand ias (

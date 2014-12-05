@@ -186,6 +186,14 @@ public class VWMLConflictRing {
 	}
 
 	/**
+	 * Invalidates ring's instance
+	 * @return
+	 */
+	public static synchronized void invalidate() {
+		VWMLResourceHostManagerFactory.hostManagerInstance().markRingAsInvalid();
+	}
+	
+	/**
 	 * Links conflict with group of related conflicts
 	 * @param conflict
 	 * @param linkedConflicts

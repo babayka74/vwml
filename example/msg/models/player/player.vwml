@@ -100,7 +100,7 @@ module Player {
 				BattleFieldDone ias (
 					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
 					(NotSelectedBF false) ias (
-						((Player Id~) Tx (ModeInfo.ModeBattle~ exit Id~ ())) Gate
+						((Player Id~) Tx (ModeInfo.ModeBattle~ destroybf Id~ ((Id~ 0)))) Gate
 					);
 					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe 
 				);
@@ -301,6 +301,7 @@ module Player {
 				(Services.SignalUnit (SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe
 				((Services)->(SignalUnit Player Id~)) Release
+				((AttackManager Id~)) Release
 				((Player Id~) Unregister) Gate
 			) Exe
 		);

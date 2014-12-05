@@ -13,11 +13,8 @@ module PlayersManager {
 					// initial quantity of elements in pool
 					Elements ias 30;
 					Fill ias (
-						// player's related components are created, but not activated
-						(Player (Player $~) defer) Born
-						(HiringAgency (HiringAgency $~) defer) Born
-						(AttackManager (AttackManager $~)) Born
-						(Quartal (Quartal ($~ 0)) defer) Born
+						(CreatePlayer.PId $~)^
+						CreatePlayer~ Exe
 					);
 					(Elements~ Fill~) Repeat
 				);
@@ -27,6 +24,22 @@ module PlayersManager {
 				(GlobalBanker 0)->Init~ Exe
 				((GlobalBanker 0)->Id 0)^
 				((GlobalBanker 0)) Activate
+			);
+			CreatePlayer ias (
+				PId ias 0;
+				BuildQuartal ias (Quartal (Quartal (PId~ $~)) defer) Born;
+				// player's related components are created, but not activated
+				(Player (Player PId~) defer) Born
+				(HiringAgency (HiringAgency PId~) defer) Born
+				(AttackManager (AttackManager PId~)) Born
+				(Ew.QuartalsConf.QuartalsPerPlayer~ BuildQuartal~) Repeat
+			);
+			ActivatePlayer ias (
+				PId ias 0;
+				((Adding player PId~) Ew.Output~) Do
+				((Player PId~)->Id PId~)^
+				((Player PId~)->Stop false)^
+				((Player PId~)) Activate
 			);
 			// propagating command to concrete player
 			PropagateCommand ias (
@@ -38,16 +51,24 @@ module PlayersManager {
 			(ManagerCommand true) ias (
 				// creates player and adds to session
 				(Command playeradd) ias (
-					((Adding player PlayerId~) Ew.Output~) Do
-					((Player PlayerId~)->Id PlayerId~)^
-					((Player PlayerId~)->Stop false)^
-					((Player PlayerId~)) Activate
+					(Exists true) ias (
+						(ActivatePlayer.PId PlayerId~)^
+						ActivatePlayer~ Exe
+					);
+					(Exists false) ias (
+						((Creating player PlayerId~) Ew.Output~) Do
+						(CreatePlayer.PId PlayerId~)^
+						CreatePlayer~ Exe
+						(Exists true)~ Exe
+					);
+					(Exists ((Player PlayerId~)) ExistsI)~ Exe
 				);
 				// player leaves session, but world is not stopped
 				(Command playerleave) ias (
 				);
 				// plater leaves session and world is going to be stopped
 				(Command playerstop) ias (
+					((Player PlayerId~) Tx (ModeInfo.ModeMain~ requeststopplayerworld PlayerId~ ())) Gate
 				);
 				(Command CommandId~)~ Exe
 			);

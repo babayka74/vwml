@@ -83,6 +83,12 @@ module BattleField {
 				Participants.Init~ Exe
 				((The battlefield for player PlayerId~ linked to quartal Quartal~ has id Id~ battle status BattleStatus~) Ew.Output~) Do
 			);
+			Done ias (
+				ReturnAllRemainedUnits~ Exe
+				NotifyAboutReturnedUnits~ Exe
+				((Player PlayerId~)->(Resources)->SelectedBattle nil)^
+				((BattleField Id~)) Release
+			);
 			SetModeAndBattleStatus ias (
 				(Mode Destination~)^
 				(BattleStatus Mode~)^
@@ -181,10 +187,7 @@ module BattleField {
 				(RightCommand true) ias (
 					// setting mode is allowed for all modes
 					(Handle setmode) ias SetModeAndBattleStatus~ Exe;
-					(Handle exit) ias (
-						ReturnAllRemainedUnits~ Exe
-						NotifyAboutReturnedUnits~ Exe
-					);
+					(Handle exit) ias Done~ Exe;
 					(Handle CommandId~)~ Exe
 				);
 				(RightCommand (NoneModeAvailableCommands~ CommandId~) In)~ Exe
@@ -247,10 +250,7 @@ module BattleField {
 					(Handle battlecost) ias SetBattleCost~ Exe;
 					// setups units on battlefield's map (attackers and defenders)
 					(Handle startpos),(Handle setprops) ias PropagateCommandToUnit~ Exe;
-					(Handle exit) ias (
-						ReturnAllRemainedUnits~ Exe
-						NotifyAboutReturnedUnits~ Exe
-					);
+					(Handle exit) ias Done~ Exe;
 					(Handle CommandId~)~ Exe
 				);
 				(RightCommand (BuildDefenceModeAvailableCommands~ CommandId~) In)~ Exe
@@ -303,10 +303,7 @@ module BattleField {
 						(Participants.NumOfAttackers 0)^
 						CheckBattleStatus~ Exe
 					);
-					(Handle exit) ias (
-						ReturnAllRemainedUnits~ Exe
-						NotifyAboutReturnedUnits~ Exe
-					);
+					(Handle exit) ias Done~ Exe;
 					(Handle CommandId~)~ Exe
 				);
 				(RightCommand (AttackModeAvailableCommands~ CommandId~) In)~ Exe

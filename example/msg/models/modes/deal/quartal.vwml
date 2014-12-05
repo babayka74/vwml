@@ -194,6 +194,7 @@ module Quartal {
 					);
 					(exit op),(exit cnp),(exit onp),(exit wtp) ias (
 						(StopQuartal true)^
+						(-1 (Pay Id~) Banker.Pay~) Recall
 						// unblocks quartal's gate
 						((Quartal Id~) Tx (Id~ check ())) Gate
 						((The sherif of quartal Id~ got message to exit) Ew.Output~) Do

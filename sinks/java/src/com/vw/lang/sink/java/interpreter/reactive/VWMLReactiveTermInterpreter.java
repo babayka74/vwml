@@ -91,7 +91,9 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 		setStatus(continueProcessingOfCurrentEntity);
 		conditionalLoop(null);
 		setStatus(stopped);
-		getTimerManager().stop();
+		VWMLInterpreterTimerManager.invalidate();
+		VWMLConflictRing.invalidate();
+		setTimerManager(null);
 	}
 
 	/**
