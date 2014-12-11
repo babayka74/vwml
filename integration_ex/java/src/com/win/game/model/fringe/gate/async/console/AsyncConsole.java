@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
@@ -101,6 +102,9 @@ public class AsyncConsole implements IVWMLGate {
 					}
 				}
 				in.add(e);
+				if (getGate() != null && getGate().isBlocked()) {
+					getGate().unblock();
+				}
 			}
 		}
 	}
@@ -167,11 +171,14 @@ public class AsyncConsole implements IVWMLGate {
 	
 	private static AsyncConsole s_instance = null;
 	private static String s_initMethod = "init";
+	private static String s_blockInMethod = "block";
+	private static String s_unblockInMethod = "unblock";
 	private static int s_initialized_entities = 2;
 	private List<DispatcherPairs> dispatchedQueues = new ArrayList<DispatcherPairs>();
 	private Map<String, ConcurrentLinkedQueue<EWEntity>> availableQueues = new HashMap<String, ConcurrentLinkedQueue<EWEntity>>();
 	private ConsoleInActivity cin = new ConsoleInActivity();
 	private ConsoleOutActivity cout = new ConsoleOutActivity();
+	private AtomicBoolean blocked = new AtomicBoolean(false);
 	
 	private AsyncConsole() {
 		
@@ -210,6 +217,14 @@ public class AsyncConsole implements IVWMLGate {
 			dispatcherInit(commandArgs);
 		}
 		else
+		if (commandId.equals(s_blockInMethod)) {
+			dispatcherBlockInput(commandArgs);
+		}
+		else
+		if (commandId.equals(s_unblockInMethod)) {
+			dispatcherUnblockInput(commandArgs);
+		}
+		else
 		if (commandId.equals(Console.getInMethod())) {
 			String fromQ = null;
 			if (commandArgs != null) {
@@ -245,6 +260,14 @@ public class AsyncConsole implements IVWMLGate {
 
 	@Override
 	public void activateConfiguration(Properties props) throws Exception {
+	}
+	
+	protected void dispatcherBlockInput(EWEntity commandArgs) {
+		block();
+	}
+
+	protected void dispatcherUnblockInput(EWEntity commandArgs) {
+		unblock();
 	}
 	
 	protected void dispatcherInit(EWEntity commandArgs) {
@@ -293,5 +316,28 @@ public class AsyncConsole implements IVWMLGate {
 		}
 		return q;
 	}
+
+	protected boolean isBlocked() {
+		return blocked.get();
+	}
 	
+	protected void block() {
+		if (!isBlocked()) {
+			blocked.getAndSet(true);
+			synchronized(this) {
+				try {
+					this.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	protected void unblock() {
+		blocked.getAndSet(false);
+		synchronized(this) {
+			this.notify();
+		}
+	}
 }

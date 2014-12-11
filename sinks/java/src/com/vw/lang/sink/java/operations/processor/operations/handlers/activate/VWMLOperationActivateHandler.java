@@ -2,7 +2,6 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.activate;
 
 import java.util.List;
 
-import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -20,8 +19,6 @@ import com.vw.lang.sink.java.operations.processor.VWMLOperationStackInspector;
  */
 public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 
-	private static final int s_numOfArgs = 1;
-	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
@@ -52,9 +49,6 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 	}
 	
 	protected void handleActivateOperation(VWMLEntity entity, VWMLContext context, VWMLInterpreterImpl interpreter) throws Exception {
-		if (!entity.isMarkedAsComplexEntity() || ((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_numOfArgs) {
-			throw new Exception("operation 'Activate' requires 1 argument; check code");
-		}
 		VWMLEntity activateEntity = entity;
 		if (activateEntity.getInterpreting() != null && interpreter.getRing() != null) {
 			VWMLEntity lft = activateEntity.getInterpreting().getContext().findSourceLifeTerm();
@@ -76,7 +70,7 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 		}
 	}
 	
-	private void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
+	protected void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
 		if (!term.isActivated()) {
 			VWMLOperationUtils.activateTerm(interpreter, context, term);
 		}

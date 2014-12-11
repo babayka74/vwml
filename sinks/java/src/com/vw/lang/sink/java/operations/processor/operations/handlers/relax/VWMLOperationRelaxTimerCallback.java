@@ -39,7 +39,7 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 	
 	@Override
 	public void unblockActivity(VWMLInterpreterImpl interpreter) {
-		if ((interpreter != null && !(interpreter.getObserver().getBlockedByGate() != null))) {
+		if (interpreter != null) {
 			interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
 		}
 		if (interpreter.getObserver().getBlockedByGate() != null) {

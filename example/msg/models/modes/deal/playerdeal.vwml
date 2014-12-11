@@ -25,7 +25,8 @@ module PlayerDeal {
 				);
 				(Handle linkquartal) ias (
 					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Join)^;
-					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^;					(QuartalId (CommandParams~ 0) Get)^
+					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^;
+					(QuartalId (CommandParams~ 0) Get)^
 					((Quartal QuartalId~)->Linked true)^
 					((Quartal QuartalId~)->Owner Id~)^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately

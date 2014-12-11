@@ -180,6 +180,16 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 		throw new Exception("Must be implemented by concrete interpreter");
 	}
 	
+	/**
+	 * Hidden activity is not visible for ring's search operation and used for LTT operation only
+	 * @param ringTerms
+	 * @param clonedFrom
+	 * @throws Exception
+	 */
+	public void hiddenActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
+		throw new Exception("Must be implemented by concrete interpreter");
+	}
+	
 	public VWMLConflictRingNode getRtNode() {
 		return rtNode;
 	}

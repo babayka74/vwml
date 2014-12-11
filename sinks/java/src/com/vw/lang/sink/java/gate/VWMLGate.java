@@ -1,9 +1,8 @@
 package com.vw.lang.sink.java.gate;
 
+import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 
 /**
  * Live entity's gate
@@ -16,14 +15,18 @@ public class VWMLGate {
 	// blocked mode
 	private boolean blockedMode;
 	private VWMLInterpreterImpl blockedInterpreter;
-
+	// gates starts interpretation process of dockingTerm in case if 'Ready' operation returns 'false'
+	// usually dockingTerm is interpreted as 'fringe' operation
+	private VWMLEntity dockingTerm;
+	
 	public static final String s_blockedMode = "blocked";	
 	
-	public VWMLGate(VWMLConflictRing ring, String registrationKey, boolean blockedMode) {
+	public VWMLGate(VWMLConflictRing ring, String registrationKey, boolean blockedMode, VWMLEntity dockingTerm) {
 		super();
 		this.ring = ring;
 		this.registrationKey = registrationKey;
 		this.blockedMode = blockedMode;
+		this.dockingTerm = dockingTerm;
 	}
 
 	public VWMLConflictRing getRing() {
@@ -50,11 +53,18 @@ public class VWMLGate {
 		this.blockedMode = blockedMode;
 	}
 
+	public VWMLEntity getDockingTerm() {
+		return dockingTerm;
+	}
+
+	public void setDockingTerm(VWMLEntity dockingTerm) {
+		this.dockingTerm = dockingTerm;
+	}
+
 	public synchronized void blockActivity(VWMLInterpreterImpl blockedInterpreter) {
-		if (isBlockedMode()) {
+		if (isBlockedMode() && this.blockedInterpreter == null) {
 			this.blockedInterpreter = blockedInterpreter;
 			blockedInterpreter.getObserver().setBlockedByGate(this);
-			blockedInterpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
 			try {
 				ring.incrementNumOfBlockedNodes(this);
 			} catch (Exception e) {
@@ -67,7 +77,6 @@ public class VWMLGate {
 	public synchronized void unblockActivity() {
 		if (isBlockedMode() && blockedInterpreter != null) {
 			blockedInterpreter.getObserver().setBlockedByGate(null);
-			blockedInterpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
 			blockedInterpreter = null;
 			try {
 				ring.decrementNumOfBlockedNodes();

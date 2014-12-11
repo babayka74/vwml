@@ -174,9 +174,6 @@ module Player {
 				);
 				Done ias (
 					BattleFieldDone~ Exe
-					Hiring.Done~ Exe
-					Quartals.Done~ Exe
-					ResourceManagerDone~ Exe
 				);
 			);
 			HandlePlayerCommandOnModeBattle ias (

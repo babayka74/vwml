@@ -316,6 +316,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			return;
 		}
 		blockedNodes.incrementAndGet();
+//		System.out.println("Inc b nodes '" + blockedNodes.get() + "'; nodes '" + calculateNumberOfNodes() + "'");
 		if (blockedNodes.intValue() == calculateNumberOfNodes()) {
 			blockRing(gate);
 		}
@@ -327,6 +328,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	public void decrementNumOfBlockedNodes() throws Exception {
 		if (blockedNodes.intValue() > 0) {
 			blockedNodes.decrementAndGet();
+//			System.out.println("Dec b nodes '" + blockedNodes.get() + "'; nodes '" + calculateNumberOfNodes() + "'");
 			if (blockedNodes.intValue() < calculateNumberOfNodes()) {
 				unblockRing();
 			}
@@ -549,7 +551,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	public VWMLContext askContextFindRequest(String id) throws Exception {
 		throw new Exception("Not implemented yet for MT strategy");
 	}
-	
+
 	/**
 	 * Processes incoming requests (called from ring's thread)
 	 */
@@ -557,8 +559,8 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	protected void processRequests() throws Exception {
 		VWMLRingEvent event = null;
 		while ((event = eventQueue.poll()) != null) {
-			event.handle(this);
 			System.out.println("Read event '" + event + "' from '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
+			event.handle(this);
 			if (event.isHandleAgain()) {
 				deferredEventQueue.offer(event);
 				//System.out.println("event '" + event + "' from '" + this + "' should be handled again; thread '" + Thread.currentThread().getId() + "'");
@@ -607,4 +609,5 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	protected boolean isActuallyBlocked() {
 		return actuallyBlocked.get();
 	}
+	
 }

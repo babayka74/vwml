@@ -80,14 +80,12 @@ module PlayerResourceManager {
 					((Player Id~ hired unit HiredUnitId~) Ew.Output~) Do
 				);
 				// unit's functionality doesn't need to player
-				(Handle dismissunit) ias (
+				(Handle dismissunit),(Handle releaseunit) ias (
 					(DismissUnit.U HiredUnitId~)^
 					DismissUnit~ Exe
-					PushOutUnit~ Exe
 				);
-				// remove stopped unit which was killed and stopped
 				// unitstopped is sent when command exit is sent to unit and unit finishes its work
-				(Handle releaseunit),(Handle unitstopped) ias PushOutUnit~ Exe;
+				(Handle unitstopped) ias PushOutUnit~ Exe;
 				// unit is in action (battle for example)
 				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe;
 				// unit is returned from action, if wasn't killed

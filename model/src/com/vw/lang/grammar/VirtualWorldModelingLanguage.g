@@ -55,6 +55,7 @@ tokens {
     OPRELEASE='Release';
     OPEXISTSI='ExistsI';
     OPEXISTSI_S='EI';
+    OPLTT='LTT';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1274,6 +1275,7 @@ opclist
     | OPRELEASE
     | OPEXISTSI
     | OPEXISTSI_S
+    | OPLTT
     ;
 
 termLanguages

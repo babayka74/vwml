@@ -27,9 +27,16 @@ module PlayerModeMain {
 					Resources.Done~ Exe
 				);
 				(Handle partclosed) ias (
+					CA ias nil;
+					(CA battlefield) ias Resources.Hiring.Done~ Exe;
+					(CA hiringagency) ias Resources.Quartals.Done~ Exe;
+					(CA quartals) ias Resources.ResourceManagerDone~ Exe;
+                                        (CA resourcemanager) ias doNothing;
 					(Params (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
-					(Activities (Activities~ ((Params~ 0) Get)) Substruct)^
-					((The player Id~ stopped activity Params~ left Activities~) Ew.Output~) Do
+					(CA (Params~ 0) Get)^
+					(CA CA~)~ Exe
+					((The player Id~ stopped activity CA~ left Activities~) Ew.Output~) Do
+					(Activities (Activities~ (CA~)) Substruct)^
 				);
 				(Handle playerworldstopped) ias (
 					(Activities () NotifyAboutActivitiesStopped~) FinishInterception

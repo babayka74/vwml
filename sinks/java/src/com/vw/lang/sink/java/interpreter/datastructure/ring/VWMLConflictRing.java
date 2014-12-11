@@ -167,6 +167,8 @@ public class VWMLConflictRing {
 	private boolean initialyEmptyRing = false;
 	private boolean master = false;
 	private boolean stopped = false;
+	// not participates in search operation (for LTT only)
+	private boolean hidden = false;
 	// actual conflict ring data structure
 	private List<VWMLConflictRingExecutionGroup> groupsConflictRing = new LinkedList<VWMLConflictRingExecutionGroup>();
 	private List<VWMLConflictRingNode> nodesConflictRing = new LinkedList<VWMLConflictRingNode>();
@@ -325,6 +327,14 @@ public class VWMLConflictRing {
 
 	public void setRingInitialInterpreter(VWMLInterpreterImpl ringInitialInterpreter) {
 		this.ringInitialInterpreter = ringInitialInterpreter;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
 	}
 
 	/**

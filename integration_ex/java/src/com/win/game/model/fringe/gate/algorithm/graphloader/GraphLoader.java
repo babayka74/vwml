@@ -10,6 +10,7 @@ import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.gate.IEW2VWMLGate;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.win.game.model.fringe.gate.utils.Utils;
 
 public class GraphLoader implements IVWMLGate {
 
@@ -29,14 +30,7 @@ public class GraphLoader implements IVWMLGate {
 			String fullPath = gl.getPathToStoreGraphData() + "/" + graphName + ".graph";
 			BufferedReader br = new BufferedReader(new FileReader(fullPath));
 		    try {
-		        StringBuilder sb = new StringBuilder();
-		        String line = br.readLine();
-
-		        while (line != null) {
-		            sb.append(line);
-		            line = br.readLine();
-		        }
-		        e = EWEntityBuilder.buildFromString(sb.toString());
+				e = Utils.constructEntityFromTextFile(fullPath);
 		    } finally {
 		        br.close();
 		    }				

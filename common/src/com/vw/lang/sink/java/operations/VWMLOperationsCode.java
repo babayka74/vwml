@@ -53,6 +53,7 @@ public enum VWMLOperationsCode {
     OPRELEASE("Release"),
     OPEXISTSI("ExistsI"),
     OPEXISTSI_S("EI"),
+    OPLTT("LTT"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

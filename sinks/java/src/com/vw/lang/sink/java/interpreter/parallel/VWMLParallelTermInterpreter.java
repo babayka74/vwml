@@ -40,6 +40,8 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		private boolean ringCopyAsSecondary = VWMLReactiveActivity.masterRing;
 		private boolean cloneMasterNode = false;
 		private boolean waitTillStart = false;
+		// meaning that 'ring' will not be participate in seacrh and used for LTT operaion only
+		private boolean hidden = false;
 		
 		public boolean isStopped() {
 			return stopped;
@@ -113,6 +115,14 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			this.waitTillStart = waitTillStart;
 		}
 
+		public boolean isHidden() {
+			return hidden;
+		}
+
+		public void setHidden(boolean hidden) {
+			this.hidden = hidden;
+		}
+
 		public void start() {
 			Thread t = new Thread(this);
 			t.start();
@@ -124,6 +134,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			interpreter.setConfig(getMasterInterpreter().getConfig());
 			interpreter.setMasterInterpreter(getMasterInterpreter());
 			interpreter.getRing().copyFrom(getMasterInterpreter().getRing());
+			interpreter.getRing().setHidden(isHidden());
 			interpreter.setNormalization(false);
 			interpreter.setCloneMasterOnSLFTermActivation(this.isCloneMasterNode());
 			if (getClonedFrom() != null) {
@@ -212,7 +223,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		VWMLConflictRing.instance().normalize();
 		setRing(VWMLConflictRing.instance());
 		getRing().setMaster(true);
-		activateRings(getTerms(), null, VWMLReactiveActivity.masterRing, false, false);
+		activateRings(getTerms(), null, VWMLReactiveActivity.masterRing, false, false, false);
 		waitForAll();
 		notifyActivityBroker(IVWMLGate.builtInRemoveActivityCommandId, Thread.currentThread().getId(), activityName);
 	}
@@ -232,10 +243,15 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 
 	@Override
 	public void newActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
-		activateRings(ringTerms, clonedFrom, VWMLReactiveActivity.secondaryRing, true, true);
+		activateRings(ringTerms, clonedFrom, VWMLReactiveActivity.secondaryRing, true, true, false);
+	}
+
+	@Override
+	public void hiddenActivity(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom) throws Exception {
+		activateRings(ringTerms, clonedFrom, VWMLReactiveActivity.secondaryRing, true, true, true);
 	}
 	
-	protected void activateRings(List<VWMLEntity> terms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart) throws Exception {
+	protected void activateRings(List<VWMLEntity> terms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart, boolean asHidden) throws Exception {
 		int nodesPerRing = getConfig().getNodesPerRing();
 		int nodes = terms.size() / nodesPerRing;
 		List<VWMLEntity> ringTerms = new ArrayList<VWMLEntity>();
@@ -244,7 +260,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			for(int j = 0; j < nodesPerRing; j++) {
 				ringTerms.add(terms.get(j + i));
 			}
-			activateRing(ringTerms, clonedFrom, masterRing, cloneMaster, waitTillStart);
+			activateRing(ringTerms, clonedFrom, masterRing, cloneMaster, waitTillStart, asHidden);
 			ringTerms = new ArrayList<VWMLEntity>();
 			i += nodesPerRing;
 			masterRing = VWMLReactiveActivity.secondaryRing;
@@ -253,10 +269,10 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 		for(int j = i; j < terms.size(); j++) {
 			ringTerms.add(terms.get(j));
 		}
-		activateRing(ringTerms, clonedFrom, masterRing, cloneMaster, waitTillStart);
+		activateRing(ringTerms, clonedFrom, masterRing, cloneMaster, waitTillStart, asHidden);
 	}
 	
-	protected void activateRing(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart) throws Exception {
+	protected void activateRing(List<VWMLEntity> ringTerms, VWMLEntity clonedFrom, boolean masterRing, boolean cloneMaster, boolean waitTillStart, boolean asHidden) throws Exception {
 		if (ringTerms.size() != 0) {
 			Integer signalOnStart = new Integer(0x1111);
 			VWMLReactiveActivity activity = new VWMLReactiveActivity();
@@ -268,6 +284,7 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			activity.setClonedFrom(clonedFrom);
 			activity.setCloneMasterNode(cloneMaster);
 			activity.setWaitTillStart(waitTillStart);
+			activity.setHidden(asHidden);
 			activities.add(activity);
 			activity.start();
 			if (waitTillStart) {

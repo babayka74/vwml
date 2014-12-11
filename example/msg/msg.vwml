@@ -76,6 +76,31 @@ module msg {
 			CommandId ias nil;
 			Params ias nil;
 
+			ExWCommandListener ias (
+				Cmd ias nil;
+				(StopTheWorld true) ias (
+					((The command listener exited) Ew.Output~) Do
+				);
+				(StopTheWorld false) ias (
+					(WaitForCommand true) ias (
+						(NoAutoCommand false) ias (
+							(Cmd (AutoCommands.Injection~) First)^
+							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
+							((The auto command Cmd~) Ew.Output~) Do
+							(Manager Tx Cmd~) Gate
+						);
+						(NoAutoCommand true) ias (() Ew.BlockInput~) Do;
+						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
+					);
+					(WaitForCommand false) ias (Manager Tx Cmd~) Gate;
+					/* waiting for command, in non-blocking manner */ 
+					(Cmd (() Ew.Input~) Do)^
+					(WaitForCommand (Cmd~ nil) Ident)~ Exe
+					ExWCommandListener~ Exe
+				);
+				(StopTheWorld StopTheWorld~)~ Exe
+			);
+
 			AddressedCharacters ias (manager pm player gbanker);
 			StopAll ias (AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 exit))) Join)^;
 			/* command is propagated to player */
@@ -98,11 +123,12 @@ module msg {
 				(RightCharacter true) ias (
 					// for game manager
 					(To manager) ias (
-						(Command delay) ias ((Params~ 0) Get) Relax;
+						(Command delay) ias ((Params~ 0) Get nil nil Manager) Relax;
 						// stops game model
 						(Command exit) ias (
 							((The game manager got exit command) Ew.Output~) Do
 							(StopTheWorld true)^
+							(() Ew.UnblockInput~) Do
 						);
 						((manager command CommandId~) Ew.Output~) Do
 						(Command CommandId~)~ Exe
@@ -149,27 +175,14 @@ module msg {
 					(Params (Command~ 5) Get)^
 				);
 				(Stop false) ias (
-					(WaitForCommand true) ias (
-						(NoAutoCommand false) ias (
-							(Command (AutoCommands.Injection~) First)^
-							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
-							((The auto command Command~) Ew.Output~) Do
-							ParseIncomingCommand~ Exe
-							((The auto command Command~ character Character~) Ew.Output~) Do
-							AddressedTo~ Exe
-						);
-						(NoAutoCommand true) ias doNothing;
-						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
-						MainLoop~ Exe
-					);
-					(WaitForCommand false) ias (
+					(ready false) ias MainLoop~ Exe;
+					(ready true) ias (
+						(Command (Manager Rx) Gate)^
 						ParseIncomingCommand~ Exe
 						AddressedTo~ Exe
 						MainLoop~ Exe
 					);
-					/* waiting for command, in non-blocking manner */ 
-					(Command (() Ew.Input~) Do)^
-					(WaitForCommand (Command~ nil) Ident)~ Exe
+					(ready ((Manager Ready) Gate true) Ident)~ Exe
 				);
 				(Stop true) ias (
 					((The manager stopped) Ew.Output~) Do
@@ -183,22 +196,40 @@ module msg {
 #endif
 				3000 Relax
 				((The game manager started) Ew.Output~) Do
+				(Manager Register blocked) Gate
 				PlayersManager.Init~ Exe
-				((The game manager waits for commands) Ew.Output~) Do
+				((The game manager starts command listener as Ltt task) Ew.Output~) Do
+				(ExWCommandListener) LTT
 				MainLoop~ Exe
 				3000 Relax
+				(Manager Unregister) Gate
 			) Exe
 		);
 
 		AutoCommands ias (
 			Injection ias (
 				(pm 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 1 nil)
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 1 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (1 2))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (7500))
+				(player 0 battle setmode builddefence ())
+				(player 0 battle battlecost 0 ((cost vodka 100)))
+				(player 0 battle recruitunit (0 2) ())
+				(manager 0 nil delay 0 (500))
+				(player 0 battle apply 0 ())
+				(player 1 attack recruitunit (1 2) ())
+				(manager 0 nil delay 0 (500))
+				(player 1 attack prepareinvasion 0 (0))
+				(manager 0 nil delay 0 (20000))
+				(player 0 battle unitkilled (1 2) ())
 				(manager 0 nil delay 0 (1500))
+				(pm 0 nil playerstop 1 ())
 				(pm 0 nil playerstop 0 ())
+				(gbanker 0 any exit none ())
 				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (3500))
-				(pm 0 nil playerstop 0 ())
+				(manager 0 nil exit 0 ())
 			);
 		);
 
@@ -247,6 +278,42 @@ module msg {
 				(player 0 battle recruitunit (0 2) ())
 				(player 0 battle dismissunit (0 2) ())
 */
+
+/*
+  ===== DEFENCE BUILDING, RECRUTING UNITS AND STOP THE PLAYER'S WORLD ======
+				(pm 0 nil playeradd 0 nil)
+				(manager 0 nil delay 0 (500))
+				(player 0 battle setmode builddefence ())
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (7500))
+				(player 0 battle recruitunit (0 2) ())
+				(manager 0 nil delay 0 (2500))
+				(pm 0 nil playerstop 0 ())
+				(gbanker 0 any exit none ())
+				(manager 0 nil delay 0 (1500))
+				(manager 0 nil exit 0 ())
+*/
+
+/*
+  ===== MULTIPLE PLAYERS + DEFENCE BUILDING, RECRUTING UNITS AND STOP THE PLAYER'S WORLD ======
+				(pm 0 nil playeradd 0 nil)
+				(pm 0 nil playeradd 1 nil)
+				(manager 0 nil delay 0 (1500))
+				(player 0 battle setmode builddefence ())
+				(player 1 battle setmode builddefence ())
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 1 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (1 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (7500))
+				(player 0 battle recruitunit (0 2) ())
+				(player 1 battle recruitunit (1 2) ())
+				(manager 0 nil delay 0 (2500))
+				(pm 0 nil playerstop 1 ())
+				(pm 0 nil playerstop 0 ())
+				(gbanker 0 any exit none ())
+				(manager 0 nil delay 0 (1500))
+				(manager 0 nil exit 0 ())
+*/
+
 
 /*
   ===== DEFENCE BUILDING and RECRUTING MULTIPLE UNITS and RESET BATTLEFIELD TO INITIAL STATE ======
@@ -307,6 +374,13 @@ module msg {
 				(player 1 attack prepareinvasion 0 (0))
 				(manager 0 nil delay 0 (5000))
 				(player 0 battle unitkilled (1 2) ())
+				(manager 0 nil delay 0 (1500))
+				(pm 0 nil playerstop 1 ())
+				(pm 0 nil playerstop 0 ())
+				(gbanker 0 any exit none ())
+				(manager 0 nil delay 0 (1500))
+				(manager 0 nil exit 0 ())
+
 */
 
 				

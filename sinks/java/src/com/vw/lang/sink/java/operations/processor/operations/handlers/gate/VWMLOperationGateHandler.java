@@ -43,6 +43,8 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 	private static final int s_numOfArgsForTx = 3;
 	// destination handler which is executed in case if transmitted data is ready
 	private static final int s_numOfArgsForDestHandler = 4;
+	// argument for destination handler
+	private static final int s_numOfArgsForDestHandlerArg = 5;
 	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
@@ -83,6 +85,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		}
 		VWMLEntity result = null;
 		VWMLEntity handlerDestTerm = null;
+		VWMLEntity handlerDestTermArg = null;
 		VWMLEntity transportedEntity = null;
 		VWMLEntity ringDestTerm = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 		VWMLEntity mode = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
@@ -91,6 +94,9 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		}
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfArgsForDestHandler) {
 			handlerDestTerm = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(3);
+		}
+		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfArgsForDestHandlerArg) {
+			handlerDestTermArg = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);
 		}
 		if (mode.getId().equals(modeTx)) {
 			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(unblockGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
@@ -109,9 +115,16 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		if (mode.getId().equals(modeReady)) {
 			VWMLGate gate = getGate(ringDestTerm);
 			boolean b = gate.getRing().isGateOpened(ringDestTerm);
+			if (!b && gate.getDockingTerm() != null) {
+				// asking to interpret docking term in order to receive another data (for example from fringe)
+				VWMLOperationUtils.activateTerm(interpreter, handlerDestTermArg, false, gate.getDockingTerm(), "Gate_", "Gate", null);
+				// checking again
+				b = gate.getRing().isGateOpened(ringDestTerm);
+			}
 			if (!b && gate.isBlockedMode()) {
 				gate.blockActivity(interpreter);
 			}
+//			System.out.println("ringDestTerm '" + ringDestTerm.getId() + "' b '" + b + "'");
 			result = (b) ? 	(VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_trueEntityId, VWMLContextsRepository.instance().getDefaultContext()) : 
 				  			(VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
 		}
@@ -131,7 +144,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			if (ring == null) {
 				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
 			}
-			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), new VWMLGate(ring, (String)(ringDestTerm.getId()), blocked));
+			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), new VWMLGate(ring, (String)(ringDestTerm.getId()), blocked, handlerDestTerm));
 		}
 		else
 		if (mode.getId().equals(modeUnregister)) {
