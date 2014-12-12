@@ -1,7 +1,7 @@
 options {
 	language=__java__ {
-  		package = "com.win.strategy.hanoi.vwml.model"
-  		path = "c:\var\vwml/hanoitower/src"
+  		package = "com.win.strategy.checkrr.vwml.model"
+  		path = "c:\var\vwml/checkrr/src"
   		author = "Win Interactive"
 		project_name = "Check_RR"
   		description = "Check re-arrangment"
@@ -52,6 +52,21 @@ module checkrr {
 		z ias b;
 		v ias 2;
 		source lifeterm = (
+#if (true & false)
+			((zuku) Ew.Output~) Do
+		#if (76 > 877)
+			((muku) Ew.Output~) Do
+		#else
+			((luku) Ew.Output~) Do
+		#endif
+#else
+			((kaka) Ew.Output~) Do
+			#if (1 < 0)
+				((maka) Ew.Output~) Do
+			#else
+				((baka) Ew.Output~) Do
+			#endif
+#endif
 			((mm.(aa z~)~) Ew.Output~) Do
 			(mm.x (x 2) defer) Born
 			((mm)->(x v~)) Activate

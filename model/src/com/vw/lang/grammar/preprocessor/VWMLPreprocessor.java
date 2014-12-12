@@ -395,7 +395,8 @@ public class VWMLPreprocessor {
 	}
 	
 	public VWMLPreprocessorIfDirective startDirectiveIf() {
-		VWMLPreprocessorIfDirective d = new VWMLPreprocessorIfDirective(this);
+		VWMLPreprocessorIfDirective d = null;
+		d = new VWMLPreprocessorIfDirective(this);
 		ifBlockStack.add(d);
 		return d;
 	}
@@ -408,11 +409,14 @@ public class VWMLPreprocessor {
 	}
 	
 	public void processDirectiveIf() throws Exception {
-		VWMLPreprocessorIfDirective d = getTopDirectiveIf();
-		if (d == null) {
-			throw new Exception("The stack of directive '#If' is empty");
+		VWMLPreprocessorIfDirective p = getParentDirectiveIf();
+		if (p == null || p.getResult()) {
+			VWMLPreprocessorIfDirective d = getTopDirectiveIf();
+			if (d == null) {
+				throw new Exception("The stack of directive '#If' is empty");
+			}
+			d.process();
 		}
-		d.process();
 	}
 	
 	public boolean getResultOfProcessingDirectiveIf() throws Exception {
@@ -427,11 +431,14 @@ public class VWMLPreprocessor {
 	}
 	
 	public void reverseResultOfProcessingDirectiveIf() throws Exception {
-		VWMLPreprocessorIfDirective d = getTopDirectiveIf();
-		if (d == null) {
-			throw new Exception("The stack of directive '#If' is empty");
+		VWMLPreprocessorIfDirective p = getParentDirectiveIf();
+		if (p == null || p.getResult()) {
+			VWMLPreprocessorIfDirective d = getTopDirectiveIf();
+			if (d == null) {
+				throw new Exception("The stack of directive '#If' is empty");
+			}
+			d.setResult(!d.getResult());
 		}
-		d.setResult(!d.getResult());
 	}
 	
 	public VWMLPreprocessorIfDirective endDirectiveIf() {
@@ -457,5 +464,12 @@ public class VWMLPreprocessor {
 	
 	protected void addOperationToExpression(VWMLPreprocessorExpression parent, String operation) {
 		parent.pushToOperationStack(operation);
+	}
+	
+	protected VWMLPreprocessorIfDirective getParentDirectiveIf() {
+		if (ifBlockStack.size() < 2) {
+			return null;
+		}
+		return ifBlockStack.get(ifBlockStack.size() - 2);
 	}
 }

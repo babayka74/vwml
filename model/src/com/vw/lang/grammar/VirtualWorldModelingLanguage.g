@@ -1003,6 +1003,7 @@ expression
     : (bunch_of_entity_decls IAS) => entity_def
     | check_term_def
     | pvwmlblock
+    | pswitch
     ;
 
 entity_def
@@ -1303,10 +1304,10 @@ pfringedefblock
 
 pvwmlblock
     : pstart pexpressions 
-    		{
+    		{ 
     			preprocessor.processDirectiveIf();
-    		}
-    		(expression)?
+    		} 
+    		(expression)*
       pend
     ;
 
@@ -1330,11 +1331,15 @@ pend
     : P_ENDIF	{
     			preprocessor.endDirectiveIf();
     		}
-    | P_ELSE  	{
+    		
+    ;
+
+pswitch
+    : P_ELSE  	{
     			preprocessor.reverseResultOfProcessingDirectiveIf();
     		}
     ;
-    
+
 pexpression
     : pitem (poperation (pexpressions)*)*
     ;
