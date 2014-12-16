@@ -82,9 +82,12 @@ module ExternalWorld {
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
 		Output ias communication.in.write;
-		OutChannel ias communication.in.write;
 		BlockInput ias communication.in.block;
 		UnblockInput ias communication.in.unblock;
+		InChannel ias communication.in.read;
+		OutChannel ias communication.in.write;
+		InChannelBlockInput ias communication.in.block;
+		InChannelUnblockInput ias communication.in.unblock;
 		// MoveUnit ias communication.outchannel.move;
 		IncValue ias services.math.inc;
 		DecValue ias services.math.dec;

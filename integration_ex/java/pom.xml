@@ -13,7 +13,7 @@
 	<artifactId>AdvancedIntegrationFringes</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>advanced integration fringes project</name>
+	<name>VWML2ExternalWorld Advanced Integration Package</name>
 
 	<properties>
 	</properties>

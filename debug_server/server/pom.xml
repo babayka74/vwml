@@ -13,7 +13,7 @@
 	<artifactId>VWMLDebugServerCommandDispatcher</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>VWML Debug Server Command Dispatcher</name>
+	<name>VWML Debugger Server Command Dispatcher Package</name>
 
 	<properties>
 	</properties>

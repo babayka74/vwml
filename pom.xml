@@ -10,6 +10,12 @@
 
 	<modules>
 		<module>common</module>
+		<module>integration/java</module>
+		<module>integration_ex/java</module>
+		<module>debug_server/common</module>
+		<module>debug_server/client</module>
+		<module>debug_server/server</module>
+		<module>debug_server/integration</module>
 		<module>sinks/java</module>
 		<module>model</module>
 	</modules>

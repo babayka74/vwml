@@ -13,7 +13,7 @@
 	<artifactId>VWMLCommon</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>VWMLCommon</name>
+	<name>VWMLCommon Package</name>
 
 	<properties>
 	</properties>

@@ -13,7 +13,7 @@
 	<artifactId>VWMLProcessor</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>VWMLProcessor</name>
+	<name>VWMLProcessor (Compiler)</name>
 
 	<properties>
 	</properties>

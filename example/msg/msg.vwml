@@ -78,22 +78,26 @@ module msg {
 			ExWCommandListener ias (
 				Cmd ias nil;
 				(StopTheWorld true) ias (
+#if (verbose)
 					((The command listener exited) Ew.Output~) Do
+#endif
 				);
 				(StopTheWorld false) ias (
 					(WaitForCommand true) ias (
 						(NoAutoCommand false) ias (
 							(Cmd (AutoCommands.Injection~) First)^
 							(AutoCommands.Injection (AutoCommands.Injection~) Rest)^
+#if (verbose)
 							((The auto command Cmd~) Ew.Output~) Do
+#endif
 							(Manager Tx Cmd~) Gate
 						);
-						(NoAutoCommand true) ias (() Ew.BlockInput~) Do;
+						(NoAutoCommand true) ias (() Ew.InChannelBlockInput~) Do;
 						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
 					);
 					(WaitForCommand false) ias (Manager Tx Cmd~) Gate;
 					/* waiting for command, in non-blocking manner */ 
-					(Cmd (() Ew.Input~) Do)^
+					(Cmd (() Ew.InChannel~) Do)^
 					(WaitForCommand (Cmd~ nil) Ident)~ Exe
 					ExWCommandListener~ Exe
 				);
@@ -102,34 +106,28 @@ module msg {
 
 			AddressedCharacters ias (manager pm player gbanker);
 			StopAll ias (AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 exit))) Join)^;
-			/* command is propagated to player */
-			PropagateCommand ias (
-				(PlayersManager.CommandMode CommandMode~)^
-                                (PlayersManager.PlayerId Id~)^
-				(PlayersManager.CommandId CommandId~)^
-				(PlayersManager.Destination UnitId~)^
-				(PlayersManager.Params Params~)^
-				PlayersManager~ Exe
-			);
-			(ManagerCommand false) ias (
-				((Not manager command propagating) Ew.Output~) Do
-				/* passes for processing */
-				PropagateCommand~ Exe
-			);
 			// dispatches incoming request
 			AddressedTo ias (
-				(RightCharacter false) ias ((Invalid addressed character Character~) Ew.Output~) Do;
+				(RightCharacter false) ias (
+#if (verbose)
+					((Invalid addressed character Character~) Ew.Output~) Do
+#endif
+				);
 				(RightCharacter true) ias (
 					// for game manager
 					(To manager) ias (
 						(Command delay) ias ((Params~ 0) Get nil nil Manager) Relax;
 						// stops game model
 						(Command exit) ias (
+#if (verbose)
 							((The game manager got exit command) Ew.Output~) Do
+#endif
 							(StopTheWorld true)^
-							(() Ew.UnblockInput~) Do
+							(() Ew.InChannelUnblockInput~) Do
 						);
+#if (verbose)
 						((manager command CommandId~) Ew.Output~) Do
+#endif
 						(Command CommandId~)~ Exe
 					);
 					// for players manager
@@ -184,14 +182,16 @@ module msg {
 					(ready ((Manager Ready) Gate true) Ident)~ Exe
 				);
 				(Stop true) ias (
+#if (verbose)
 					((The manager stopped) Ew.Output~) Do
+#endif
 				);
 				(Stop StopTheWorld~)~ Exe
 			);
 
 			source lifeterm = (
 #if (verbose)
-				((The debug initialization time) Ew.Output~) Do
+				((The verbose mode is active) Ew.Output~) Do
 #endif
 #if (release)
 				((The release initialization time) Ew.Output~) Do
@@ -200,7 +200,9 @@ module msg {
 				((The game manager started) Ew.Output~) Do
 				(Manager Register blocked) Gate
 				PlayersManager.Init~ Exe
+#if (verbose)
 				((The game manager starts command listener as Ltt task) Ew.Output~) Do
+#endif
 				(ExWCommandListener) LTT
 				MainLoop~ Exe
 				3000 Relax
@@ -235,212 +237,5 @@ module msg {
 			);
 		);
 
-/*
-  ===== ADD AND STOP PLAYER ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 0 ())
-
-*/
-
-/*
-  ===== ADD, STOP AND ADD AGAIN PLAYER AND STOP IT ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 0 ())
-				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (3500))
-				(pm 0 nil playerstop 0 ())
-*/
-
-/*
-  ===== ADD PLAYER AND STOP THE WHOLE WORLD ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 0 ())
-				(gbanker 0 any exit none ())
-				(manager 0 nil delay 0 (1500))
-				(manager 0 nil exit 0 ())
-*/
-
-/*
-  ===== TRANSFER RESOURCES BETWEEN PLAYERS ======
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
-				(gbanker 0 transfer starttransfer none (0 1 (cost vodka 200)))
-*/
-
-/*
-  ===== DEFENCE BUILDING and RECRUTING UNITS ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 battle setmode builddefence ())
-				(player 0 battle recruitunit (0 2) ())
-				(player 0 battle dismissunit (0 2) ())
-*/
-
-/*
-  ===== DEFENCE BUILDING, RECRUTING UNITS AND STOP THE PLAYER'S WORLD ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 battle setmode builddefence ())
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (7500))
-				(player 0 battle recruitunit (0 2) ())
-				(manager 0 nil delay 0 (2500))
-				(pm 0 nil playerstop 0 ())
-				(gbanker 0 any exit none ())
-				(manager 0 nil delay 0 (1500))
-				(manager 0 nil exit 0 ())
-*/
-
-/*
-  ===== MULTIPLE PLAYERS + DEFENCE BUILDING, RECRUTING UNITS AND STOP THE PLAYER'S WORLD ======
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
-				(manager 0 nil delay 0 (1500))
-				(player 0 battle setmode builddefence ())
-				(player 1 battle setmode builddefence ())
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 1 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (1 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (7500))
-				(player 0 battle recruitunit (0 2) ())
-				(player 1 battle recruitunit (1 2) ())
-				(manager 0 nil delay 0 (2500))
-				(pm 0 nil playerstop 1 ())
-				(pm 0 nil playerstop 0 ())
-				(gbanker 0 any exit none ())
-				(manager 0 nil delay 0 (1500))
-				(manager 0 nil exit 0 ())
-*/
-
-
-/*
-  ===== DEFENCE BUILDING and RECRUTING MULTIPLE UNITS and RESET BATTLEFIELD TO INITIAL STATE ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (500))
-				(player 0 battle setmode builddefence ())
-				(player 0 battle recruitunit (0 2) ())
-				(player 0 battle recruitunit (0 3) ())
-				(player 0 battle battlecost 0 ((cost vodka 150)))
-				(player 0 battle reset 0 ())
-*/
-
-
-/*
-  ===== BUILDING ATTACKING GROUP and RESET IT TO INITIAL STATE ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (500))
-				(player 0 attack recruitunit (0 2) ())
-				(player 0 attack recruitunit (0 3) ())
-                                (player 0 attack reset 0 ())
-*/
-
-/*
-  ===== BUILDING ATTACKING GROUP and CREATING ADDITIONAL USER and TRYING TO ATTACK ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (7500))
-				(player 0 attack recruitunit (0 2) ())
-				(player 0 attack recruitunit (0 3) ())
-				(manager 0 nil playeradd 1 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 attack prepareinvasion 0 (1))
-*/
-
-/*
-  ===== BUILDING ATTACKING GROUP and CREATING ADDITIONAL USER and ATTACK ======
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 1 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (1 2))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (7500))
-				(player 0 battle setmode builddefence ())
-				(player 0 battle battlecost 0 ((cost vodka 100)))
-				(player 0 battle recruitunit (0 2) ())
-				(manager 0 nil delay 0 (500))
-				(player 0 battle apply 0 ())
-				(player 1 attack recruitunit (1 2) ())
-				(manager 0 nil delay 0 (500))
-				(player 1 attack prepareinvasion 0 (0))
-				(manager 0 nil delay 0 (5000))
-				(player 0 battle unitkilled (1 2) ())
-				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 1 ())
-				(pm 0 nil playerstop 0 ())
-				(gbanker 0 any exit none ())
-				(manager 0 nil delay 0 (1500))
-				(manager 0 nil exit 0 ())
-
-*/
-
-				
-/*
-  ===== HIRING and CANCELING ======
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring cancelhiring (0 1) ())
-
-*/
-
-/*
-  ===== ADDING and REMOVING PLAYER ======
-
-				(pm 0 nil playeradd 0 nil)
-				(manager 0 nil delay 0 (500)) 
-				(player 0 nil exit 0 ())
-
-*/
-
-
-/*
-   ===== DEAL   =====
-				(pm 0 playeradd 0)
-				(player 0 main setmode 0 deal)
-				// create quartals for player 1
-				(manager 0 createquartals 0 ())
-				// publish intetion for player 0 and quartal 1
-				(player 0 deal setintention 0 (1 open (100)))
-				(player 0 deal setintention 0 (1 pay (950)))
-*/
-
-/*
-   ===== ATTACK =====
-				(player 0 main setmode 0 battle)
-				(player 0 nil create 0 ( (type attacker)
-						     (attack (yes yes yes))
-						     (defence (no no yes))
-						   ))
-				(player 0 nil startpos 0 (0 39))
-				(player 0 nil movetopos 0 ((17 10)))
-				(player 0 nil go 0)
-
-				(player 0 nil create 1 ( (type attacker)
-						     (attack (yes yes yes))
-						     (defence (no no yes))
-						   ))
-				(player 0 nil startpos 1 (5 39))
-				(player 0 nil movetopos 1 ((17 10)))
-				(player 0 nil go 1)
-	
-				(player 0 nil create 2 ( (type defender)
-						     (attack (yes yes no))
-						     (defence (yes yes yes yes))
-						    ))
-				(player 0 nil startpos 2 (15 29))
-				(player 0 nil go 2)
-*/
 	);
 }

@@ -13,7 +13,7 @@
 	<artifactId>VWMLSink-Java</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>VWMLSink Java</name>
+	<name>VWMLSink Java Package</name>
 
 	<properties>
 	</properties>
