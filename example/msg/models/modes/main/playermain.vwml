@@ -41,7 +41,12 @@ module PlayerModeMain {
 				(Handle playerworldstopped) ias (
 					(Activities () NotifyAboutActivitiesStopped~) FinishInterception
 					(Stop true)^
+#if (verbose)
 					((The player Id~ all activities stopped) Ew.Output~) Do
+#endif
+#if (release)
+                              		(((playerstop stopped) (Player Id~)) Ew.OutChannel~) Do
+#endif
 				);
 				(Handle CommandId~)~ Exe
 			);

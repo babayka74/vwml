@@ -11,6 +11,8 @@ module Quartal {
 			StopQuartal ias false;
 			/* last sender */
 			Source ias nil;
+			/* last opened quartal info */
+			QInfo ias nil;
 			/* quartal's resource type (configured) */
 			Resource ias (
 				Type ias nil;
@@ -61,7 +63,12 @@ module Quartal {
 					Pay ias (
 						(NoQuantums true) ias (
 							((Quartal Id~) Tx (Owner~ requestdone ())) Gate
+#if (verbose)
 							((The banker of sherif of quartal Id~ payed to player Owner~ all requested resources) Ew.Output~) Do
+#endif
+#if (release)
+							(((setintention pay finished) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 						);
 						(NoQuantums false) ias (
 							(Resource.Quantums ((Resource.Quantums~) Ew.DecValue~) Do)^
@@ -75,8 +82,13 @@ module Quartal {
 					);
 				);
 				OpenInfo ias (
-					((The sherif of quartal Id~ opens information about quartal
-						(Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ )) Ew.Output~) Do
+					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~))^
+#if (verbose)
+					((The sherif of quartal Id~ opens information about quartal QInfo~) Ew.Output~) Do
+#endif
+#if (release)                                   
+					(((setintention open done (QInfo~ Resource.OpenTime~)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 				);
 				Behavior ias (
 					State ias cnp;
@@ -88,15 +100,28 @@ module Quartal {
 						OpenInfo~ Exe
 						// starts timer; when timer is finished quartal is moved to state cnp
 						(Resource.OpenTime~ (Cnp Id~) OnCnpTimer~) Recall
+#if (verbose)
 						((The sherif of quartal Id~ provided information to player Owner~ and cnp timer activated for Resource.OpenTime~ ms) Ew.Output~) Do
+#endif
 					);
 					FailedPaymentForOpenInfo ias (
 						(State cnp)^
+#if (verbose)
 						((The sherif of quartal Id~ did not provide information to player Owner~ since payment was failed) Ew.Output~) Do
+#endif
+#if (release)
+						(((setintention open notEnoughResources) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
+
 					);
 					SuccessPaymentForBribeRequest ias (
 						// stop timer which could be activated on cnp state
+#if (verbose)
 						((The sherif of quartal Id~ took bribe ProposedBribe~) Ew.Output~) Do
+#endif
+#if (release)
+						(((setintention pay started (QInfo~)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 						Banker.ApplyPayment~ Exe
 						(State op)^
 						// starts timer of contribution period (player's bank account will being updated during this period)
@@ -104,7 +129,12 @@ module Quartal {
 					);
 					FailedPaymentForBribeRequest ias (
 						(State onp)^
+#if (verbose)
 						((The sherif of quartal Id~ did not get bribe payment from player Owner~ since payment was failed) Ew.Output~) Do
+#endif
+#if (release)
+						(((setintention pay notEnoughResources) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 					);
 					/* payment */
 					(paymentresult wtp) ias (
@@ -126,7 +156,12 @@ module Quartal {
 							(State wtp)^
 						);
 						(OpenQInfo -1) ias (
+#if (verbose)
 							((The sherif of quartal Id~ did not allow to open info ProposedPrice~ desired price is Resource.DesiredOpenInfoPrice~) Ew.Output~) Do
+#endif
+#if (release)
+							(((setintention open tooSmall (ProposedPrice~) (Resource.DesiredOpenInfoPrice~)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 						);
 						(ProposedPrice (Sherif.IntentionParams~ 0) Get)^
 						// sherif's bribe
@@ -143,15 +178,27 @@ module Quartal {
 					(close onp) ias (
 						Resource.Init~ Exe
 						(State cnp)^
+#if (verbose)
 						((The sherif of quartal Id~ closed information no bribe got) Ew.Output~) Do
+#endif
+#if (release)
+						(((setintention open closed) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 					);
 					// 
 					(close op) ias (
 						(State cp)^
+#if (verbose)
 						((The sherif of quartal Id~ closed information bribe was got) Ew.Output~) Do
+#endif
+#if (release)
+						(((setintention open closed) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 					);
 					(close cnp),(close cp) ias (
+#if (verbose)
 						((The sherif of quartal Id~ has already closed information about quartal) Ew.Output~) Do
+#endif
 					);
 					// player payes bribe and started getting resources and back payements from quartal
 					(pay onp) ias (
@@ -163,14 +210,21 @@ module Quartal {
 							(State wtp)^
 						);
 						(TakeBribe -1) ias (
+#if (verbose)
 							((The sherif of quartal Id~ did not take bribe ProposedBribe~ desired bribe is DesiredBribe~) Ew.Output~) Do
+#endif
+#if (release)
+							(((setintention pay tooSmall (ProposedBribe~) (DesiredBribe~)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
 						);
 						(ProposedBribe (Sherif.IntentionParams~ 0) Get)^
 						// sherif's bribe
 						(TakeBribe ((ProposedBribe~ DesiredBribe~) Ew.Compare~) Do)~ Exe
 					);
 					(pay cnp),(pay op),(pay cp) ias (
+#if (verbose)
 						((The sherif of quartal Id~ has already got bribe or qaurtal is closed and payment is impossible) Ew.Output~) Do
+#endif
 					);
 					(requestdone op) ias (
 						Resource.Init~ Exe
@@ -200,7 +254,9 @@ module Quartal {
 						((The sherif of quartal Id~ got message to exit) Ew.Output~) Do
 					);
 					(check op),(check cnp),(check onp),(check wtp) ias (
+#if (verbose)
 						((The sherif of quartal Id~ which belongs to player Owner~ got self test message) Ew.Output~) Do
+#endif
 					);
 					(Intention~ State~)~ Exe
 				);
@@ -220,17 +276,23 @@ module Quartal {
 				);
 				(ready true false) ias (
 					(CommandDispatcher.Dispatch ((Quartal Id~) Rx) Gate)^
+#if (verbose)
 					((The quartal Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+#endif
 					CommandDispatcher~ Exe
 					QuartalLifeStep~ Exe
 				);
 				(ready false true),(ready true true) ias (
+#if (verbose)
 					((The sherif of quartal Id~ reports about exiting) Ew.Output~) Do
+#endif
 				);
 				(ready (((Quartal Id~) Ready) Gate true) Ident StopQuartal~)~ Exe
 			);
 			lifeterm = (
+#if (verbose)
 				((The quartal Id~ added and active for owner Owner~) Ew.Output~) Do
+#endif
 				((Quartal Id~) Register blocked) Gate
 				Resource.Init~ Exe
 				QuartalLifeStep~ Exe

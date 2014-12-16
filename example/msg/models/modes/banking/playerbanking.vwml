@@ -32,7 +32,9 @@ module PlayerBanking {
 				);
 				(Handle back) ias (
 					(Player.Mode main)^
+#if (verbose)
 					((The player Id~ returned to main mode) Ew.Output~) Do
+#endif
 				);
 				(Handle CommandId~)~ Exe
 			);

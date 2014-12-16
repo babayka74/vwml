@@ -30,7 +30,12 @@ module PlayerResourceManager {
 					(CorrectUnit false) ias ((Unit U~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
 					(CorrectUnit true) ias (
 						((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate
+#if (verbose)
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
+#endif
+#if (release)
+						(((resourcemanager dismissed done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+#endif
 					);
 					(CorrectUnit (Resources.Units.Hired~ U~) In)~ Exe
 				);
@@ -38,13 +43,23 @@ module PlayerResourceManager {
 				TakeOnBoardUnit ias (
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^
+#if (verbose)
 					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
+#endif
+#if (release)
+					(((resourcemanager hired done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+#endif
 				);
 				
 				PushOutUnit ias (
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Substruct)^
+#if (verbose)
 					((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
+#endif
+#if (release)
+					(((resourcemanager released done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+#endif
 				);
 
 				MarkUnitAsIsInAction ias (
@@ -56,6 +71,9 @@ module PlayerResourceManager {
 							(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
 							((Characters)->(Unit HiredUnitId~)->InAction true)^
 							((Player Id~) Tx ((CommandParams~ 2) Get recruitedunit HiredUnitId~ ())) Gate
+#if (release)
+							(((resourcemanager inAction done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+#endif
 						);
 						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);
@@ -68,7 +86,12 @@ module PlayerResourceManager {
 					(CorrectUnit true) ias (
 						((Characters)->(Unit HiredUnitId~)->InAction false)^
 						(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
+#if (verbose)
 						((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
+#endif
+#if (release)
+						(((resourcemanager free done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+#endif
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
@@ -77,7 +100,9 @@ module PlayerResourceManager {
 				// unit has been hired and must be associated with player
 				(Handle hireunit) ias (
 					TakeOnBoardUnit~ Exe
+#if (verbose)
 					((Player Id~ hired unit HiredUnitId~) Ew.Output~) Do
+#endif
 				);
 				// unit's functionality doesn't need to player
 				(Handle dismissunit),(Handle releaseunit) ias (

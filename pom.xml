@@ -1,0 +1,47 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.vw.model.lang</groupId>
+	<artifactId>VWML</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>VWML</name>
+
+	<modules>
+		<module>common</module>
+		<module>sinks/java</module>
+		<module>model</module>
+	</modules>
+
+	<repositories>
+		<repository>
+			<id>mmo.repo.cloud.lan</id>
+			<name>artifactory-releases</name>
+			<url>http://mmo.repo.cloud.lan/artifactory/libs-release-local</url>
+		</repository>
+		<repository>
+			<id>mmo.repo.cloud.lan-snapshot</id>
+			<name>artifactory-snapshots</name>
+			<url>http://mmo.repo.cloud.lan/artifactory/libs-snapshot-local</url>
+			<snapshots>
+        			<enabled>true</enabled>
+        			<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>mmo.repo.cloud.lan</id>
+			<name>artifactory-releases</name>
+			<url>http://mmo.repo.cloud.lan/artifactory/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>mmo.repo.cloud.lan-snapshot</id>
+			<name>artifactory-snapshots</name>
+			<url>http://mmo.repo.cloud.lan/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

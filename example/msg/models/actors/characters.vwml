@@ -42,7 +42,9 @@ module Characters {
 				);
 				StopActivity ias (
 					(StopUnit true)^
+#if (verbose)
 					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ unitstopped Id~ (Id~))) Gate
+#endif
 				);
 				/* each unit has following properties: power of attack and defence */
 				Power ias (
@@ -58,12 +60,16 @@ module Characters {
 						((Attacker Id~)->Id Id~)^
 						((Attacker Id~)->PlayerId PlayerId~)^
 						(ConcreteUnit (Characters)->(Attacker Id~))^
+#if (verbose)
 						((The attacker Id~ created) Ew.Output~) Do
+#endif
 					);
 					Destroy ias (
 						(MarkedAsKilled true)^
 						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ attaker))) Gate
+#if (verbose)
 						((The attacker Id~ destroyed) Ew.Output~) Do
+#endif
 					);
 				);
 				/* to be defender */
@@ -73,12 +79,16 @@ module Characters {
 						((Defender Id~)->Id Id~)^
 						((Defender Id~)->PlayerId PlayerId~)^
 						(ConcreteUnit (Characters)->(Defender Id~))^
+#if (verbose)
 						((The defender Id~ created) Ew.Output~) Do
+#endif
 					);
 					Destroy ias (
 						(MarkedAsKilled true)^
 						((Player PlayerId~) Tx (ModeInfo.ModeBattle~ unitkilled Id~ (BattleFieldId~ defender))) Gate
+#if (verbose)
 						((The defender Id~ destroyed) Ew.Output~) Do
+#endif
 					);
 				);
 				/* sets unit's property  */
@@ -86,14 +96,18 @@ module Characters {
 					Prop ias nil;
 					Value ias nil;
 					(RightProp false) ias (
+#if (verbose)
 						((The unit Id~ can not set invalid property named by Prop~) Ew.Output~) Do
+#endif
 					);
 					(RightProp true) ias (
 						(Pass true) ias doNothing;
 						(Pass false) ias (
 							(Property kind) ias (
 								(Kind Value~)^
+#if (verbose)
 								((The unit Id~ has kind Kind~) Ew.Output~) Do
+#endif
 							);
 							(Property type) ias (
 								(Type Value~)^
@@ -101,20 +115,28 @@ module Characters {
 							);
 							(Property attack) ias (
 								(Power.Attack Value~)^
+#if (verbose)
 								((The unit Id~ has attack power Power.Attack~) Ew.Output~) Do
+#endif
 							);
 							(Property defence) ias (
 								(Power.Defence Value~)^
+#if (verbose)
 								((The unit Id~ has defence power Power.Defence~) Ew.Output~) Do
+#endif
 							);
 							(Property Prop~)~ Exe
 						);
 						(Value ($~ 1) Get)^
+#if (verbose)
 						((The unit Id~ processes property Prop~ and value Value~) Ew.Output~) Do
+#endif
 						(Pass (Value~ nil) Ident)~ Exe
 					);
 					(Prop ($~ 0) Get)^
+#if (verbose)
 					((The unit Id~ received property Prop~) Ew.Output~) Do
+#endif
 					(RightProp (Properties~ Prop~) In)~ Exe 
 				);
 				GetCurrentPosition ias (
@@ -138,14 +160,18 @@ module Characters {
 					(Create Type~)~ Exe
 					((ConcreteUnit~)->BattleFieldId BattleFieldId~)^
 					(ConcreteUnit~)->Init~ Exe
+#if (verbose)
 					((The concrete unit ConcreteUnit~ created) Ew.Output~) Do
+#endif
 				);
 				ReleaseConcreteUnit ias (
 					((ConcreteUnit~)->BattleFieldId nil)^
 					(ConcreteUnit~)->Done~ Exe
 					(ConcreteUnit~) Release
 					(ConcreteUnit nil)^
+#if (verbose)
 					((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
+#endif
 				);
 				/* unit receives commands in deferred manner */
 				CommandDispatcher ias (
@@ -157,7 +183,9 @@ module Characters {
 					// concrete unit's type not specialized
 					(ns true) ias (
 						(Handle check) ias (
+#if (verbose)
 							((The unit Id~ belongs to player PlayerId~ self test ok) Ew.Output~) Do
+#endif
 							Stay~ Exe
 							UnitLifeStep~ Exe
 						);
@@ -180,7 +208,9 @@ module Characters {
 					// concrete unit's type specialized
 					(ns false) ias (
 						(Handle check) ias (
+#if (verbose)
 							((The unit Id~ belongs to player PlayerId~ self test ok) Ew.Output~) Do
+#endif
 							Stay~ Exe
 							UnitLifeStep~ Exe
 						);
@@ -215,7 +245,9 @@ module Characters {
 						);
 						(Handle getpos) ias (
 							UpdateCurrentPosition~ Exe
+#if (verbose)
 							((The unit Id~ has position CurrentPosition~) Ew.Output~) Do
+#endif
 							UnitLifeStep~ Exe
 						);
 						(Handle select) ias (
@@ -243,7 +275,9 @@ module Characters {
 						);
 						(ready true) ias (
 							(CommandDispatcher.Dispatch ((Unit Id~) Rx) Gate)^
+#if (verbose)
 							((The unit Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+#endif
 						);
 						(ready (((Unit Id~) Ready) Gate true) Ident)~ Exe
 						CommandDispatcher~ Exe
@@ -255,7 +289,9 @@ module Characters {
 				);
 
 				lifeterm = (
+#if (verbose)
 					((The unit Id~ was born) Ew.Output~) Do
+#endif
 					((Unit Id~) Register blocked) Gate
 					Init~ Exe
 					UnitLifeStep~ Exe

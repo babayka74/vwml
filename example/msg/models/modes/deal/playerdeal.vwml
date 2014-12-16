@@ -12,14 +12,21 @@ module PlayerDeal {
 					((Quartal QuartalId~)->Owner nil)^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
 					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
+#if (verbose)
 					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
+#endif
+#if (release)
+					(((unlinkquartal done) (player Id~) (quartal QuartalId~)) Ew.OutChannel~) Do
+#endif
 				);
 				// (player 0 setintention (quartalId intention (...)))
  				(Handle setintention) ias (
 					(QuartalId (CommandParams~ 0) Get)^
 					(Intention (CommandParams~ 1) Get)^
 					(IntentionParams (CommandParams~ 2) Get)^
+#if (verbose)
 					((The player Id~ in mode deal processes CommandId~ for quartal QuartalId~ intention Intention~ and params IntentionParams~) Ew.Output~) Do
+#endif
 					// propagate to quartal
 					((Quartal QuartalId~) Tx (Id~ Intention~ IntentionParams~)) Gate
 				);
@@ -31,7 +38,12 @@ module PlayerDeal {
 					((Quartal QuartalId~)->Owner Id~)^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
 					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
+#if (verbose)
 					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
+#endif
+#if (release)
+					(((linkquartal done) (player Id~) (quartal QuartalId~)) Ew.OutChannel~) Do
+#endif
 				);
 				(Handle unlinkquartal) ias (
 					(QuartalId (CommandParams~ 0) Get)^
@@ -65,7 +77,9 @@ module PlayerDeal {
 				);
 				(Handle back) ias (
 					(Player.Mode main)^
+#if (verbose)
 					((The player Id~ returned to main mode) Ew.Output~) Do
+#endif
 				);
 				(Handle CommandId~)~ Exe
 			);

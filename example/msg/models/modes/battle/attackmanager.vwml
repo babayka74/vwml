@@ -17,7 +17,12 @@ module AttackManager {
 			// adds unit to attacking group
 			AddUnitToAttackingGroup ias (
 				(AttackingUnits (AttackingUnits~ (To~)) Join)^
+#if (verbose)
 				((The unit To~ recruited to attacking group AttackingUnits~ of player PlayerId~) Ew.Output~) Do
+#endif
+#if (release)
+				(((recruitunit recruited attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
+#endif
 			);
 			// returns recruited unit to player's resources
 			RemoveUnitFromAttackingGroup ias (
@@ -39,19 +44,32 @@ module AttackManager {
 					RemoveUnitFromAttackingGroup~ Exe
 				);
 				(AttackingUnits~ ReturnUnit~) ForEach
+#if (release)
+				(((reset ok attack) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
 			);
 			// Player is going to attack another player (attack is allowed only in case if opponent's battlestatus is readyforattack)
 			// see EvaluateReadinessOnInvasion
 			PrepareInvasion ias (
 				(AttackingUnitsNotReady true) ias (
+#if (verbose)
 					((Player PlayerId~ must create attacking group before) Ew.Output~) Do
+#endif
+#if (release)
+					(((attack failed noAttackingGroup) (player PlayerId~) (player AttackedPlayerId~)) Ew.OutChannel~) Do
+#endif
 				);
 				(AttackingUnitsNotReady false) ias (
 					(AttackHimself false) ias (
 						((Player AttackedPlayerId~) Tx (ModeInfo.ModeBattle~ requestbattlestatusbf AttackedPlayerId~ (PlayerId~ ModeInfo.ModeAttack~))) Gate
 					);
 					(AttackHimself true) ias (
+#if (verbose)
 						((Player PlayerId~ can not attack himself) Ew.Output~) Do
+#endif
+#if (release)
+						(((attack failed attackHimself) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
 					);
 					// attacked player id
 					(AttackedPlayerId (CommandParams~ 0) Get)^
@@ -63,10 +81,17 @@ module AttackManager {
 			// response on battle status request of attacked player
 			EvaluateReadinessOnInvasion ias (
 				(OpponentReadyForAttack false) ias (
+#if (verbose)
 					((Can not attack player AttackedPlayerId~ since it has not built defence yet) Ew.Output~) Do
+#endif
+#if (release)
+					(((attack failed invalidAttackedDefence) (player PlayerId~) (player AttackedPlayerId~)) Ew.OutChannel~) Do
+#endif
 				);
 				(OpponentReadyForAttack true) ias (
+#if (verbose)
 					((Player PlayerId~ attacks AttackedPlayerId~ by units AttackingUnits~) Ew.Output~) Do
+#endif
 					// reaction is defined by 'Invasion' on AttackedPlayerId~
 					((Player AttackedPlayerId~) Tx (ModeInfo.ModeAttack~ invasion AttackedPlayerId~ (PlayerId~ AttackingUnits~))) Gate
 					(AttackingUnits ())^
@@ -79,7 +104,9 @@ module AttackManager {
 			Invasion ias (
 				(AttackingPlayerId (CommandParams~ 0) Get)^
 				(InvasiveGroup (CommandParams~ 1) Get)^
+#if (verbose)
 				((Player Id~ reports about invasion of player AttackingPlayerId~ with units InvasiveGroup~) Ew.Output~) Do
+#endif
 				((BattleField (Player PlayerId~)->(Resources)->SelectedBattle~)->PlayerAttackerId AttackingPlayerId~)^
 				// triggering attack mode
 				((Player PlayerId~) Tx (ModeInfo.ModeBattle~ setmode attack ())) Gate
@@ -93,12 +120,20 @@ module AttackManager {
 			(Handle recruitedunit) ias AddUnitToAttackingGroup~ Exe;
 			// negative response on requestunit
 			(Handle rejectedunit) ias (
+#if (verbose)
 				((The unit To~ can not be recruited by player PlayerId~) Ew.Output~) Do
+#endif
+#if (release)
+				(((recruitunit notHired attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
+#endif
 			);
 			// unit is returned to player's resources
 			(Handle dismissunit) ias (
 				(RemoveUnitFromAttackingGroup.U To~)^
 				RemoveUnitFromAttackingGroup~ Exe
+#if (release)
+				(((dismissunit dismissed attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
+#endif
 			);
 			// resets attacking group by returning all units back to player's resources
 			(Handle reset) ias RemoveAllUnitsFromAttackingGroup~ Exe;

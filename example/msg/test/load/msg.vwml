@@ -185,7 +185,7 @@ module msg {
 			);
 
 			source lifeterm = (
-#if (debug)
+#if (verbose)
 				((The initialization time) Ew.Output~) Do
 #endif
 				3000 Relax

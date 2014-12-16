@@ -920,6 +920,7 @@ fringe
 creatures
     : (creature)+
     | pfringedefblock
+    | pswitch
     ;
 
 creature

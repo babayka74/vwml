@@ -40,7 +40,6 @@ include "models/ew/ew.vwml"
 include "models/modes/battle/attackbroker.vwml"
 include "models/modes/battle/attackmanager.vwml"
 include "models/modes/battle/battlefield.vwml"
-include "models/modes/battle/battlefieldstop.vwml"
 include "models/modes/battle/battlemanager.vwml"
 
 include "models/modes/deal/playerdeal.vwml"
@@ -191,8 +190,11 @@ module msg {
 			);
 
 			source lifeterm = (
-#if (debug)
-				((The initialization time) Ew.Output~) Do
+#if (verbose)
+				((The debug initialization time) Ew.Output~) Do
+#endif
+#if (release)
+				((The release initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
 				((The game manager started) Ew.Output~) Do

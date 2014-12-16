@@ -36,7 +36,9 @@ module GlobalBanker {
 					(Tid (From~ To~ Quantum~))^
 					// storing transaction
 					(ActiveTransfers (ActiveTransfers~ (Tid~)) Join)^
+#if (verbose)
 					((The player From~ is going to transfer resource Quantum~ to To~ tid is Tid~) Ew.Output~) Do
+#endif
 					// asks player to withdraw something...
 					((Player From~) Tx (ModeInfo.ModeBanking~ withdraw From~ ((GlobalBanker Id~) transfer Tid~ transfer1sideresult (cost (Quantum~ 1) Get (Quantum~ 2) Get)))) Gate
 				);
@@ -52,7 +54,9 @@ module GlobalBanker {
 					Tid ias nil;
 					(Result confirmed) ias (
 						(Correct false) ias (
+#if (verbose)
 							((Invalid Tid~ detected) Ew.Output~) Do
+#endif
 						);
 						(Correct true) ias (
 							(Tid (ActiveTransfers~ Tid~) Find)^
@@ -64,7 +68,9 @@ module GlobalBanker {
 						(Correct (ActiveTransfers~ Tid~) In)~ Exe
 					);
 					(Result declined) ias (
+#if (verbose)
 						((Withdraw operation identified by Tid~ declined) Ew.Output~) Do
+#endif
 					);
 					(Result (Params~ 0) Get)^
 					(Tid (Params~ 1) Get)^
@@ -75,15 +81,21 @@ module GlobalBanker {
 					Tid ias nil;
 					(Result confirmed) ias (
 						(Correct false) ias (
+#if (verbose)
 							((Invalid Tid~ detected) Ew.Output~) Do
+#endif
 						);
 						(Correct true) ias (
+#if (verbose)
 							((The player From~ transferred resource Quantum~ to To~) Ew.Output~) Do
+#endif
 						);
 						(Correct (ActiveTransfers~ Tid~) In)~ Exe
 					);
 					(Result declined) ias (
+#if (verbose)
 						((Recharge operation identified by Tid~ declined) Ew.Output~) Do
+#endif
 					);
 					(Result (Params~ 0) Get)^
 					(Tid (Params~ 1) Get)^
@@ -110,7 +122,9 @@ module GlobalBanker {
 				CheckAndHandleCommand ias (
 					(RightCommand true) ias Handler~ Exe;
 					(RightCommand false) ias GBankerLifeStep~ Exe;
+#if (verbose)
 					((The global banker Id~ received command Dispatch~ to dispatch commands set CommandSet~) Ew.Output~) Do
+#endif
 					(RightCommand (CommandSet~ Cmd~) In)~ Exe
 				);
 
@@ -128,7 +142,11 @@ module GlobalBanker {
 					(mode Mode~)~ Exe
 					CheckAndHandleCommand~ Exe
 				);
-				(Stop true) ias ((The global banker Id~ stopped) Ew.Output~) Do;
+				(Stop true) ias (
+#if (verbose)
+					((The global banker Id~ stopped) Ew.Output~) Do
+#endif
+				);
 
 				(Cmd (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 				(Stop (Cmd~ exit) Ident)~ Exe
@@ -146,7 +164,9 @@ module GlobalBanker {
 				(ready (((GlobalBanker Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
+#if (verbose)
 				((The global banker Id~ added and active) Ew.Output~) Do
+#endif
 				((GlobalBanker Id~) Register blocked) Gate
 				GBankerLifeStep~ Exe
 				((GlobalBanker Id~) Unregister) Gate

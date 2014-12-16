@@ -122,13 +122,20 @@ module Player {
 							((Player Id~ initialized with resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
 						);
 						(Ew.QuartalsConf.ResourceTypes~ AssociateByRt~) ForEach
-						((Player Id~ initialized account resources) Ew.Output~) Do 
+#if (verbose)
+						((Player Id~ initialized account resources) Ew.Output~) Do
+#endif
 					);
 					Recharge ias (
 						(ByRtType (Rt (Value~ 1) Get))^
 						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sum~) Do)^
 						(Result true)^
-						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do 
+#if (verbose)
+						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
+#endif
+#if (release)
+						(((banking recharge (ByRtType~ (Value~ 2) Get ByRtType~~))(player Id~)) Ew.OutChannel~) Do
+#endif
 					);
 					Withdraw ias (
 						(Allow -1) ias (
@@ -138,7 +145,12 @@ module Player {
 						(Allow 0),(Allow 1) ias (
 							(Result true)^
 							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sub~) Do)^
-							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do 
+#if (verbose)
+							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do
+#endif
+#if (release)
+							(((banking withdraw (ByRtType~ (Value~ 2) Get ByRtType~~))(player Id~)) Ew.OutChannel~) Do
+#endif
 						);
 						(ByRtType (Rt (Value~ 1) Get))^
 						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
