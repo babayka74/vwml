@@ -38,11 +38,13 @@ module Player {
 			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ AttackManager.ExportedCommands~) Join)^
 		);
 		Player ias (
+			States ias (active nonactive);
 			Activities ias (resourcemanager quartals battlefield hiringagency);
 			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);
 			Mode ias main;
 			Id ias nil;
 			Stop ias false;
+			State ias nonactive;
 			Resources ias (
 				/* available units */
 				Units ias (
@@ -134,7 +136,7 @@ module Player {
 						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
 #endif
 #if (release)
-						(((banking recharge (ByRtType~ (Value~ 2) Get ByRtType~~))(player Id~)) Ew.OutChannel~) Do
+						(((banking recharge done (ByRtType~ (Value~ 2) Get ByRtType~~))(player Id~)) Ew.OutChannel~) Do
 #endif
 					);
 					Withdraw ias (
@@ -149,7 +151,7 @@ module Player {
 							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do
 #endif
 #if (release)
-							(((banking withdraw (ByRtType~ (Value~ 2) Get ByRtType~~))(player Id~)) Ew.OutChannel~) Do
+							(((banking withdraw done (ByRtType~ (Value~ 2) Get ByRtType~~))(player Id~)) Ew.OutChannel~) Do
 #endif
 						);
 						(ByRtType (Rt (Value~ 1) Get))^
@@ -302,6 +304,7 @@ module Player {
 			);
 			lifeterm = (
 				(Stop false)^
+				(State active)^
 				((The player Id~ added and active) Ew.Output~) Do
 				((Player Id~) Register blocked) Gate
 				(ActiveModes ActiveModes~ Exe)^
@@ -312,6 +315,7 @@ module Player {
 				((Services)->(SignalUnit Player Id~)) Release
 				((AttackManager Id~)) Release
 				((Player Id~) Unregister) Gate
+				(State nonactive)^
 			) Exe
 		);
 	);

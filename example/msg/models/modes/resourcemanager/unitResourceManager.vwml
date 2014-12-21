@@ -34,7 +34,7 @@ module PlayerResourceManager {
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
 #endif
 #if (release)
-						(((resourcemanager dismissed done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+						(((resourcemanager unitstopped done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
 #endif
 					);
 					(CorrectUnit (Resources.Units.Hired~ U~) In)~ Exe
@@ -47,7 +47,7 @@ module PlayerResourceManager {
 					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-					(((resourcemanager hired done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+					(((resourcemanager hireunit done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
 #endif
 				);
 				
@@ -58,7 +58,7 @@ module PlayerResourceManager {
 					((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-					(((resourcemanager released done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+					(((resourcemanager releaseunit done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
 #endif
 				);
 
@@ -72,7 +72,7 @@ module PlayerResourceManager {
 							((Characters)->(Unit HiredUnitId~)->InAction true)^
 							((Player Id~) Tx ((CommandParams~ 2) Get recruitedunit HiredUnitId~ ())) Gate
 #if (release)
-							(((resourcemanager inAction done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+							(((resourcemanager recruitunit done inAction) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
 #endif
 						);
 						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
@@ -90,7 +90,7 @@ module PlayerResourceManager {
 						((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-						(((resourcemanager free done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+						(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
 #endif
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^

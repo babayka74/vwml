@@ -807,12 +807,25 @@ javaProps
     @init {
     	setupProps();
     }
-    : propPackage generatedFileLocation? optionalProps
+    : obligatoryProps optionalProps
+
     ;
-    	
+
+obligatoryProps
+    : (obligatoryProp)*
+    ;
+
+obligatoryProp
+    : propPackage
+    | generatedFileLocation
+    | pjavaPropsBlock
+    | pswitch
+    ;
+    
+
 propPackage
     : 'package' '=' packageName {
-	    			  if (modProps != null) {
+	    			  if (modProps != null && !skipOff()) {
 	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModulePackage(GeneralUtils.trimQuotes($packageName.text));
 	    			  }
     			        }
@@ -824,7 +837,7 @@ packageName
 
 generatedFileLocation
     : 'path' '=' path {
-    			if (modProps != null) {
+    			if (modProps != null && !skipOff()) {
     				((JavaCodeGenerator.JavaModuleStartProps)modProps).setSrcPath(GeneralUtils.trimQuotes($path.text));
     			}
     		      }
@@ -918,7 +931,11 @@ fringe
     ;
 
 creatures
-    : (creature)+
+    : (creatureblock)+
+    ;
+
+creatureblock
+    : creature
     | pfringedefblock
     | pswitch
     ;
@@ -1299,6 +1316,15 @@ pfringedefblock
     			preprocessor.processDirectiveIf();
     		}
     		creatures
+      pend
+    ;
+
+pjavaPropsBlock
+    : pstart pexpressions 
+    		{
+    			preprocessor.processDirectiveIf();
+    		}
+    		javaProps
       pend
     ;
 

@@ -77,7 +77,7 @@ module HiringAgency {
 #if (release)
 					(CharacterIdInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                         (UnitId (CharacterIdInfo~ 1) Get)^
-					(((starthiring inProgress) (Player Owner~) (unit UnitId~) (NewRequestId~)) Ew.OutChannel~) Do								
+					(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) (NewRequestId~)) Ew.OutChannel~) Do								
 #endif
 				);
 				CancelHiringRequest ias (
@@ -92,17 +92,28 @@ module HiringAgency {
 #if (release)
 					(CharacterIdInfo ((RqId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                         (UnitId (CharacterIdInfo~ 1) Get)^
-					(((cancelhiring done) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do								
+					(((hiring cancelhiring done) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do								
 #endif
 				);
  				// cancels existing hiring request which was activated by 'ActuallyStartHiringRequest'
 				ActuallyCancelHiringRequest ias (
+					(RR true) ias (
+#if (verbose)
+						((The hiring agent can not cancel request RqId~ for player Owner~ as invalid) Ew.Output~) Do
+#endif
+#if (release)
+						(((hiring cancelhiring failed invalidRequestId) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do								
+#endif
+					);
+					(RR false) ias (
+						(CancelHiringRequest.RqId RequestId~)^
+						CancelHiringRequest~ Exe
+						// remove request from waiting list
+						(RequestsInProgress (RequestsInProgress~ (RequestId~)) Substruct)^
+					);
 					// here RequestId must coincide with one of processed GlobalHiringRequestId~
 					(RequestId (RequestsInProgress~ RequestId~) Find)^
-					(CancelHiringRequest.RqId RequestId~)^
-					CancelHiringRequest~ Exe
-					// remove request from waiting list
-					(RequestsInProgress (RequestsInProgress~ (RequestId~)) Substruct)^
+					(RR (RequestId~ nil) Ident)~ Exe
 				);
 				// called when unit's request is ready (aka agent found and hired unit)
 				ProcessRequest ias (
@@ -125,7 +136,7 @@ module HiringAgency {
 					// notify player about success hiring operation
 					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (UnitId~))) Gate
 #if (release)
-					(((starthiring done) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do
+					(((hiring starthiring done) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do
 #endif
 
 				);
@@ -148,7 +159,7 @@ module HiringAgency {
 #if (release)
 								(CharacterIdInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                                                 (UnitId (CharacterIdInfo~ 1) Get)^
-								(((starthiring noResources) (Player Owner~) (unit UnitId~)) Ew.OutChannel~) Do								
+								(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~)) Ew.OutChannel~) Do
 #endif
 							);
 							(payment (Request~ 0) Get)~ Exe

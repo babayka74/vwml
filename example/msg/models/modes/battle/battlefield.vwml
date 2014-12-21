@@ -95,7 +95,7 @@ module BattleField {
 					(Mode Destination~)^
 					(BattleStatus Mode~)^
 #if (release)
-					(((setmode Mode~) (player PlayerId~)) Ew.OutChannel~) Do
+					(((battle setmode ok Mode~) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 #if (verbose)
 					((The battlefield Id~ of player PlayerId~ changed mode to Mode~) Ew.Output~) Do
@@ -139,7 +139,7 @@ module BattleField {
 				);
 				(CommandParams~ AddUnit~) ForEach
 #if (release)
-				(((setupattackers ok) CommandParams~ (player PlayerId~)) Ew.OutChannel~) Do
+				(((attack setupattackers ok) CommandParams~ (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 			);
 			// checks battle's status
@@ -231,7 +231,7 @@ module BattleField {
 							((The battlefield Id~ must recruit units before) Ew.Output~) Do
 #endif
 #if (release)
-							(((apply failed battle) (player PlayerId~)) Ew.OutChannel~) Do
+							(((battle apply failed noUnits) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 						);
 						(NotReady false) ias (
@@ -241,7 +241,7 @@ module BattleField {
 							((The battlefield Id~ for player PlayerId~ is ready for attack) Ew.Output~) Do
 #endif
 #if (release)
-							(((apply ok battle) (player PlayerId~)) Ew.OutChannel~) Do
+							(((battle apply ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 						);
 						(NotReady (Participants.Units~ ()) Ident)~ Exe
@@ -255,7 +255,7 @@ module BattleField {
 						((The battlefield Id~ for player PlayerId~ was resetted to initial state) Ew.Output~) Do
 #endif
 #if (release)
-						(((CommandId~ ok battle) (player PlayerId~)) Ew.OutChannel~) Do
+						(((battle CommandId~ ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 					);
 					// player requests unit from resource manager to participate in battle, for defence.
@@ -270,7 +270,7 @@ module BattleField {
 						((The unit Destination~ recruited to battlefield Id~ player PlayerId~ units Participants.Units~) Ew.Output~) Do
 #endif
 #if (release)
-						(((recruitunit recruited defence) (player PlayerId~) (unit Destination~)) Ew.OutChannel~) Do
+						(((battle recruitunit ok defence) (player PlayerId~) (unit Destination~)) Ew.OutChannel~) Do
 #endif
 					);
 					// negative response on requestunit
@@ -279,7 +279,7 @@ module BattleField {
 						((The unit Destination~ can not be recruited to battlefield Id~ player PlayerId~) Ew.Output~) Do
 #endif
 #if (release)
-						(((recruitunit notHiredDefence) (player PlayerId~) (unit Destination~)) Ew.OutChannel~) Do
+						(((battle recruitunit failed (notHired defence)) (player PlayerId~) (unit Destination~)) Ew.OutChannel~) Do
 #endif
 					);
 					// returned - returned to player's resources
@@ -288,7 +288,7 @@ module BattleField {
 						ReturnUnit~ Exe	
 						(Participants.Units (Participants.Units~ (Destination~)) Substruct)^
 #if (release)
-						(((dismissunit dismissed defence) (player PlayerId~) (unit Destination~)) Ew.OutChannel~) Do						
+						(((battle dismissunit ok defence) (player PlayerId~) (unit Destination~)) Ew.OutChannel~) Do						
 #endif
 					);
 					(Handle battlecost) ias SetBattleCost~ Exe;
@@ -312,7 +312,7 @@ module BattleField {
 						((The battle between players PlayerId~ and PlayerAttackerId~ started) Ew.Output~) Do
 #endif
 #if (release)
-						(((attack started) (player PlayerId~) (player PlayerAttackerId~)) Ew.OutChannel~) Do
+						(((attack prepareinvasion ok) (player PlayerId~) (player PlayerAttackerId~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Handle unitkilled) ias (
@@ -333,7 +333,7 @@ module BattleField {
 							ReturnAllRemainedUnits~ Exe
 							(Mode none)^
 #if (release)
-							(((attack finished) (player PlayerAttackerId~) (player PlayerId~)) Ew.OutChannel~) Do
+							(((battle attack ok finished) (player PlayerAttackerId~) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 						);
 						(status loose) ias (
@@ -342,7 +342,7 @@ module BattleField {
 							ReturnAllRemainedUnits~ Exe
 							(Mode none)^
 #if (release)
-							(((attack finished) (player PlayerId~) (player PlayerAttackerId~)) Ew.OutChannel~) Do
+							(((battle attack ok finished) (player PlayerId~) (player PlayerAttackerId~)) Ew.OutChannel~) Do
 #endif
 						);
 						// status is sent by implementation of concrete battlefield
@@ -360,7 +360,7 @@ module BattleField {
 						(Participants.NumOfAttackers 0)^
 						CheckBattleStatus~ Exe
 #if (release)
-						(((surrender ok) (player PlayerAttackerId~) (player PlayerId~)) Ew.OutChannel~) Do
+						(((battle surrender ok) (player PlayerAttackerId~) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Handle exit) ias Done~ Exe;

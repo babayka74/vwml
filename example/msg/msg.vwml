@@ -1,7 +1,12 @@
 options {
 	language=__java__ {
+#if (standalone)
   		package = "com.win.strategy.msg.vwml.model"
   		path = "c:\var\vwml/msg/src"
+#else
+  		package = "com.win.strategy.msg.vwml.model"
+  		path = "d:\svn.nt.lan\strategy\strategy-mmo\vwml-strategy-model\src\main\java"
+#endif
   		author = "Win Interactive"
 		project_name = "MafiaStrategyGame"
   		description = "Mafia strategy game model"
@@ -9,11 +14,16 @@ options {
 			fringe communication ias (
 				out ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
 				in ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
-				// outchannel ias "com.win.strategy.battle.vwml.gate.BMVWMLMoveBehaviorGate"
+#if (standalone)
+				strategyfringe ias "com.win.game.model.fringe.gate.async.console.AsyncConsole"
+#else
+				strategyfringe ias "com.win.strategy.msg.integration.gate.VWMLStrategyGate"
+#endif
 			)
 			fringe services ias (
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
 				graph ias "com.win.game.model.fringe.gate.algorithm.graphloader.GraphLoader"
+				configuration ias "com.win.game.model.fringe.gate.configuration.loader.ConfigurationLoader"
 			)
 		}
 	}
@@ -197,6 +207,10 @@ module msg {
 				((The release initialization time) Ew.Output~) Do
 #endif
 				3000 Relax
+#if (verbose)
+				((Loading dynamic configurations) Ew.Output~) Do
+#endif
+				Ew.LoadConfiguration~ Exe
 				((The game manager started) Ew.Output~) Do
 				(Manager Register blocked) Gate
 				PlayersManager.Init~ Exe
@@ -212,8 +226,10 @@ module msg {
 
 		AutoCommands ias (
 			Injection ias (
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
+#if (unittest)
+				(pm 0 playermanagment playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
+				(pm 0 playermanagment playeradd 1 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 1 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (1 2))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -234,6 +250,7 @@ module msg {
 				(gbanker 0 any exit none ())
 				(manager 0 nil delay 0 (1500))
 				(manager 0 nil exit 0 ())
+#endif
 			);
 		);
 

@@ -36,15 +36,26 @@ module PlayersManager {
 			);
 			ActivatePlayer ias (
 				PId ias 0;
+				(State nonactive) ias (
 #if (verbose)
-				((Adding player PId~) Ew.Output~) Do
+					((Adding player PId~) Ew.Output~) Do
+#endif                          
+					((Player PId~)->Id PId~)^
+					((Player PId~)->Stop false)^
+					((Player PId~)) Activate
+#if (release)                   
+                              		(((playermanagment playeradd ok new) (Player PId~)) Ew.OutChannel~) Do
 #endif
-				((Player PId~)->Id PId~)^
-				((Player PId~)->Stop false)^
-				((Player PId~)) Activate
-#if (release)
-                              	(((playeradd added) (Player PId~)) Ew.OutChannel~) Do
+				);
+				(State active) ias (
+#if (verbose)
+					((Player PId~ has already been added) Ew.Output~) Do
+#endif                          
+#if (release)                   
+                              		(((playermanagment playeradd ok alreadyActive) (Player PId~)) Ew.OutChannel~) Do
 #endif
+				);
+				(State (Player PId~)->State~)~ Exe
 			);
 			// propagating command to concrete player
 			PropagateCommand ias (

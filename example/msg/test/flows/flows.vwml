@@ -1,27 +1,27 @@
 /*
   ===== ADD AND STOP PLAYER ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 0 ())
 
 */
 
 /*
   ===== ADD, STOP AND ADD AGAIN PLAYER AND STOP IT ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 0 ())
 				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (3500))
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 0 ())
 */
 
 /*
   ===== ADD PLAYER AND STOP THE WHOLE WORLD ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 0 ())
 				(gbanker 0 any exit none ())
 				(manager 0 nil delay 0 (1500))
 				(manager 0 nil exit 0 ())
@@ -29,14 +29,14 @@
 
 /*
   ===== TRANSFER RESOURCES BETWEEN PLAYERS ======
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
+				(pm 0 playermanagment playeradd 0 nil)
+				(pm 0 playermanagment playeradd 1 nil)
 				(gbanker 0 transfer starttransfer none (0 1 (cost vodka 200)))
 */
 
 /*
   ===== DEFENCE BUILDING and RECRUTING UNITS ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 battle setmode builddefence ())
@@ -46,14 +46,14 @@
 
 /*
   ===== DEFENCE BUILDING, RECRUTING UNITS AND STOP THE PLAYER'S WORLD ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 battle setmode builddefence ())
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(manager 0 nil delay 0 (7500))
 				(player 0 battle recruitunit (0 2) ())
 				(manager 0 nil delay 0 (2500))
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 0 ())
 				(gbanker 0 any exit none ())
 				(manager 0 nil delay 0 (1500))
 				(manager 0 nil exit 0 ())
@@ -61,8 +61,8 @@
 
 /*
   ===== MULTIPLE PLAYERS + DEFENCE BUILDING, RECRUTING UNITS AND STOP THE PLAYER'S WORLD ======
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
+				(pm 0 playermanagment playeradd 0 nil)
+				(pm 0 playermanagment playeradd 1 nil)
 				(manager 0 nil delay 0 (1500))
 				(player 0 battle setmode builddefence ())
 				(player 1 battle setmode builddefence ())
@@ -72,8 +72,8 @@
 				(player 0 battle recruitunit (0 2) ())
 				(player 1 battle recruitunit (1 2) ())
 				(manager 0 nil delay 0 (2500))
-				(pm 0 nil playerstop 1 ())
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 1 ())
+				(pm 0 playermanagment playerstop 0 ())
 				(gbanker 0 any exit none ())
 				(manager 0 nil delay 0 (1500))
 				(manager 0 nil exit 0 ())
@@ -82,7 +82,7 @@
 
 /*
   ===== DEFENCE BUILDING and RECRUTING MULTIPLE UNITS and RESET BATTLEFIELD TO INITIAL STATE ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -97,7 +97,7 @@
 
 /*
   ===== BUILDING ATTACKING GROUP and RESET IT TO INITIAL STATE ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -109,7 +109,7 @@
 
 /*
   ===== BUILDING ATTACKING GROUP and CREATING ADDITIONAL USER and TRYING TO ATTACK ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring starthiring 0 (((cost vodka 300) (hiringtime 3000) (id (0 3))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -123,8 +123,8 @@
 
 /*
   ===== BUILDING ATTACKING GROUP and CREATING ADDITIONAL USER and ATTACK ======
-				(pm 0 nil playeradd 0 nil)
-				(pm 0 nil playeradd 1 nil)
+				(pm 0 playermanagment playeradd 0 nil)
+				(pm 0 playermanagment playeradd 1 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 1 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (1 2))) ((kind zombac) (attack (yes yes yes)) (defence (no no yes)))))
@@ -140,8 +140,8 @@
 				(manager 0 nil delay 0 (20000))
 				(player 0 battle unitkilled (1 2) ())
 				(manager 0 nil delay 0 (1500))
-				(pm 0 nil playerstop 1 ())
-				(pm 0 nil playerstop 0 ())
+				(pm 0 playermanagment playerstop 1 ())
+				(pm 0 playermanagment playerstop 0 ())
 				(gbanker 0 any exit none ())
 				(manager 0 nil delay 0 (1500))
 				(manager 0 nil exit 0 ())
@@ -151,7 +151,7 @@
 				
 /*
   ===== HIRING and CANCELING ======
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500))
 				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 7000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
 				(player 0 hiring cancelhiring (0 1) ())
@@ -161,7 +161,7 @@
 /*
   ===== ADDING and REMOVING PLAYER ======
 
-				(pm 0 nil playeradd 0 nil)
+				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (500)) 
 				(player 0 nil exit 0 ())
 
@@ -170,7 +170,7 @@
 
 /*
    ===== DEAL   =====
-				(pm 0 playeradd 0)
+				(pm 0 playermanager playeradd 0)
 				(player 0 main setmode 0 deal)
 				// create quartals for player 1
 				(manager 0 createquartals 0 ())

@@ -44,8 +44,33 @@ module ExternalWorld {
 				(Initial~ Builder~) ForEach
 			);
 		);
-
+		/*
+			Loaded quartal configuration:
+			(
+				(QuartalPerPlayer 1)
+				(SherifBribeRanges (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40))
+				(ResourceTypes ((vodka 10000) (gold 20000) (food 300000)))
+				(Resources ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50)))
+			)
+		*/
 		QuartalsConf ias (
+			ConfFields ias (QuartalsPerPlayer SherifBribeRanges ResourceTypes Resources);
+			// dynamic load configuration
+			Load ias (
+				Conf ias nil;
+				ConfIndex ias 0;
+				(NotReady true) ias doNothing;
+				(NotReady false) ias (
+					SetConfField ias (
+						($~ ((Conf~ ConfIndex~) Get 1) Get)^
+						($~ QuartalsConf true) Context
+						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
+					);
+					(ConfFields~ SetConfField~) ForEach 
+				);
+				(Conf ((quartalconf) Ew.LoadConf~) Do)^
+				(NotReady (Conf~ nil) Ident)~ Exe
+			);
 			/* initial quartals (closed) per player */
 			QuartalsPerPlayer ias 1;
 			/* selected per quartal in random way */
@@ -64,6 +89,13 @@ module ExternalWorld {
 
 			 */
 			Resources ias ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50));
+			// loads if exists
+			Load~ Exe
+#if (verbose)
+			((The quartals configuration is) Ew.Output~) Do
+			ShowField ias (($~ $~~) Ew.Output~) Do;
+			(ConfFields~ ShowField~) ForEach
+#endif
 		);
 
 		CharactersConf ias (
@@ -84,16 +116,27 @@ module ExternalWorld {
 		Output ias communication.in.write;
 		BlockInput ias communication.in.block;
 		UnblockInput ias communication.in.unblock;
+#if (standalone)
 		InChannel ias communication.in.read;
 		OutChannel ias communication.in.write;
 		InChannelBlockInput ias communication.in.block;
 		InChannelUnblockInput ias communication.in.unblock;
-		// MoveUnit ias communication.outchannel.move;
+#else
+		InChannel ias communication.strategyfringe.read;
+		OutChannel ias communication.strategyfringe.write;
+		InChannelBlockInput ias communication.strategyfringe.block;
+		InChannelUnblockInput ias communication.strategyfringe.unblock;
+#endif
 		IncValue ias services.math.inc;
 		DecValue ias services.math.dec;
 		Sum ias services.math.sum;
 		Sub ias services.math.substr;
 		Compare ias services.math.compare;
 		LoadGraph ias services.graph.load;
+		LoadConf ias services.configuration.load;
+
+		LoadConfiguration ias (
+			QuartalsConf~ Exe
+		);
 	);
 }

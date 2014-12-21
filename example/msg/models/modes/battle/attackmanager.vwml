@@ -21,7 +21,7 @@ module AttackManager {
 				((The unit To~ recruited to attacking group AttackingUnits~ of player PlayerId~) Ew.Output~) Do
 #endif
 #if (release)
-				(((recruitunit recruited attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
+				(((attack recruitunit ok attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
 #endif
 			);
 			// returns recruited unit to player's resources
@@ -45,7 +45,7 @@ module AttackManager {
 				);
 				(AttackingUnits~ ReturnUnit~) ForEach
 #if (release)
-				(((reset ok attack) (player PlayerId~)) Ew.OutChannel~) Do
+				(((attack reset ok attack) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 			);
 			// Player is going to attack another player (attack is allowed only in case if opponent's battlestatus is readyforattack)
@@ -56,7 +56,7 @@ module AttackManager {
 					((Player PlayerId~ must create attacking group before) Ew.Output~) Do
 #endif
 #if (release)
-					(((attack failed noAttackingGroup) (player PlayerId~) (player AttackedPlayerId~)) Ew.OutChannel~) Do
+					(((attack prepareinvasion failed noAttackingGroup) (player PlayerId~) (player AttackedPlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
 				(AttackingUnitsNotReady false) ias (
@@ -68,7 +68,7 @@ module AttackManager {
 						((Player PlayerId~ can not attack himself) Ew.Output~) Do
 #endif
 #if (release)
-						(((attack failed attackHimself) (player PlayerId~)) Ew.OutChannel~) Do
+						(((attack prepareinvasion failed attackHimself) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 					);
 					// attacked player id
@@ -85,7 +85,7 @@ module AttackManager {
 					((Can not attack player AttackedPlayerId~ since it has not built defence yet) Ew.Output~) Do
 #endif
 #if (release)
-					(((attack failed invalidAttackedDefence) (player PlayerId~) (player AttackedPlayerId~)) Ew.OutChannel~) Do
+					(((attack prepareinvasion failed invalidAttackedDefence) (player PlayerId~) (player AttackedPlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
 				(OpponentReadyForAttack true) ias (
@@ -124,7 +124,7 @@ module AttackManager {
 				((The unit To~ can not be recruited by player PlayerId~) Ew.Output~) Do
 #endif
 #if (release)
-				(((recruitunit notHired attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
+				(((attack recruitunit failed notHired) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
 #endif
 			);
 			// unit is returned to player's resources
@@ -132,7 +132,7 @@ module AttackManager {
 				(RemoveUnitFromAttackingGroup.U To~)^
 				RemoveUnitFromAttackingGroup~ Exe
 #if (release)
-				(((dismissunit dismissed attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
+				(((attack dismissunit ok attack) (player PlayerId~) (unit To~)) Ew.OutChannel~) Do
 #endif
 			);
 			// resets attacking group by returning all units back to player's resources
