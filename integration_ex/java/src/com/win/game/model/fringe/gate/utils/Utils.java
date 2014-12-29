@@ -2,6 +2,7 @@ package com.win.game.model.fringe.gate.utils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
@@ -29,4 +30,26 @@ public class Utils {
 	    }				
 	    return e;
 	}
+	
+	/**
+	 * Reads text file
+	 * @param fileName
+	 * @return
+	 */
+	public static String readTextFile(String fileFullPathName) {
+        StringBuilder sb = new StringBuilder();
+        try {
+			BufferedReader br = new BufferedReader(new FileReader(fileFullPathName));
+	        String line = br.readLine();
+	        while (line != null) {
+	            sb.append(line);
+	            line = br.readLine();
+	        }
+        }
+        catch (IOException e) {
+        	sb = new StringBuilder();
+        }
+	    return sb.toString();
+	}
+	
 }

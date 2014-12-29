@@ -15,6 +15,7 @@ import com.vw.lang.grammar.VirtualWorldModelingLanguageLexer;
 import com.vw.lang.grammar.VirtualWorldModelingLanguageParser;
 import com.vw.lang.processor.model.builder.VWML2TargetSpecificSteps.Step;
 import com.vw.lang.processor.model.builder.specific.VWML2JavaSpecificSteps;
+import com.vw.lang.processor.model.sink.CompilationSink;
 import com.vw.lang.sink.ICodeGenerator;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.InterpretationProps;
@@ -154,16 +155,11 @@ public class VWMLModelBuilder extends Debuggable {
 	private String projectPath = null;
 	private InterpretationProps interpretationProps = null;
 	private StartModuleProps projectProps = null;
-	// builder is implemented as singleton
-	private static volatile VWMLModelBuilder s_builder = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
 	// association between sink type and code generator
-	private static Map<SINK_TYPE, CodeGeneratorAux> s_codeGeneratorsAux = new HashMap<SINK_TYPE, CodeGeneratorAux>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -3482720979839331257L;
-		{ put(SINK_TYPE.JAVA,        new CodeGeneratorAux(JavaCodeGenerator.instance(), new VWML2JavaSpecificSteps()));}
+	@SuppressWarnings("serial")
+	private Map<SINK_TYPE, CodeGeneratorAux> codeGeneratorsAux = new HashMap<SINK_TYPE, CodeGeneratorAux>() {
+		{ put(SINK_TYPE.JAVA,        new CodeGeneratorAux(JavaCodeGenerator.instance(), null));}
 		{ put(SINK_TYPE.CPP,         null);                        }
 		{ put(SINK_TYPE.C,           null);                        }
 		{ put(SINK_TYPE.OBJECTIVE_C, null);                        }
@@ -173,12 +169,8 @@ public class VWMLModelBuilder extends Debuggable {
 	/**
 	 * VWML's build steps
 	 */
-	private static Map<BUILD_STEPS, Step> s_buildSteps = new HashMap<BUILD_STEPS, Step>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 7578582252355104895L;
-
+	@SuppressWarnings("serial")
+	private Map<BUILD_STEPS, Step> buildStepsMap = new HashMap<BUILD_STEPS, Step>() {
 		{ 
 			put(BUILD_STEPS.SOURCE,  new VWML2JavaSpecificSteps.SourceStep());
 			put(BUILD_STEPS.POM,     new VWML2JavaSpecificSteps.PomStep());
@@ -188,38 +180,14 @@ public class VWMLModelBuilder extends Debuggable {
 		}
 	};
 
+	private CompilationSink compilationSink = null;
 	// associates modules' names and their info - this information is needed on final steps of source generation
-	private static Map<String, VWMLModuleInfo> s_modulesInfo = new HashMap<String, VWMLModuleInfo>();
+	private Map<String, VWMLModuleInfo> modulesInfo = new HashMap<String, VWMLModuleInfo>();
 	
 	// testing mode property
 	public static final String s_TestModeProp = "testMode";
 	
-	private VWMLModelBuilder() {
-		
-	}
-	
-	/**
-	 * Creates and initializes builder
-	 * @return
-	 * @throws Exception
-	 */
-	public static VWMLModelBuilder instance() {
-		if (s_builder != null) {
-			return s_builder;
-		}
-		synchronized(VWMLModelBuilder.class) {
-			if (s_builder != null) {
-				return s_builder;
-			}
-			VWMLModelBuilder builder = new VWMLModelBuilder();
-			try {
-				builder.init();
-				s_builder = builder;
-			} catch (Exception e) {
-				builder.trace("exception caught '" + e + "'");
-			}
-		}
-		return s_builder;
+	public VWMLModelBuilder() {
 	}
 
 	/**
@@ -227,16 +195,16 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @param name
 	 * @return
 	 */
-	public static VWMLModuleInfo getModuleInfo(String name) {
-		return s_modulesInfo.get(name);
+	public VWMLModuleInfo getModuleInfo(String name) {
+		return modulesInfo.get(name);
 	}
 	
 	/**
 	 * Returns set of VWML processed modules
 	 * @return
 	 */
-	public static Set<String> getProcessedModules() {
-		return s_modulesInfo.keySet();
+	public Set<String> getProcessedModules() {
+		return modulesInfo.keySet();
 	}
 	
 	/**
@@ -244,8 +212,8 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @param name
 	 * @param mi
 	 */
-	public static void addModuleInfo(String name, VWMLModuleInfo mi) {
-		s_modulesInfo.put(name, mi);
+	public void addModuleInfo(String name, VWMLModuleInfo mi) {
+		modulesInfo.put(name, mi);
 	}
 	
 	public InterpretationProps getInterpretationProps() {
@@ -272,16 +240,24 @@ public class VWMLModelBuilder extends Debuggable {
 		this.projectProps = modProps;
 	}
 
+	public CompilationSink getCompilationSink() {
+		return compilationSink;
+	}
+
+	public void setCompilationSink(CompilationSink compilationSink) {
+		this.compilationSink = compilationSink;
+	}
+
 	/**
 	 * Changes/adds sink's association
 	 * @param sink
 	 * @param codeGenerator
 	 */
 	public void changeSink(SINK_TYPE sink, ICodeGenerator codeGenerator) {
-		CodeGeneratorAux caux = s_codeGeneratorsAux.get(sink);
+		CodeGeneratorAux caux = codeGeneratorsAux.get(sink);
 		if (caux == null) {
 			caux = new CodeGeneratorAux(codeGenerator, null);
-			s_codeGeneratorsAux.put(sink, caux);
+			codeGeneratorsAux.put(sink, caux);
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("The sink '" + sink + "' associated with code generator '" + codeGenerator + "'");
@@ -295,7 +271,7 @@ public class VWMLModelBuilder extends Debuggable {
 	 */
 	public ICodeGenerator getCodeGenerator(SINK_TYPE sink) {
 		ICodeGenerator cg = null;
-		CodeGeneratorAux caux = s_codeGeneratorsAux.get(sink);
+		CodeGeneratorAux caux = codeGeneratorsAux.get(sink);
 		if (caux != null) {
 			cg = caux.getGenerator();
 			
@@ -317,6 +293,7 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @throws Exception
 	 */
 	public void init() throws Exception {
+		codeGeneratorsAux.get(getSinkType()).setProgramSteps(new VWML2JavaSpecificSteps(this));
 	}
 	
 	/**
@@ -377,6 +354,8 @@ public class VWMLModelBuilder extends Debuggable {
         VirtualWorldModelingLanguageLexer lex = new VirtualWorldModelingLanguageLexer(new ANTLRFileStream(vwmlFilePath, "UTF8"));
         CommonTokenStream vwmlTokens = new CommonTokenStream(lex);
         VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(vwmlTokens);
+        g.setVwmlModelBuilder(this);
+        g.setCompilationSink(compilationSink);
         try {
             g.filedef();
     		if (logger.isInfoEnabled()) {
@@ -398,15 +377,17 @@ public class VWMLModelBuilder extends Debuggable {
 	 * Final step in source generation phase
 	 */
 	public void finalProcedure(StartModuleProps props) throws Exception {
-		CodeGeneratorAux caux = s_codeGeneratorsAux.get(getSinkType());
+		CodeGeneratorAux caux = codeGeneratorsAux.get(getSinkType());
 		if (caux == null) {
 			throw new Exception("invalid sink type '" + getSinkType() + "'");
 		}
 		if (caux.getProgramSteps() != null) {
-			Step step = s_buildSteps.get(this.getBuildSteps());
+			Step step = buildStepsMap.get(this.getBuildSteps());
 			if (step == null) {
 				throw new Exception("invalid or unsupported step '" + this.getBuildSteps() + "'");
 			}
+			step.setCompilationSink(compilationSink);
+			step.setModelBuilder(this);
 			step.step(caux.getProgramSteps(), getCodeGenerator(getSinkType()).getLangAsString(), props);
 		}
 	}

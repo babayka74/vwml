@@ -14,6 +14,7 @@ import org.kohsuke.args4j.Option;
 
 import com.vw.lang.grammar.preprocessor.VWMLPreprocessor;
 import com.vw.lang.processor.model.builder.VWMLModelBuilder;
+import com.vw.lang.processor.model.sink.CompilationSink;
 import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 
@@ -29,7 +30,26 @@ public final class VWML {
 		public enum ARGS {
 			VWMLFILE
 		}
+
+		private CompilationSink compilationSink = null;
+		private VWMLModelBuilder modelBuilder = null;
 		
+		public VWMLModelBuilder getModelBuilder() {
+			return modelBuilder;
+		}
+
+		public void setModelBuilder(VWMLModelBuilder modelBuilder) {
+			this.modelBuilder = modelBuilder;
+		}
+
+		public CompilationSink getCompilationSink() {
+			return compilationSink;
+		}
+
+		public void setCompilationSink(CompilationSink compilationSink) {
+			this.compilationSink = compilationSink;
+		}
+
 		public void process(VWMLArgs args) throws Exception {
 			run(args);
 			finalProcedure(args);
@@ -38,23 +58,30 @@ public final class VWML {
 		public void run(VWMLArgs args) throws Exception {
 			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
 			// the module's props are set during compilation phase (see grammar file, term 'filedef')
-			VWMLModelBuilder.instance().setInterpretationProps(buildInterpretationProps(args));
-			VWMLModelBuilder.instance().compile(filePath);
+			modelBuilder.setInterpretationProps(buildInterpretationProps(args));
+			modelBuilder.setCompilationSink(compilationSink);
+			modelBuilder.compile(filePath);
 		}
 		
 		/**
 		 * Called upon operation's final step
 		 */
 		protected void finalProcedure(VWMLArgs args) throws Exception {
-			if (VWMLModelBuilder.BUILD_STEPS.TEST == VWMLModelBuilder.instance().getBuildSteps()) {
+			if (VWMLModelBuilder.BUILD_STEPS.TEST == modelBuilder.getBuildSteps()) {
 				String testMode = VWMLModelBuilder.TEST_MODE.STATIC.toValue();
 				if (args.getTestMode() != null) {
 					testMode = args.getTestMode();
 				}
-				VWMLModelBuilder.instance().getProjectProps().addProperty(VWMLModelBuilder.s_TestModeProp, testMode);
+				modelBuilder.getProjectProps().addProperty(VWMLModelBuilder.s_TestModeProp, testMode);
 			}
-			processAddons(args);
-			VWMLModelBuilder.instance().finalProcedure(VWMLModelBuilder.instance().getProjectProps());
+			boolean processingAddons = true;
+			if (compilationSink != null && compilationSink.getMode() == CompilationSink.Mode.SCAN_ONLY) {
+				processingAddons = false;
+			}
+			if (processingAddons) {
+				processAddons(args);
+			}
+			modelBuilder.finalProcedure(modelBuilder.getProjectProps());
 		}
 		
 		private InterpretationProps buildInterpretationProps(VWMLArgs args) throws Exception {
@@ -97,11 +124,25 @@ public final class VWML {
 					for(String addon : addons) {
 						String[] prop = addon.split("=");
 						if (prop != null && prop.length > 1 && VWMLModelBuilder.ADDONS.fromValue(prop[0]) != VWMLModelBuilder.ADDONS.NONE) {
-							VWMLModelBuilder.instance().getProjectProps().addProperty(prop[0], prop[1]);
+							modelBuilder.getProjectProps().addProperty(prop[0], prop[1]);
 						}
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Scans VWML sources and publishes events according to logic of compilation sink
+	 * @author ogibayev
+	 *
+	 */
+	public static class Scan extends Operation {
+
+		@Override
+		public void run(VWMLArgs args) throws Exception {
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SOURCE);
+			super.run(args);
 		}
 	}
 	
@@ -114,7 +155,7 @@ public final class VWML {
 
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SOURCE);
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SOURCE);
 			super.run(args);
 		}
 		
@@ -129,7 +170,7 @@ public final class VWML {
 
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.POM);
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.POM);
 			super.run(args);
 		}
 	}
@@ -144,7 +185,7 @@ public final class VWML {
 
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.COMPILE);
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.COMPILE);
 			super.run(args);
 		}
 	}
@@ -158,7 +199,7 @@ public final class VWML {
 
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.TEST);
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.TEST);
 			super.run(args);
 		}
 	}
@@ -172,7 +213,7 @@ public final class VWML {
 
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			VWMLModelBuilder.instance().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.MAIN);
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.MAIN);
 			super.run(args);
 		}
 	}
@@ -324,7 +365,7 @@ public final class VWML {
 	}
 	
 	@SuppressWarnings("serial")
-	private static Map<String, Operation> s_opCodes = new HashMap<String, Operation>() {
+	private Map<String, Operation> opCodes = new HashMap<String, Operation>() {
 		{put("source",  new Sources());}
 		{put("project", new Project());}
 		{put("compile", new Compile());}
@@ -333,11 +374,30 @@ public final class VWML {
 	};
 	
 	private static Logger logger = Logger.getLogger(VWML.class);
+	private VWMLModelBuilder vwmlModelBuilder = new VWMLModelBuilder();
+	private CompilationSink compilationSink = null;
+	
+	public Map<String, Operation> getOpCodes() {
+		return opCodes;
+	}
+	
+	public CompilationSink getCompilationSink() {
+		return compilationSink;
+	}
+
+	public void setCompilationSink(CompilationSink compilationSink) {
+		this.compilationSink = compilationSink;
+	}
+
+	public void init() throws Exception {
+		vwmlModelBuilder.init();
+	}
 	
 	/**
+	 * Decodes and handles input arguments
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public void handleArgs(String[] args) {
 		VWMLArgs vwmlArgs = new VWMLArgs();
 		CmdLineParser cmdParser = new CmdLineParser(vwmlArgs);
 		cmdParser.setUsageWidth(80);
@@ -352,8 +412,9 @@ public final class VWML {
 			if (logger.isInfoEnabled()) {
 				logger.info("builder started; actual arguments are '" + vwmlArgs + "'");
 			}
-			Operation op = s_opCodes.get(vwmlArgs.getMode());
+			Operation op = getOpCodes().get(vwmlArgs.getMode());
 			if (op != null) {
+				op.setModelBuilder(vwmlModelBuilder);
 				op.process(vwmlArgs);
 			}
 			else {
@@ -363,5 +424,18 @@ public final class VWML {
 			logger.error(e.getMessage());
 		}
 	}
-
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		VWML vwml = new VWML();
+		try {
+			vwml.init();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		vwml.handleArgs(args);
+	}
 }

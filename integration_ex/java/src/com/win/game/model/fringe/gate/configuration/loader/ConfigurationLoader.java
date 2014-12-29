@@ -1,7 +1,5 @@
 package com.win.game.model.fringe.gate.configuration.loader;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -17,28 +15,44 @@ public class ConfigurationLoader implements IVWMLGate {
 	public static String CONFUGURATION_OUT_PATH_KEY = "confPath";
 	public static String DEF_PATH = "/tmp";
 	
+	protected static class FileSupplier extends Supplier {
+		@Override
+		public String getRawConfigurationAsString() {
+			if (getCl().getConfigurationPath() == null) {
+				getCl().setConfigurationPath(DEF_PATH);
+			}
+			String fullPath = getCl().getConfigurationPath() + "/" + getConfName() + ".conf";
+			return Utils.readTextFile(fullPath);
+		}
+	}
+	
 	protected static abstract class Handler {
+		private Supplier confSupplier;
+		
+		public Supplier getConfSupplier() {
+			return confSupplier;
+		}
+
+		public void setConfSupplier(Supplier confSupplier) {
+			this.confSupplier = confSupplier;
+		}
+
 		public abstract EWEntity handle(ConfigurationLoader cl, String name) throws Exception;
 	}
 	
 	protected static class Load extends Handler {
 		public EWEntity handle(ConfigurationLoader cl, String name) throws Exception {
 			EWEntity e = null;
-			if (cl.getConfigurationPath() == null) {
-				cl.setConfigurationPath(DEF_PATH);
+			if (getConfSupplier() == null) {
+				FileSupplier fs = new FileSupplier();
+				setConfSupplier(fs);
 			}
-			String fullPath = cl.getConfigurationPath() + "/" + name + ".conf";
-			BufferedReader br = null;
-		    try {
-		    	FileReader fr = new FileReader(fullPath);
-				br = new BufferedReader(fr);
-				e = Utils.constructEntityFromTextFile(fullPath);
-		    }
-		    catch(Exception ex) {
-		    	if (br != null) {
-		    		br.close();
-		    	}
-		    }				
+			getConfSupplier().setCl(cl);
+			getConfSupplier().setConfName(name);
+			String sE = getConfSupplier().getRawConfigurationAsString();
+			if (sE != null && sE.length() != 0) {
+				e = EWEntityBuilder.buildFromString(sE);
+			}
 			return e;
 		}
 	}
@@ -51,7 +65,8 @@ public class ConfigurationLoader implements IVWMLGate {
 			put("load", new Load());
 		}
 	};
-	
+
+	private Supplier confSupplier = null;
 	private static ConfigurationLoader s_instance = null;
 
 	public static synchronized ConfigurationLoader instance() {
@@ -67,6 +82,14 @@ public class ConfigurationLoader implements IVWMLGate {
 		return s_instance;
 	}
 	
+	public Supplier getConfSupplier() {
+		return confSupplier;
+	}
+
+	public void setConfSupplier(Supplier confSupplier) {
+		this.confSupplier = confSupplier;
+	}
+
 	@Override
 	public EWEntity invokeVW(String commandId, EWEntity commandArgs) {
 		return null;
@@ -83,6 +106,7 @@ public class ConfigurationLoader implements IVWMLGate {
 		if (handler != null && commandArgs.getLink().getLinkedObjectsOnThisTime() > 0) {
 			EWEntity eAsConfName = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
 			try {
+				handler.setConfSupplier(confSupplier);
 				EWEntity entity = handler.handle(this, (String)eAsConfName.getId());
 				if (entity != null) {
 					e = entity;

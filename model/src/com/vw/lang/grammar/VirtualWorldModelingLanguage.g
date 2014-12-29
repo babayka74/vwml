@@ -104,6 +104,9 @@ import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
 import com.vw.lang.grammar.preprocessor.VWMLPreprocessor;
 import com.vw.lang.grammar.preprocessor.VWMLPreprocessor.VWMLPreprocessorIfDirective;
 
+// compilation sink
+import com.vw.lang.processor.model.sink.CompilationSink;
+
 // logger
 import org.apache.log4j.Logger;
 
@@ -139,7 +142,7 @@ package com.vw.lang.grammar;
 		}
 	}
 
-	private VWMLModelBuilder vwmlModelBuilder = VWMLModelBuilder.instance();
+	private VWMLModelBuilder vwmlModelBuilder = null;
 	private VWMLContextBuilder vwmlContextBuilder = VWMLContextBuilder.instance();
 	private VWMLContextBuilder.ContextBunch lastProcessedContextBunch = null;
 	private ICodeGenerator codeGenerator = null;
@@ -163,10 +166,23 @@ package com.vw.lang.grammar;
  	private List<String> externalContexts = new ArrayList<String>();
  	private List<String> externalEntities = new ArrayList<String>();
  	private VWMLPreprocessor preprocessor = VWMLPreprocessor.instance();
+ 	private CompilationSink compilationSink = null;
  	
  	private String lastProcessedIAS = null;
  	
  	private Logger logger = Logger.getLogger(this.getClass());
+	
+	public void setVwmlModelBuilder(VWMLModelBuilder vwmlModelBuilder) {
+		this.vwmlModelBuilder = vwmlModelBuilder;
+	}
+	
+	public void setCompilationSink(CompilationSink compilationSink) {
+		this.compilationSink = compilationSink;
+	}
+	
+	public CompilationSink getCompilationSink() {
+		return this.compilationSink;
+	}
 	
 	public void setupProps() {
     		if (modProps == null) {
@@ -188,6 +204,58 @@ package com.vw.lang.grammar;
 	
 	public void setModuleProps(StartModuleProps modProps) {
 		this.modProps = modProps;
+	}
+
+	protected void startModule(String modName) throws RecognitionException {
+    		if (logger.isInfoEnabled()) {
+    			logger.info("Compiling module '" + modName + "'");
+    		}
+    		setupProps();
+    		// normalizes module's properties; if some properties were not set they are filled by project's properties
+    		// ... so it is way to override them 
+    		modProps = vwmlModelBuilder.normalizeProps(modProps);
+    		// associates module's name with module info structure (will be used on last dource generation phase, especially during unit-test generation)
+    		vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null));
+    		if (modProps != null) {
+    			((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
+	    		((JavaCodeGenerator.JavaModuleStartProps)modProps).setSourceName(getSourceName());
+	    		try {
+	    			if (codeGenerator == null) {
+	    				codeGenerator = modProps.getCodeGenerator();
+	    			}
+	    			if (codeGenerator == null) {
+	    				throw new Exception("Code generator can't be 'null'");
+	    			}
+	    			codeGenerator.startModule(modProps);
+	    			moduleInProgress = true;
+	    		}
+	    		catch(Exception e) {
+	    			logger.error("Caught exception '" + e + "'");
+	    			rethrowVWMLExceptionAsRecognitionException(e);
+	    		}
+    		}
+	}
+	
+	protected void endModule() throws RecognitionException {
+        	try {
+                	// sets special interpretation properties
+                        // these properties are defined by user and passed by VWML tool to VWML builder 
+                        modProps.setInterpretationProps(vwmlModelBuilder.getInterpretationProps());
+                        // process externals
+                        processExternals();
+                        // actually generates source code
+                        codeGenerator.generate(modProps);
+                        // finalizes source generation phase for this module
+                        codeGenerator.finishModule(modProps);
+                        // module parsed and finished
+                        moduleInProgress = false;
+                        // includes processing now...
+                        processDeferredIncludes();
+                }
+                catch(Exception e) {
+		    	logger.error("Caught exception '" + e + "'");
+		    	rethrowVWMLExceptionAsRecognitionException(e);
+                }
 	}
 		
 	protected void setInDebug(boolean inDebug) {
@@ -607,6 +675,9 @@ package com.vw.lang.grammar;
 	
 	protected void deferInclude(String file) {
 		deferredIncludes.add(file);
+		if (compilationSink != null) {
+			compilationSink.handleInclude(file);
+		}
 	}
 	
 	protected void processDeferredIncludes() throws RecognitionException {
@@ -686,10 +757,28 @@ package com.vw.lang.grammar;
 		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
 	}
 	
-	// DIRECTIVES	
+	// DIRECTIVES
+	
+	protected boolean scanOnly() {
+		if (compilationSink != null && compilationSink.getMode() == CompilationSink.Mode.SCAN_ONLY) {
+			return true;
+		}
+		return false;
+	}
+	
 	protected boolean skipOff() throws RecognitionException {
 		try {
-			return !preprocessor.getResultOfProcessingDirectiveIf();
+			boolean b = !preprocessor.getResultOfProcessingDirectiveIf();
+			if (b && compilationSink != null) {
+    				com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
+    				org.antlr.runtime.Token token = getTokenStream().LT(0);
+    				opInfo.setLine(token.getLine());
+    				opInfo.setPosition(token.getCharPositionInLine());
+    				opInfo.setFileName(getSourceName());
+    				opInfo.setNextToken(token.getText());
+				compilationSink.skippedCode(opInfo);
+			}
+			return b;
 		}
 		catch(Exception e) {
 			rethrowVWMLExceptionAsRecognitionException(e);
@@ -702,26 +791,8 @@ package com.vw.lang.grammar;
 
 filedef
     : props? (include (include)*)? external? module? EOF {
-                             	if (moduleInProgress && modProps != null) {
-                             		try {
-                             			// sets special interpretation properties
-                             			// these properties are defined by user and passed by VWML tool to VWML builder 
-                             			modProps.setInterpretationProps(vwmlModelBuilder.getInterpretationProps());
-                             			// process externals
-                             			processExternals();
-                             			// actually generates source code
-                             			codeGenerator.generate(modProps);
-                             			// finalizes source generation phase for this module
-                             			codeGenerator.finishModule(modProps);
-                             			// module parsed and finished
-                             			moduleInProgress = false;
-                             			// includes processing now...
-                             			processDeferredIncludes();
-                             		}
-                             		catch(Exception e) {
-		    				logger.error("Caught exception '" + e + "'");
-		    				rethrowVWMLExceptionAsRecognitionException(e);
-                             		}
+                             	if (!scanOnly() && moduleInProgress && modProps != null) {
+                             		endModule();
                   	     	} 
                   	     }
     ;	 
@@ -826,7 +897,11 @@ obligatoryProp
 propPackage
     : 'package' '=' packageName {
 	    			  if (modProps != null && !skipOff()) {
-	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModulePackage(GeneralUtils.trimQuotes($packageName.text));
+	    			  	String packageName = GeneralUtils.trimQuotes($packageName.text);
+	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModulePackage(packageName);
+	    			  	if (compilationSink != null) {
+	    			  		compilationSink.publishModulePackage(packageName);
+	    			  	}
 	    			  }
     			        }
     ;
@@ -838,7 +913,11 @@ packageName
 generatedFileLocation
     : 'path' '=' path {
     			if (modProps != null && !skipOff()) {
-    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setSrcPath(GeneralUtils.trimQuotes($path.text));
+    				String fileLocation = GeneralUtils.trimQuotes($path.text);
+    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setSrcPath(fileLocation);
+ 	    			if (compilationSink != null) {
+	    				compilationSink.publishFileLocation(fileLocation);
+	    			}
     			}
     		      }
     ;	
@@ -850,7 +929,11 @@ optionalProps
 author
     : 'author' '=' string {
 	    			if (modProps != null) {
-	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setAuthor(GeneralUtils.trimQuotes($string.text));
+	    				String author = GeneralUtils.trimQuotes($string.text);
+	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setAuthor(author);
+ 	    				if (compilationSink != null) {
+	    					compilationSink.publishAuthor(author);
+	    				}
 	    			}
     			  }
     ;
@@ -858,7 +941,11 @@ author
 projname
     : 'project_name' '=' string {
 	    			if (modProps != null) {
-	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setProjectName(GeneralUtils.trimQuotes($string.text));
+	    				String projectName = GeneralUtils.trimQuotes($string.text);
+	    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setProjectName(projectName);
+ 	    				if (compilationSink != null) {
+	    					compilationSink.publishProjectName(projectName);
+	    				}
 	    			}
     			  }
     ;
@@ -866,7 +953,11 @@ projname
 description
     : 'description' '=' string { 
     				if (modProps != null) {
-    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setDescription(GeneralUtils.trimQuotes($string.text));
+    					String projectDescription = GeneralUtils.trimQuotes($string.text);
+    					((JavaCodeGenerator.JavaModuleStartProps)modProps).setDescription(projectDescription);
+ 	    				if (compilationSink != null) {
+	    					compilationSink.publishProjectDescription(projectDescription);
+	    				}	    			
     				}
     			       }
     ;
@@ -982,31 +1073,8 @@ name_of_related_conflict_on_ring
 
 module
     : 'module' ID { 
-    			modName = $ID.getText();
-    			logger.info("Compiling module '" + modName + "'");
-    			setupProps();
-    			// normalizes module's properties; if some properties were not set they are filled by project's properties
-    			// ... so it is way to override them 
-    			modProps = vwmlModelBuilder.normalizeProps(modProps);
-    			// associates module's name with module info structure (will be used on last dource generation phase, especially during unit-test generation)
-    			vwmlModelBuilder.addModuleInfo(modName, VWMLModuleInfo.build(modProps, null));
-    			if (modProps != null) {
-    				((JavaCodeGenerator.JavaModuleStartProps)modProps).setModuleName(modName);
-	    			((JavaCodeGenerator.JavaModuleStartProps)modProps).setSourceName(getSourceName());
-	    			try {
-	    				if (codeGenerator == null) {
-	    					codeGenerator = modProps.getCodeGenerator();
-	    				}
-	    				if (codeGenerator == null) {
-	    					throw new Exception("Code generator can't be 'null'");
-	    				}
-	    				codeGenerator.startModule(modProps);
-	    				moduleInProgress = true;
-	    			}
-	    			catch(Exception e) {
-	    				logger.error("Caught exception '" + e + "'");
-	    				rethrowVWMLExceptionAsRecognitionException(e);
-	    			}
+    			if (!scanOnly()) {
+    				startModule($ID.getText());
     			}
     			// starts module's definition
                   } body
@@ -1027,13 +1095,13 @@ expression
 entity_def
     : bunch_of_entity_decls IAS
     		{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
 	    			// adds entity id to context stack
 	    			declareAbsoluteContextByIASRelation();
     			}
     		} (term)* SEMICOLON
 		{
-    		      	if (!skipOff()) {
+    		      	if (!skipOff() && !scanOnly()) {
     		      		// removes top entity from stack
     		      		handleProcessedAbsoluteContextbyIASRelation();
     		      	}
@@ -1048,7 +1116,7 @@ check_term_def
 
 source_lifetrerm
     : 'source' {
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				if (logger.isDebugEnabled()) {
     					logger.debug("source lifeterm indicator detected");
     				}
@@ -1059,7 +1127,7 @@ source_lifetrerm
 
 lifeterm_def
     :  term_def {
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				if (logger.isInfoEnabled()) {
     					logger.info("Lifeterm '" + lastProcessedEntity + "' found");
     				}
@@ -1081,7 +1149,7 @@ lifeterm_def
 
 term_def
     : entity 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				lastProcessedEntity = $entity.rel;
     				lastProcessedEntityAsTerm = false;
     				if (lastProcessedEntity != null && logger.isDebugEnabled()) {
@@ -1090,7 +1158,7 @@ term_def
     			}
     	     	} (oplist)* 
   	     	{  
-  	       		if (lastProcessedEntityAsTerm && codeGenerator != null && !skipOff()) {
+  	       		if (lastProcessedEntityAsTerm && codeGenerator != null && !skipOff() && !scanOnly()) {
   	       			try {
   	       				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
 					if (logger.isDebugEnabled()) {
@@ -1111,7 +1179,7 @@ term_def
 entity_decl
     : simple_entity_decl
     		{
-    			if (!skipOff() && !complexEntityNameBuilderDecl.isInProgress()) {
+    			if (!skipOff() && !complexEntityNameBuilderDecl.isInProgress() && !scanOnly()) {
     				lastProcessedContextBunch.add(ContextBunchElement.build($simple_entity_decl.id));
     				if (logger.isDebugEnabled()) {
     					logger.debug("+++++++++++++++++++++++ " + $simple_entity_decl.id);
@@ -1120,7 +1188,7 @@ entity_decl
     		}
     | complex_entity_decl
     		{
-    			if (!skipOff() && complexEntityNameBuilderDecl.isRootEntityFinishedProgress()) {
+    			if (!skipOff() && !scanOnly() && complexEntityNameBuilderDecl.isRootEntityFinishedProgress()) {
   				Object id = complexEntityDeclarationPhase3();
     				lastProcessedContextBunch.add(ContextBunchElement.build(id));
     			}
@@ -1129,7 +1197,7 @@ entity_decl
 
 bunch_of_entity_decls
     @after 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
         			vwmlContextBuilder.push(lastProcessedContextBunch);
         			if (logger.isDebugEnabled()) {
@@ -1139,7 +1207,7 @@ bunch_of_entity_decls
     		}
     : 
     		{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				lastProcessedContextBunch = VWMLContextBuilder.ContextBunch.instance();
     				if (logger.isDebugEnabled()) {
     					logger.debug("Created bunch");
@@ -1151,7 +1219,7 @@ bunch_of_entity_decls
     
 simple_entity_decl returns [String id]
     : ID 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				id = simpleEntityDeclaration($ID.getText());
     			}
     		}
@@ -1159,12 +1227,12 @@ simple_entity_decl returns [String id]
     
 complex_entity_decl
     : '(' 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				complexEntityDeclarationPhase1();
     			}
     		} (entity_decl)*
     		{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				complexEntityDeclarationPhase2();
     			}
     		}
@@ -1186,7 +1254,7 @@ entity returns [EntityWalker.Relation rel]
     			rel = $complex_entity.rel;
     		}
     | '.'       {
-                	if (!skipOff()) {
+                	if (!skipOff() && !scanOnly()) {
                 		processComplexContext(lastProcessedEntity);
                 	}
              	}
@@ -1195,7 +1263,7 @@ entity returns [EntityWalker.Relation rel]
 
 simple_entity returns [EntityWalker.Relation rel]
     : ID 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				rel = simpleEntityAssembling($ID.text);
     			} else {
     				rel = null;
@@ -1205,12 +1273,12 @@ simple_entity returns [EntityWalker.Relation rel]
 
 complex_entity returns [EntityWalker.Relation rel]
     @init 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
     				complexEntityStartAssembling();
     			}
     		}
     @after 	{
-    			if (!skipOff()) {
+    			if (!skipOff() && !scanOnly()) {
         			rel = complexEntityStopAssembling();
         		}
     		}
@@ -1231,7 +1299,7 @@ oplist
     // associates operation with entity
     : opclist
     		{
-    			if (!skipOff() && lastProcessedEntity != null && codeGenerator != null) { 
+    			if (!skipOff() && !scanOnly() && lastProcessedEntity != null && codeGenerator != null) { 
     				lastProcessedEntityAsTerm = true;
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
     				String c = contexts.first();

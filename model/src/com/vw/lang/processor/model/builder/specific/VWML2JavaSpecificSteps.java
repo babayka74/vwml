@@ -117,6 +117,12 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			((VWML2JavaSpecificSteps)stepProcessor).runMavenAsTest(codeGeneratorName, props);
 		}
 	}
+
+	private VWMLModelBuilder modelBuilder = null;
+	
+	public VWML2JavaSpecificSteps(VWMLModelBuilder modelBuilder) {
+		this.modelBuilder = modelBuilder;
+	}
 	
 	private void setupSinkSources(String codeGeneratorName, StartModuleProps props) throws Exception {
 		String jars[] = {
@@ -130,7 +136,9 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	}
 	
 	private void processInterpreterBridge() throws Exception {
-		new VWML2JavaInterpreterBridge().build();
+		VWML2JavaInterpreterBridge bridge = new VWML2JavaInterpreterBridge();
+		bridge.setModelBuilder(modelBuilder);
+		bridge.build();
 	}
 	
 	private void processSinkJar(String jarName, StartModuleProps props) throws Exception {
