@@ -237,7 +237,7 @@ module msg {
 				(player 0 battle setmode builddefence ())
 				(player 0 battle battlecost 0 ((cost vodka 100)))
 				(player 0 battle recruitunit (0 2) ())
-				(manager 0 nil delay 0 (500))
+				(manager 0 nil delay 0 (5000))
 				(player 0 battle apply 0 ())
 				(player 1 attack recruitunit (1 2) ())
 				(manager 0 nil delay 0 (500))

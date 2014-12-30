@@ -1072,9 +1072,17 @@ name_of_related_conflict_on_ring
     ;
 
 module
-    : 'module' ID { 
+    : 'module' ID {
+    			if (logger.isInfoEnabled()) {
+    				logger.info("Scan mode '" + scanOnly() + "'");
+    			}
     			if (!scanOnly()) {
     				startModule($ID.getText());
+    			}
+    			else {
+ 	    			if (compilationSink != null) {
+	    				compilationSink.publishModuleName($ID.getText());
+	    			}
     			}
     			// starts module's definition
                   } body

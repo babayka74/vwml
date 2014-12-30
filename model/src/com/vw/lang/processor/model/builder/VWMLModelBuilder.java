@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.antlr.runtime.ANTLRFileStream;
+import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.apache.log4j.Logger;
@@ -44,7 +45,7 @@ public class VWMLModelBuilder extends Debuggable {
 	 *
 	 */
 	public static enum BUILD_STEPS {
-		SOURCE, POM, COMPILE, TEST, MAIN, ALL
+		SOURCE, SCAN, POM, COMPILE, TEST, MAIN, ALL
 	}
 
 	/**
@@ -173,6 +174,7 @@ public class VWMLModelBuilder extends Debuggable {
 	private Map<BUILD_STEPS, Step> buildStepsMap = new HashMap<BUILD_STEPS, Step>() {
 		{ 
 			put(BUILD_STEPS.SOURCE,  new VWML2JavaSpecificSteps.SourceStep());
+			put(BUILD_STEPS.SCAN,    new VWML2JavaSpecificSteps.ScanStep());
 			put(BUILD_STEPS.POM,     new VWML2JavaSpecificSteps.PomStep());
 			put(BUILD_STEPS.COMPILE, new VWML2JavaSpecificSteps.CompileStep());
 			put(BUILD_STEPS.TEST,    new VWML2JavaSpecificSteps.TestStep());
@@ -333,7 +335,32 @@ public class VWMLModelBuilder extends Debuggable {
 			}
 		}
 	}
-	
+
+	/**
+	 * Compiles chunk of VWML into selected language, defined by sink
+	 * @param vwmlCode
+	 * @throws Exception
+	 */
+	public void compileInMemoryFile(String vwmlCode) throws Exception {
+        VirtualWorldModelingLanguageLexer lex = new VirtualWorldModelingLanguageLexer(new ANTLRStringStream(vwmlCode));
+        CommonTokenStream vwmlTokens = new CommonTokenStream(lex);
+        VirtualWorldModelingLanguageParser g = new VirtualWorldModelingLanguageParser(vwmlTokens);
+        g.setVwmlModelBuilder(this);
+        g.setCompilationSink(compilationSink);
+        try {
+            g.filedef();
+        }
+        catch (VirtualWorldModelingLanguageParser.VWMLCodeGeneratorRecognitionException e) {
+        	logger.error("couldn't compile; error is '" + e.getCause().getMessage() + "'");
+            throw e;
+        }
+        catch (RecognitionException e) {
+        	g.reportError(e);
+        	logger.error("couldn't compile; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
+            throw e;
+        }
+	}
+
 	/**
 	 * Compiles VWML into selected language, defined by sink
 	 * @param vwmlFilePath

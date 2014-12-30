@@ -42,6 +42,17 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			}
 		}
 	}
+
+	/**
+	 * Nothing to do, since sources are not generated. The scan is used by IDE in for run-time updates
+	 * @param codeGeneratorName
+	 * @param props
+	 * @throws Exception
+	 */
+	public static class ScanStep extends JavaStep {
+		public void step(VWML2TargetSpecificSteps stepProcessor, String codeGeneratorName, StartModuleProps props) throws Exception {
+		}
+	}
 	
 	/**
 	 * Integrates sink's sources with generated sources (VWML -> targetLanguage)

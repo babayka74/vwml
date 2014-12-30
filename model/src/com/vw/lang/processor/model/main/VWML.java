@@ -33,6 +33,7 @@ public final class VWML {
 
 		private CompilationSink compilationSink = null;
 		private VWMLModelBuilder modelBuilder = null;
+		private String chunkVwmlCode = null;
 		
 		public VWMLModelBuilder getModelBuilder() {
 			return modelBuilder;
@@ -50,17 +51,37 @@ public final class VWML {
 			this.compilationSink = compilationSink;
 		}
 
+		public String getChunkVwmlCode() {
+			return chunkVwmlCode;
+		}
+
+		public void setChunkVwmlCode(String chunkVwmlCode) {
+			this.chunkVwmlCode = chunkVwmlCode;
+		}
+
 		public void process(VWMLArgs args) throws Exception {
 			run(args);
 			finalProcedure(args);
 		}
 		
 		public void run(VWMLArgs args) throws Exception {
-			String filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
+			String filePath = null;
+			if (args.getArguments().size() > Operation.ARGS.VWMLFILE.ordinal()) {
+				filePath = args.getArguments().get(Operation.ARGS.VWMLFILE.ordinal());
+			}
 			// the module's props are set during compilation phase (see grammar file, term 'filedef')
 			modelBuilder.setInterpretationProps(buildInterpretationProps(args));
 			modelBuilder.setCompilationSink(compilationSink);
-			modelBuilder.compile(filePath);
+			if (chunkVwmlCode != null) {
+				modelBuilder.compileInMemoryFile(chunkVwmlCode);
+			}
+			else
+			if (filePath != null) {
+				modelBuilder.compile(filePath);
+			}
+			else {
+				throw new Exception("nothing to compile: both 'filePath' and 'chunkVwmlCode' are null");
+			}
 		}
 		
 		/**
@@ -141,7 +162,7 @@ public final class VWML {
 
 		@Override
 		public void run(VWMLArgs args) throws Exception {
-			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SOURCE);
+			getModelBuilder().setBuildSteps(VWMLModelBuilder.BUILD_STEPS.SCAN);
 			super.run(args);
 		}
 	}
@@ -367,6 +388,7 @@ public final class VWML {
 	@SuppressWarnings("serial")
 	private Map<String, Operation> opCodes = new HashMap<String, Operation>() {
 		{put("source",  new Sources());}
+		{put("scan",  	new Scan());}
 		{put("project", new Project());}
 		{put("compile", new Compile());}
 		{put("test",    new Test());   }
@@ -376,6 +398,7 @@ public final class VWML {
 	private static Logger logger = Logger.getLogger(VWML.class);
 	private VWMLModelBuilder vwmlModelBuilder = new VWMLModelBuilder();
 	private CompilationSink compilationSink = null;
+	private String chunkVwmlCode = null;
 	
 	public Map<String, Operation> getOpCodes() {
 		return opCodes;
@@ -389,6 +412,14 @@ public final class VWML {
 		this.compilationSink = compilationSink;
 	}
 
+	public String getChunkVwmlCode() {
+		return chunkVwmlCode;
+	}
+
+	public void setChunkVwmlCode(String chunkVwmlCode) {
+		this.chunkVwmlCode = chunkVwmlCode;
+	}
+
 	public void init() throws Exception {
 		vwmlModelBuilder.init();
 	}
@@ -397,7 +428,7 @@ public final class VWML {
 	 * Decodes and handles input arguments
 	 * @param args
 	 */
-	public void handleArgs(String[] args) {
+	public void handleArgs(String[] args) throws Exception {
 		VWMLArgs vwmlArgs = new VWMLArgs();
 		CmdLineParser cmdParser = new CmdLineParser(vwmlArgs);
 		cmdParser.setUsageWidth(80);
@@ -414,6 +445,8 @@ public final class VWML {
 			}
 			Operation op = getOpCodes().get(vwmlArgs.getMode());
 			if (op != null) {
+				op.setCompilationSink(compilationSink);
+				op.setChunkVwmlCode(chunkVwmlCode);
 				op.setModelBuilder(vwmlModelBuilder);
 				op.process(vwmlArgs);
 			}
@@ -422,6 +455,7 @@ public final class VWML {
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
+			throw e;
 		}
 	}
 	
@@ -436,6 +470,9 @@ public final class VWML {
 			e.printStackTrace();
 			return;
 		}
-		vwml.handleArgs(args);
+		try {
+			vwml.handleArgs(args);
+		} catch (Exception e) {
+		}
 	}
 }

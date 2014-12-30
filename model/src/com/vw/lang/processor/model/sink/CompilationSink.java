@@ -59,5 +59,11 @@ public abstract class CompilationSink {
 	 * @param author
 	 */
 	public abstract void publishProjectDescription(String projectDescription);
+
+	/**
+	 * Publishes currently processed module name
+	 * @param author
+	 */
+	public abstract void publishModuleName(String moduleName);
 	
 }
