@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-12-30 20:27:06
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-12-31 12:52:16
 
 package com.vw.lang.grammar;
 
@@ -814,7 +814,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
     			boolean b = !preprocessor.getResultOfProcessingDirectiveIf();
     			if (b && compilationSink != null) {
         				com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
-        				org.antlr.runtime.Token token = getTokenStream().LT(0);
+        				org.antlr.runtime.Token token = getTokenStream().get(getTokenStream().index());
         				opInfo.setLine(token.getLine());
         				opInfo.setPosition(token.getCharPositionInLine());
         				opInfo.setFileName(getSourceName());

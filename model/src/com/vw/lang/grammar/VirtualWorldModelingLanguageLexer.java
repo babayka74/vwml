@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-12-30 20:27:06
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2014-12-31 12:52:17
  
 package com.vw.lang.grammar;
 
@@ -2303,17 +2303,41 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1489:5: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
-            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1489:7: ( ' ' | '\\t' | '\\n' | '\\r' )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1489:5: ( ( ' ' | '\\t' | '\\n' | '\\r' )* )
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1489:7: ( ' ' | '\\t' | '\\n' | '\\r' )*
             {
-            if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
-                input.consume();
-            }
-            else {
-                MismatchedSetException mse = new MismatchedSetException(null,input);
-                recover(mse);
-                throw mse;
-            }
+            // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1489:7: ( ' ' | '\\t' | '\\n' | '\\r' )*
+            loop3:
+            do {
+                int alt3=2;
+                int LA3_0 = input.LA(1);
+
+                if ( ((LA3_0 >= '\t' && LA3_0 <= '\n')||LA3_0=='\r'||LA3_0==' ') ) {
+                    alt3=1;
+                }
+
+
+                switch (alt3) {
+            	case 1 :
+            	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:
+            	    {
+            	    if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
+            	        input.consume();
+            	    }
+            	    else {
+            	        MismatchedSetException mse = new MismatchedSetException(null,input);
+            	        recover(mse);
+            	        throw mse;
+            	    }
+
+
+            	    }
+            	    break;
+
+            	default :
+            	    break loop3;
+                }
+            } while (true);
 
 
             _channel=HIDDEN;
@@ -2342,29 +2366,29 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
 
 
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1494:12: ( . )*
-            loop3:
+            loop4:
             do {
-                int alt3=2;
-                int LA3_0 = input.LA(1);
+                int alt4=2;
+                int LA4_0 = input.LA(1);
 
-                if ( (LA3_0=='*') ) {
-                    int LA3_1 = input.LA(2);
+                if ( (LA4_0=='*') ) {
+                    int LA4_1 = input.LA(2);
 
-                    if ( (LA3_1=='>') ) {
-                        alt3=2;
+                    if ( (LA4_1=='>') ) {
+                        alt4=2;
                     }
-                    else if ( ((LA3_1 >= '\u0000' && LA3_1 <= '=')||(LA3_1 >= '?' && LA3_1 <= '\uFFFF')) ) {
-                        alt3=1;
+                    else if ( ((LA4_1 >= '\u0000' && LA4_1 <= '=')||(LA4_1 >= '?' && LA4_1 <= '\uFFFF')) ) {
+                        alt4=1;
                     }
 
 
                 }
-                else if ( ((LA3_0 >= '\u0000' && LA3_0 <= ')')||(LA3_0 >= '+' && LA3_0 <= '\uFFFF')) ) {
-                    alt3=1;
+                else if ( ((LA4_0 >= '\u0000' && LA4_0 <= ')')||(LA4_0 >= '+' && LA4_0 <= '\uFFFF')) ) {
+                    alt4=1;
                 }
 
 
-                switch (alt3) {
+                switch (alt4) {
             	case 1 :
             	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1494:12: .
             	    {
@@ -2374,7 +2398,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             	    break;
 
             	default :
-            	    break loop3;
+            	    break loop4;
                 }
             } while (true);
 
@@ -2409,29 +2433,29 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
 
 
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1498:12: ( options {greedy=false; } : . )*
-            loop4:
+            loop5:
             do {
-                int alt4=2;
-                int LA4_0 = input.LA(1);
+                int alt5=2;
+                int LA5_0 = input.LA(1);
 
-                if ( (LA4_0=='*') ) {
-                    int LA4_1 = input.LA(2);
+                if ( (LA5_0=='*') ) {
+                    int LA5_1 = input.LA(2);
 
-                    if ( (LA4_1=='/') ) {
-                        alt4=2;
+                    if ( (LA5_1=='/') ) {
+                        alt5=2;
                     }
-                    else if ( ((LA4_1 >= '\u0000' && LA4_1 <= '.')||(LA4_1 >= '0' && LA4_1 <= '\uFFFF')) ) {
-                        alt4=1;
+                    else if ( ((LA5_1 >= '\u0000' && LA5_1 <= '.')||(LA5_1 >= '0' && LA5_1 <= '\uFFFF')) ) {
+                        alt5=1;
                     }
 
 
                 }
-                else if ( ((LA4_0 >= '\u0000' && LA4_0 <= ')')||(LA4_0 >= '+' && LA4_0 <= '\uFFFF')) ) {
-                    alt4=1;
+                else if ( ((LA5_0 >= '\u0000' && LA5_0 <= ')')||(LA5_0 >= '+' && LA5_0 <= '\uFFFF')) ) {
+                    alt5=1;
                 }
 
 
-                switch (alt4) {
+                switch (alt5) {
             	case 1 :
             	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1498:40: .
             	    {
@@ -2441,7 +2465,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             	    break;
 
             	default :
-            	    break loop4;
+            	    break loop5;
                 }
             } while (true);
 
@@ -2476,17 +2500,17 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
 
 
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1502:12: (~ ( '\\n' | '\\r' ) )*
-            loop5:
+            loop6:
             do {
-                int alt5=2;
-                int LA5_0 = input.LA(1);
+                int alt6=2;
+                int LA6_0 = input.LA(1);
 
-                if ( ((LA5_0 >= '\u0000' && LA5_0 <= '\t')||(LA5_0 >= '\u000B' && LA5_0 <= '\f')||(LA5_0 >= '\u000E' && LA5_0 <= '\uFFFF')) ) {
-                    alt5=1;
+                if ( ((LA6_0 >= '\u0000' && LA6_0 <= '\t')||(LA6_0 >= '\u000B' && LA6_0 <= '\f')||(LA6_0 >= '\u000E' && LA6_0 <= '\uFFFF')) ) {
+                    alt6=1;
                 }
 
 
-                switch (alt5) {
+                switch (alt6) {
             	case 1 :
             	    // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:
             	    {
@@ -2504,19 +2528,19 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             	    break;
 
             	default :
-            	    break loop5;
+            	    break loop6;
                 }
             } while (true);
 
 
             // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1502:26: ( '\\r' )?
-            int alt6=2;
-            int LA6_0 = input.LA(1);
+            int alt7=2;
+            int LA7_0 = input.LA(1);
 
-            if ( (LA6_0=='\r') ) {
-                alt6=1;
+            if ( (LA7_0=='\r') ) {
+                alt7=1;
             }
-            switch (alt6) {
+            switch (alt7) {
                 case 1 :
                     // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1502:26: '\\r'
                     {
@@ -2571,9 +2595,9 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
 
     public void mTokens() throws RecognitionException {
         // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:8: ( C | CPP | IAS | JAVA | LIFETERM | OBJECTIVEC | OPACTIVATE | OPACTIVATECTX | OPACTIVATEONFRINGE | OPAPPLYTOCONTEXT | OPBEGIN | OPBORN | OPBREAKPOINT | OPCALLP | OPCARTESIAN | OPCLONE | OPCOPY | OPCREATEEXPR | OPDYNCONTEXT | OPENDCONFLICTGROUP | OPEQ | OPEXECUTE | OPEXISTSI | OPEXISTSI_S | OPFIND | OPFINISHINTERCEPTION | OPFINISHINTERCEPTION_S | OPFIRST | OPFOREACH | OPGATE | OPGET | OPIDENT | OPIN | OPINCL | OPINTERPRET | OPINTERRUPT | OPINTERSECT | OPJOIN | OPLAST | OPLTT | OPPROJECTION | OPRANDOM | OPRECALL | OPRELAX | OPRELEASE | OPREPEAT | OPREST | OPSIZE | OPSQU | OPSTARTCONFLICTGROUP | OPSTARTINTERCEPTION | OPSTARTINTERCEPTION_S | OPSUBSTRUCT | P_DEBUG | P_ELSE | P_ENDIF | P_IF | P_OP_AND | P_OP_B | P_OP_E | P_OP_L | P_OP_OR | T__76 | T__77 | T__78 | T__79 | T__80 | T__81 | T__82 | T__83 | T__84 | T__85 | T__86 | T__87 | T__88 | T__89 | T__90 | T__91 | T__92 | T__93 | T__94 | T__95 | T__96 | T__97 | T__98 | T__99 | T__100 | T__101 | ID | STRING_LITERAL | COMMA | DQUOTE | SEMICOLON | WS | NATIVE_CODE | COMMENT | LINE_COMMENT )
-        int alt7=97;
-        alt7 = dfa7.predict(input);
-        switch (alt7) {
+        int alt8=97;
+        alt8 = dfa8.predict(input);
+        switch (alt8) {
             case 1 :
                 // C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g:1:10: C
                 {
@@ -3356,13 +3380,13 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
     }
 
 
-    protected DFA7 dfa7 = new DFA7(this);
-    static final String DFA7_eotS =
-        "\1\uffff\4\55\1\uffff\3\55\1\uffff\1\55\1\uffff\4\55\1\uffff\5\55"+
-        "\5\uffff\1\131\4\uffff\13\55\3\uffff\1\152\4\uffff\6\55\1\165\5"+
-        "\55\1\175\1\uffff\1\176\1\55\1\u0081\1\55\1\u0084\4\55\1\u008b\11"+
-        "\55\1\u0098\1\55\4\uffff\17\55\4\uffff\3\55\1\u00b1\4\55\1\uffff"+
-        "\7\55\2\uffff\1\u00bd\1\55\1\uffff\2\55\1\uffff\2\55\1\u00c4\3\55"+
+    protected DFA8 dfa8 = new DFA8(this);
+    static final String DFA8_eotS =
+        "\1\61\4\55\1\uffff\3\55\1\uffff\1\55\1\uffff\4\55\1\uffff\5\55\5"+
+        "\uffff\1\131\4\uffff\13\55\3\uffff\1\152\4\uffff\6\55\1\165\5\55"+
+        "\1\175\1\uffff\1\176\1\55\1\u0081\1\55\1\u0084\4\55\1\u008b\11\55"+
+        "\1\u0098\1\55\4\uffff\17\55\4\uffff\3\55\1\u00b1\4\55\1\uffff\7"+
+        "\55\2\uffff\1\u00bd\1\55\1\uffff\2\55\1\uffff\2\55\1\u00c4\3\55"+
         "\1\uffff\2\55\1\u00ca\11\55\1\uffff\1\55\1\u00d7\2\uffff\24\55\1"+
         "\uffff\5\55\1\u00f2\4\55\1\u00f7\1\uffff\1\55\1\u00f9\3\55\1\u00fd"+
         "\1\uffff\3\55\1\u0101\1\u0102\1\uffff\6\55\1\u0109\1\u010a\3\55"+
@@ -3383,10 +3407,10 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         "\2\55\1\uffff\2\55\1\u01c1\2\55\1\uffff\3\55\1\u01c7\1\uffff\1\55"+
         "\1\u01c9\3\55\1\uffff\1\55\1\uffff\4\55\1\u01d2\3\55\1\uffff\4\55"+
         "\1\u01da\1\55\1\u01dc\1\uffff\1\55\1\uffff\1\u01de\1\uffff";
-    static final String DFA7_eofS =
+    static final String DFA8_eofS =
         "\u01df\uffff";
-    static final String DFA7_minS =
-        "\1\11\1\137\2\141\1\143\1\uffff\1\157\1\141\1\145\1\uffff\1\76\1"+
+    static final String DFA8_minS =
+        "\1\41\1\137\2\141\1\143\1\uffff\1\157\1\141\1\145\1\uffff\1\76\1"+
         "\uffff\2\111\1\141\1\144\1\uffff\1\157\1\124\1\162\1\141\1\111\1"+
         "\uffff\1\145\3\uffff\1\52\4\uffff\1\165\1\145\1\154\1\141\1\156"+
         "\1\162\1\157\1\160\1\141\1\157\1\151\3\uffff\1\0\3\uffff\1\52\1"+
@@ -3427,7 +3451,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         "\160\1\164\1\uffff\1\171\1\uffff\1\137\1\164\1\151\1\137\1\41\1"+
         "\151\1\157\1\163\1\uffff\1\157\1\156\1\151\1\156\1\41\1\172\1\41"+
         "\1\uffff\1\145\1\uffff\1\41\1\uffff";
-    static final String DFA7_maxS =
+    static final String DFA8_maxS =
         "\1\176\1\137\1\156\1\151\1\143\1\uffff\2\157\1\160\1\uffff\1\76"+
         "\1\uffff\1\170\1\157\1\145\1\156\1\uffff\1\157\1\141\1\162\1\145"+
         "\1\165\1\uffff\1\151\3\uffff\1\52\4\uffff\1\165\1\145\1\157\1\145"+
@@ -3470,7 +3494,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         "\1\160\1\164\1\uffff\1\171\1\uffff\1\137\1\164\1\151\1\137\1\172"+
         "\1\151\1\157\1\163\1\uffff\1\157\1\156\1\151\1\156\3\172\1\uffff"+
         "\1\145\1\uffff\1\172\1\uffff";
-    static final String DFA7_acceptS =
+    static final String DFA8_acceptS =
         "\5\uffff\1\10\3\uffff\1\22\1\uffff\1\24\4\uffff\1\43\5\uffff\1\62"+
         "\1\uffff\1\72\1\73\1\74\1\uffff\1\76\1\77\1\100\1\101\13\uffff\1"+
         "\127\1\130\1\131\1\uffff\1\133\1\135\1\136\16\uffff\1\23\27\uffff"+
@@ -3488,16 +3512,15 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         "\3\uffff\1\17\1\uffff\1\44\1\45\2\uffff\1\65\1\uffff\1\106\6\uffff"+
         "\1\51\5\uffff\1\126\4\uffff\1\111\5\uffff\1\105\1\uffff\1\124\10"+
         "\uffff\1\6\7\uffff\1\63\1\uffff\1\32\1\uffff\1\113";
-    static final String DFA7_specialS =
+    static final String DFA8_specialS =
         "\56\uffff\1\0\u01b0\uffff}>";
-    static final String[] DFA7_transitionS = {
-            "\2\61\2\uffff\1\61\22\uffff\1\61\1\55\1\56\1\27\1\55\1\uffff"+
-            "\1\30\1\uffff\1\35\1\36\2\uffff\1\57\1\12\1\37\1\62\12\55\1"+
-            "\5\1\60\1\33\1\32\1\31\1\55\1\uffff\1\4\1\10\1\7\1\6\1\14\1"+
-            "\15\1\16\1\55\1\17\1\21\1\55\1\22\3\55\1\23\1\55\1\24\1\25\7"+
-            "\55\1\26\1\uffff\1\13\1\11\1\1\1\uffff\1\40\1\41\1\42\1\43\1"+
-            "\44\1\45\2\55\1\2\2\55\1\3\1\46\1\55\1\47\1\50\2\55\1\51\2\55"+
-            "\1\52\4\55\1\53\1\34\1\54\1\20",
+    static final String[] DFA8_transitionS = {
+            "\1\55\1\56\1\27\1\55\1\uffff\1\30\1\uffff\1\35\1\36\2\uffff"+
+            "\1\57\1\12\1\37\1\62\12\55\1\5\1\60\1\33\1\32\1\31\1\55\1\uffff"+
+            "\1\4\1\10\1\7\1\6\1\14\1\15\1\16\1\55\1\17\1\21\1\55\1\22\3"+
+            "\55\1\23\1\55\1\24\1\25\7\55\1\26\1\uffff\1\13\1\11\1\1\1\uffff"+
+            "\1\40\1\41\1\42\1\43\1\44\1\45\2\55\1\2\2\55\1\3\1\46\1\55\1"+
+            "\47\1\50\2\55\1\51\2\55\1\52\4\55\1\53\1\34\1\54\1\20",
             "\1\63",
             "\1\64\14\uffff\1\65",
             "\1\67\7\uffff\1\66",
@@ -4047,34 +4070,34 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
             ""
     };
 
-    static final short[] DFA7_eot = DFA.unpackEncodedString(DFA7_eotS);
-    static final short[] DFA7_eof = DFA.unpackEncodedString(DFA7_eofS);
-    static final char[] DFA7_min = DFA.unpackEncodedStringToUnsignedChars(DFA7_minS);
-    static final char[] DFA7_max = DFA.unpackEncodedStringToUnsignedChars(DFA7_maxS);
-    static final short[] DFA7_accept = DFA.unpackEncodedString(DFA7_acceptS);
-    static final short[] DFA7_special = DFA.unpackEncodedString(DFA7_specialS);
-    static final short[][] DFA7_transition;
+    static final short[] DFA8_eot = DFA.unpackEncodedString(DFA8_eotS);
+    static final short[] DFA8_eof = DFA.unpackEncodedString(DFA8_eofS);
+    static final char[] DFA8_min = DFA.unpackEncodedStringToUnsignedChars(DFA8_minS);
+    static final char[] DFA8_max = DFA.unpackEncodedStringToUnsignedChars(DFA8_maxS);
+    static final short[] DFA8_accept = DFA.unpackEncodedString(DFA8_acceptS);
+    static final short[] DFA8_special = DFA.unpackEncodedString(DFA8_specialS);
+    static final short[][] DFA8_transition;
 
     static {
-        int numStates = DFA7_transitionS.length;
-        DFA7_transition = new short[numStates][];
+        int numStates = DFA8_transitionS.length;
+        DFA8_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA7_transition[i] = DFA.unpackEncodedString(DFA7_transitionS[i]);
+            DFA8_transition[i] = DFA.unpackEncodedString(DFA8_transitionS[i]);
         }
     }
 
-    class DFA7 extends DFA {
+    class DFA8 extends DFA {
 
-        public DFA7(BaseRecognizer recognizer) {
+        public DFA8(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 7;
-            this.eot = DFA7_eot;
-            this.eof = DFA7_eof;
-            this.min = DFA7_min;
-            this.max = DFA7_max;
-            this.accept = DFA7_accept;
-            this.special = DFA7_special;
-            this.transition = DFA7_transition;
+            this.decisionNumber = 8;
+            this.eot = DFA8_eot;
+            this.eof = DFA8_eof;
+            this.min = DFA8_min;
+            this.max = DFA8_max;
+            this.accept = DFA8_accept;
+            this.special = DFA8_special;
+            this.transition = DFA8_transition;
         }
         public String getDescription() {
             return "1:1: Tokens : ( C | CPP | IAS | JAVA | LIFETERM | OBJECTIVEC | OPACTIVATE | OPACTIVATECTX | OPACTIVATEONFRINGE | OPAPPLYTOCONTEXT | OPBEGIN | OPBORN | OPBREAKPOINT | OPCALLP | OPCARTESIAN | OPCLONE | OPCOPY | OPCREATEEXPR | OPDYNCONTEXT | OPENDCONFLICTGROUP | OPEQ | OPEXECUTE | OPEXISTSI | OPEXISTSI_S | OPFIND | OPFINISHINTERCEPTION | OPFINISHINTERCEPTION_S | OPFIRST | OPFOREACH | OPGATE | OPGET | OPIDENT | OPIN | OPINCL | OPINTERPRET | OPINTERRUPT | OPINTERSECT | OPJOIN | OPLAST | OPLTT | OPPROJECTION | OPRANDOM | OPRECALL | OPRELAX | OPRELEASE | OPREPEAT | OPREST | OPSIZE | OPSQU | OPSTARTCONFLICTGROUP | OPSTARTINTERCEPTION | OPSTARTINTERCEPTION_S | OPSUBSTRUCT | P_DEBUG | P_ELSE | P_ENDIF | P_IF | P_OP_AND | P_OP_B | P_OP_E | P_OP_L | P_OP_OR | T__76 | T__77 | T__78 | T__79 | T__80 | T__81 | T__82 | T__83 | T__84 | T__85 | T__86 | T__87 | T__88 | T__89 | T__90 | T__91 | T__92 | T__93 | T__94 | T__95 | T__96 | T__97 | T__98 | T__99 | T__100 | T__101 | ID | STRING_LITERAL | COMMA | DQUOTE | SEMICOLON | WS | NATIVE_CODE | COMMENT | LINE_COMMENT );";
@@ -4084,10 +4107,10 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
         	int _s = s;
             switch ( s ) {
                     case 0 : 
-                        int LA7_46 = input.LA(1);
+                        int LA8_46 = input.LA(1);
 
                         s = -1;
-                        if ( ((LA7_46 >= '\u0000' && LA7_46 <= '\uFFFF')) ) {s = 105;}
+                        if ( ((LA8_46 >= '\u0000' && LA8_46 <= '\uFFFF')) ) {s = 105;}
 
                         else s = 106;
 
@@ -4095,7 +4118,7 @@ public class VirtualWorldModelingLanguageLexer extends Lexer {
                         break;
             }
             NoViableAltException nvae =
-                new NoViableAltException(getDescription(), 7, _s, input);
+                new NoViableAltException(getDescription(), 8, _s, input);
             error(nvae);
             throw nvae;
         }

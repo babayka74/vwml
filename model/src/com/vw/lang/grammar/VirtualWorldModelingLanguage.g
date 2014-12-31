@@ -771,7 +771,7 @@ package com.vw.lang.grammar;
 			boolean b = !preprocessor.getResultOfProcessingDirectiveIf();
 			if (b && compilationSink != null) {
     				com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
-    				org.antlr.runtime.Token token = getTokenStream().LT(0);
+    				org.antlr.runtime.Token token = getTokenStream().get(getTokenStream().index());
     				opInfo.setLine(token.getLine());
     				opInfo.setPosition(token.getCharPositionInLine());
     				opInfo.setFileName(getSourceName());
@@ -1486,7 +1486,7 @@ SEMICOLON
     ;	
 
 WS
-    : (' '|'\t'|'\n'|'\r') {$channel=HIDDEN;}
+    : (' '|'\t'|'\n'|'\r')* {$channel=HIDDEN;}
     ;
 
 
