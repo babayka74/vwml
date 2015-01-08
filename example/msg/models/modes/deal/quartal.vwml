@@ -26,17 +26,42 @@ module Quartal {
 				OpenTime ias 1000; // ms
 				/* desired price set by sherif to open information about quartal */
 				DesiredOpenInfoPrice ias 100;
+				Update ias (
+					QConf ias nil;
+					BribeR ias nil;
+					/* check input parameter */
+					CIP ias (
+						// name
+						P ias nil;
+						// value
+						V ias nil;
+						(NotSetIt true) ias doNothing;
+						(NotSetIt false) ias (P~ V~)^;
+						(NotSetIt (V~ nil) Ident)~ Exe
+					);
+					SetV ias (	((CIP.P Type)^ (CIP.V (QConf~ 0) Get)^)
+							((CIP.P Quantum)^ (CIP.V (QConf~ 1) Get)^)
+							((CIP.P Period)^ (CIP.V (QConf~ 2) Get)^)
+							((CIP.P Quantums)^ (CIP.V (QConf~ 3) Get)^)
+							((CIP.P OpenTime)^ (CIP.V (QConf~ 4) Get)^)
+							((CIP.P DesiredOpenInfoPrice)^ (CIP.V (QConf~ 5) Get)^)
+							((CIP.P Sherif.DesiredBribe)^ (CIP.V BribeR~)^)
+					);
+					SetIt ias (
+						$~ Exe
+						CIP~ Exe
+					);
+					(SetV~ SetIt~) ForEach	
+				);
 				/* resource initialization point */
 				Init ias (
-					(ResourceConf Ew.QuartalsConf.Resources~ Random)^
-					(Sherif.DesiredBribe Ew.QuartalsConf.SherifBribeRanges~ Random)^
-					(Type (ResourceConf~ 0) Get)^
-					(Quantum (ResourceConf~ 1) Get)^
-					(Period (ResourceConf~ 2) Get)^
-					(Quantums (ResourceConf~ 3) Get)^
-					(OpenTime (ResourceConf~ 4) Get)^
-					(DesiredOpenInfoPrice (ResourceConf~ 5) Get)^
+					(Update.QConf Ew.QuartalsConf.Resources~ Random)^
+					(Update.BribeR Ew.QuartalsConf.SherifBribeRanges~ Random)^
+					Update~ Exe
 					((Quartal Id~) Tx (Id~ check ())) Gate
+#if (verbose)
+					((The quartal Id~ initialized with configuration (Type~ Quantum~ Period~ Quantums~ OpenTime~ DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
+#endif
 				);
 			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
@@ -256,6 +281,17 @@ module Quartal {
 					(check op),(check cnp),(check onp),(check wtp) ias (
 #if (verbose)
 						((The sherif of quartal Id~ which belongs to player Owner~ got self test message) Ew.Output~) Do
+#endif
+					);
+					(updateconf op),(updateconf cnp),(updateconf onp),(updateconf wtp) ias (
+						(Resource.Update.QConf (IntentionParams~ 0) Get)^
+						(Resource.Update.BribeR (IntentionParams~ 1) Get)^
+						Resource.Update~ Exe
+#if (verbose)
+						((The quartal Id~ updated with configuration (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
+#endif						
+#if (release)
+						(((deal updateconf done) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Intention~ State~)~ Exe

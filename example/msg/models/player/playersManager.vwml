@@ -6,7 +6,7 @@ module PlayersManager {
 			CommandId ias nil;
 			Destination ias nil;
 			Params ias nil;
-			ExportedCommands ias (playeradd playerleave playerstop);
+			ExportedCommands ias (playeradd playerleave playerstop gaccountconf gquartalconf);
 
 			Init ias (
 				Pool ias (
@@ -85,6 +85,25 @@ module PlayersManager {
 				// plater leaves session and world is going to be stopped
 				(Command playerstop) ias (
 					((Player PlayerId~) Tx (ModeInfo.ModeMain~ requeststopplayerworld PlayerId~ ())) Gate
+				);
+				// updates global player's account configuration
+				(Command gaccountconf) ias (
+					(Ew.PlayerAccountConf.Load.Conf Params~)^
+					Ew.PlayerAccountConf~ Exe
+#if (verbose)
+					((The account configuration is ResourceTypes~) Ew.Output~) Do
+#endif
+#if (release)                   
+                              		(((playermanagment gaccountconf ok)) Ew.OutChannel~) Do
+#endif
+				);
+				// updates global player's quartal configuration
+				(Command gquartalconf) ias (
+					(Ew.QuartalsConf.Load.Conf Params~)^
+					Ew.QuartalsConf~ Exe
+#if (release)                   
+                              		(((playermanagment gquartalconf ok)) Ew.OutChannel~) Do
+#endif
 				);
 				(Command CommandId~)~ Exe
 			);

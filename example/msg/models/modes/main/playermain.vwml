@@ -47,6 +47,16 @@ module PlayerModeMain {
                               		(((playermanagment playerstop ok) (Player Id~)) Ew.OutChannel~) Do
 #endif
 				);
+				(Handle updateaccount) ias (
+					(Resources.Account.Update.From CommandParams~)^
+					Resources.Account.Update~ Exe
+#if (verbose)
+					((Player Id~ updated accounts resources) Ew.Output~) Do
+#endif
+#if (release)
+					(((main updateaccount ok) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);

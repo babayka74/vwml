@@ -28,7 +28,7 @@ module Player {
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit unitstopped exit);
 			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped updateaccount);
 			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal payforunit payquartalinfo paybribe contribution returnpayment back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
@@ -117,16 +117,23 @@ module Player {
 					Result ias false;
 					Init ias (
 						/* by resource type */
+						(Update.From Ew.PlayerAccountConf.ResourceTypes~)^
+						Update~ Exe
+#if (verbose)
+						((Player Id~ initialized account resources) Ew.Output~) Do
+#endif
+					);
+					Update ias (
+						From ias nil;
 						AssociateByRt ias (
 							(Type ($~ 0) Get)^
 							((Rt Type~) ($~ 1) Get)^
 							((Rt Type~) Account true) Context
-							((Player Id~ initialized with resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
-						);
-						(Ew.QuartalsConf.ResourceTypes~ AssociateByRt~) ForEach
 #if (verbose)
-						((Player Id~ initialized account resources) Ew.Output~) Do
+							((Player Id~ has resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
 #endif
+						);
+						(From~ AssociateByRt~) ForEach
 					);
 					Recharge ias (
 						(ByRtType (Rt (Value~ 1) Get))^
