@@ -57,6 +57,7 @@ module PlayerModeMain {
 					(((main updateaccount ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
+				(Handle getbalance) ias Resources.Account.Report~ Exe;
 				(Handle CommandId~)~ Exe
 			);
 		);

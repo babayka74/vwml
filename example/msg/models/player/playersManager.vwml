@@ -32,7 +32,7 @@ module PlayersManager {
 				(Player (Player PId~) defer) Born
 				(HiringAgency (HiringAgency PId~) defer) Born
 				(AttackManager (AttackManager PId~)) Born
-				(Ew.QuartalsConf.QuartalsPerPlayer~ BuildQuartal~) Repeat
+				(Ew.PlayerAccountConf.QuartalsPerPlayer~ BuildQuartal~) Repeat
 			);
 			ActivatePlayer ias (
 				PId ias 0;
@@ -90,9 +90,6 @@ module PlayersManager {
 				(Command gaccountconf) ias (
 					(Ew.PlayerAccountConf.Load.Conf Params~)^
 					Ew.PlayerAccountConf~ Exe
-#if (verbose)
-					((The account configuration is ResourceTypes~) Ew.Output~) Do
-#endif
 #if (release)                   
                               		(((playermanagment gaccountconf ok)) Ew.OutChannel~) Do
 #endif

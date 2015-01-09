@@ -26,10 +26,10 @@ module Player {
 			ModeBanking ias banking;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit unitstopped exit);
-			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check);
+			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check report);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped updateaccount);
-			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal payforunit payquartalinfo paybribe contribution returnpayment back);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped updateaccount getbalance);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal quartalreport payforunit payquartalinfo paybribe contribution returnpayment back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
@@ -67,17 +67,28 @@ module Player {
 					Visible ias ();
 					Init ias (
 						ActivateQuartal ias (
-							// quartal's configuration
-							((Quartal (Id~ $~))->Id (Id~ $~))^
-							((Quartal (Id~ $~))->Owner Id~)^
-							((Quartal (Id~ $~))) Activate
-							// links quartal to given player
-							((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
+							(QReady false) ias (
+								(Quartal (Quartal (Id~ $~)) defer) Born
+#if (verbose)
+								((Player Id~ created quartal (Quartal (Id~ $~)) by request) Ew.Output~) Do
+#endif
+								(QReady true)~ Exe
+							);
+							// quartal's activation
+							(QReady true) ias (
+								((Quartal (Id~ $~))->Id (Id~ $~))^
+								((Quartal (Id~ $~))->Owner Id~)^
+								((Quartal (Id~ $~))) Activate
+								// links quartal to given player
+								((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
+							);
+							// checks if quartal has already been created
+							(QReady (Quartal (Id~ $~)) EI)~ Exe
 						);
 						(Controlled ())^
 						(Visible ())^
 						(Own ())^
-						(Ew.QuartalsConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
+						(Ew.PlayerAccountConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 						// create battlefield and associate it with quartal
 						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
 						((Player Id~ created and initialized own quartals) Ew.Output~) Do
@@ -135,6 +146,17 @@ module Player {
 						);
 						(From~ AssociateByRt~) ForEach
 					);
+					Report ias (
+						AccountReport ias (
+#if (verbose)
+							((Player Id~ has resource (($~ 0) Get (Rt ($~ 0) Get)~)) Ew.OutChannel~) Do
+#endif
+#if (release)
+							(((banking balance done)(player Id~)(($~ 0) Get (Rt ($~ 0) Get)~)) Ew.OutChannel~) Do
+#endif
+						);
+						(Ew.PlayerAccountConf.ResourceTypes~ AccountReport~) ForEach
+					);
 					Recharge ias (
 						(ByRtType (Rt (Value~ 1) Get))^
 						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sum~) Do)^
@@ -143,7 +165,7 @@ module Player {
 						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
 #endif
 #if (release)
-						(((banking recharge done)(player Id~)(ByRtType~ (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+						(((banking recharge done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
 #endif
 					);
 					Withdraw ias (
@@ -158,7 +180,7 @@ module Player {
 							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do
 #endif
 #if (release)
-							(((banking withdraw done)(player Id~)(ByRtType~ (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+							(((banking withdraw done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
 #endif
 						);
 						(ByRtType (Rt (Value~ 1) Get))^

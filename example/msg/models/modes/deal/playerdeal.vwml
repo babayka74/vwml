@@ -54,6 +54,17 @@ module PlayerDeal {
 					UnlinkQ~ Exe
 					((Quartal QuartalId~) Tx (Id~ exit ())) Gate
 				);
+				(Handle quartalreport) ias (
+					Report ias (
+#if (verbose)
+						((The player Id~ in mode deal and linked quartal $~) Ew.Output~) Do
+#endif
+#if (release)
+						(((deal linkquartal done) (player Id~) (quartal $~)) Ew.OutChannel~) Do
+#endif
+					);
+					(Resources.Quartals.Own~ Report~) ForEach
+				);
 				(Handle paybribe),(Handle payquartalinfo) ias (
 					(Result true) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (confirmed))) Gate;
 					(Result false) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (declined))) Gate;

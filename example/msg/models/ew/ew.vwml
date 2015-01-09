@@ -45,16 +45,21 @@ module ExternalWorld {
 			);
 		);
 		PlayerAccountConf ias (
+			/* initial quartals (closed) per player */
+			QuartalsPerPlayer ias 1;
 			/* available resource types and their initial value */
-			ResourceTypes ias ((vodka 10000) (gold 20000) (food 300000));
+			ResourceTypes ias ((QuartalsPerPlayer 1)((vodka 10000) (gold 20000) (food 300000)));
 			// dynamic load configuration
 			Load ias (
 				Conf ias nil;
 				(NotReady true) ias doNothing;
-				(NotReady false) ias (ResourceTypes Conf~)^;
+				(NotReady false) ias (
+					(QuartalsPerPlayer ((Conf~ 0) Get 1) Get)^
+					(ResourceTypes (Conf~ 1) Get)^
+				);
 				(NotReady (Conf~ nil) Ident)~ Exe
 #if (verbose)
-				((The player account configuration is ResourceTypes~) Ew.Output~) Do
+				((The player account configuration is ResourceTypes~ and  QuartalsPerPlayer is QuartalsPerPlayer~) Ew.Output~) Do
 #endif
 			);
 			Load~ Exe
@@ -62,14 +67,12 @@ module ExternalWorld {
 		/*
 			Loaded quartal configuration:
 			(
-				(QuartalPerPlayer 1)
 				(SherifBribeRanges (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40))
-				(ResourceTypes ((vodka 10000) (gold 20000) (food 300000)))
 				(Resources ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50)))
-			)
+				)
 		*/
 		QuartalsConf ias (
-			ConfFields ias (QuartalsPerPlayer SherifBribeRanges ResourceTypes Resources);
+			ConfFields ias (SherifBribeRanges Resources);
 			// dynamic load configuration
 			Load ias (
 				Conf ias nil;
@@ -87,8 +90,6 @@ module ExternalWorld {
 				(NotReady false) ias ApplyConf~ Exe;
 				(NotReady (Conf~ nil) Ident)~ Exe
 			);
-			/* initial quartals (closed) per player */
-			QuartalsPerPlayer ias 1;
 			/* selected per quartal in random way */
 			SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
 			/* available quartal's resources */

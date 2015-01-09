@@ -30,7 +30,7 @@ module HiringAgency {
 				((The hiring agency for player Owner~ uninitialized) Ew.Output~) Do
 			);
 			Agent ias (
-				Commands ias (starthiring cancelhiring paymentresult check exit);
+				Commands ias (starthiring cancelhiring paymentresult check exit report);
 				Command ias nil;
 				Request ias nil;
 				RequestId ias 0;
@@ -77,7 +77,7 @@ module HiringAgency {
 #if (release)
 					(CharacterIdInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                         (UnitId (CharacterIdInfo~ 1) Get)^
-					(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) (NewRequestId~)) Ew.OutChannel~) Do								
+					(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) NewRequestId~) Ew.OutChannel~) Do								
 #endif
 				);
 				CancelHiringRequest ias (
@@ -92,7 +92,7 @@ module HiringAgency {
 #if (release)
 					(CharacterIdInfo ((RqId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                         (UnitId (CharacterIdInfo~ 1) Get)^
-					(((hiring cancelhiring done) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do								
+					(((hiring cancelhiring done) (Player Owner~) (unit UnitId~) RqId~) Ew.OutChannel~) Do								
 #endif
 				);
  				// cancels existing hiring request which was activated by 'ActuallyStartHiringRequest'
@@ -102,7 +102,7 @@ module HiringAgency {
 						((The hiring agent can not cancel request RqId~ for player Owner~ as invalid) Ew.Output~) Do
 #endif
 #if (release)
-						(((hiring cancelhiring failed invalidRequestId) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do								
+						(((hiring cancelhiring failed invalidRequestId) (Player Owner~) (unit UnitId~) RqId~) Ew.OutChannel~) Do								
 #endif
 					);
 					(RR false) ias (
@@ -136,9 +136,23 @@ module HiringAgency {
 					// notify player about success hiring operation
 					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (UnitId~))) Gate
 #if (release)
-					(((hiring starthiring done) (Player Owner~) (unit UnitId~) (RqId~)) Ew.OutChannel~) Do
+					(((hiring starthiring done) (Player Owner~) (unit UnitId~) RqId~) Ew.OutChannel~) Do
 #endif
 
+				);
+				PrepareReport ias (
+					Report ias (
+						(ConfRq $~~)^
+#if (verbose)
+						((The hiring agent Id~ has hiring request ConfRq~ for player Owner~) Ew.Output~) Do
+#endif
+#if (release)
+						(CharacterIdInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+                                        	(UnitId (CharacterIdInfo~ 1) Get)^
+						(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) $~) Ew.OutChannel~) Do								
+#endif
+					);
+					(RequestsInProgress~ Report~) ForEach
 				);
 				Behavior ias (
 					(RightCommand false) ias doNothing;
@@ -169,6 +183,7 @@ module HiringAgency {
 							(InProgress true) ias ActuallyCancelHiringRequest~ Exe;
 							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
 						);
+						(Command report) ias PrepareReport~ Exe;
 						(Command check) ias ((Hiring agency Id~ received self test ok) Ew.Output~) Do;
 						(Command exit) ias StopAgencyProcess~ Exe;
 						(Command Command~)~ Exe
