@@ -92,7 +92,7 @@ module Quartal {
 							((The banker of sherif of quartal Id~ payed to player Owner~ all requested resources) Ew.Output~) Do
 #endif
 #if (release)
-							(((deal setintention done (pay finished)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+							(((deal setintention done) (player Owner~) (quartal Id~) Behavior.State~ (pay finished)) Ew.OutChannel~) Do
 #endif
 						);
 						(NoQuantums false) ias (
@@ -107,12 +107,12 @@ module Quartal {
 					);
 				);
 				OpenInfo ias (
-					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~))^
+					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~))^
 #if (verbose)
 					((The sherif of quartal Id~ opens information about quartal QInfo~) Ew.Output~) Do
 #endif
 #if (release)                                   
-					(((deal setintention done (open (QInfo~ Resource.OpenTime~))) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+					(((deal setintention done) (player Owner~) (quartal Id~) Behavior.State~ (open QInfo~))) Ew.OutChannel~) Do
 #endif
 				);
 				Behavior ias (
@@ -135,7 +135,7 @@ module Quartal {
 						((The sherif of quartal Id~ did not provide information to player Owner~ since payment was failed) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention failed (open notEnoughResources)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (open notEnoughResources)) Ew.OutChannel~) Do
 #endif
 
 					);
@@ -145,7 +145,7 @@ module Quartal {
 						((The sherif of quartal Id~ took bribe ProposedBribe~) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention inProgress (pay (QInfo~))) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+						(((deal setintention inProgress) (player Owner~) (quartal Id~) State~ (pay QInfo~)) Ew.OutChannel~) Do
 #endif
 						Banker.ApplyPayment~ Exe
 						(State op)^
@@ -158,7 +158,7 @@ module Quartal {
 						((The sherif of quartal Id~ did not get bribe payment from player Owner~ since payment was failed) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention failed (pay notEnoughResources)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay notEnoughResources)) Ew.OutChannel~) Do
 #endif
 					);
 					/* payment */
@@ -185,7 +185,7 @@ module Quartal {
 							((The sherif of quartal Id~ did not allow to open info ProposedPrice~ desired price is Resource.DesiredOpenInfoPrice~) Ew.Output~) Do
 #endif
 #if (release)
-							(((deal setintention failed (open tooSmall (ProposedPrice~)) (Resource.DesiredOpenInfoPrice~)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+							(((deal setintention failed) (player Owner~) (quartal Id~) State~ (open toSmall ProposedPrice~ Resource.DesiredOpenInfoPrice~)) Ew.OutChannel~) Do
 #endif
 						);
 						(ProposedPrice (Sherif.IntentionParams~ 0) Get)^
@@ -207,7 +207,7 @@ module Quartal {
 						((The sherif of quartal Id~ closed information no bribe got) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention done (open closed)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (open closed)) Ew.OutChannel~) Do
 #endif
 					);
 					// 
@@ -217,7 +217,7 @@ module Quartal {
 						((The sherif of quartal Id~ closed information bribe was got) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention done (open closed)) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (open closed)) Ew.OutChannel~) Do
 #endif
 					);
 					(close cnp),(close cp) ias (
@@ -239,7 +239,7 @@ module Quartal {
 							((The sherif of quartal Id~ did not take bribe ProposedBribe~ desired bribe is DesiredBribe~) Ew.Output~) Do
 #endif
 #if (release)
-							(((deal setintention failed (pay tooSmall (ProposedBribe~) (DesiredBribe~))) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+							(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay toSmall ProposedBribe~ DesiredBribe~))) Ew.OutChannel~) Do
 #endif
 						);
 						(ProposedBribe (Sherif.IntentionParams~ 0) Get)^
@@ -283,7 +283,7 @@ module Quartal {
 						((The sherif of quartal Id~ which belongs to player Owner~ got self test message) Ew.Output~) Do
 #endif
 					);
-					(updateconf op),(updateconf cnp),(updateconf onp),(updateconf wtp) ias (
+					(updateconf op),(updateconf cnp),(updateconf onp),(updateconf wtp),(updateconf cp) ias (
 						(Resource.Update.QConf (IntentionParams~ 0) Get)^
 						(Resource.Update.BribeR (IntentionParams~ 1) Get)^
 						Resource.Update~ Exe
@@ -292,6 +292,14 @@ module Quartal {
 #endif						
 #if (release)
 						(((deal updateconf done) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					(getstate op),(getstate cnp),(getstate onp),(getstate wtp),(getstate cp) ias (
+#if (verbose)
+						((The quartal Id~ is in state State~ and belongs to Owner~) Ew.Output~) Do					
+#endif
+#if (release)
+						(((deal setintation done) (player Owner~) (quartal Id~) State~ (getstate QInfo~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Intention~ State~)~ Exe

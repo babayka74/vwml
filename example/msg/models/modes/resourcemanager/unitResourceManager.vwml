@@ -34,7 +34,7 @@ module PlayerResourceManager {
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
 #endif
 #if (release)
-						(((resourcemanager unitstopped done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+						(((resourcemanager unitstopped done) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 					);
 					(CorrectUnit (Resources.Units.Hired~ U~) In)~ Exe
@@ -47,7 +47,7 @@ module PlayerResourceManager {
 					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-					(((resourcemanager hireunit done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+					(((resourcemanager hireunit done) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 				);
 				
@@ -58,7 +58,7 @@ module PlayerResourceManager {
 					((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-					(((resourcemanager releaseunit done) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+					(((resourcemanager releaseunit done) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 				);
 
@@ -72,7 +72,7 @@ module PlayerResourceManager {
 							((Characters)->(Unit HiredUnitId~)->InAction true)^
 							((Player Id~) Tx ((CommandParams~ 2) Get recruitedunit HiredUnitId~ ())) Gate
 #if (release)
-							(((resourcemanager recruitunit done inAction) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+							(((resourcemanager recruitunit done inAction) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 						);
 						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
@@ -90,7 +90,7 @@ module PlayerResourceManager {
 						((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-						(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~)) Ew.OutChannel~) Do
+						(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
@@ -115,6 +115,18 @@ module PlayerResourceManager {
 				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe;
 				// unit is returned from action, if wasn't killed
 				(Handle returnunit) ias MarkUnitAsFree~ Exe;
+				// get list of hired units
+				(Handle getunits) ias (
+					Report ias (
+#if (verbose)
+						((Player Id~ has unit (unit $~) and its kind is (Characters)->(Unit $~)->Kind~) Ew.Output~) Do
+#endif
+#if (release)
+						(((resourcemanager getunits done) (player Id~) (unit $~) (Characters)->(Unit $~)->Kind~) Ew.OutChannel~) Do
+#endif
+					);
+					(Resources.Units.Hired~ Report~) ForEach
+				);
 				// stop all hired units
 				(Handle exit) ias StopAllUnits~ Exe;
 				(Handle CommandId~)~ Exe

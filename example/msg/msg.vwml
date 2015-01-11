@@ -235,6 +235,7 @@ module msg {
 				(manager 0 nil delay 0 (3500))
 				(player 0 main getbalance 0 ())
 				(player 0 deal quartalreport 0 ())
+				(player 0 resourcemanager getunits 0 ())
 #endif
 			);
 		);

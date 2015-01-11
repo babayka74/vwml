@@ -38,6 +38,18 @@ module HiringAgency {
 				NewRequestId ias nil;
 
 				CharacterIdInfo ias nil;
+				
+				GetKindOfUnit ias (
+					UnitProps ias nil;
+					Kind ias nil;
+					FetchKindPropForReport ias (
+						(KindProp false) ias doNothing;
+						(KindProp true) ias (Kind ($~ 1) Get)^;
+						(KindProp (kind ($~ 0) Get) Ident)~ Exe
+					);
+					(Kind nil)^
+					(UnitProps~ FetchKindPropForReport~) ForEach
+				);
 
 				StopAgencyProcess ias (
 					UnblockAndStop ias (
@@ -76,8 +88,10 @@ module HiringAgency {
 #endif
 #if (release)
 					(CharacterIdInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+					(GetKindOfUnit.UnitProps (ConfRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+					GetKindOfUnit~ Exe
                                         (UnitId (CharacterIdInfo~ 1) Get)^
-					(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) NewRequestId~) Ew.OutChannel~) Do								
+					(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ NewRequestId~) Ew.OutChannel~) Do								
 #endif
 				);
 				CancelHiringRequest ias (
@@ -91,8 +105,10 @@ module HiringAgency {
 					((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
 #if (release)
 					(CharacterIdInfo ((RqId~~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+					(GetKindOfUnit.UnitProps (RqId~~ CmdFormat.RqCharacterInfoIndex~) Get)^
+					GetKindOfUnit~ Exe
                                         (UnitId (CharacterIdInfo~ 1) Get)^
-					(((hiring cancelhiring done) (Player Owner~) (unit UnitId~) RqId~) Ew.OutChannel~) Do								
+					(((hiring cancelhiring done) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ RqId~) Ew.OutChannel~) Do								
 #endif
 				);
  				// cancels existing hiring request which was activated by 'ActuallyStartHiringRequest'
@@ -117,6 +133,7 @@ module HiringAgency {
 				);
 				// called when unit's request is ready (aka agent found and hired unit)
 				ProcessRequest ias (
+					// see StartActualHiring (Recall)
 					(RqId ($~ 0) Get)^
 					(Rq ($~ 1) Get)^
 					(RequestsInProgress (RequestsInProgress~ (RqId~)) Substruct)^
@@ -136,7 +153,7 @@ module HiringAgency {
 					// notify player about success hiring operation
 					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (UnitId~))) Gate
 #if (release)
-					(((hiring starthiring done) (Player Owner~) (unit UnitId~) RqId~) Ew.OutChannel~) Do
+					(((hiring starthiring done) (Player Owner~) (unit UnitId~) (Characters)->(Unit UnitId~)->Kind~ RqId~) Ew.OutChannel~) Do
 #endif
 
 				);
@@ -147,9 +164,11 @@ module HiringAgency {
 						((The hiring agent Id~ has hiring request ConfRq~ for player Owner~) Ew.Output~) Do
 #endif
 #if (release)
+						(GetKindOfUnit.UnitProps (ConfRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+						GetKindOfUnit~ Exe
 						(CharacterIdInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                         	(UnitId (CharacterIdInfo~ 1) Get)^
-						(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) $~) Ew.OutChannel~) Do								
+						(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ $~) Ew.OutChannel~) Do								
 #endif
 					);
 					(RequestsInProgress~ Report~) ForEach
@@ -172,8 +191,10 @@ module HiringAgency {
 #endif
 #if (release)
 								(CharacterIdInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+								(GetKindOfUnit.UnitProps (Request~ CmdFormat.RqCharacterInfoIndex~) Get)^
+								GetKindOfUnit~ Exe
                                                                 (UnitId (CharacterIdInfo~ 1) Get)^
-								(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~)) Ew.OutChannel~) Do
+								(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
 #endif
 							);
 							(payment (Request~ 0) Get)~ Exe
