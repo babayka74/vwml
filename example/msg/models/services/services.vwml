@@ -17,7 +17,9 @@ module Services {
 					);
 					(RightPosition false) ias (
 						(PosToBeSet~ nil)^
+#if (verbose)
 						((The pos PosToBeChecked~ does not belong to battlefield for unit Id~) Ew.Output~) Do
+#endif
 					);
 					PosToBeChecked ias nil;
 					PosToBeSet ias nil;
@@ -34,7 +36,9 @@ module Services {
 					CheckGoal ias (
 						(NotCorrectGoal true) ias (
 							(Correct false)^
+#if (verbose)
 							((The goals Goals~ are invalid for unit Id~) Ew.Output~) Do
+#endif
 							(Goals RollbackGoals~)^
 							($ doNothing)^
 						);
@@ -43,7 +47,9 @@ module Services {
 						(CheckPosition.PosToBeSet T)^
 						(CheckPosition.PosToBeCheckedCtx CheckedCtx~)^
 						(CheckPosition.OnMainField Field~)^
+#if (verbose)
 						((Checking CheckPosition.PosToBeChecked~) Ew.Output~) Do
+#endif
 						CheckPosition~ Exe
 						(NotCorrectGoal (T~ nil) Ident)~ Exe
 					);

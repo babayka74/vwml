@@ -11,6 +11,7 @@ public class OperationInfo {
 	private String nextToken;
 	private int line;
 	private int position;
+	private String description;
 	
 	public OperationInfo() {
 		super();
@@ -68,6 +69,14 @@ public class OperationInfo {
 	
 	public void setPosition(int position) {
 		this.position = position;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	@Override

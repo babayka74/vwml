@@ -5,7 +5,8 @@ import com.vw.lang.sink.OperationInfo;
 public abstract class CompilationSink {
 	
 	public static enum Mode {
-		SCAN_ONLY
+		SCAN_ONLY,
+		FULL_BUILD
 	}
 	
 	private Mode mode = Mode.SCAN_ONLY;
@@ -66,4 +67,10 @@ public abstract class CompilationSink {
 	 */
 	public abstract void publishModuleName(String moduleName);
 	
+	/**
+	 * Delegates error message info
+	 * @param opInfo
+	 */
+	public abstract void delegateErrorCompilationMessage(OperationInfo opInfo);
+
 }

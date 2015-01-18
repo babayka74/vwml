@@ -133,12 +133,19 @@ package com.vw.lang.grammar;
 @members {
 
 	public static class VWMLCodeGeneratorRecognitionException extends RecognitionException {
+		private com.vw.lang.sink.OperationInfo opInfo;
+		
 		public VWMLCodeGeneratorRecognitionException() {
 			super();
 		}
 		
-		public VWMLCodeGeneratorRecognitionException(String message) {
-			initCause(new Throwable(message));
+		public VWMLCodeGeneratorRecognitionException(com.vw.lang.sink.OperationInfo opInfo) {
+			initCause(new Throwable("compilation failed"));
+			this.opInfo = opInfo;
+		}
+		
+		public com.vw.lang.sink.OperationInfo getLastOperationInfo() {
+			return opInfo;
 		}
 	}
 
@@ -171,6 +178,25 @@ package com.vw.lang.grammar;
  	private String lastProcessedIAS = null;
  	
  	private Logger logger = Logger.getLogger(this.getClass());
+	
+	
+	@Override
+	public String getErrorMessage(RecognitionException e, String[] tokenNames) {
+		String msg = super.getErrorMessage(e, tokenNames);
+		if (msg != null && msg.length() != 0) {
+			logger.error(getErrorHeader(e) + " " + msg);
+		}
+		CompilationSink csink = getCompilationSink();
+		if (csink != null) {
+    			com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
+    			opInfo.setLine(e.line);
+    			opInfo.setPosition(e.charPositionInLine);
+    			opInfo.setFileName(getSourceName());
+    			opInfo.setDescription(msg);
+ 			csink.delegateErrorCompilationMessage(opInfo);
+		}
+		return msg;
+	}
 	
 	public void setVwmlModelBuilder(VWMLModelBuilder vwmlModelBuilder) {
 		this.vwmlModelBuilder = vwmlModelBuilder;
@@ -754,7 +780,13 @@ package com.vw.lang.grammar;
 	}
 	
 	protected void rethrowVWMLExceptionAsRecognitionException(Exception e) throws RecognitionException {
-		throw new VWMLCodeGeneratorRecognitionException(e.getMessage());
+    		com.vw.lang.sink.OperationInfo opInfo = new com.vw.lang.sink.OperationInfo();
+    		org.antlr.runtime.Token token = getTokenStream().get(getTokenStream().index());
+    		opInfo.setLine(token.getLine());
+    		opInfo.setPosition(token.getCharPositionInLine());
+    		opInfo.setFileName(getSourceName());
+    		opInfo.setNextToken(token.getText());
+		throw new VWMLCodeGeneratorRecognitionException(opInfo);
 	}
 	
 	// DIRECTIVES

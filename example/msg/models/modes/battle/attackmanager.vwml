@@ -12,7 +12,9 @@ module AttackManager {
 			// initialization steps
 			Init ias (
 				(AttackingUnits ())^
+#if (verbose)
 				((The attack manager of player PlayerId~ initialized) Ew.Output~) Do
+#endif
 			);
 			// adds unit to attacking group
 			AddUnitToAttackingGroup ias (
@@ -30,10 +32,14 @@ module AttackManager {
 				(UnitExist true) ias (
 					(AttackingUnits (AttackingUnits~ (U~)) Substruct)^
 					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ returnunit PlayerId~ (U~))) Gate
+#if (verbose)
 					((The unit U~ dismissed from attacking group AttackingUnits~ of player PlayerId~) Ew.Output~) Do
+#endif
 				);
 				(UnitExist false) ias (
+#if (verbose)
 					((The unit U~ does not belong to attacking group of player PlayerId~) Ew.Output~) Do
+#endif
 				);
 				(UnitExist (AttackingUnits~ U~) In)~ Exe
 			);

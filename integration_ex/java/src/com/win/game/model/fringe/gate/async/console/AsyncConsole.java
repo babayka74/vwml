@@ -46,6 +46,10 @@ public class AsyncConsole implements IVWMLGate {
 			return stop;
 		}
 
+		public boolean isStarted() {
+			return false;
+		}
+		
 		public List<DispatcherPairs> getDispatchedQueues() {
 			return dispatchedQueues;
 		}
@@ -71,7 +75,28 @@ public class AsyncConsole implements IVWMLGate {
 	protected static class ConsoleInActivity extends ConsoleActivity implements Runnable {
 		private ConcurrentLinkedQueue<EWEntity> inDefault = new ConcurrentLinkedQueue<EWEntity>();
 		private ConcurrentLinkedQueue<EWEntity> in = null;
+		private AtomicBoolean started = new AtomicBoolean();
 
+		@Override
+		public boolean isStarted() {
+			return started.get();
+		}
+		
+		@Override
+		public void start() {
+			if (!started.get()) {
+				super.start();
+				while (!started.get()) {
+					synchronized(started) {
+						try {
+							started.wait(10);
+						} catch (InterruptedException e) {
+						}
+					}
+				}
+			}
+		}
+		
 		public EWEntity read(String qName) {
 			in = inDefault;
 			if (getGate() != null && qName != null && !qName.equals(EWEntity.s_EmptyEntityId)) {
@@ -89,6 +114,10 @@ public class AsyncConsole implements IVWMLGate {
 		
 		@Override
 		public void run() {
+			started.getAndSet(true);
+			synchronized (started) {
+				started.notifyAll();
+			}
 			while (!isStop()) {
 				EWEntity e = getConsole().invokeEW(Console.getInMethod(), null);
 				if (e == null) {
@@ -106,6 +135,7 @@ public class AsyncConsole implements IVWMLGate {
 					getGate().unblock();
 				}
 			}
+			started.getAndSet(false);
 		}
 	}
 	
@@ -230,6 +260,10 @@ public class AsyncConsole implements IVWMLGate {
 			if (commandArgs != null) {
 				fromQ = (String)commandArgs.getId();
 			}
+			// lazy start since if we don't use console input we shouldn't run it from beginning.
+			if (!cin.isStarted()) {
+				cin.start();
+			}
 			e = cin.read(fromQ);
 		}
 		else
@@ -246,8 +280,6 @@ public class AsyncConsole implements IVWMLGate {
 		cout.setGate(this);
 		cin.setDispatchedQueues(dispatchedQueues);
 		cout.setDispatchedQueues(dispatchedQueues);
-		cin.start();
-		cout.start();
 	}
 
 	@Override

@@ -1,17 +1,12 @@
 package com.vw.lang.processor.tests;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import javax.imageio.stream.FileImageInputStream;
 
 import org.junit.Test;
 
@@ -60,6 +55,12 @@ public class VWMLInMemoryTest {
 		@Override
 		public void publishModuleName(String moduleName) {
 			System.out.println("Module name '" + moduleName + "'");
+		}
+
+		@Override
+		public void delegateErrorCompilationMessage(OperationInfo opInfo) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}

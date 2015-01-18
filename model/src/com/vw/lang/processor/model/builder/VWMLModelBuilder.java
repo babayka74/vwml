@@ -351,12 +351,13 @@ public class VWMLModelBuilder extends Debuggable {
             g.filedef();
         }
         catch (VirtualWorldModelingLanguageParser.VWMLCodeGeneratorRecognitionException e) {
-        	logger.error("couldn't compile; error is '" + e.getCause().getMessage() + "'");
+        	com.vw.lang.sink.OperationInfo lastOpInfo = e.getLastOperationInfo();
+        	logger.error("couldn't compile; '" + lastOpInfo + "'");
             throw e;
         }
         catch (RecognitionException e) {
         	g.reportError(e);
-        	logger.error("couldn't compile; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
+        	logger.error("couldn't compile; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
             throw e;
         }
 	}
@@ -390,12 +391,13 @@ public class VWMLModelBuilder extends Debuggable {
     		}
         }
         catch (VirtualWorldModelingLanguageParser.VWMLCodeGeneratorRecognitionException e) {
-        	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getCause().getMessage() + "'");
+        	com.vw.lang.sink.OperationInfo lastOpInfo = e.getLastOperationInfo();
+        	logger.error("couldn't compile '" + vwmlFilePath + "'; '" + lastOpInfo + "'");
             throw e;
         }
         catch (RecognitionException e) {
         	g.reportError(e);
-        	logger.error("couldn't compile '" + vwmlFilePath + "'; error is '" + e.getMessage() + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
+        	logger.error("couldn't compile '" + vwmlFilePath + "'; position '" + e.line + ":" + e.charPositionInLine + "'; token '" + ((e.token != null) ? e.token.getText() : "undefined" + "'"));
             throw e;
         }
 	}

@@ -17,18 +17,26 @@ module BattleManager {
 					(Resources.Battles (Resources.Battles~ ((BattleField (Id~ Q~))->Id~)) Join)^
 					// default: here defence will be built
 					(Resources.SelectedBattle (BattleField (Id~ Q~))->Id~)^
+#if (verbose)
 					((Player Id~ created battlefield (BattleField (BattleField (Id~ Q~))->Id~)) Ew.Output~) Do 
+#endif
 				);
 				// battlefield is destroyed upon player's request
 				DestroyBattleField ias (
 					(BFId (Id~ (CommandParams~ 0) Get))^
 					(Resources.Battles (Resources.Battles~ (BattleField BFId~)) Substruct)^
+#if (verbose)
 					((Player Id~ is going to destroy battlefield (BattleField BFId~)) Ew.Output~) Do 
+#endif
 					((Player Id~) Tx (ModeInfo.ModeBattle~ exit Id~ ())) Gate
 				);
 				// Selects battle (becames active from player's point of view)
 				SelectBattleField ias (
-					(Allow false) ias ((Player Id~ selected invalid battlefield id BFId~) Ew.Output~) Do;
+					(Allow false) ias (
+#if (verbose)
+						((Player Id~ selected invalid battlefield id BFId~) Ew.Output~) Do
+#endif
+					);
 					(Allow true) ias (Resources.SelectedBattle BFId)^;
 					(BFId (Id~ (CommandParams~ 0) Get))^
 					(Allow (Resources.Battles~ BFId~) In)~ Exe
@@ -56,10 +64,16 @@ module BattleManager {
 						((BattleField Resources.SelectedBattle~)->CommandId CommandId~)^
 						((BattleField Resources.SelectedBattle~)->Destination To~)^
 						((BattleField Resources.SelectedBattle~)->CommandParams CommandParams~)^
+#if (verbose)
 						((Player Id~ battlemanager delegates command CommandId~ to battlefield (BattleField Resources.SelectedBattle~)) Ew.Output~) Do
+#endif
 						(BattleField Resources.SelectedBattle~)~ Exe
 					);
-					(NotSelectedBF true) ias ((Player Id~ must select battlefield before) Ew.Output~) Do;
+					(NotSelectedBF true) ias (
+#if (verbose)
+						((Player Id~ must select battlefield before) Ew.Output~) Do
+#endif
+					);
 					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe
 				);				
 				(DelegateToBF (BattleField.ExportedCommands~ CommandId~) In)~ Exe

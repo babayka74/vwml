@@ -81,7 +81,7 @@ public class VWML2JavaModulesMainStateBuilder {
 	}	
 	
 	private String prepareBody() {
-		String body = "\r\n\r\n\tpublic void main(String[] args) throws Exception {\r\n";
+		String body = "\r\n\r\n\tpublic static void main(String[] args) throws Exception {\r\n";
 		body += "\t\ttry {\r\n";
 		body += "\t\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().startInterpretationProcess();\r\n";
 		body += "\t\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().clearResources();\r\n";

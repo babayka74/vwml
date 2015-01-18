@@ -91,7 +91,9 @@ module Player {
 						(Ew.PlayerAccountConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 						// create battlefield and associate it with quartal
 						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
+#if (verbose)
 						((Player Id~ created and initialized own quartals) Ew.Output~) Do
+#endif
 					);
 					Done ias (
 						AllOwnQurtalsClosed ias (
@@ -171,7 +173,9 @@ module Player {
 					Withdraw ias (
 						(Allow -1) ias (
 							(Result false)^
+#if (verbose)
 							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (Value~ 2) Get) Ew.Output~) Do
+#endif
 						);
 						(Allow 0),(Allow 1) ias (
 							(Result true)^
@@ -228,7 +232,11 @@ module Player {
 			);
 			HandlePlayerCommandOnModeMain ias (
 				(StopPlayer false) ias PlayerLifeStep~ Exe;
-				(StopPlayer true) ias ((The player Id~ stopped) Ew.Output~) Do;
+				(StopPlayer true) ias (
+#if (verbose)
+					((The player Id~ stopped) Ew.Output~) Do
+#endif
+				);
 				(Main.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 				(Main.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				Main~ Exe
@@ -275,11 +283,15 @@ module Player {
 					Cmd ias nil;
 					(RightCommand true) ias Handler~ Exe;
 					(RightCommand false) ias (
+#if (verbose)
 						((The player Id~ received unsupported command Cmd~) Ew.Output~) Do
+#endif
 						PlayerLifeStep~ Exe
 					);
 					(Cmd (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+#if (verbose)
 					((The player Id~ received command Dispatch~ to dispatch commands set CommandSet~) Ew.Output~) Do
+#endif
 					(RightCommand (CommandSet~ Cmd~) In)~ Exe
 				);
 				(mode main) ias (
@@ -334,10 +346,14 @@ module Player {
 			lifeterm = (
 				(Stop false)^
 				(State active)^
+#if (verbose)
 				((The player Id~ added and active) Ew.Output~) Do
+#endif
 				((Player Id~) Register blocked) Gate
 				(ActiveModes ActiveModes~ Exe)^
+#if (verbose)
 				((The player Id~ has available modes ModeInfo.AvailableModes~ and active ActiveModes~) Ew.Output~) Do
+#endif
 				Resources.Init~ Exe
 				(Services.SignalUnit (SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe

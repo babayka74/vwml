@@ -23,11 +23,15 @@ module HiringAgency {
 
 			Init ias (
 				(StopAgency false)^
+#if (verbose)
 				((The hiring agency for player Owner~ initialized) Ew.Output~) Do
+#endif
 			);
 			Done ias (
 				((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (hiringagency))) Gate
+#if (verbose)
 				((The hiring agency for player Owner~ uninitialized) Ew.Output~) Do
+#endif
 			);
 			Agent ias (
 				Commands ias (starthiring cancelhiring paymentresult check exit report);
@@ -200,12 +204,20 @@ module HiringAgency {
 							(payment (Request~ 0) Get)~ Exe
 						);
 						(Command cancelhiring) ias (
-							(InProgress false) ias ((Invalid request id RequestId~) Ew.Output~) Do;
+							(InProgress false) ias (
+#if (verbose)
+								((Invalid request id RequestId~) Ew.Output~) Do
+#endif
+							);
 							(InProgress true) ias ActuallyCancelHiringRequest~ Exe;
 							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
 						);
 						(Command report) ias PrepareReport~ Exe;
-						(Command check) ias ((Hiring agency Id~ received self test ok) Ew.Output~) Do;
+						(Command check) ias (
+#if (verbose)
+							((Hiring agency Id~ received self test ok) Ew.Output~) Do
+#endif
+						);
 						(Command exit) ias StopAgencyProcess~ Exe;
 						(Command Command~)~ Exe
 					);
@@ -229,23 +241,31 @@ module HiringAgency {
 				);
 				(ready true false) ias (
 					(CommandDispatcher.Dispatch ((HiringAgency Id~) Rx) Gate)^
+#if (verbose)
 					((The hiring agency Id~ received CommandDispatcher.Dispatch~) Ew.Output~) Do
+#endif
 					CommandDispatcher~ Exe
 					HiringAgencyLifeStep~ Exe
 				);
 				(ready false true),(ready true true) ias (
+#if (verbose)
 					((The hiring agency Id~ of player Owner~ reports about exiting) Ew.Output~) Do
+#endif
 				);
 				(ready (((HiringAgency Id~) Ready) Gate true) Ident StopAgency~)~ Exe
 			);
 			lifeterm = (
+#if (verbose)
 				((The hiring agency Id~ activated for owner Owner~) Ew.Output~) Do
+#endif
 				((HiringAgency Id~) Register blocked) Gate
 				((HiringAgency Id~) Tx (check 0 ())) Gate
 				HiringAgencyLifeStep~ Exe
 				((HiringAgency Id~) Unregister) Gate
 				Done~ Exe
+#if (verbose)
 				((The hiring agency Id~ deactivated for owner Owner~) Ew.Output~) Do
+#endif
 			) Exe
 		);
 	);

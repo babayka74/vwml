@@ -27,14 +27,19 @@ module PlayerResourceManager {
 
 				DismissUnit ias (
 					U ias nil;
-					(CorrectUnit false) ias ((Unit U~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit false) ias (
+#if (verbose)
+						((Unit U~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do
+#endif
+					);
 					(CorrectUnit true) ias (
+#if (release)
+						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
+#endif
+
 						((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate
 #if (verbose)
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
-#endif
-#if (release)
-						(((resourcemanager unitstopped done) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 					);
 					(CorrectUnit (Resources.Units.Hired~ U~) In)~ Exe
@@ -57,13 +62,14 @@ module PlayerResourceManager {
 #if (verbose)
 					((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
-#if (release)
-					(((resourcemanager releaseunit done) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
-#endif
 				);
 
 				MarkUnitAsIsInAction ias (
-					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit false) ias (
+#if (verbose)
+						((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do
+#endif
+					);
 					(CorrectUnit true) ias (
 						(UnitInAction true) ias ((Player Id~) Tx ((CommandParams~ 2) Get rejectedunit HiredUnitId~ ())) Gate;
 						(UnitInAction false) ias (
@@ -82,7 +88,11 @@ module PlayerResourceManager {
 				);
 
 				MarkUnitAsFree ias (
-					(CorrectUnit false) ias ((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do;
+					(CorrectUnit false) ias (
+#if (verbose)
+						((Unit HiredUnitId~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do
+#endif
+					);
 					(CorrectUnit true) ias (
 						((Characters)->(Unit HiredUnitId~)->InAction false)^
 						(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
@@ -106,7 +116,7 @@ module PlayerResourceManager {
 				);
 				// unit's functionality doesn't need to player
 				(Handle dismissunit),(Handle releaseunit) ias (
-					(DismissUnit.U HiredUnitId~)^
+					(DismissUnit.U (CommandParams~ 0) Get)^
 					DismissUnit~ Exe
 				);
 				// unitstopped is sent when command exit is sent to unit and unit finishes its work

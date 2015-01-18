@@ -31,7 +31,9 @@ module BattleField {
 				);
 				((BuildDefenceModeAvailableCommands AttackModeAvailableCommands NoneModeAvailableCommands) Fill~) ForEach
 				(ExportedCommands (ExportedCommands~) Squeeze)^
+#if (verbose)
 				((The battlefields exported commands are ExportedCommands~) Ew.Output~) Do
+#endif
 			);
 			// battlefield's zones
 			// 1. Attack - player which attacks sets his units to 'Nodes'. 'Nodes' must be subgraph of 'Main' graph
@@ -81,7 +83,9 @@ module BattleField {
 				(Mode none)^
 				(PlayerAttackerId nil)^
 				Participants.Init~ Exe
+#if (verbose)
 				((The battlefield for player PlayerId~ linked to quartal Quartal~ has id Id~ battle status BattleStatus~) Ew.Output~) Do
+#endif
 			);
 			Done ias (
 				ReturnAllRemainedUnits~ Exe
@@ -110,24 +114,34 @@ module BattleField {
 				((Characters)->(Unit Destination~)->(AssociateWithBattleField)->BFId Id~)^
 				(Characters)->(Unit Destination~)->AssociateWithBattleField~ Exe
 				(Participants.Units (Participants.Units~ (Destination~)) Join)^
-				(added (Characters)->(Unit Destination~)->Type~)~ Exe 
+				(added (Characters)->(Unit Destination~)->Type~)~ Exe
+#if (verbose)
 				((The battlefield Id~ has attackers Participants.NumOfAttackers~ and defenders Participants.NumOfDefenders~) Ew.Output~) Do
+#endif
 			);
 			// unit is removed from battlefield when mode 'builddefence' is active
 			RemoveFromBattleField ias (
 				U ias nil;
 				PId ias nil;
 				RetAs ias nil;
-				(CorrectUnit false) ias ((The unit U~ was not recruited to battlefield Id~ of player PId~) Ew.Output~) Do;
+				(CorrectUnit false) ias (
+#if (verbose)
+					((The unit U~ was not recruited to battlefield Id~ of player PId~) Ew.Output~) Do
+#endif
+				);
 				(CorrectUnit true) ias (
 					(removed attacker) ias (Participants.NumOfAttackers ((Participants.NumOfAttackers~) Ew.DecValue~) Do)^;
 					(removed defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.DecValue~) Do)^;
 					((Characters)->(Unit U~)->(AssociateWithBattleField)->BFId nil)^
 					(Characters)->(Unit U~)->AssociateWithBattleField~ Exe
 					(removed (Characters)->(Unit U~)->Type~)~ Exe
+#if (verbose)
 					((Unit U~ of player PId~ returned to resource manager as RetAs~) Ew.Output~) Do
+#endi
 					((Player PId~) Tx (ModeInfo.ModeResourceMgr~ RetAs~ PId~ (U~))) Gate
+#if (verbose)
 					((The battlefield Id~ has attackers Participants.NumOfAttackers~ and defenders Participants.NumOfDefenders~) Ew.Output~) Do
+#endif
 				);
 				(CorrectUnit (Participants.Units~ U~) In)~ Exe
 			);
@@ -162,7 +176,11 @@ module BattleField {
 			// sends command to concrete unit
 			PropagateCommandToUnit ias (
 				(BattleStarted true) ias ((Characters)->(Unit Destination~) Tx (Quartal~ CommandId~ Destination~ CommandParams~)) Gate;
-				(BattleStarted false) ias ((The command can not be propagated to unit Destination~ player PlayerId~ since battle was not started) Ew.Output~) Do;
+				(BattleStarted false) ias (
+#if (verbose)
+					((The command can not be propagated to unit Destination~ player PlayerId~ since battle was not started) Ew.Output~) Do
+#endif
+				);
 				(BattleStarted (BattleStatus~ attaked) Ident)~ Exe
 			);
 			// all units which belong to given user are returned to player's pool
@@ -193,7 +211,9 @@ module BattleField {
 			// battlefield's cost is passed to player who won battle
 			SetBattleCost ias (
 				(BattleCost (CommandParams~ 0) Get)^
+#if (verbose)
 				((The battlefield Id~ of player PlayerId~ has cost BattleCost~) Ew.Output~) Do
+#endif
 			);
 			// initial mode
 			(Mode none) ias (

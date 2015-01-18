@@ -12,17 +12,23 @@ module PlayerModeMain {
 					(RightMode false) ias doNothing;
 					(RightMode true) ias (
 						(Mode CommandParams~)^
+#if (verbose)
 						((The player Id~ mode is Mode~) Ew.Output~) Do
+#endif
 					);
 					(RightMode (ModeInfo.AvailableModes~ CommandParams~) In)~ Exe
 				);
 				(Handle back) ias (
 					(Player.Mode main)^
+#if (verbose)
 					((The player Id~ stays in main mode) Ew.Output~) Do
+#endif
 				);
 				// manager received command to stop the world 
 				(Handle requeststopplayerworld) ias (
+#if (verbose)
 					((The player Id~ is going to be stopped) Ew.Output~) Do
+#endif
 					(Activities () NotifyAboutActivitiesStopped~) StartInterception
 					Resources.Done~ Exe
 				);
@@ -35,7 +41,9 @@ module PlayerModeMain {
 					(Params (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 					(CA (Params~ 0) Get)^
 					(CA CA~)~ Exe
+#if (verbose)
 					((The player Id~ stopped activity CA~ left Activities~) Ew.Output~) Do
+#endif
 					(Activities (Activities~ (CA~)) Substruct)^
 				);
 				(Handle playerworldstopped) ias (

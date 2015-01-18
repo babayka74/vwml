@@ -77,7 +77,9 @@ module Quartal {
 					Account ias 0;
 					ApplyPayment ias (
 						(Account ((Account~ Value~) Ew.Sum~) Do)^
+#if (verbose)
 						((The sherif of quartal Id~ has following sum Banker.Account~ on account) Ew.Output~) Do
+#endif
 					);
 					AskPaymentForQuartalInfo ias (
 						((Player Owner~) Tx (ModeInfo.ModeDeal~ payquartalinfo Owner~ (Id~ Resource.Type~ Value~))) Gate
@@ -97,7 +99,9 @@ module Quartal {
 						);
 						(NoQuantums false) ias (
 							(Resource.Quantums ((Resource.Quantums~) Ew.DecValue~) Do)^
+#if (verbose)
 							((The banker of sherif of quartal Id~ pays to player Owner~ resource (Id~ Resource.Type~ Resource.Quantum~) and left Resource.Quantums~ payments) Ew.Output~) Do
+#endif
 							/* sending contribution message to player */
 							((Player Owner~) Tx (ModeInfo.ModeDeal~ contribution Owner~ (Id~ Resource.Type~ Resource.Quantum~))) Gate
 							/* re-activates contribution */
@@ -112,7 +116,7 @@ module Quartal {
 					((The sherif of quartal Id~ opens information about quartal QInfo~) Ew.Output~) Do
 #endif
 #if (release)                                   
-					(((deal setintention done) (player Owner~) (quartal Id~) Behavior.State~ (open QInfo~))) Ew.OutChannel~) Do
+					(((deal setintention done) (player Owner~) (quartal Id~) Behavior.State~ (open QInfo~)) Ew.OutChannel~) Do
 #endif
 				);
 				Behavior ias (
@@ -194,10 +198,14 @@ module Quartal {
 					);
 					(open cp) ias (
 						(State op)^
+#if (verbose)
 						((The sherif of quartal Id~ provides information to player Owner~ and no sherif account updated) Ew.Output~) Do
+#endif
 					);
 					(open onp),(open op) ias (
+#if (verbose)
 						((The sherif of quartal Id~ has already opened information about quartal) Ew.Output~) Do
+#endif
 						OpenInfo~ Exe
 					);
 					(close onp) ias (
@@ -239,7 +247,7 @@ module Quartal {
 							((The sherif of quartal Id~ did not take bribe ProposedBribe~ desired bribe is DesiredBribe~) Ew.Output~) Do
 #endif
 #if (release)
-							(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay toSmall ProposedBribe~ DesiredBribe~))) Ew.OutChannel~) Do
+							(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay toSmall ProposedBribe~ DesiredBribe~)) Ew.OutChannel~) Do
 #endif
 						);
 						(ProposedBribe (Sherif.IntentionParams~ 0) Get)^
@@ -260,7 +268,9 @@ module Quartal {
 						(State cnp)^
 					);
 					(requestdone cnp),(requestdone onp) ias (
+#if (verbose)
 						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
+#endif
 					);
 					(notrequestdone op) ias (
 						(State op)^
@@ -269,14 +279,18 @@ module Quartal {
 						(State cp)^
 					);
 					(notrequestdone cnp),(notrequestdone onp) ias (
+#if (verbose)
 						((The sherif of quartal Id~ got invalid message from banker) Ew.Output~) Do
+#endif
 					);
 					(exit op),(exit cnp),(exit onp),(exit wtp) ias (
 						(StopQuartal true)^
 						(-1 (Pay Id~) Banker.Pay~) Recall
 						// unblocks quartal's gate
 						((Quartal Id~) Tx (Id~ check ())) Gate
+#if (verbose)
 						((The sherif of quartal Id~ got message to exit) Ew.Output~) Do
+#endif
 					);
 					(check op),(check cnp),(check onp),(check wtp) ias (
 #if (verbose)
@@ -291,7 +305,7 @@ module Quartal {
 						((The quartal Id~ updated with configuration (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
 #endif						
 #if (release)
-						(((deal updateconf done) (player Owner~) (quartal Id~)) Ew.OutChannel~) Do
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (updateconf Resource.Update.QConf~)) Ew.OutChannel~) Do
 #endif
 					);
 					(getstate op),(getstate cnp),(getstate onp),(getstate wtp),(getstate cp) ias (
@@ -299,7 +313,7 @@ module Quartal {
 						((The quartal Id~ is in state State~ and belongs to Owner~) Ew.Output~) Do					
 #endif
 #if (release)
-						(((deal setintation done) (player Owner~) (quartal Id~) State~ (getstate QInfo~)) Ew.OutChannel~) Do
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (getstate QInfo~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Intention~ State~)~ Exe

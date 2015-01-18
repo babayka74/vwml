@@ -15,7 +15,9 @@ module ExternalWorld {
 				(Node~ Ctx~ true) Context
 				(Node~ LinkedNodes~)^
 				(Stg~ (Stg~~ (Node~)) Join)^
+#if (verbose)
 				((Connecting Node~ with LinkedNodes~ and list of nodes Stg~~ on context Ctx~) Ew.Output~) Do
+#endif
 			);
 			BuildMainZone ias (
 				(Prototype.Stg MainZone~)^

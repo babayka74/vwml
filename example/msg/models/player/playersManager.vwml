@@ -59,10 +59,14 @@ module PlayersManager {
 			);
 			// propagating command to concrete player
 			PropagateCommand ias (
+#if (verbose)
 				((Command CommandId~ is propagated to player PlayerId~ to mode CommandMode~) Ew.Output~) Do
+#endif
 				// activating gate on player's side (Tx mode)
 				((Player PlayerId~) Tx (CommandMode~ CommandId~ Destination~ Params~)) Gate
+#if (verbose)
 				((Command CommandId~ propagated to player PlayerId~) Ew.Output~) Do
+#endif
 			);
 			(ManagerCommand true) ias (
 				// creates player and adds to session
@@ -72,7 +76,9 @@ module PlayersManager {
 						ActivatePlayer~ Exe
 					);
 					(Exists false) ias (
+#if (verbose)
 						((Creating player PlayerId~) Ew.Output~) Do
+#endif
 						(CreatePlayer.PId PlayerId~)^
 						CreatePlayer~ Exe
 						(Exists true)~ Exe
