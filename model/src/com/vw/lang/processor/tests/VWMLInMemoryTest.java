@@ -3,6 +3,7 @@ package com.vw.lang.processor.tests;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.zip.ZipEntry;
@@ -59,6 +60,25 @@ public class VWMLInMemoryTest {
 
 		@Override
 		public void delegateErrorCompilationMessage(OperationInfo opInfo) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void delegateStartProcessExecution(String processName) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void delegateRuntimeStreams(String processName, InputStream is,
+				InputStream es) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void delegateFinishProcessExecution(String processName) {
 			// TODO Auto-generated method stub
 			
 		}

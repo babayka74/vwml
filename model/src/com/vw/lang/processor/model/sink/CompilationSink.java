@@ -1,5 +1,7 @@
 package com.vw.lang.processor.model.sink;
 
+import java.io.InputStream;
+
 import com.vw.lang.sink.OperationInfo;
 
 public abstract class CompilationSink {
@@ -72,5 +74,24 @@ public abstract class CompilationSink {
 	 * @param opInfo
 	 */
 	public abstract void delegateErrorCompilationMessage(OperationInfo opInfo);
+	
+	/**
+	 * Delegates info that process is going to be started
+	 * @param processName
+	 */
+	public abstract void delegateStartProcessExecution(String processName);
+	
+	/**
+	 * Delegates input and output streams of running process
+	 * @param processName
+	 * @param is
+	 * @param es
+	 */
+	public abstract void delegateRuntimeStreams(String processName, InputStream is, InputStream es);
 
+	/**
+	 * Delegates info that process finished execution
+	 * @param processName
+	 */
+	public abstract void delegateFinishProcessExecution(String processName);
 }

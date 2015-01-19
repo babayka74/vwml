@@ -130,6 +130,7 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 	}
 
 	private VWMLModelBuilder modelBuilder = null;
+	private static final String[] M2HOME_ENV = {"MAVEN_HOME", "M2HOME", "M2_HOME"};
 	
 	public VWML2JavaSpecificSteps(VWMLModelBuilder modelBuilder) {
 		this.modelBuilder = modelBuilder;
@@ -203,22 +204,28 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
 		String pomFullPath = jprops.getSrcPath() + "/..";
 		String runMaven = null;
-		if (isWindows()) {
-			runMaven = "cmd /c start/wait cmd.exe /K \"cd " + pomFullPath + " && mvn clean package && exit\"";
-		}
-		else
-		if (isLinux() || isMac()) {
-			runMaven = "bash -c \"cd " + pomFullPath + " && mvn clean package && exit\"";
+		if (!modelBuilder.isOperatedFromIDE()) {
+			if (isWindows()) {
+				runMaven = "cmd /c start/wait cmd.exe /K \"cd " + pomFullPath + " && mvn clean package && exit\"";
+			}
+			else
+			if (isLinux() || isMac()) {
+				runMaven = "bash -c \"cd " + pomFullPath + " && mvn clean package && exit\"";
+			}
+			else {
+				throw new Exception("unsupported os '" + getOsName() + "'");
+			}
 		}
 		else {
-			throw new Exception("unsupported os '" + getOsName() + "'");
+			runMaven = getM2HomeBin() + getM2Exec() + " -f " + pomFullPath + "/pom.xml clean package";
 		}
-		runMavenCommand(runMaven);
+		runMavenCommand(pomFullPath, runMaven);
 	}
 
 	private void runMavenAsTest(String codeGeneratorName, StartModuleProps props) throws Exception {
 		List<String> tests = new ArrayList<String>();
 		JavaModuleStartProps jprops = (JavaModuleStartProps)props;
+		String pomFullPath = jprops.getSrcPath() + "/..";
 		String testModeAsStr = props.getProperty(VWMLModelBuilder.s_TestModeProp);
 		VWMLModelBuilder.TEST_MODE testMode = VWMLModelBuilder.TEST_MODE.getDefault();
 		if (testModeAsStr != null) {
@@ -237,22 +244,28 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			tests.add(buildMavenTestCommand(jprops, "VWML2JavaTestDynamicState"));
 		}
 		for(String testCommand : tests) {
-			runMavenCommand(testCommand);
+			runMavenCommand(pomFullPath, testCommand);
 		}
 	}
 
 	private String buildMavenTestCommand(JavaModuleStartProps jprops, String testCommand) throws Exception {
 		String pomFullPath = jprops.getSrcPath() + "/..";
 		String runMaven = null;
-		if (isWindows()) {
-			runMaven = "cmd /c start/wait cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=" + testCommand + " -DforkCount=0 test && exit\"";
-		}
-		else
-		if (isLinux() || isMac()) {
-			runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=" + testCommand + " test && exit\"";
+		
+		if (!modelBuilder.isOperatedFromIDE()) {
+			if (isWindows()) {
+				runMaven = "cmd /c start/wait cmd.exe /K \"cd " + pomFullPath + " && mvn -Dtest=" + testCommand + " -DforkCount=0 test && exit\"";
+			}
+			else
+			if (isLinux() || isMac()) {
+				runMaven = "bash -c \"cd " + pomFullPath + " && mvn -Dtest=" + testCommand + " test && exit\"";
+			}
+			else {
+				throw new Exception("unsupported os '" + getOsName() + "'");
+			}
 		}
 		else {
-			throw new Exception("unsupported os '" + getOsName() + "'");
+			runMaven = getM2HomeBin() + getM2Exec() + " -Dtest=" + testCommand + " -f " + pomFullPath + "/pom.xml";
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("test to be run: " + runMaven);
@@ -260,14 +273,38 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 		return runMaven;
 	}
 	
-	private void runMavenCommand(String command) throws Exception {
+	private void runMavenCommand(String workingDir, String command) throws Exception {
 		if (logger.isInfoEnabled()) {
 			logger.info("Executing: " + command);
 		}
-		Process p = Runtime.getRuntime().exec(command);
-		p.waitFor();
-		if (logger.isInfoEnabled()) {
-			logger.info("Executed: " + command);
+		if (!modelBuilder.isOperatedFromIDE()) {
+			Process p = Runtime.getRuntime().exec(command);
+			p.waitFor();
+			if (logger.isInfoEnabled()) {
+				logger.info("Executed: " + command);
+			}
+		}
+		else {
+			List<String> commands = new ArrayList<String>();
+			for(String cmd : command.split(" ")) {
+				commands.add(cmd);
+			}
+			ProcessBuilder pb = new ProcessBuilder(commands);
+			pb.environment().putAll(System.getenv());
+			pb.directory(new File(workingDir));
+			if (modelBuilder.getCompilationSink() != null) {
+				modelBuilder.getCompilationSink().delegateStartProcessExecution(commands.get(0));
+			}
+			Process process = pb.start();
+			if (modelBuilder.getCompilationSink() != null) {
+				modelBuilder.getCompilationSink().delegateRuntimeStreams(commands.get(0),
+																		process.getInputStream(),
+																		process.getErrorStream());
+			}
+			process.waitFor();
+			if (modelBuilder.getCompilationSink() != null) {
+				modelBuilder.getCompilationSink().delegateFinishProcessExecution(commands.get(0));
+			}
 		}
 	}
 	
@@ -396,5 +433,23 @@ public class VWML2JavaSpecificSteps extends VWML2TargetSpecificSteps {
 			  e.printStackTrace();
 		  }
 		  return null;
+	  }
+	  
+	  private String getM2Exec() {
+		  if (isWindows()) {
+			  return "mvn.bat";
+		  }
+		  return "mvn";
+	  }
+	  
+	  private String getM2HomeBin() {
+		  String home = null;
+		  for(String m2Home : M2HOME_ENV) {
+			  home = System.getenv(m2Home);
+			  if (home != null) {
+				  break;
+			  }
+		  }
+		  return (home != null) ? home + "/bin/" : "";
 	  }
 }

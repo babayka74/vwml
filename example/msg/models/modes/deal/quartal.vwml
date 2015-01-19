@@ -111,7 +111,7 @@ module Quartal {
 					);
 				);
 				OpenInfo ias (
-					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~))^
+					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
 #if (verbose)
 					((The sherif of quartal Id~ opens information about quartal QInfo~) Ew.Output~) Do
 #endif
@@ -301,11 +301,12 @@ module Quartal {
 						(Resource.Update.QConf (IntentionParams~ 0) Get)^
 						(Resource.Update.BribeR (IntentionParams~ 1) Get)^
 						Resource.Update~ Exe
+						(UConf (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
 #if (verbose)
-						((The quartal Id~ updated with configuration (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
+						((The quartal Id~ updated with configuration UConf~) Ew.Output~) Do					
 #endif						
 #if (release)
-						(((deal setintention done) (player Owner~) (quartal Id~) State~ (updateconf Resource.Update.QConf~)) Ew.OutChannel~) Do
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (updateconf UConf~)) Ew.OutChannel~) Do
 #endif
 					);
 					(getstate op),(getstate cnp),(getstate onp),(getstate wtp),(getstate cp) ias (

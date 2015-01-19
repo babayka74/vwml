@@ -137,7 +137,7 @@ module BattleField {
 					(removed (Characters)->(Unit U~)->Type~)~ Exe
 #if (verbose)
 					((Unit U~ of player PId~ returned to resource manager as RetAs~) Ew.Output~) Do
-#endi
+#endif
 					((Player PId~) Tx (ModeInfo.ModeResourceMgr~ RetAs~ PId~ (U~))) Gate
 #if (verbose)
 					((The battlefield Id~ has attackers Participants.NumOfAttackers~ and defenders Participants.NumOfDefenders~) Ew.Output~) Do

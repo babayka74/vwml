@@ -399,6 +399,7 @@ public final class VWML {
 	private VWMLModelBuilder vwmlModelBuilder = new VWMLModelBuilder();
 	private CompilationSink compilationSink = null;
 	private String chunkVwmlCode = null;
+	private boolean operatedFromIDE = false;
 	
 	public Map<String, Operation> getOpCodes() {
 		return opCodes;
@@ -423,7 +424,18 @@ public final class VWML {
 	public void init() throws Exception {
 		vwmlModelBuilder.init();
 	}
-	
+
+	public boolean isOperatedFromIDE() {
+		return operatedFromIDE;
+	}
+
+	public void setOperatedFromIDE(boolean operatedFromIDE) {
+		this.operatedFromIDE = operatedFromIDE;
+		if (vwmlModelBuilder != null) {
+			vwmlModelBuilder.setOperatedFromIDE(operatedFromIDE);
+		}
+	}
+
 	/**
 	 * Decodes and handles input arguments
 	 * @param args
