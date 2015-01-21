@@ -43,9 +43,6 @@ module PlayersManager {
 					((Player PId~)->Id PId~)^
 					((Player PId~)->Stop false)^
 					((Player PId~)) Activate
-#if (release)                   
-                              		(((playermanagment playeradd ok new) (Player PId~)) Ew.OutChannel~) Do
-#endif
 				);
 				(State active) ias (
 #if (verbose)

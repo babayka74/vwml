@@ -28,7 +28,7 @@ module Player {
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit unitstopped getunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check report);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped updateaccount getbalance);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped updateaccount getbalance qinitialized);
 			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal quartalreport payforunit payquartalinfo paybribe contribution returnpayment back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
@@ -66,6 +66,17 @@ module Player {
 					/* player knows about these quartals but doesn't have control upon them */
 					Visible ias ();
 					Init ias (
+						// This entity is monitored by interceptor
+						ExpectedQuartals ias 0;
+						NotifyAboutAllInitializedQuartals ias (
+							(ExpectedQuartals 0 NotifyAboutActivitiesStopped~) FinishInterception
+#if (verbose)
+							((Player Id~ initialized) Ew.Output~) Do
+#endif
+#if (release)                   
+                              				(((playermanagment playeradd ok new) (Player Id~)) Ew.OutChannel~) Do
+#endif
+						);
 						ActivateQuartal ias (
 							(QReady false) ias (
 								(Quartal (Quartal (Id~ $~)) defer) Born
@@ -79,8 +90,6 @@ module Player {
 								((Quartal (Id~ $~))->Id (Id~ $~))^
 								((Quartal (Id~ $~))->Owner Id~)^
 								((Quartal (Id~ $~))) Activate
-								// links quartal to given player
-								((Player Id~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ ((Id~ $~)))) Gate
 							);
 							// checks if quartal has already been created
 							(QReady (Quartal (Id~ $~)) EI)~ Exe
@@ -88,6 +97,9 @@ module Player {
 						(Controlled ())^
 						(Visible ())^
 						(Own ())^
+						(ExpectedQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^
+						// waits untill all quartals have been initialized
+						(ExpectedQuartals 0 NotifyAboutAllInitializedQuartals~) StartInterception
 						(Ew.PlayerAccountConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 						// create battlefield and associate it with quartal
 						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate

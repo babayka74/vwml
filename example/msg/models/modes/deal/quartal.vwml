@@ -354,6 +354,9 @@ module Quartal {
 #endif
 				((Quartal Id~) Register blocked) Gate
 				Resource.Init~ Exe
+				// links quartal to given player
+				((Player Owner~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ (Id~))) Gate
+				((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
 				QuartalLifeStep~ Exe
 				((Quartal Id~) Unregister) Gate
 			) Exe

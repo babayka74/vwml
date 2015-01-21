@@ -32,6 +32,12 @@ module PlayerModeMain {
 					(Activities () NotifyAboutActivitiesStopped~) StartInterception
 					Resources.Done~ Exe
 				);
+				(Handle qinitialized) ias (
+					(Resources.Quartals.Init.ExpectedQuartals ((Resources.Quartals.Init.ExpectedQuartals~) Ew.DecValue~) Do)^
+#if (verbose)
+					((Resources.Quartals.Init.ExpectedQuartals~ left quartals to initialize player Id~) Ew.Output~) Do
+#endif
+				);
 				(Handle partclosed) ias (
 					CA ias nil;
 					(CA battlefield) ias Resources.Hiring.Done~ Exe;
