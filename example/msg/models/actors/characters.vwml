@@ -12,6 +12,8 @@ module Characters {
 				Kind ias skeleton;
 				/* unit's id */
 				Id ias nil;
+				/* creational id (set by unit's creator) */
+				CId ias nil;
 				/* associated with player */
 				PlayerId ias nil;
 				/* concrete unit (defines unit's specific logic => attacker or defender) */
@@ -30,9 +32,6 @@ module Characters {
 				InAction ias false;
 				/* Performs initialization steps */
 				Init ias (
-					(Type attacker)^
-					(Kind skeleton)^
-					(ConcreteUnit nil)^
 					(CurrentPosition nil)^
 					(StopUnit false)^
 					(MarkedAsKilled false)^
@@ -173,6 +172,16 @@ module Characters {
 					((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
 #endif
 				);
+				NotifyOwner ias (
+#if (verbose)
+					((The unit Id~ belong to player PlayerId~ got self check message) Ew.Output~) Do
+#endif
+					// notify player about success hiring operation
+					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ hireunit PlayerId~ (Id~))) Gate
+#if (release)                   	
+					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~) Ew.OutChannel~) Do
+#endif
+				);
 				/* unit receives commands in deferred manner */
 				CommandDispatcher ias (
 					Dispatch ias nil;
@@ -183,10 +192,8 @@ module Characters {
 					// concrete unit's type not specialized
 					(ns true) ias (
 						(Handle check) ias (
-#if (verbose)
-							((The unit Id~ belongs to player PlayerId~ self test ok) Ew.Output~) Do
-#endif
-							Stay~ Exe
+							NotifyOwner~ Exe
+							(UnitCommandId stay)^
 							UnitLifeStep~ Exe
 						);
 						(Handle stay) ias (
@@ -210,10 +217,8 @@ module Characters {
 					// concrete unit's type specialized
 					(ns false) ias (
 						(Handle check) ias (
-#if (verbose)
-							((The unit Id~ belongs to player PlayerId~ self test ok) Ew.Output~) Do
-#endif
-							Stay~ Exe
+							NotifyOwner~ Exe
+							(UnitCommandId stay)^
 							UnitLifeStep~ Exe
 						);
 						(Handle stay) ias (

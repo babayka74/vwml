@@ -151,15 +151,10 @@ module HiringAgency {
 					(Characters.Unit (Unit UnitId~) defer) Born
 					((Characters)->(Unit UnitId~)->PlayerId Owner~)^
 					((Characters)->(Unit UnitId~)->Id UnitId~)^
-					((Characters)->(Unit UnitId~)) Activate
+					((Characters)->(Unit UnitId~)->CId RqId~)^
 					// concrete mechanism of properties setting
 					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
-					// notify player about success hiring operation
-					((Player Owner~) Tx (ModeInfo.ModeResourceMgr~ hireunit Owner~ (UnitId~))) Gate
-#if (release)
-					(((hiring starthiring done) (Player Owner~) (unit UnitId~) (Characters)->(Unit UnitId~)->Kind~ RqId~) Ew.OutChannel~) Do
-#endif
-
+					((Characters)->(Unit UnitId~)) Activate
 				);
 				PrepareReport ias (
 					Report ias (

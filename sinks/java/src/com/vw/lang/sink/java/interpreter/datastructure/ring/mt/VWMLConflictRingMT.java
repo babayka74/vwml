@@ -199,9 +199,18 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		public void handle(VWMLConflictRing ring) throws Exception {
 			synchronized(ring) {
 				try {
-					if (((VWMLConflictRingMT)ring).isActuallyBlocked()) {
-						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
-						ring.wait();
+					VWMLConflictRingMT mtRing = (VWMLConflictRingMT)ring;
+					if (mtRing.isActuallyBlocked()) {
+						if (mtRing.getInstantNumberOfBlockedNodes() >= mtRing.calculateNumberOfNodes()) {
+							System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
+							ring.wait();
+						}
+						else {
+							System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
+							if (mtRing.getBlockingGate() != null) {
+								mtRing.getBlockingGate().unblockActivity();
+							}
+						}
 					}
 					else {
 						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
@@ -381,6 +390,23 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		return nodes;
 	}
 
+	
+	/**
+	 * Returns ring's blocking gate, if exists
+	 * @return
+	 */
+	public VWMLGate getBlockingGate() {
+		return blockedByGate;
+	}
+	
+	/**
+	 * Returns instant number of ring's blocked nodes
+	 * @return
+	 */
+	public int getInstantNumberOfBlockedNodes() {
+		return blockedNodes.intValue();
+	}
+	
 	/**
 	 * Lookups for node which executes given term
 	 * @param term

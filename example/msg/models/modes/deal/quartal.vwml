@@ -123,6 +123,13 @@ module Quartal {
 					State ias cnp;
 					// called when (Cnp Id~) timer expired
 					OnCnpTimer ias ((Quartal Id~) Tx (Owner~ close ())) Gate;
+
+					SuccessPaymentForInvestment ias (
+					);
+
+					FailedPaymentForInvestment ias (
+					);
+
 					SuccessPaymentForOpenInfo ias (
 						(State onp)^
 						Banker.ApplyPayment~ Exe
@@ -301,12 +308,12 @@ module Quartal {
 						(Resource.Update.QConf (IntentionParams~ 0) Get)^
 						(Resource.Update.BribeR (IntentionParams~ 1) Get)^
 						Resource.Update~ Exe
-						(UConf (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+						(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
 #if (verbose)
-						((The quartal Id~ updated with configuration UConf~) Ew.Output~) Do					
+						((The quartal Id~ updated with configuration QInfo~) Ew.Output~) Do					
 #endif						
 #if (release)
-						(((deal setintention done) (player Owner~) (quartal Id~) State~ (updateconf UConf~)) Ew.OutChannel~) Do
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (updateconf QInfo~)) Ew.OutChannel~) Do
 #endif
 					);
 					(getstate op),(getstate cnp),(getstate onp),(getstate wtp),(getstate cp) ias (
@@ -316,6 +323,24 @@ module Quartal {
 #if (release)
 						(((deal setintention done) (player Owner~) (quartal Id~) State~ (getstate QInfo~)) Ew.OutChannel~) Do
 #endif
+					);
+					// investement allowed during contribution active phase only
+					(invest op) ias (
+#if (verbose)
+						((The quartal Id~ belongs to Owner~ is in state State~ and investment allowed) Ew.Output~) Do					
+#endif
+						(Banker.Value (Sherif.IntentionParams~ 0) Get)^
+						(Banker.OnSuccessPayment SuccessPaymentForInvestment~)^
+						(Banker.OnFailedPayment FailedPaymentForInvestment~)^
+						Banker.AskPaymentForQuartalInfo~ Exe
+						(State wtp)^
+					);
+					// invest isn't allowed
+				        (invest cnp),(invest onp),(invest wtp),(invest cp) ias (
+#if (verbose)
+						((The quartal Id~ belongs to Owner~ is in state State~ and investment not allowed) Ew.Output~) Do					
+#endif
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (invest QInfo~)) Ew.OutChannel~) Do
 					);
 					(Intention~ State~)~ Exe
 				);
