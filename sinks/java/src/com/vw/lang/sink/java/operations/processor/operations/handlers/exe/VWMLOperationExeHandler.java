@@ -38,7 +38,7 @@ public class VWMLOperationExeHandler extends VWMLOperationHandler {
 																					   originalContext,
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
-																					   VWMLOperationUtils.s_addIfUnknown);
+																					   VWMLOperationUtils.s_dontAddIfUnknown);
 		}
 		entities.clear();
 		inspector.clear();

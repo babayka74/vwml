@@ -255,6 +255,7 @@ module HiringAgency {
 #endif
 				((HiringAgency Id~) Register blocked) Gate
 				((HiringAgency Id~) Tx (check 0 ())) Gate
+				((Player Owner~) Tx (ModeInfo.ModeMain~ hainitialized Id~ ())) Gate
 				HiringAgencyLifeStep~ Exe
 				((HiringAgency Id~) Unregister) Gate
 				Done~ Exe

@@ -60,12 +60,12 @@ module PlayerDeal {
 						((The player Id~ in mode deal and linked quartal $~) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal linkquartal done) (player Id~) (quartal $~)) Ew.OutChannel~) Do
+						(((deal quartalreport done) (player Id~) (quartal $~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Resources.Quartals.Own~ Report~) ForEach
 				);
-				(Handle paybribe),(Handle payquartalinfo) ias (
+				(Handle dealpayment) ias (
 					(Result true) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (confirmed))) Gate;
 					(Result false) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (declined))) Gate;
 					(QuartalId (CommandParams~ 0) Get)^
@@ -85,6 +85,26 @@ module PlayerDeal {
 				(Handle contribution),(Handle returnpayment) ias (
 					(Resources.Account.Value CommandParams~)^
 					Resources.Account.Recharge~ Exe
+				);
+				(Handle bdfchange) ias (
+					(Op plus) ias Resources.Business.IncreaseBF~ Exe;
+					(Op minus) ias Resources.Business.DecreaseBF~ Exe;
+					(Resources.Business.Value CommandParams~)^
+					// update value of business development factor (Bdf)
+					(QuartalId (CommandParams~ 0) Get)^
+					(Op (CommandParams~ 3) Get)~ Exe
+				);
+				(Handle rqcalcquantum) ias (
+					(QuartalId (CommandParams~ 0) Get)^
+					// recalculate quantum basing on last investment
+					(Resources.Business.RQ 0)^
+					(Resources.Business.Value CommandParams~)^
+					Resources.Business.RecalcRQuantum~ Exe
+					// updates business factor by recalculated quantum
+					(Resources.Business.Value (QuartalId~ (CommandParams~ 1) Get Resources.Business.RQ~))^
+					Resources.Business.IncreaseBF~ Exe
+					// sends quantum to quartal for updaiting contribution value
+					((Quartal QuartalId~) Tx (QuartalId~ rspcalcquantum (Resources.Business.RQ~))) Gate
 				);
 				(Handle back) ias (
 					(Player.Mode main)^

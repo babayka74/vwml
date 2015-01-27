@@ -38,6 +38,13 @@ module PlayerModeMain {
 					((Resources.Quartals.Init.ExpectedQuartals~ left quartals to initialize player Id~) Ew.Output~) Do
 #endif
 				);
+				(Handle hainitialized) ias (
+					(Resources.InitSteps (Resources.InitSteps~ (hiringagency)) Substruct)^
+#if (verbose)
+					((Hiring agency initialized for player Id~) Ew.Output~) Do
+					((Player Id~ left init steps Resources.InitSteps~) Ew.Output~) Do							
+#endif
+				);
 				(Handle partclosed) ias (
 					CA ias nil;
 					(CA battlefield) ias Resources.Hiring.Done~ Exe;
@@ -69,6 +76,16 @@ module PlayerModeMain {
 #endif
 #if (release)
 					(((main updateaccount ok) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
+				);
+				(Handle updatebusinessconf) ias (
+					(Resources.Business.Update.From CommandParams~)^
+					Resources.Business.Update~ Exe
+#if (verbose)
+					((Player Id~ updated business configuration) Ew.Output~) Do
+#endif
+#if (release)
+					(((main updatebusinessconf ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
 				(Handle getbalance) ias Resources.Account.Report~ Exe;

@@ -24,6 +24,7 @@ options {
 				math ias "com.vw.lang.beyond.java.fringe.gate.math.Math"
 				graph ias "com.win.game.model.fringe.gate.algorithm.graphloader.GraphLoader"
 				configuration ias "com.win.game.model.fringe.gate.configuration.loader.ConfigurationLoader"
+				economic ias "com.win.game.model.fringe.gate.economic.Economic"
 			)
 		}
 	}
@@ -64,6 +65,7 @@ include "models/modes/resourcemanager/unitResourceManager.vwml"
 
 include "models/modes/banking/playerbanking.vwml"
 
+include "models/player/playerResources.vwml"
 include "models/player/player.vwml"
 include "models/player/playersManager.vwml"
 
@@ -228,30 +230,70 @@ module msg {
 			Injection ias (
 #if (unittest)
 				(pm 0 playermanagment playeradd 0 nil)
-				(manager 0 nil delay 0 (3500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 1))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 2))) ((kind zombac1) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 3))) ((kind zombac2) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 4))) ((kind zombac3) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 5))) ((kind zombac4) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 6))) ((kind zombac5) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 7))) ((kind zombac6) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 8))) ((kind zombac7) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 9))) ((kind zombac8) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 10))) ((kind zombac9) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 11))) ((kind zombac10) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 12))) ((kind zombac11) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 13))) ((kind zombac9) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 14))) ((kind zombac10) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 15))) ((kind zombac11) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 16))) ((kind zombac9) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 17))) ((kind zombac10) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 18))) ((kind zombac11) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (15500))
-				(pm 0 nil playerstop 0 ())
-				(gbanker 0 any exit none ())
-				(manager 0 nil delay 0 (1500))
-				(manager 0 nil exit 0 ())
+				(manager 0 nil delay 0 (2500))
+				(pm 0 playermanagment playeradd 1 nil)
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) open (160)))
+				(player 0 deal setintention 0 ((0 2) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 2) open (160)))
+				(player 0 deal setintention 0 ((0 3) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 3) open (160)))
+				(player 0 deal setintention 0 ((0 4) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 4) open (160)))
+				(player 0 deal setintention 0 ((0 5) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 5) open (160)))
+				(player 0 deal setintention 0 ((0 6) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 6) open (160)))
+				(player 0 deal setintention 0 ((0 7) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 7) open (160)))
+				(player 0 deal setintention 0 ((0 8) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 8) open (170)))
+				(player 0 deal setintention 0 ((0 9) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 9) open (160)))
+				(player 0 deal setintention 0 ((0 10) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 10) open (160)))
+				(player 0 deal setintention 0 ((0 11) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 11) open (160)))
+				(player 0 deal setintention 0 ((0 12) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 12) open (160)))
+				(player 0 deal setintention 0 ((0 13) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 13) open (160)))
+				(player 0 deal setintention 0 ((0 14) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 14) open (160)))
+				(player 0 deal setintention 0 ((0 15) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 15) open (160)))
+
+				(player 1 deal setintention 0 ((1 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 1) open (160)))
+				(player 1 deal setintention 0 ((1 2) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 2) open (160)))
+				(player 1 deal setintention 0 ((1 3) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 3) open (160)))
+				(player 1 deal setintention 0 ((1 4) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 4) open (160)))
+				(player 1 deal setintention 0 ((1 5) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 5) open (160)))
+				(player 1 deal setintention 0 ((1 6) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 6) open (160)))
+				(player 1 deal setintention 0 ((1 7) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 7) open (160)))
+				(player 1 deal setintention 0 ((1 8) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 8) open (170)))
+				(player 1 deal setintention 0 ((1 9) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 9) open (160)))
+				(player 1 deal setintention 0 ((1 10) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 10) open (160)))
+				(player 1 deal setintention 0 ((1 11) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 11) open (160)))
+				(player 1 deal setintention 0 ((1 12) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 12) open (160)))
+				(player 1 deal setintention 0 ((1 13) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 13) open (160)))
+				(player 1 deal setintention 0 ((1 14) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 14) open (160)))
+				(player 1 deal setintention 0 ((1 15) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 1 deal setintention 0 ((1 15) open (160)))
+
 #endif
 			);
 		);

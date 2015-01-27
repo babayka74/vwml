@@ -13,6 +13,8 @@ module Quartal {
 			Source ias nil;
 			/* last opened quartal info */
 			QInfo ias nil;
+			/* last invested resource quantum */
+			LInvestQuantum ias 0;
 			/* quartal's resource type (configured) */
 			Resource ias (
 				Type ias nil;
@@ -81,11 +83,8 @@ module Quartal {
 						((The sherif of quartal Id~ has following sum Banker.Account~ on account) Ew.Output~) Do
 #endif
 					);
-					AskPaymentForQuartalInfo ias (
-						((Player Owner~) Tx (ModeInfo.ModeDeal~ payquartalinfo Owner~ (Id~ Resource.Type~ Value~))) Gate
-					);
-					AskPaymentForBribe ias (
-						((Player Owner~) Tx (ModeInfo.ModeDeal~ paybribe Owner~ (Id~ Resource.Type~ Value~))) Gate
+					AskPayment ias (
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ dealpayment Owner~ (Id~ Resource.Type~ Value~))) Gate
 					);
 					Pay ias (
 						(NoQuantums true) ias (
@@ -119,15 +118,44 @@ module Quartal {
 					(((deal setintention done) (player Owner~) (quartal Id~) Behavior.State~ (open QInfo~)) Ew.OutChannel~) Do
 #endif
 				);
+				UpdateBDevelopFactor ias (
+					Op ias plus; // plus or minus
+					/* sending business development factor message to player */
+					((Player Owner~) Tx (ModeInfo.ModeDeal~ bdfchange Owner~ (Id~ Resource.Type~ Resource.Quantum~ Op~))) Gate
+				);
 				Behavior ias (
 					State ias cnp;
 					// called when (Cnp Id~) timer expired
 					OnCnpTimer ias ((Quartal Id~) Tx (Owner~ close ())) Gate;
+					// restores state after investment's payment
+					RStateAfterInvest ias (
+						(WState true) ias (State op)^;
+						(WState false) ias doNothing;
+						// restore state if needed
+						(WState (State~ wtp) Ident)~ Exe
+					);
 
 					SuccessPaymentForInvestment ias (
+						RStateAfterInvest~ Exe
+#if (verbose)
+						((The investment for quartal Id~ succeeded for player Owner~) Ew.Output~) Do
+#endif
+						/* sending business development factor message to player */
+						(UpdateBDevelopFactor.Op minus)^
+						UpdateBDevelopFactor~ Exe
+						// calculates new Quantum based on last investment
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ rqcalcquantum Owner~ (Id~ Resource.Type~ Resource.Quantum~ LInvestQuantum~))) Gate
 					);
 
 					FailedPaymentForInvestment ias (
+						RStateAfterInvest~ Exe
+						(LInvestQuantum 0)^
+#if (verbose)
+						((The investment for quartal Id~ failed for player Owner~ with result not enough resources) Ew.Output~) Do
+#endif
+#if (release)
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (invest notEnoughResources)) Ew.OutChannel~) Do
+#endif
 					);
 
 					SuccessPaymentForOpenInfo ias (
@@ -162,6 +190,9 @@ module Quartal {
 						(State op)^
 						// starts timer of contribution period (player's bank account will being updated during this period)
 						(Resource.Period~ (Pay Id~) Banker.Pay~) Recall
+						/* sending business development factor message to player */
+						(UpdateBDevelopFactor.Op plus)^
+						UpdateBDevelopFactor~ Exe
 					);
 					FailedPaymentForBribeRequest ias (
 						(State onp)^
@@ -178,7 +209,7 @@ module Quartal {
 						(paymentresult declined) ias Banker.OnFailedPayment~ Exe;
 						(paymentresult (Sherif.IntentionParams~ 0) Get)~ Exe
 					);
-					(open wtp),(close wtp),(pay wtp),(requestdone wtp),(notrequestdone wtp) ias (
+					(open wtp),(close wtp),(pay wtp),(requestdone wtp),(notrequestdone wtp),(invest wtp) ias (
 						// remember messages which were received during payment operation
 				        	((Quartal Id~) Tx (Source~ Sherif.Intention~ Sherif.IntentionParams~)) Gate
 					);
@@ -188,7 +219,7 @@ module Quartal {
 							(Banker.Value ProposedPrice~)^
 							(Banker.OnSuccessPayment SuccessPaymentForOpenInfo~)^
 							(Banker.OnFailedPayment FailedPaymentForOpenInfo~)^
-							Banker.AskPaymentForQuartalInfo~ Exe
+							Banker.AskPayment~ Exe
 							(State wtp)^
 						);
 						(OpenQInfo -1) ias (
@@ -246,7 +277,7 @@ module Quartal {
 							(Banker.Value ProposedBribe~)^
 							(Banker.OnSuccessPayment SuccessPaymentForBribeRequest~)^
 							(Banker.OnFailedPayment FailedPaymentForBribeRequest~)^
-							Banker.AskPaymentForBribe~ Exe
+							Banker.AskPayment~ Exe
 							(State wtp)^
 						);
 						(TakeBribe -1) ias (
@@ -324,15 +355,27 @@ module Quartal {
 						(((deal setintention done) (player Owner~) (quartal Id~) State~ (getstate QInfo~)) Ew.OutChannel~) Do
 #endif
 					);
+					// resource quantum has already been changed by last investment
+					(rspcalcquantum op),(rspcalcquantum cnp),(rspcalcquantum onp),(rspcalcquantum wtp),(rspcalcquantum cp) ias (
+						(Resource.Quantum (Sherif.IntentionParams~ 0) Get)^
+						(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+#if (verbose)
+						((The quartal Id~ updated with recalculated quantum QInfo~) Ew.Output~) Do					
+#endif
+#if (release)
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (invest QInfo~)) Ew.OutChannel~) Do
+#endif
+					);
 					// investement allowed during contribution active phase only
 					(invest op) ias (
 #if (verbose)
 						((The quartal Id~ belongs to Owner~ is in state State~ and investment allowed) Ew.Output~) Do					
 #endif
-						(Banker.Value (Sherif.IntentionParams~ 0) Get)^
+						(LInvestQuantum (Sherif.IntentionParams~ 0) Get)^
+						(Banker.Value LInvestQuantum~)^
 						(Banker.OnSuccessPayment SuccessPaymentForInvestment~)^
 						(Banker.OnFailedPayment FailedPaymentForInvestment~)^
-						Banker.AskPaymentForQuartalInfo~ Exe
+						Banker.AskPayment~ Exe
 						(State wtp)^
 					);
 					// invest isn't allowed

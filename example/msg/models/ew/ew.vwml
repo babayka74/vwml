@@ -71,7 +71,7 @@ module ExternalWorld {
 			(
 				(SherifBribeRanges (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40))
 				(Resources ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50)))
-				)
+			)
 		*/
 		QuartalsConf ias (
 			ConfFields ias (SherifBribeRanges Resources);
@@ -127,6 +127,33 @@ module ExternalWorld {
 			vampire ias (food 1000 20000);
 		);
 
+		BusinessConf ias (
+			Conf ias nil;
+			Factors ias ();
+			ConfFields ias (Factors);
+			// dynamic load configuration
+			Load ias (
+				Conf ias nil;
+				ConfIndex ias 0;
+				ApplyConf ias (
+					SetConfField ias (
+						($~ ((Conf~ ConfIndex~) Get 1) Get)^
+						($~ BusinessConf true) Context
+						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
+					);
+					(ConfIndex 0)^
+					(ConfFields~ SetConfField~) ForEach 
+				);
+				(NotReady true) ias doNothing; 
+				(NotReady false) ias ApplyConf~ Exe;
+				(NotReady (Conf~ nil) Ident)~ Exe
+			);
+			Load~ Exe
+#if (verbose)
+			((The business configuration is Factors~) Ew.Output~) Do
+#endif
+		);
+
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
@@ -149,6 +176,7 @@ module ExternalWorld {
 		Sum ias services.math.sum;
 		Sub ias services.math.substr;
 		Compare ias services.math.compare;
+		RecalcQuantum ias services.economic.recalcquantum;
 		LoadGraph ias services.graph.load;
 		LoadConf ias services.configuration.load;
 
@@ -157,6 +185,8 @@ module ExternalWorld {
 			PlayerAccountConf~ Exe
 			(QuartalsConf.Load.Conf ((quartalconf) Ew.LoadConf~) Do)^
 			QuartalsConf~ Exe
+			(BusinessConf.Load.Conf ((businessconf) Ew.LoadConf~) Do)^
+			BusinessConf~ Exe
 		);
 	);
 }
