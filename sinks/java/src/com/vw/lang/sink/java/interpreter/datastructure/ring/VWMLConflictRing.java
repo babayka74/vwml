@@ -338,6 +338,26 @@ public class VWMLConflictRing {
 	}
 
 	/**
+	 * Resets gates. Blocked interpreter which is used as trigger is set to 'null', allowing to reschedule gate
+	 * (for MT strategy only)
+	 */
+	public void resetBlockingGatesTrigger() {
+	}	
+	/**
+	 * Associates gate with ring (for MT strategy only)
+	 * @param gate
+	 */
+	public void associateGate(VWMLGate gate) {
+	}
+
+	/**
+	 * Associates gate with ring (for MT strategy only)
+	 * @param gate
+	 */
+	public void unAssociateGate(VWMLGate gate) {
+	}
+	
+	/**
 	 * For MT strategy only
 	 * Increments number of blocked nodes (called when gate blocks node - waits for data)
 	 */
@@ -518,8 +538,16 @@ public class VWMLConflictRing {
 	 * @return
 	 */
 	public boolean isGateOpened(VWMLEntity ringDestTerm) {
+		return isGateOpenedByTId((String)ringDestTerm.getId());
+	}
+	
+	/**
+	 * Returns true in case if gate is ready, the id is 'term id'
+	 * @return
+	 */
+	public boolean isGateOpenedByTId(String tid) {
 		boolean opened = false;
-		List<VWMLRingEvent> q = nonAckGateEventQueue.get(ringDestTerm.getId());
+		List<VWMLRingEvent> q = nonAckGateEventQueue.get(tid);
 		if (q != null) {
 			opened = (q.size() != 0);
 		}
@@ -533,7 +561,7 @@ public class VWMLConflictRing {
 	 * @param handlerDestTerm
 	 * @throws Exception
 	 */
-	public void askActivateGate(VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
+	public void askActivateGate(VWMLGate gate, VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
 		VWMLRingActivateGateEvent event = new VWMLRingActivateGateEvent(ringDestTerm, transportedEntity, handlerDestTerm);
 		if (handlerDestTerm != null) {
 			addDeferredEvent(event);

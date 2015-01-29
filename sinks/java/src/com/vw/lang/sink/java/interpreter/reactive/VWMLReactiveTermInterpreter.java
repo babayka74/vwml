@@ -82,6 +82,9 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 			if (impl != null && getClonedFromEntity() != null) {
 				impl.setClonedFromEntity(getClonedFromEntity());
 			}
+			if (impl != null) {
+				impl.setReleaseClonedResource(isReleaseClonedResource());
+			}
 		}
 		if (isNormalization()) {
 			normalizeInterpreterData();

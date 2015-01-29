@@ -108,6 +108,12 @@ module Quartal {
 						);
 						(NoQuantums (Resource.Quantums~ 0) Ident)~ Exe
 					);
+					CancelContribution ias (
+						(-1 (Pay Id~) Pay~) Recall
+#if (verbose)
+						((The banker of sherif of quartal Id~ cancels contibution procedure) Ew.Output~) Do
+#endif
+					);
 				);
 				OpenInfo ias (
 					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
@@ -385,6 +391,17 @@ module Quartal {
 #endif
 						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (invest QInfo~)) Ew.OutChannel~) Do
 					);
+					// reset
+					// resource quantum has already been changed by last investment
+					(reset op),(reset cnp),(reset onp),(reset cp) ias (
+						(State cnp)^
+						Banker.CancelContribution~ Exe
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ resettedquartal Id~ (Id~))) Gate
+					);
+					(reset wtp) ias (
+						// remember messages which were received during payment operation
+				        	((Quartal Id~) Tx (Source~ Sherif.Intention~ Sherif.IntentionParams~)) Gate
+					);
 					(Intention~ State~)~ Exe
 				);
 			);
@@ -427,6 +444,7 @@ module Quartal {
 				((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
 				QuartalLifeStep~ Exe
 				((Quartal Id~) Unregister) Gate
+				((Player Owner~) Tx (ModeInfo.ModeDeal~ releasedquartal Id~ (Id~))) Gate
 			) Exe
 		);
 	);

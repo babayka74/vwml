@@ -230,8 +230,8 @@ public abstract class VWMLResourceHostManager {
 	 * @param handlerDestTerm
 	 * @throws Exception
 	 */
-	public void activateGate(VWMLConflictRing ring, VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
-		ring.askActivateGate(ringDestTerm, transportedEntity, handlerDestTerm);
+	public void activateGate(VWMLGate gate, VWMLConflictRing ring, VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
+		ring.askActivateGate(gate, ringDestTerm, transportedEntity, handlerDestTerm);
 	}
 	
 	/**

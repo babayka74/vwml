@@ -5,7 +5,23 @@ module PlayerResourceManager {
 				CommandId ias nil;
 				CommandParams ias nil;
 				HiredUnitId ias nil;
-
+				UnitsInAction ias 0;
+				StopRM ias false;
+				Init ias (
+					(StopRM false)^
+				);
+				// notifies battlefield about returning all remained units to base
+				NotifyAboutFBComplete ias (
+					(StopRM false) ias doNothing;
+					(StopRM true) ias (
+						(UnitsInAction 0 NotifyAboutFBComplete~) FinishInterception
+						((Player Id~) Tx (ModeInfo.ModeMain~ partclosed 0 (battlefield))) Gate
+					);
+					(StopRM StopRM~)~ Exe
+#if (verbose)
+					((All remained units of player Id~ have been returned) Ew.Output~) Do
+#endif
+				);
 				// stops all hired units. 
 				// The unit sends 'unitstopped' command to resource manager in order to notify about stopping activity
 				StopAllUnits ias (
@@ -73,13 +89,17 @@ module PlayerResourceManager {
 					(CorrectUnit true) ias (
 						(UnitInAction true) ias ((Player Id~) Tx ((CommandParams~ 2) Get rejectedunit HiredUnitId~ ())) Gate;
 						(UnitInAction false) ias (
+							(FirstUnit true) ias (UnitsInAction 0 NotifyAboutFBComplete~) StartInterception;
+							(FirstUnit false) ias doNothing;
 							((Characters)->(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
 							(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
 							((Characters)->(Unit HiredUnitId~)->InAction true)^
+							(UnitsInAction ((UnitsInAction~) Ew.IncValue~) Do)^
 							((Player Id~) Tx ((CommandParams~ 2) Get recruitedunit HiredUnitId~ ())) Gate
 #if (release)
 							(((resourcemanager recruitunit done inAction) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
+							(FirstUnit (UnitsInAction~ 1) Ident)~ Exe
 						);
 						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);
@@ -96,6 +116,7 @@ module PlayerResourceManager {
 					(CorrectUnit true) ias (
 						((Characters)->(Unit HiredUnitId~)->InAction false)^
 						(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
+						(UnitsInAction ((UnitsInAction~) Ew.DecValue~) Do)^
 #if (verbose)
 						((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
@@ -116,6 +137,7 @@ module PlayerResourceManager {
 				);
 				// unit's functionality doesn't need to player
 				(Handle dismissunit),(Handle releaseunit) ias (
+					MarkUnitAsFree~ Exe
 					(DismissUnit.U (CommandParams~ 0) Get)^
 					DismissUnit~ Exe
 				);
@@ -138,7 +160,10 @@ module PlayerResourceManager {
 					(Resources.Units.Hired~ Report~) ForEach
 				);
 				// stop all hired units
-				(Handle exit) ias StopAllUnits~ Exe;
+				(Handle exit) ias (
+					(StopRM true)^
+					StopAllUnits~ Exe
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);

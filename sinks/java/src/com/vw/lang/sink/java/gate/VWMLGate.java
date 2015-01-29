@@ -63,8 +63,7 @@ public class VWMLGate {
 
 	public synchronized void blockActivity(VWMLInterpreterImpl blockedInterpreter) {
 		if (isBlockedMode() && this.blockedInterpreter == null) {
-			this.blockedInterpreter = blockedInterpreter;
-			blockedInterpreter.getObserver().setBlockedByGate(this);
+			setBlockedInterpreter(blockedInterpreter);
 			try {
 				ring.incrementNumOfBlockedNodes(this);
 			} catch (Exception e) {
@@ -76,13 +75,24 @@ public class VWMLGate {
 	// this method can be called from varios timer's callbacks, in particular from observer
 	public synchronized void unblockActivity() {
 		if (isBlockedMode() && blockedInterpreter != null) {
-			blockedInterpreter.getObserver().setBlockedByGate(null);
-			blockedInterpreter = null;
+			resetBlockedInterpreter();
 			try {
 				ring.decrementNumOfBlockedNodes();
 			} catch (Exception e) {
 				// nothing todo
 			}
 		}
+	}
+
+	public void resetBlockedInterpreter() {
+		if (blockedInterpreter != null) {
+			blockedInterpreter.getObserver().setBlockedByGate(null);
+			blockedInterpreter = null;
+		}
+	}
+	
+	protected void setBlockedInterpreter(VWMLInterpreterImpl blockedInterpreter) {
+		this.blockedInterpreter = blockedInterpreter;
+		blockedInterpreter.getObserver().setBlockedByGate(this);
 	}
 }

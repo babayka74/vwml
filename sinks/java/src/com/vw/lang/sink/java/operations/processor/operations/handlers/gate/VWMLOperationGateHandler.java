@@ -99,7 +99,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			handlerDestTermArg = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);
 		}
 		if (mode.getId().equals(modeTx)) {
-			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(unblockGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
+			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(getGate(ringDestTerm), getGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
 		}
 		else
 		if (mode.getId().equals(modeRx)) {
@@ -144,11 +144,21 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			if (ring == null) {
 				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
 			}
-			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), new VWMLGate(ring, (String)(ringDestTerm.getId()), blocked, handlerDestTerm));
+			VWMLGate gate = new VWMLGate(ring, (String)(ringDestTerm.getId()), blocked, handlerDestTerm);
+			ring.associateGate(gate);
+			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), gate);
 		}
 		else
 		if (mode.getId().equals(modeUnregister)) {
-			unblockGate(ringDestTerm);
+			VWMLConflictRing ring = null;
+			if (interpreter.getRtNode() == null) {
+				ring = VWMLResourceHostManagerFactory.hostManagerInstance().findRingByExecutingTerm(ringDestTerm);
+			}
+			else {
+				ring = interpreter.getRtNode().getExecutionGroup().getRing();
+			}
+			VWMLGate gate = unblockGate(ringDestTerm);
+			ring.unAssociateGate(gate);
 			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().unregisterGate((String)ringDestTerm.getId());
 		}
 		return result;

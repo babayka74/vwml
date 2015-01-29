@@ -307,6 +307,9 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 				if (implicitMaster == null && n.isMarkAsCandidatOnClone()) {
 					implicitMaster = n;
 				}
+				if (ring != null) {
+					ring.resetBlockingGatesTrigger();
+				}
 			}
 			rIndex++;
 			rIndex = rIndex % group.size();

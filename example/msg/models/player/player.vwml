@@ -27,9 +27,9 @@ module Player {
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit unitstopped getunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check report);
-			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped updateaccount updatebusinessconf getbalance qinitialized hainitialized);
-			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange back);
+			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf requestbattlestatusbf responsebattlestatusbf);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
@@ -38,6 +38,7 @@ module Player {
 			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ AttackManager.ExportedCommands~) Join)^
 		);
 		Player ias (
+			ResetMode ias false;
 			States ias (active nonactive);
 			Activities ias (resourcemanager quartals battlefield hiringagency);
 			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);
@@ -167,8 +168,10 @@ module Player {
 				(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
+				(ResetMode false)^
 				(Stop false)^
 				(State active)^
+				(Activities (resourcemanager quartals battlefield hiringagency))^
 #if (verbose)
 				((The player Id~ added and active) Ew.Output~) Do
 #endif
@@ -184,6 +187,11 @@ module Player {
 				((AttackManager Id~)) Release
 				((Player Id~) Unregister) Gate
 				(State nonactive)^
+#if (verbose)
+				((The player Id~ deactivated) Ew.Output~) Do
+#endif
+				(PlayersManager.Players (PlayersManager.Players~ ((Player Id~))) Substruct)^
+
 			) Exe
 		);
 	);

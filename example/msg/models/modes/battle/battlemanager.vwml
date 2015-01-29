@@ -30,6 +30,13 @@ module BattleManager {
 #endif
 					((Player Id~) Tx (ModeInfo.ModeBattle~ exit Id~ ())) Gate
 				);
+				ResetBattleField ias (
+					(BFId (Id~ (CommandParams~ 0) Get))^
+#if (verbose)
+					((Player Id~ is going to reset battlefield (BattleField BFId~)) Ew.Output~) Do 
+#endif
+					((Player Id~) Tx (ModeInfo.ModeBattle~ reset Id~ ())) Gate
+				);
 				// Selects battle (becames active from player's point of view)
 				SelectBattleField ias (
 					(Allow false) ias (
@@ -53,6 +60,7 @@ module BattleManager {
 				(DelegateToBF false) ias (
 					(Handle createbf) ias CreateBattleField~ Exe;
 					(Handle destroybf) ias DestroyBattleField~ Exe;
+					(Handle resetbf) ias ResetBattleField~ Exe;
 					// selects battlefield for defence building
 					(Handle selectbf) ias SelectBattleField~ Exe;
 					(Handle requestbattlestatusbf) ias GetBattleStatus~ Exe;

@@ -9,7 +9,6 @@ module PlayerDeal {
 					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^;
 					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;
 					((Quartal QuartalId~)->Linked false)^
-					((Quartal QuartalId~)->Owner nil)^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
 					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
 #if (verbose)
@@ -53,6 +52,16 @@ module PlayerDeal {
 					(QuartalId (CommandParams~ 0) Get)^
 					UnlinkQ~ Exe
 					((Quartal QuartalId~) Tx (Id~ exit ())) Gate
+				);
+				(Handle resetquartal) ias (
+					(QuartalId (CommandParams~ 0) Get)^
+					((Quartal QuartalId~) Tx (Id~ reset ())) Gate
+				);
+				(Handle releasedquartal),(Handle resettedquartal) ias (
+					(Resources.ActiveQuartals ((Resources.ActiveQuartals~) Ew.DecValue~) Do)^
+#if (verbose)
+					((The player Id~ left quartals Resources.ActiveQuartals~) Ew.Output~) Do
+#endif
 				);
 				(Handle quartalreport) ias (
 					Report ias (

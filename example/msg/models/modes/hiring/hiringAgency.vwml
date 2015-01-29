@@ -34,7 +34,7 @@ module HiringAgency {
 #endif
 			);
 			Agent ias (
-				Commands ias (starthiring cancelhiring paymentresult check exit report);
+				Commands ias (starthiring cancelhiring paymentresult check reset exit report);
 				Command ias nil;
 				Request ias nil;
 				RequestId ias 0;
@@ -54,13 +54,9 @@ module HiringAgency {
 					(Kind nil)^
 					(UnitProps~ FetchKindPropForReport~) ForEach
 				);
-
-				StopAgencyProcess ias (
-					UnblockAndStop ias (
-						(StopAgency true)^
-						((HiringAgency Id~) Tx (check 0 ())) Gate
-					);
-					(NoRequestsInProgress true) ias UnblockAndStop~ Exe;
+				CancelHiringRequests ias (
+					F ias nil;
+					(NoRequestsInProgress true) ias F~ Exe;
 					(NoRequestsInProgress false) ias (
 						StopHiringRequest ias (
 							(CancelHiringRequest.RqId $~)^
@@ -71,6 +67,22 @@ module HiringAgency {
 						UnblockAndStop~ Exe
 					);
 					(NoRequestsInProgress (RequestsInProgress~ ()) Ident)~ Exe
+				);
+				ResetAgencyProcess ias (
+					(CancelHiringRequests.F doNothing)^
+					CancelHiringRequests~ Exe
+					((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (hiringagency))) Gate
+#if (verbose)
+					((The hiring agency for player Owner~ resetted) Ew.Output~) Do
+#endif
+				);
+				StopAgencyProcess ias (
+					UnblockAndStop ias (
+						(StopAgency true)^
+						((HiringAgency Id~) Tx (check 0 ())) Gate
+					);
+					(CancelHiringRequests.F UnblockAndStop~)^
+					CancelHiringRequests~ Exe
 				);
 				// starts hiring process when user's payment operation approved
 				ActuallyStartHiringRequest ias (
@@ -214,6 +226,7 @@ module HiringAgency {
 #endif
 						);
 						(Command exit) ias StopAgencyProcess~ Exe;
+						(Command reset) ias ResetAgencyProcess~ Exe;
 						(Command Command~)~ Exe
 					);
 					(RightCommand (Commands~ Command~) In)~ Exe					

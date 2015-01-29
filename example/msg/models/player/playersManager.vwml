@@ -6,12 +6,13 @@ module PlayersManager {
 			CommandId ias nil;
 			Destination ias nil;
 			Params ias nil;
-			ExportedCommands ias (playeradd playerleave playerstop gaccountconf gquartalconf);
+			Players ias ();
+			ExportedCommands ias (playeradd playerleave playerstop playerreset gaccountconf gquartalconf);
 
 			Init ias (
 				Pool ias (
 					// initial quantity of elements in pool
-					Elements ias 2;
+					Elements ias 30;
 					Fill ias (
 						(CreatePlayer.PId $~)^
 						CreatePlayer~ Exe
@@ -27,6 +28,10 @@ module PlayersManager {
 			);
 			CreatePlayer ias (
 				PId ias 0;
+				(Players (Players~ ((Player PId~))) Join)^
+#if (verbose)
+				((Pool of players Players~) Ew.Output~) Do
+#endif                                  	
 				BuildQuartal ias (Quartal (Quartal (PId~ $~)) defer) Born;
 				// player's related components are created, but not activated
 				(Player (Player PId~) defer) Born
@@ -39,12 +44,13 @@ module PlayersManager {
 				(State nonactive) ias (
 #if (verbose)
 					((Adding player PId~) Ew.Output~) Do
-#endif                          
+#endif                                  	
 					((Player PId~)->Id PId~)^
 					((Player PId~)->Stop false)^
 					((Player PId~)) Activate
 				);
 				(State active) ias (
+					(Player PId~)->(Resources)->LInit~ Exe
 #if (verbose)
 					((Player PId~ has already been added) Ew.Output~) Do
 #endif                          
@@ -80,14 +86,24 @@ module PlayersManager {
 						CreatePlayer~ Exe
 						(Exists true)~ Exe
 					);
-					(Exists ((Player PlayerId~)) ExistsI)~ Exe
+					(Exists (Players~ (Player PlayerId~)) In)~ Exe
 				);
 				// player leaves session, but world is not stopped
 				(Command playerleave) ias (
 				);
-				// plater leaves session and world is going to be stopped
+				// player leaves session and world is going to be stopped (should be debugged)
 				(Command playerstop) ias (
 					((Player PlayerId~) Tx (ModeInfo.ModeMain~ requeststopplayerworld PlayerId~ ())) Gate
+				);
+				// player returns to pool - resets to initial state
+				// 1. all units are going to be destroyed
+				// 2. quartals moved to state 'cnp' and all contribution's timers are released
+				// 3. hiring agency stops all hiring requests
+				(Command playerreset) ias (
+#if (verbose)
+					((Resetting player PlayerId~) Ew.Output~) Do
+#endif
+					((Player PlayerId~) Tx (ModeInfo.ModeMain~ resettoinitialstate PlayerId~ ())) Gate
 				);
 				// updates global player's account configuration
 				(Command gaccountconf) ias (

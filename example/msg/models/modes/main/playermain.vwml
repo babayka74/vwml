@@ -8,6 +8,10 @@ module PlayerModeMain {
 					(Activities () NotifyAboutActivitiesStopped~) FinishInterception
 					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldstopped Id~ ())) Gate
 				);
+				NotifyAboutActivitiesResetted ias (
+					(Activities () NotifyAboutActivitiesResetted~) FinishInterception
+					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldresetted Id~ ())) Gate
+				);
 				(Handle setmode) ias (
 					(RightMode false) ias doNothing;
 					(RightMode true) ias (
@@ -32,6 +36,14 @@ module PlayerModeMain {
 					(Activities () NotifyAboutActivitiesStopped~) StartInterception
 					Resources.Done~ Exe
 				);
+				(Handle resettoinitialstate) ias (
+#if (verbose)
+					((The player Id~ is going to be resetted) Ew.Output~) Do
+#endif
+					(ResetMode true)^
+					(Activities () NotifyAboutActivitiesResetted~) StartInterception
+					Resources.Reset~ Exe
+				);
 				(Handle qinitialized) ias (
 					(Resources.Quartals.Init.ExpectedQuartals ((Resources.Quartals.Init.ExpectedQuartals~) Ew.DecValue~) Do)^
 #if (verbose)
@@ -47,13 +59,23 @@ module PlayerModeMain {
 				);
 				(Handle partclosed) ias (
 					CA ias nil;
-					(CA battlefield) ias Resources.Hiring.Done~ Exe;
-					(CA hiringagency) ias Resources.Quartals.Done~ Exe;
-					(CA quartals) ias Resources.ResourceManagerDone~ Exe;
-                                        (CA resourcemanager) ias doNothing;
+					(ResetMode true) ias (
+						(CA battlefield) ias Resources.Hiring.Reset~ Exe;
+						(CA hiringagency) ias Resources.Quartals.Reset~ Exe;
+						(CA quartals) ias Resources.ResourceManagerDone~ Exe;
+                                        	(CA resourcemanager) ias doNothing;
+						(CA CA~)~ Exe
+					);
+					(ResetMode false) ias (
+						(CA battlefield) ias Resources.Hiring.Done~ Exe;
+						(CA hiringagency) ias Resources.Quartals.Done~ Exe;
+						(CA quartals) ias Resources.ResourceManagerDone~ Exe;
+                                        	(CA resourcemanager) ias doNothing;
+						(CA CA~)~ Exe
+					);
 					(Params (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 					(CA (Params~ 0) Get)^
-					(CA CA~)~ Exe
+					(ResetMode ResetMode~)~ Exe
 #if (verbose)
 					((The player Id~ stopped activity CA~ left Activities~) Ew.Output~) Do
 #endif
@@ -66,6 +88,16 @@ module PlayerModeMain {
 #endif
 #if (release)
                               		(((playermanagment playerstop ok) (Player Id~)) Ew.OutChannel~) Do
+#endif
+				);
+				(Handle playerworldresetted) ias (
+					(ResetMode false)^
+					(Activities (resourcemanager quartals battlefield hiringagency))^
+#if (verbose)
+					((The player Id~ all activities stopped) Ew.Output~) Do
+#endif
+#if (release)
+                              		(((playermanagment playerreset ok) (Player Id~)) Ew.OutChannel~) Do
 #endif
 				);
 				(Handle updateaccount) ias (

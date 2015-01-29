@@ -2,6 +2,7 @@ module PlayerResources {
 	MagicWorld ias (
 		Player ias (
 			Resources ias (
+				ActiveQuartals ias 0;
 				InitSteps ias ();
 				InitDone ias (
 					(InitSteps () InitDone~) FinishInterception
@@ -59,40 +60,65 @@ module PlayerResources {
 							// checks if quartal has already been created
 							(QReady (Quartal (Id~ $~)) EI)~ Exe
 						);
-						(Controlled ())^
-						(Visible ())^
-						(Own ())^
 						(ExpectedQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^
 						// waits untill all quartals have been initialized
 						(ExpectedQuartals 0 NotifyAboutAllInitializedQuartals~) StartInterception
 						(Ew.PlayerAccountConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
 						// create battlefield and associate it with quartal
 						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
+						(Controlled ())^
+						(Visible ())^
+						(Own ())^
+						LInit~ Exe
+					);
+					LInit ias (
+						(ActiveQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^
 #if (verbose)
 						((Player Id~ created and initialized own quartals) Ew.Output~) Do
 #endif
 					);
-					Done ias (
-						AllOwnQurtalsClosed ias (
-							(Own () AllOwnQurtalsClosed~) FinishInterception
+					Deactivate ias (
+						A ias nil;
+						AllOwnQurtalsDeactivated ias (
+							(ActiveQuartals 0 AllOwnQurtalsDeactivated~) FinishInterception
 							// send message to player about closing all own quartals
 							((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (quartals))) Gate
 						);
-						(NoQuartals true) ias (
-						);
+						(NoQuartals true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (quartals))) Gate;
 						(NoQuartals false) ias (
-							// sent 'exit' command and quartal sends 'unlinkquartal' back as response
-							(Own () AllOwnQurtalsClosed~) StartInterception
-							DeactivateQuartal ias ((Player Id~) Tx (ModeInfo.ModeDeal~ releasequartal Id~ ($~))) Gate;
-							(Own~ DeactivateQuartal~) ForEach
+							ResetQuartal ias ((Player Id~) Tx (ModeInfo.ModeDeal~ A~ Id~ ($~))) Gate;
+							(ActiveQuartals 0 AllOwnQurtalsDeactivated~) StartInterception
+							(Own~ ResetQuartal~) ForEach
 						);
 						(NoQuartals (Own~ ()) Ident)~ Exe
+					);
+					RestoreActiveQ ias (
+						(RQ false) ias doNothing;
+						(RQ true) ias (ActiveQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^;
+						(RQ (ActiveQuartals~ 0) Ident)~ Exe
+					);
+					Done ias (
+						RestoreActiveQ~ Exe
+						(Deactivate.A releasequartal)^
+						Deactivate~ Exe
+					);
+					Reset ias (
+						RestoreActiveQ~ Exe
+						(Deactivate.A resetquartal)^
+						Deactivate~ Exe
 					);
 				);
 				BattleFieldDone ias (
 					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
 					(NotSelectedBF false) ias (
 						((Player Id~) Tx (ModeInfo.ModeBattle~ destroybf Id~ ((Id~ 0)))) Gate
+					);
+					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe 
+				);
+				BattleFieldReset ias (
+					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
+					(NotSelectedBF false) ias (
+						((Player Id~) Tx (ModeInfo.ModeBattle~ resetbf Id~ ((Id~ 0)))) Gate
 					);
 					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe 
 				);
@@ -271,6 +297,12 @@ module PlayerResources {
 						(HiringBroker.CommandParams ())^
 						HiringBroker~ Exe
 					);
+					Reset ias (
+						(HiringBroker.CommandId reset)^
+						(HiringBroker.RequestId nil)^
+						(HiringBroker.CommandParams ())^
+						HiringBroker~ Exe
+					);
 				);
 				Attacking ias (
 					Init ias (
@@ -279,18 +311,30 @@ module PlayerResources {
 						(AttackManager Id~)->Init~ Exe
 					);
 				);
-				Init ias (
-					(InitSteps (hiringagency quartals))^
-					(InitSteps () InitDone~) StartInterception
+				PreInit ias (
+					ResourceManager.Init~ Exe
 					Units.Init~ Exe
 					Account.Init~ Exe
 					Business.Init~ Exe
-					Hiring.Init~ Exe
 					Attacking.Init~ Exe
+				);
+				Init ias (
+					(InitSteps (hiringagency quartals))^
+					(InitSteps () InitDone~) StartInterception
+					PreInit~ Exe
 					Quartals.Init~ Exe
+					Hiring.Init~ Exe
+				);
+				// light init, after reset
+				LInit ias (
+					PreInit~ Exe
+					Quartals.LInit~ Exe
 				);
 				Done ias (
 					BattleFieldDone~ Exe
+				);
+				Reset ias (
+					BattleFieldReset~ Exe
 				);
 			);
 		);

@@ -200,7 +200,13 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			synchronized(ring) {
 				try {
 					VWMLConflictRingMT mtRing = (VWMLConflictRingMT)ring;
+					// do not block node in case if at least one gate is in ready state
+					if (!mtRing.isBlockingAllowedByGates()) {
+						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' has at least one active gate; reject blocking request");
+						return;
+					}
 					if (mtRing.isActuallyBlocked()) {
+						// case when node is added during ring's expansion
 						if (mtRing.getInstantNumberOfBlockedNodes() >= mtRing.calculateNumberOfNodes()) {
 							System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
 							ring.wait();
@@ -263,6 +269,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	private ConcurrentLinkedQueue<VWMLRingEvent> eventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
 	private ConcurrentLinkedQueue<VWMLRingEvent> deferredEventQueue = new ConcurrentLinkedQueue<VWMLRingEvent>();
 	private ConcurrentHashMap<String, ConcurrentLinkedQueue<VWMLRingEvent>> nonAckGateEventQueue = new ConcurrentHashMap<String, ConcurrentLinkedQueue<VWMLRingEvent>>();
+	private ConcurrentHashMap<String, VWMLGate> gates = new ConcurrentHashMap<String, VWMLGate>();
 	private AtomicInteger blockedNodes = new AtomicInteger(0);
 	private AtomicBoolean actuallyBlocked = new AtomicBoolean(false);
 	private VWMLGate blockedByGate = null;
@@ -378,6 +385,56 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 	
 	/**
+	 * Associates gate with ring
+	 * @param gate
+	 */
+	@Override
+	public void associateGate(VWMLGate gate) {
+		gates.put(gate.getRegistrationKey(), gate);
+	}
+
+	/**
+	 * Associates gate with ring
+	 * @param gate
+	 */
+	@Override
+	public void unAssociateGate(VWMLGate gate) {
+		gates.remove(gate.getRegistrationKey());
+	}
+	
+	/**
+	 * Returns 'false' in case if at least one gate is in ready state
+	 * @return
+	 */
+	public boolean isBlockingAllowedByGates() throws Exception {
+		boolean allowed = true;
+		for(VWMLGate gate : gates.values()) {
+			if (gate.getRing() == this) {
+				if (gate.getRing().isGateOpenedByTId(gate.getRegistrationKey())) {
+					allowed = false;
+					break;
+				}
+			}
+			else {
+				throw new Exception("The gate '" + gate + " ' doesn't belong to ring '" + this + "'; belongs to '" + gate.getRing() + "'");
+			}
+		}
+		return allowed;
+	}
+	
+	/**
+	 * Resets gates. Blocked interpreter which is used as trigger is set to 'null', allowing to reschedule gate
+	 */
+	@Override
+	public void resetBlockingGatesTrigger() {
+		// forces ring's gates to be rescheduled
+		blockedNodes.set(0);
+		for(VWMLGate gate : gates.values()) {
+			gate.resetBlockedInterpreter();
+		}
+	}
+	
+	/**
 	 * Returns number of operational nodes
 	 * @return
 	 */
@@ -473,13 +530,19 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	 * @throws Exception
 	 */
 	@Override
-	public void askActivateGate(VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
+	public void askActivateGate(VWMLGate gate, VWMLEntity ringDestTerm, VWMLEntity transportedEntity, VWMLEntity handlerDestTerm) throws Exception {
 		VWMLRingActivateGateEvent event = new VWMLRingActivateGateEvent(ringDestTerm, transportedEntity, handlerDestTerm);
 		if (handlerDestTerm != null) {
 			postEvent(event);
 		}
 		else {
 			toGate(event);
+		}
+		if (gate != null) {
+			gate.unblockActivity();
+		}
+		else {
+			throw new Exception("Couldn't find gate by term '" + ringDestTerm.getId() + "'");
 		}
 	}
 	
