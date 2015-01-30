@@ -12,10 +12,11 @@ module PlayersManager {
 			Init ias (
 				Pool ias (
 					// initial quantity of elements in pool
-					Elements ias 30;
+					Elements ias 0;
 					Fill ias (
 						(CreatePlayer.PId $~)^
 						CreatePlayer~ Exe
+						1000 Relax
 					);
 					(Elements~ Fill~) Repeat
 				);

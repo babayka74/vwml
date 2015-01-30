@@ -230,7 +230,10 @@ module msg {
 			Injection ias (
 #if (unittest)
 				(pm 0 playermanagment playeradd 0 nil)
-				(manager 0 nil delay 0 (2500))
+				(manager 0 nil delay 0 (3500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 1))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (3500))
+				(pm 0 nil playerreset 0 nil)
 #endif
 			);
 		);

@@ -164,13 +164,17 @@ module Characters {
 #endif
 				);
 				ReleaseConcreteUnit ias (
-					((ConcreteUnit~)->BattleFieldId nil)^
-					(ConcreteUnit~)->Done~ Exe
-					(ConcreteUnit~) Release
-					(ConcreteUnit nil)^
+					(CU true) ias doNothing;
+					(CU false) ias (
+						((ConcreteUnit~)->BattleFieldId nil)^
+						(ConcreteUnit~)->Done~ Exe
+						(ConcreteUnit~) Release
+						(ConcreteUnit nil)^
 #if (verbose)
-					((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
+						((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
 #endif
+					);
+					(CU (ConcreteUnit~ nil) Ident)~ Exe
 				);
 				NotifyOwner ias (
 #if (verbose)
