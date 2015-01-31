@@ -37,6 +37,28 @@ public class VWMLCloneFactory {
 		}
 		return clonedEntity;
 	}
+
+	/**
+	 * Clones interpreting entities in lazy manner
+	 * @param origEntity
+	 * @param clonedObjectId
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLEntity cloneContextLazy(VWMLEntity origEntity, Object clonedObjectId) throws Exception {
+		VWMLEntity clonedEntity = null;
+		if (origEntity.getInterpreting() != null) {
+			VWMLContextsRepository.cloneLazy(clonedObjectId, origEntity.getInterpreting().getContext());
+			clonedEntity = (VWMLEntity)VWMLObjectsRepository.acquire(origEntity.deduceEntityType(),
+																	clonedObjectId,
+																	origEntity.getContext().getContext(),
+																	origEntity.getInterpretationHistorySize(),
+																	VWMLObjectsRepository.asOriginal,
+																	origEntity.getLink().getLinkOperationVisitor());
+			clonedEntity.setInterpreting(origEntity.getInterpreting());
+		}
+		return clonedEntity;
+	}
 	
 	/**
 	 * Releases all resources and entities which were allocated during the cloneContext operation

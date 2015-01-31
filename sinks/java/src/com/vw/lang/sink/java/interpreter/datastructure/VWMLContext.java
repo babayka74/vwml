@@ -43,6 +43,8 @@ public class VWMLContext extends VWMLObject {
 	private Map<VWMLEntity, VWMLEntity> entitiesMarkedAsRecursive = null;
 	// contains entity's dynamic properties which can't be stored inside VWMLEntity since entity can be interpreted by simultaneously
 	private Map<VWMLEntity, VWMLDynamicEntityProperties> entityDynamicProperties = null;
+	// in case if context is cloned from another context this field is set
+	private VWMLContext clonedFrom = null;
 	// set to 'true' in case if context belongs to lifeterm
 	private boolean lifeTermContext = false;
 	private boolean unwinding = false;
@@ -247,6 +249,14 @@ public class VWMLContext extends VWMLObject {
 
 	public void setCurrentCodeStackFrame(VWMLSequentialTermInterpreterCodeStackFrame currentCodeStackFrame) {
 		this.currentCodeStackFrame = currentCodeStackFrame;
+	}
+
+	public VWMLContext getClonedFrom() {
+		return clonedFrom;
+	}
+
+	public void setClonedFrom(VWMLContext clonedFrom) {
+		this.clonedFrom = clonedFrom;
 	}
 
 	/**

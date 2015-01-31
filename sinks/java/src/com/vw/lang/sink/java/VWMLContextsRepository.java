@@ -56,6 +56,21 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	/**
+	 * Clones context identified by id for 'Clone/Born' operation only
+	 * @param asContext
+	 * @param newContextId
+	 * @return
+	 */
+	public static synchronized VWMLContext cloneLazy(Object newContextId, VWMLContext context) throws Exception {
+		context = VWMLContextsRepository.instance().get(VWMLContextsRepository.instance().normalizeContext(context.getContext()));
+		String[] clonedContextFullPath = context.getContextPath().clone();
+		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
+		VWMLContext newContext = VWMLContextsRepository.instance().createFromContextPath(clonedContextFullPath);
+		newContext.setClonedFrom(context);
+		return newContext;
+	}
+
+	/**
 	 * Releases context's resources and related entities
 	 * @param clonedContext
 	 * @throws Exception

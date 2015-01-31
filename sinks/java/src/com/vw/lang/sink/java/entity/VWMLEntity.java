@@ -614,6 +614,10 @@ public class VWMLEntity extends VWMLObject {
 		return true;
 	}
 
+	public VWMLObjectBuilder.VWMLObjectType deduceEntityType() {
+		return deductEntityTypeByProto(this);
+	}
+	
 	protected void setClonedFrom(VWMLEntity clonedFrom) {
 		this.clonedFrom = clonedFrom;
 	}
