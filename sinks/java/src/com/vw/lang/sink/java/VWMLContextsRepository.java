@@ -144,6 +144,31 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 
 	/**
+	 * Checks context by checking each part on existing. In case if detected part which were created during clone/born
+	 * operation - original context will be used in order to check full context path, since 'clone/born' operation use
+	 * lazy clone algorithm
+	 * @param context
+	 */
+	public boolean wellFormedContext(Object contextId) {
+		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
+		String p = null;
+		for(String ctxPart : contextPath) {
+			if (p == null) {
+				p = ctxPart;
+			}
+			VWMLContext c = get(p);
+			if (c == null) {
+				return false;
+			}
+			if (c.getClonedFrom() != null) {
+				ctxPart = c.getClonedFrom().getContextName();
+			}
+			p += VWMLContext.constructContextNameFromParts(p, ctxPart);
+		}
+		return true;
+	}
+	
+	/**
 	 * Allows to create context (if not exists) by context path
 	 * @param contextPath
 	 * @return

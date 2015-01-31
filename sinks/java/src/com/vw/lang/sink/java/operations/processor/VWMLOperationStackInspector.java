@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -126,6 +127,13 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			// lookup for entity
 			if (VWMLContext.isDynamicContextPointsToSelf(dynContext) && operationalContext != null) {
 				dynContext = VWMLContext.changeSelfAddressedDynamicContextNameTo(dynContext, operationalContext.getContext());					
+			}
+			// re-process 'dyncontext' on separating parts in order to check well-forming
+			if (VWMLContextsRepository.instance().wellFormedContext(dynContext)) {
+				VWMLContextsRepository.instance().createContextIfNotExists(dynContext);
+			}
+			else {
+				throw new Exception("the original context doesn't contain some parts '" + dynContext + "'; see VWML code");
 			}
 			if (assemblyEntity && collector.size() > 1) {
 				VWMLContext c = VWMLContextsRepository.instance().get(dynContext);
