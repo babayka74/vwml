@@ -39,7 +39,7 @@ module Player {
 		);
 		Player ias (
 			ResetMode ias false;
-			States ias (active nonactive);
+			States ias (active nonactive resetted);
 			Activities ias (resourcemanager quartals battlefield hiringagency);
 			ActiveModes ias (ModeInfo.ModeDeal~ ModeInfo.ModeBattle~ ModeInfo.ModeHiring~);
 			Mode ias main;

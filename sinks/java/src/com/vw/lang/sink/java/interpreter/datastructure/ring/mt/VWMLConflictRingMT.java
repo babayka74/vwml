@@ -201,7 +201,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 				try {
 					VWMLConflictRingMT mtRing = (VWMLConflictRingMT)ring;
 					// do not block node in case if at least one gate is in ready state
-					if (!mtRing.isBlockingAllowedByGates()) {
+					if (!mtRing.isBlockingAllowedByGates() || mtRing.doesRingHaveNonProcessedInternalMessages()) {
 						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' has at least one active gate; reject blocking request");
 						return;
 					}
@@ -423,6 +423,14 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 	
 	/**
+	 * Returns 'true' in case if ring has non-processed events
+	 * @return
+	 */
+	public boolean doesRingHaveNonProcessedInternalMessages() {
+		return (eventQueue.size() != 0 || deferredEventQueue.size() != 0);
+	}
+	
+	/**
 	 * Resets gates. Blocked interpreter which is used as trigger is set to 'null', allowing to reschedule gate
 	 */
 	@Override
@@ -596,10 +604,10 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingActivateNodeEvent event = new VWMLRingActivateNodeEvent(interpreter, cloned, clonedSourceLft);
 		event.setRtNode(interpreter.getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
+		postEvent(event);
 		if (blockedByGate != null) {
 			blockedByGate.unblockActivity();
 		}
-		postEvent(event);
 	}
 
 	/**
@@ -611,10 +619,10 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingProcessRelaxTimerCbkEvent event = new VWMLRingProcessRelaxTimerCbkEvent(task);
 		event.setRtNode(task.getActiveInterpreter().getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
+		postEvent(event);
 		if (blockedByGate != null) {
 			blockedByGate.unblockActivity();
 		}
-		postEvent(event);
 	}
 
 	/**
@@ -626,10 +634,10 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		VWMLRingProcessRecallTimerCbkEvent event = new VWMLRingProcessRecallTimerCbkEvent(task);
 		event.setRtNode(task.getActiveInterpreter().getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
+		postEvent(event);
 		if (blockedByGate != null) {
 			blockedByGate.unblockActivity();
 		}
-		postEvent(event);
 	}
 	
 	/**
