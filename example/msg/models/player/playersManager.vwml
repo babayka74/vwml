@@ -50,8 +50,17 @@ module PlayersManager {
 					((Player PId~)->Stop false)^
 					((Player PId~)) Activate
 				);
-				(State active) ias (
+				(State resetted) ias (
+					((Player PId~)->State active)^
 					(Player PId~)->(Resources)->LInit~ Exe
+#if (verbose)
+					((Player PId~ has reinitialized after reset) Ew.Output~) Do
+#endif                          
+#if (release)                   
+                              		(((playermanagment playeradd ok alreadyActive) (Player PId~)) Ew.OutChannel~) Do
+#endif
+				);
+				(State active) ias (
 #if (verbose)
 					((Player PId~ has already been added) Ew.Output~) Do
 #endif                          

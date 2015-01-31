@@ -92,6 +92,7 @@ module PlayerModeMain {
 				);
 				(Handle playerworldresetted) ias (
 					(ResetMode false)^
+					(State resetted)^
 					(Activities (resourcemanager quartals battlefield hiringagency))^
 #if (verbose)
 					((The player Id~ all activities stopped) Ew.Output~) Do
