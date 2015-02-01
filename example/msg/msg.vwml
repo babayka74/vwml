@@ -230,17 +230,9 @@ module msg {
 			Injection ias (
 #if (unittest)
 				(pm 0 playermanagment playeradd 0 nil)
+				(pm 0 playermanagment playeradd 1 nil)
+				(pm 0 playermanagment playeradd 2 nil)
 				(manager 0 nil delay 0 (3500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 1))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 2))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 3))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 4))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 5))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 6))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 7))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 3000) (id (0 8))) ((kind skeleton) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (10000))
-				(pm 0 nil playerreset 0 nil)
 #endif
 			);
 		);
