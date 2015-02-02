@@ -3,6 +3,7 @@ package com.vw.lang.sink.java;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -100,6 +101,38 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		// checks if object has been created before
 		VWMLObject obj = instance().checkObjectOnContext(id, c);
 		return obj;
+	}
+	
+	/**
+	 * Lookups for entity on context pair, supposing that context may be cloned
+	 * 1. lookup on original context
+	 * 2. in case if entity found on original context it must be created on effective (meaning that effective is cloned_
+	 * 3. in case if entity not found on original context - exception is thrown
+	 * @param cPair
+	 * @param entityId (readable)
+	 * @return
+	 */
+	public static VWMLObject findAndCreateInCaseOfCloned(ContextIdPair cPair, String entityId) throws Exception {
+		VWMLEntity e = null;
+		if (!cPair.isCloneOfOriginal()) {
+			e = (VWMLEntity)VWMLObjectsRepository.findObject(cPair.getEffectiveContextId(), entityId);
+			if (e == null) {
+				throw new Exception("Couldn't find entity '" + entityId + "' on context '" + cPair.getEffectiveContextId() + "'");
+			}
+		}
+		else {
+			e = (VWMLEntity)VWMLObjectsRepository.findObject(cPair.getOrigContextId(), entityId);
+			if (e == null) {
+				throw new Exception("Couldn't find entity '" + entityId + "' on context '" + cPair.getOrigContextId() + "'");
+			}
+			e = (VWMLEntity)acquireWithoutCheckingOnExistence(e.deduceEntityType(),
+																entityId,
+																VWMLContextsRepository.instance().get(cPair.getEffectiveContextId()),
+																e.getInterpretationHistorySize(),
+																VWMLObjectsRepository.asOriginal,
+																e.getLink().getLinkOperationVisitor());
+		}
+		return e;
 	}
 	
 	/**

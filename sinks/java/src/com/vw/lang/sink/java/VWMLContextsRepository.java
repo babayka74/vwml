@@ -17,6 +17,40 @@ import com.vw.lang.sink.java.repository.VWMLRepository;
  */
 public class VWMLContextsRepository extends VWMLRepository {
 	
+	public static class ContextIdPair {
+		// original context id (so taken as is - no produced from clone operation)
+		private String origContextId;
+		// passed in run-time, may contain parts created by clone operation
+		private String effectiveContextId;
+		// 'true' in case if at least one part of effective context was cloned
+		private boolean cloneSign;
+		
+		public ContextIdPair(String origContextId, String effectiveContextId, boolean cloneSign) {
+			super();
+			this.origContextId = origContextId;
+			this.effectiveContextId = effectiveContextId;
+			this.cloneSign = cloneSign;
+		}
+		
+		public String getOrigContextId() {
+			return origContextId;
+		}
+
+		public String getEffectiveContextId() {
+			return effectiveContextId;
+		}
+		
+		public boolean isCloneOfOriginal() {
+			if (origContextId != null) {
+				if (origContextId.equals(effectiveContextId) && cloneSign) {
+					return true;
+				}
+				return true;
+			}
+			return false;
+		}
+	}
+	
 	private static String s_default_context = "__vwml_root_context__";
 	
 	private Map<Object, VWMLContext> contextsMap = null;
@@ -73,7 +107,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	/**
 	 * Releases context's resources and related entities
 	 * @param clonedContext
-	 * @throws Exception
+	 * @throws Exceptionb
 	 */
 	public static synchronized void releaseCloned(VWMLContext clonedContext) throws Exception {
 		VWMLContextsRepository.instance().releaseClonedImpl(clonedContext);
@@ -149,23 +183,25 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * lazy clone algorithm
 	 * @param context
 	 */
-	public boolean wellFormedContext(Object contextId) {
+	public ContextIdPair wellFormedContext(Object contextId) {
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
 		String p = null;
+		boolean cloneSign = false;
 		for(String ctxPart : contextPath) {
 			if (p == null) {
 				p = ctxPart;
 			}
 			VWMLContext c = get(p);
 			if (c == null) {
-				return false;
+				return null;
 			}
 			if (c.getClonedFrom() != null) {
 				ctxPart = c.getClonedFrom().getContextName();
+				cloneSign = true;
 			}
 			p += VWMLContext.constructContextNameFromParts(p, ctxPart);
 		}
-		return true;
+		return new ContextIdPair(p, (String)contextId, cloneSign);
 	}
 	
 	/**

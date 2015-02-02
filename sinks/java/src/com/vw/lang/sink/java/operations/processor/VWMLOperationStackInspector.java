@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
-import com.vw.lang.sink.java.VWMLJavaExportUtils;
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -128,17 +128,21 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			if (VWMLContext.isDynamicContextPointsToSelf(dynContext) && operationalContext != null) {
 				dynContext = VWMLContext.changeSelfAddressedDynamicContextNameTo(dynContext, operationalContext.getContext());					
 			}
+			VWMLContext c = null;
 			// re-process 'dyncontext' on separating parts in order to check well-forming
-			if (VWMLContextsRepository.instance().wellFormedContext(dynContext)) {
-				VWMLContextsRepository.instance().createContextIfNotExists(dynContext);
+			ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(dynContext);
+			if (cPair != null && cPair.isCloneOfOriginal()) {
+				c = VWMLContextsRepository.instance().createContextIfNotExists(cPair.getEffectiveContextId());
 			}
 			else {
 				throw new Exception("the original context doesn't contain some parts '" + dynContext + "'; see VWML code");
 			}
 			if (assemblyEntity && collector.size() > 1) {
-				VWMLContext c = VWMLContextsRepository.instance().get(dynContext);
 				if (c == null) {
-					throw new Exception("coudln't find context '" + dynContext + "'");
+					c = VWMLContextsRepository.instance().get(dynContext);
+					if (c == null) {
+						throw new Exception("coudln't find context '" + dynContext + "'");
+					}
 				}
 				dynamicAddressedEntity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
 															  collector,
@@ -153,10 +157,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				}
 				collector.clear();
 			}
-			e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, dynamicAddressedEntity.buildReadableId());
-			if (e == null) {
-				throw new Exception("Couldn't find entity '" + dynamicAddressedEntity.getReadableId() + "' on context '" + dynContext + "'");
-			}
+			e = (VWMLEntity)VWMLObjectsRepository.findAndCreateInCaseOfCloned(cPair, dynamicAddressedEntity.buildReadableId());
 			if (e.getReadableId() == null && ((e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) || !e.isMarkedAsComplexEntity())) {
 				// looks like context which built during compilation time
 				e.setReadableId((String)e.getId());

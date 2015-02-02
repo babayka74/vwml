@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
@@ -54,12 +55,9 @@ public class VWMLOperationUtils {
 			                                                                boolean addIfUnknown) throws Exception {
 		// rebuilt entity is null, so try to generate it
 		VWMLEntity newComplexEntity = null;
-		VWMLContext origEffectiveContext = context;
-		// if effective context (lifeterm's context) isn't parent of entity's context it means that 
-		// actual interpretation is being run on context identified by effectiveContext id
-		if (!VWMLContext.isContextChildOf(effectiveContext.getContext(), context.getContext())) {
-			context = effectiveContext;
-		}
+		
+		// effectiveContext - interpreter's context
+		// context - entity's context
 		String cen = ComplexEntityNameBuilder.generateRandomName();
 		if (entities.size() > 0) {
 			newComplexEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, cen, cen, null, 0, null);
@@ -67,20 +65,24 @@ public class VWMLOperationUtils {
 				newComplexEntity.getLink().link(entities.get(i));
 			}
 			if (addIfUnknown) {
-				VWMLEntity e = null;
-				if (origEffectiveContext.equals(context)) {
-					// lookups for entity by its id (builds id and searches in repository); 
-					// if entity found then it is returned, otherwise 'newComplexEntity' is returned
-					e = lookupAndRelinkEntityOnContext(origEffectiveContext, newComplexEntity);
-					// if found entity and newComplexEntity are the same then we add it to repository and return null value
-					addToRepositoryIfTheSame(e, newComplexEntity, origEffectiveContext);
+				ContextIdPair interpreterCtxPair = VWMLContextsRepository.instance().wellFormedContext(effectiveContext.getContext());
+				ContextIdPair entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(context.getContext());
+				if (entityCtxPair == null || interpreterCtxPair == null) {
+					throw new Exception("unknown context '" + context.getContext() + "' or '" + effectiveContext.getContext() + "'");
 				}
-				else {
-					e = lookupAndRelinkEntityOnContext(origEffectiveContext, newComplexEntity);
-					if (e == newComplexEntity) { // not found on 'origEffectiveContext'
-						e = lookupAndRelinkEntityOnContext(context, newComplexEntity);
-						addToRepositoryIfTheSame(e, newComplexEntity, context);
+				if (interpreterCtxPair.isCloneOfOriginal() && !entityCtxPair.isCloneOfOriginal()) {
+					String relPath = VWMLContext.getRelContextPath(interpreterCtxPair.getOrigContextId(), entityCtxPair.getOrigContextId());
+					if (relPath != null) {
+						String ctx = interpreterCtxPair.getEffectiveContextId() + "." + relPath;
+						context = VWMLContextsRepository.instance().createContextIfNotExists(ctx);
 					}
+				}
+				// looking on interpreter's context
+				VWMLEntity e = lookupAndRelinkEntityOnContext(effectiveContext, newComplexEntity);
+				if (e == newComplexEntity) { // not found on 'effectiveContext'
+					// looking on operational context (last command's context)
+					e = lookupAndRelinkEntityOnContext(context, newComplexEntity);
+					addToRepositoryIfTheSame(e, newComplexEntity, context);
 				}
 				newComplexEntity = e;
 			}

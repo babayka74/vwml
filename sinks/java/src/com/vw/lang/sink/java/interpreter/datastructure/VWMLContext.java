@@ -82,6 +82,24 @@ public class VWMLContext extends VWMLObject {
 		}
 		return r;
 	}
+
+	/**
+	 * Returns relative context path
+	 * @param parent
+	 * @param contextId
+	 * @return
+	 */
+	public static String getRelContextPath(String parent, String contextId) {
+		String p = parent + ".";
+		if ((contextId.intern() == VWMLContextsRepository.getDefaultContextId() || parent.intern() == VWMLContextsRepository.getDefaultContextId()) ||
+		   (contextId.equals(parent))) {
+			return null;
+		}
+		if (contextId.startsWith(p)) {
+			return contextId.substring(p.length());
+		}
+		return null;
+	}
 	
 	public static boolean isDynamicContextPointsToSelf(String dynContext) {
 		return dynContext.equals("$$");
