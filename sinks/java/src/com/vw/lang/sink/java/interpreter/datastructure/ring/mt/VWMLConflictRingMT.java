@@ -547,7 +547,13 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			toGate(event);
 		}
 		if (gate != null) {
-			gate.unblockActivity();
+			if (blockedByGate != null && gate != blockedByGate) {
+				resetBlockingGatesTrigger();
+				unblockRing();
+			}
+			else {
+				gate.unblockActivity();
+			}
 		}
 		else {
 			throw new Exception("Couldn't find gate by term '" + ringDestTerm.getId() + "'");
