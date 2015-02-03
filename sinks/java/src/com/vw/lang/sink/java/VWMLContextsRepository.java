@@ -41,13 +41,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}
 		
 		public boolean isCloneOfOriginal() {
-			if (origContextId != null) {
-				if (origContextId.equals(effectiveContextId) && cloneSign) {
-					return true;
-				}
-				return true;
-			}
-			return false;
+			return cloneSign;
 		}
 	}
 	
@@ -191,6 +185,9 @@ public class VWMLContextsRepository extends VWMLRepository {
 			if (p == null) {
 				p = ctxPart;
 			}
+			else {
+				p = VWMLContext.constructContextNameFromParts(p, ctxPart);
+			}
 			VWMLContext c = get(p);
 			if (c == null) {
 				return null;
@@ -199,7 +196,6 @@ public class VWMLContextsRepository extends VWMLRepository {
 				ctxPart = c.getClonedFrom().getContextName();
 				cloneSign = true;
 			}
-			p += VWMLContext.constructContextNameFromParts(p, ctxPart);
 		}
 		return new ContextIdPair(p, (String)contextId, cloneSign);
 	}

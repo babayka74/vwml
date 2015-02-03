@@ -73,15 +73,15 @@ public class VWMLOperationUtils {
 				if (interpreterCtxPair.isCloneOfOriginal() && !entityCtxPair.isCloneOfOriginal()) {
 					String relPath = VWMLContext.getRelContextPath(interpreterCtxPair.getOrigContextId(), entityCtxPair.getOrigContextId());
 					if (relPath != null) {
-						String ctx = interpreterCtxPair.getEffectiveContextId() + "." + relPath;
-						context = VWMLContextsRepository.instance().createContextIfNotExists(ctx);
+						context = VWMLContextsRepository.instance().createContextIfNotExists(VWMLContext.constructContextNameFromParts(interpreterCtxPair.getEffectiveContextId(), relPath));
+						entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(context.getContext());
 					}
 				}
 				// looking on interpreter's context
-				VWMLEntity e = lookupAndRelinkEntityOnContext(effectiveContext, newComplexEntity);
+				VWMLEntity e = lookupAndRelinkEntityOnContext(interpreterCtxPair, newComplexEntity);
 				if (e == newComplexEntity) { // not found on 'effectiveContext'
 					// looking on operational context (last command's context)
-					e = lookupAndRelinkEntityOnContext(context, newComplexEntity);
+					e = lookupAndRelinkEntityOnContext(entityCtxPair, newComplexEntity);
 					addToRepositoryIfTheSame(e, newComplexEntity, context);
 				}
 				newComplexEntity = e;
@@ -306,10 +306,8 @@ public class VWMLOperationUtils {
 		VWMLObjectsRepository.instance().addConcrete(newComplexEntity, context);
 	}
 	
-	private static VWMLEntity lookupAndRelinkEntityOnContext(VWMLContext context, VWMLEntity newComplexEntity) throws Exception {
-		VWMLContext ctx = context;
-		String id = newComplexEntity.buildReadableId();
-		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctx);
+	private static VWMLEntity lookupAndRelinkEntityOnContext(ContextIdPair ctxPair, VWMLEntity newComplexEntity) throws Exception {
+		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(ctxPair, newComplexEntity);
 		if (lookedEntity != null) {
 			boolean activateUnlink = true;
 			if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
@@ -331,6 +329,7 @@ public class VWMLOperationUtils {
 			}
 			newComplexEntity.setLink(null);
 			newComplexEntity = lookedEntity;
+			newComplexEntity.buildReadableId();
 		}
 		return newComplexEntity;
 	}

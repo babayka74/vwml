@@ -42,11 +42,12 @@ module BornSimulation {
 			);
 			(StopBorn false) ias (
 				(Ew.Id ((Ew.Id~) Ew.inc~) Do)^
-				(P1.Id Ew.Id~)^
-				(P1 (P1 Ew.Id~)) Born
+				(P1 (P1 Ew.Id~) defer) Born
+				((P1 Ew.Id~)->Id Ew.Id~)^
+				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 500) Ident)~ Exe
+			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 
 		source lifeterm = (

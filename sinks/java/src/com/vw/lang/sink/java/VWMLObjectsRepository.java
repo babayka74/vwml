@@ -125,14 +125,62 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			if (e == null) {
 				throw new Exception("Couldn't find entity '" + entityId + "' on context '" + cPair.getOrigContextId() + "'");
 			}
-			e = (VWMLEntity)acquireWithoutCheckingOnExistence(e.deduceEntityType(),
-																entityId,
-																VWMLContextsRepository.instance().get(cPair.getEffectiveContextId()),
-																e.getInterpretationHistorySize(),
-																VWMLObjectsRepository.asOriginal,
-																e.getLink().getLinkOperationVisitor());
+			VWMLEntity ec = (VWMLEntity)acquire(e.deduceEntityType(),
+												entityId,
+												cPair.getEffectiveContextId(),
+												e.getInterpretationHistorySize(),
+												VWMLObjectsRepository.asOriginal,
+												e.getLink().getLinkOperationVisitor());
+			ec.setInterpreting(e.getOriginalInterpreting());
+			ec.buildReadableId();
 		}
 		return e;
+	}
+
+	/**
+	 * Lookups for entity on context pair, supposing that context may be cloned
+	 * 1. lookup on original context
+	 * 2. in case if entity found on original context it must be created on effective (meaning that effective is cloned_
+	 * 3. in case if entity not found on original context - exception is thrown
+	 * @param cPair
+	 * @param prototype
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype) throws Exception {
+		VWMLEntity lookedEntity = null;
+		String id = prototype.buildReadableId();
+		VWMLContext ctxEffective = VWMLContextsRepository.instance().get(cPair.getEffectiveContextId());
+		if (!cPair.isCloneOfOriginal()) {
+			if (ctxEffective == null) {
+				throw new Exception("unknown context '" + cPair.getEffectiveContextId() + "'");
+			}
+			lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxEffective);
+		}
+		else {
+			if (ctxEffective == null) {
+				ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(cPair.getEffectiveContextId());
+			}
+			lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxEffective);
+			if (lookedEntity == null) {
+				VWMLContext ctxOrig = VWMLContextsRepository.instance().get(cPair.getOrigContextId());
+				if (ctxOrig == null) {
+					throw new Exception("unknown context '" + cPair.getOrigContextId() + "'");
+				}
+				VWMLEntity origEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxOrig);
+				if (origEntity != null) {
+					lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
+												id,
+												ctxEffective.getContext(),
+												prototype.getInterpretationHistorySize(),
+												VWMLObjectsRepository.asOriginal,
+												prototype.getLink().getLinkOperationVisitor());
+					lookedEntity.setInterpreting(origEntity.getOriginalInterpreting());
+					lookedEntity.buildReadableId();
+				}
+			}
+		}
+		return lookedEntity;
 	}
 	
 	/**
