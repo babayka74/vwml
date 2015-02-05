@@ -52,11 +52,12 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLEntity entity = null;
 		VWMLEntity interpretingEntity = null;
 		if (entities.size() == 1) {
-			interpretingEntity = interpretationOfArgumentPair(interpreter, entities.get(0));
+			entity = VWMLOperationUtils.lazyEntityLookup(context, originalContext, entities.get(0));
+			interpretingEntity = interpretationOfArgumentPair(interpreter, entity);
 			if (interpretingEntity == null) {
-				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entities.get(0));
+				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
 				if (interpretingEntity == null) {
-					interpretingEntity = interpretSingleEntity(interpreter, entities.get(0), originalContext);
+					interpretingEntity = interpretSingleEntity(interpreter, entity, originalContext);
 				}
 			}
 		}

@@ -70,20 +70,10 @@ public class VWMLOperationUtils {
 				if (entityCtxPair == null || interpreterCtxPair == null) {
 					throw new Exception("unknown context '" + context.getContext() + "' or '" + effectiveContext.getContext() + "'");
 				}
-				if (interpreterCtxPair.isCloneOfOriginal() && !entityCtxPair.isCloneOfOriginal()) {
-					String relPath = VWMLContext.getRelContextPath(interpreterCtxPair.getOrigContextId(), entityCtxPair.getOrigContextId());
-					if (relPath != null) {
-						context = VWMLContextsRepository.instance().createContextIfNotExists(VWMLContext.constructContextNameFromParts(interpreterCtxPair.getEffectiveContextId(), relPath));
-						entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(context.getContext());
-					}
-				}
+				context = VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(interpreterCtxPair, entityCtxPair);
 				// looking on interpreter's context
-				VWMLEntity e = lookupAndRelinkEntityOnContext(interpreterCtxPair, newComplexEntity);
-				if (e == newComplexEntity) { // not found on 'effectiveContext'
-					// looking on operational context (last command's context)
-					e = lookupAndRelinkEntityOnContext(entityCtxPair, newComplexEntity);
-					addToRepositoryIfTheSame(e, newComplexEntity, context);
-				}
+				VWMLEntity e = lookupAndRelinkEntityOnContext(entityCtxPair, newComplexEntity);
+				addToRepositoryIfTheSame(e, newComplexEntity, context);
 				newComplexEntity = e;
 			}
 			else {
@@ -98,6 +88,25 @@ public class VWMLOperationUtils {
 		return newComplexEntity;
 	}
 
+	/**
+	 * Looks for entity using algorithm of lazy instantiation
+	 * @param interpreterCtx
+	 * @param originalContext
+	 * @param prototype
+	 * @return
+	 */
+	public static VWMLEntity lazyEntityLookup(VWMLContext interpreterContext, VWMLContext originalContext, VWMLEntity prototype) throws Exception {
+		VWMLEntity entity = prototype;
+		ContextIdPair interpreterCtxPair = VWMLContextsRepository.instance().wellFormedContext(interpreterContext.getContext());
+		ContextIdPair entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(prototype.getContext().getContext());
+		if (entityCtxPair == null || interpreterCtxPair == null) {
+			throw new Exception("unknown context '" + originalContext.getContext() + "' or '" + interpreterContext.getContext() + "'");
+		}
+		VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(interpreterCtxPair, entityCtxPair);
+		entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(entityCtxPair, entity);
+		return entity;
+	}
+	
 	/**
 	 * Rebuilds complex entity from list by adding entities starting from the end of the list; name is random
 	 * @param entities
@@ -217,6 +226,8 @@ public class VWMLOperationUtils {
 		clonedInterpreter.setClonedFromEntity(cloned);
 		clonedInterpreter.setCloned(true);
 		clonedInterpreter.setTerms(tl);
+		VWMLContext forcedContext = VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(cloned.getContext().getContext(), (String)cloned.getId()));
+		clonedInterpreter.setForcedContext(forcedContext);
 		clonedNode.setExecutionGroup(group);
 		group.add(clonedNode);
 		clonedInterpreter.start();

@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.operations.processor.operations.handlers.activatectx;
 
+import java.awt.PageAttributes.OriginType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLEntity entity = null;
 		VWMLStack stack = context.getStack();
+		
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
@@ -37,7 +39,7 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 			// entity defines context which is activated
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(entities,
 																					   entities.size() - 1,
-																					   context,
+																					   context.peekContext(),
 																					   context,
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),

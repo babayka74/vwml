@@ -22,6 +22,7 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
+		VWMLContext originalContext = context.peekContext();
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		List<VWMLEntity> entities = inspector.getReversedStack();
@@ -29,13 +30,14 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 			throw new Exception("operation 'Activate' requires 1 argument; check code");
 		}
 		if (entities.size() == 1) {
-			handleActivateOperation(entities.get(0), context, interpreter);
+			VWMLEntity entity = VWMLOperationUtils.lazyEntityLookup(context, originalContext, entities.get(0));
+			handleActivateOperation(entity, context, interpreter);
 		}
 		else {
 			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
 					   entities,
 					   entities.size() - 1,
-					   context,
+					   originalContext,
 					   context,
 					   context.getEntityInterpretationHistorySize(),
 					   context.getLinkOperationVisitor(),
@@ -71,11 +73,15 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 	}
 	
 	protected void activateTerm(VWMLInterpreterImpl interpreter, VWMLEntity context, VWMLEntity term) throws Exception {
-		if (!term.isActivated()) {
+		if (!isTermActiveOnContext(context)) {
 			VWMLOperationUtils.activateTerm(interpreter, context, term);
 		}
 		else {
 			throw new Exception("trying to activate active term '" + term.getId() + "' belongs to context '" + term.getContext().getContext() + "'on context '" + context.getContext() + "'");
 		}
+	}
+	
+	private boolean isTermActiveOnContext(VWMLEntity context) {
+		return false;
 	}
 }

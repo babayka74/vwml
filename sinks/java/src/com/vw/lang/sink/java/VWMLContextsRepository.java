@@ -32,6 +32,12 @@ public class VWMLContextsRepository extends VWMLRepository {
 			this.cloneSign = cloneSign;
 		}
 		
+		public void copy(ContextIdPair p) {
+			this.origContextId = p.getOrigContextId();
+			this.effectiveContextId = p.getEffectiveContextId();
+			this.cloneSign = p.isCloneOfOriginal();
+		}
+		
 		public String getOrigContextId() {
 			return origContextId;
 		}
@@ -180,6 +186,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	public ContextIdPair wellFormedContext(Object contextId) {
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
 		String p = null;
+		String p1 = null;
 		boolean cloneSign = false;
 		for(String ctxPart : contextPath) {
 			if (p == null) {
@@ -196,10 +203,37 @@ public class VWMLContextsRepository extends VWMLRepository {
 				ctxPart = c.getClonedFrom().getContextName();
 				cloneSign = true;
 			}
+			if (p1 == null) {
+				p1 = ctxPart;
+			}
+			else {
+				p1 = VWMLContext.constructContextNameFromParts(p1, ctxPart);
+			}
 		}
-		return new ContextIdPair(p, (String)contextId, cloneSign);
+		return new ContextIdPair(p1, (String)contextId, cloneSign);
 	}
 	
+	/**
+	 * Updates entity's context by interpreter context and changes context's pairs
+	 * @param interpreterCtxPair
+	 * @param entityCtxPair
+	 * @return
+	 */
+	public VWMLContext updateContextAndCreateInCaseOfClone(ContextIdPair interpreterCtxPair, ContextIdPair entityCtxPair) throws Exception {
+		VWMLContext context = null;
+		if (interpreterCtxPair.isCloneOfOriginal() && !entityCtxPair.isCloneOfOriginal()) {
+			String relPath = VWMLContext.getRelContextPath(interpreterCtxPair.getOrigContextId(), entityCtxPair.getOrigContextId());
+			if (relPath != null) {
+				context = VWMLContextsRepository.instance().createContextIfNotExists(VWMLContext.constructContextNameFromParts(interpreterCtxPair.getEffectiveContextId(), relPath));
+				ContextIdPair eCtxPair = VWMLContextsRepository.instance().wellFormedContext(context.getContext());
+				if (eCtxPair == null) {
+					throw new Exception("couldn't perform wellform operation on '" + context.getContext() + "'");
+				}
+				entityCtxPair.copy(eCtxPair);
+			}
+		}
+		return context;
+	}
 	/**
 	 * Allows to create context (if not exists) by context path
 	 * @param contextPath
@@ -236,6 +270,15 @@ public class VWMLContextsRepository extends VWMLRepository {
 	public synchronized VWMLContext get(Object contextId) {
 		contextId = normalizeContext((String)contextId);
 		String[] contextPath = VWMLJavaExportUtils.parseContext((String)contextId);
+		return getByParsedPath(contextPath);
+	}
+
+	/**
+	 * Gets context by parsed path
+	 * @param contextPath
+	 * @return
+	 */
+	public VWMLContext getByParsedPath(String[] contextPath) {
 		String rootContext = null;
 		if (contextPath == null || contextPath.length == 0 || contextPath[0].length() == 0) {
 			rootContext = s_default_context;
@@ -250,7 +293,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		VWMLContext ctx = find(root, contextPath, null, 1, -1);
 		return ctx;
 	}
-
+	
 	/**
 	 * Returns main root context
 	 * @return

@@ -1,7 +1,9 @@
 package com.vw.lang.sink.java;
 
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 
 /**
  * Performs clone building process
@@ -45,17 +47,33 @@ public class VWMLCloneFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public static VWMLEntity cloneContextLazy(VWMLEntity origEntity, Object clonedObjectId) throws Exception {
+	public static VWMLEntity cloneContextLazy(VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
 		VWMLEntity clonedEntity = null;
 		if (origEntity.getInterpreting() != null) {
-			VWMLContextsRepository.cloneLazy(clonedObjectId, origEntity.getInterpreting().getContext());
-			clonedEntity = (VWMLEntity)VWMLObjectsRepository.acquire(origEntity.deduceEntityType(),
-																	clonedObjectId,
-																	origEntity.getContext().getContext(),
+			ContextIdPair origEntityCtxPair = VWMLContextsRepository.instance().wellFormedContext(origEntity.getContext().getContext());
+			if (origEntityCtxPair == null) {
+				throw new Exception("unknown context's parts '" + origEntity.getContext().getContext() + "'; see VWML code");
+			}
+			VWMLContext ctxForClonedEntity = origEntity.getInterpreting().getContext();
+			if (origEntityCtxPair.isCloneOfOriginal()) {
+				ContextIdPair origEntityInterpCtxPair = VWMLContextsRepository.instance().wellFormedContext(origEntity.getInterpreting().getContext().getContext());
+				ctxForClonedEntity = VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(origEntityCtxPair, origEntityInterpCtxPair);
+			}
+			VWMLContextsRepository.cloneLazy(clonedObject.getId(), ctxForClonedEntity);
+			clonedEntity = (VWMLEntity)VWMLObjectsRepository.acquire(clonedObject.deduceEntityType(),
+																	clonedObject.getId(),
+																	((VWMLContext)ctxForClonedEntity.getLink().getParent()).getContext(),
 																	origEntity.getInterpretationHistorySize(),
 																	VWMLObjectsRepository.asOriginal,
 																	origEntity.getLink().getLinkOperationVisitor());
 			clonedEntity.setInterpreting(origEntity.getInterpreting());
+			VWMLLinkIncrementalIterator it = clonedObject.getLink().acquireLinkedObjectsIterator();
+			if (it != null) {
+				for(; it.isCorrect(); it.next()) {
+					clonedEntity.getLink().link(clonedObject.getLink().getConcreteLinkedEntity(it.getIt()));
+				}
+			}
+			clonedEntity.buildReadableId();
 		}
 		return clonedEntity;
 	}

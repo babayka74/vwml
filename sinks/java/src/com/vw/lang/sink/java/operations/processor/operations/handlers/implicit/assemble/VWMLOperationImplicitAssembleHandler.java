@@ -36,7 +36,7 @@ public class VWMLOperationImplicitAssembleHandler extends VWMLOperationHandler {
 																					  entities,
 																					  entities.size() - 1,
 																					  originalContext,
-																					  originalContext,
+																					  context,
 																					  context.getEntityInterpretationHistorySize(),
 																					  context.getLinkOperationVisitor(),
 																					  VWMLOperationUtils.s_addIfUnknown);

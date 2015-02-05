@@ -323,20 +323,17 @@ public class VWMLEntity extends VWMLObject {
 	
 	@Override
 	public String buildReadableId() {
-		if (getReadableId() == null) {
-			if (isTerm()) {
-				if (((VWMLTerm)this).getAssociatedEntity() != null) {
-					return ((VWMLTerm)this).getAssociatedEntity().buildReadableId();
-				}
-				else {
-					return null; // removed term
-				}
+		if (isTerm()) {
+			if (((VWMLTerm)this).getAssociatedEntity() != null) {
+				return ((VWMLTerm)this).getAssociatedEntity().buildReadableId();
 			}
 			else {
-				return (String)getId();
+				return null; // removed term
 			}
 		}
-		return getReadableId();
+		else {
+			return (String)getId();
+		}
 	}
 	
 	public VWMLContext getContext() {

@@ -58,10 +58,10 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 										  entities,
 										  entities.size() - 1,
 										  originalContext,
-										  originalContext,
+										  context,
 										  context.getEntityInterpretationHistorySize(),
 										  context.getLinkOperationVisitor(),
-										  VWMLOperationUtils.s_dontAddIfUnknown);
+										  VWMLOperationUtils.s_addIfUnknown);
 		}
 		// this entity, can be considered as phantom, since it isn't used for interpreting purposes (can't be interpreted, etc),
 		// is used for creating dynamic context only, where context is formed from terms
@@ -69,7 +69,11 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		entity.setPartOfDynamicContext(true);
 		if (entity.getContext() != null) {
 			try {
-				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(), entity.getContext());
+				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(),
+																				(VWMLContext)entity.getContext().getLink().getParent());
+				if (e == null) {
+					e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(), entity.getContext());
+				}
 				if (e != null) {
 					entity.setContext(e.getContext());
 				}

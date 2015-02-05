@@ -41,6 +41,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 					deferExecution = (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(2);
 				}
 				handleCloneOperation(interpreter,
+									 context,
 									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0),
 									 (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1),
 									 deferExecution);
@@ -52,10 +53,10 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		else
 		if (entities.size() >= 2) {
 			if (entities.size() == 3) {
-				handleCloneOperation(interpreter, entities.get(2), entities.get(1), entities.get(0));
+				handleCloneOperation(interpreter, context, entities.get(2), entities.get(1), entities.get(0));
 			}
 			else {
-				handleCloneOperation(interpreter, entities.get(1), entities.get(0), null);
+				handleCloneOperation(interpreter, context, entities.get(1), entities.get(0), null);
 			}
 		}
 		inspector.clear();
@@ -66,11 +67,12 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId(), false);
 	}
 
-	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject, VWMLEntity deferExecution) throws Exception {
+	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLContext interpreterContext, VWMLEntity origEntity, VWMLEntity clonedObject, VWMLEntity deferExecution) throws Exception {
 		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getId())) != null) {
 			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
 		}
-		VWMLEntity cloned = clone(origEntity, clonedObject);
+		origEntity = VWMLOperationUtils.lazyEntityLookup(interpreterContext, origEntity.getContext(), origEntity);
+		VWMLEntity cloned = VWMLCloneFactory.cloneContextLazy(origEntity, clonedObject);
 		if (cloned.getReadableId() == null) {
 			cloned.buildReadableId();
 		}

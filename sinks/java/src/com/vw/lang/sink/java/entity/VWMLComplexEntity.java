@@ -26,12 +26,10 @@ public class VWMLComplexEntity extends VWMLEntity {
 	
 	@Override
 	public String buildReadableId() {
-		if (getReadableId() == null) {
-			ComplexEntityNameBuilder ce = ComplexEntityNameBuilder.instance();
-			assembleReadableId(ce, this);
-			setReadableId(ce.build());
-			ce.clear();
-		}
+		ComplexEntityNameBuilder ce = ComplexEntityNameBuilder.instance();
+		assembleReadableId(ce, this);
+		setReadableId(ce.build());
+		ce.clear();
 		return getReadableId();
 	}
 

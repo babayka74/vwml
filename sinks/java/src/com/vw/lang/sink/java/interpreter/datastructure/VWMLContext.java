@@ -20,6 +20,7 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 public class VWMLContext extends VWMLObject {
 
 	private static String contexts_fake_object = "__fake_object__";
+	private static String same_context = ".";
 	
 	private String[] contextPath;
 	private String context;
@@ -91,9 +92,11 @@ public class VWMLContext extends VWMLObject {
 	 */
 	public static String getRelContextPath(String parent, String contextId) {
 		String p = parent + ".";
-		if ((contextId.intern() == VWMLContextsRepository.getDefaultContextId() || parent.intern() == VWMLContextsRepository.getDefaultContextId()) ||
-		   (contextId.equals(parent))) {
+		if ((contextId.intern() == VWMLContextsRepository.getDefaultContextId() || parent.intern() == VWMLContextsRepository.getDefaultContextId())) {
 			return null;
+		}
+		if (contextId.equals(parent)) {
+			return same_context;
 		}
 		if (contextId.startsWith(p)) {
 			return contextId.substring(p.length());
@@ -135,7 +138,11 @@ public class VWMLContext extends VWMLObject {
 	 * @return
 	 */
 	public static String constructContextNameFromParts(String contextPrefix, String contextSuffix) {
-		return contextPrefix + "." + contextSuffix;
+		String c = contextPrefix;
+		if (!contextSuffix.equals(same_context)) {
+			c = contextPrefix + "." + contextSuffix;
+		}
+		return c;
 	}
 	
 	/**

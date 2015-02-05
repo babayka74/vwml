@@ -44,7 +44,7 @@ public class VWMLOperationEqualHandler extends VWMLOperationHandler {
 			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
 																							   entities,
 																							   entities.size() - 1,
-																							   context,
+																							   context.peekContext(),
 																							   context,
 																							   context.getEntityInterpretationHistorySize(),
 																							   context.getLinkOperationVisitor(),

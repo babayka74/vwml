@@ -55,7 +55,12 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			return false;
 		}
 		if (e.isPartOfDynamicContext()) {
-			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
+			if (dynContext == null) {
+				dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
+			}
+			else {
+				dynContext = VWMLContext.constructContextNameFromParts(dynContext, e.getReadableId());
+			}
 			e.setPartOfDynamicContext(false);
 			reversedStack.remove(dynamicAddressedEntity);
 			return true;
@@ -77,7 +82,12 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 		VWMLEntity e = (VWMLEntity)obj;
 		if (e != null && e.isPartOfDynamicContext()) {
 			inspectMustReturn = true;
-			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
+			if (dynContext == null) {
+				dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
+			}
+			else {
+				dynContext = VWMLContext.constructContextNameFromParts(dynContext, e.getReadableId());
+			}
 			e.setPartOfDynamicContext(false);
 			reversedStack.remove(dynamicAddressedEntity);
 			f = true;
@@ -157,7 +167,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				}
 				collector.clear();
 			}
-			e = (VWMLEntity)VWMLObjectsRepository.findAndCreateInCaseOfCloned(cPair, dynamicAddressedEntity.buildReadableId());
+			e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, dynamicAddressedEntity);
 			if (e.getReadableId() == null && ((e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) || !e.isMarkedAsComplexEntity())) {
 				// looks like context which built during compilation time
 				e.setReadableId((String)e.getId());
