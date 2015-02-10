@@ -78,7 +78,7 @@ public class VWMLReactiveTermInterpreter extends VWMLInterpreterImpl {
 				throw new Exception("couldn't find ring group by context '" + p.getContext().getContext() + "'");
 			}
 			e.setActivated(true);
-			VWMLInterpreterImpl impl = activateSourceLifeTerm(g, this, e, null, null, false);
+			VWMLInterpreterImpl impl = activateSourceLifeTerm(g, this, e, getForcedContext(), null, false);
 			if (impl != null && getClonedFromEntity() != null) {
 				impl.setClonedFromEntity(getClonedFromEntity());
 			}

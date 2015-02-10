@@ -563,6 +563,10 @@ public class VWMLEntity extends VWMLObject {
 		return clonedFrom;
 	}
 
+	public void setClonedFrom(VWMLEntity clonedFrom) {
+		this.clonedFrom = clonedFrom;
+	}
+
 	public boolean isOriginal() {
 		return isOriginal;
 	}
@@ -615,10 +619,6 @@ public class VWMLEntity extends VWMLObject {
 		return deductEntityTypeByProto(this);
 	}
 	
-	protected void setClonedFrom(VWMLEntity clonedFrom) {
-		this.clonedFrom = clonedFrom;
-	}
-
 	protected VWMLOperations getAssociatedOperations() {
 		return associatedOperations;
 	}

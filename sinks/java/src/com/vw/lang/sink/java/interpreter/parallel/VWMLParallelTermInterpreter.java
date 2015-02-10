@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.vw.lang.beyond.java.fringe.entity.EWEntity;
 import com.vw.lang.beyond.java.fringe.entity.EWEntityBuilder;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
@@ -138,7 +139,10 @@ public class VWMLParallelTermInterpreter extends VWMLInterpreterImpl {
 			interpreter.setNormalization(false);
 			interpreter.setCloneMasterOnSLFTermActivation(this.isCloneMasterNode());
 			if (getClonedFrom() != null) {
-				interpreter.setClonedFromEntity(getClonedFrom());
+				VWMLEntity clonedFrom = getClonedFrom();
+				interpreter.setClonedFromEntity(clonedFrom);
+				VWMLContext forcedContext = VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(clonedFrom.getContext().getContext(), (String)clonedFrom.getId()));
+				interpreter.setForcedContext(forcedContext);
 				interpreter.setReleaseClonedResource(true);
 			}
 			if (isRingCopyAsSecondary() == VWMLReactiveActivity.secondaryRing) {

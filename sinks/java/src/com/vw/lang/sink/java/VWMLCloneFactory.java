@@ -67,6 +67,7 @@ public class VWMLCloneFactory {
 																	VWMLObjectsRepository.asOriginal,
 																	origEntity.getLink().getLinkOperationVisitor());
 			clonedEntity.setInterpreting(origEntity.getInterpreting());
+			clonedEntity.setClonedFrom(origEntity);
 			VWMLLinkIncrementalIterator it = clonedObject.getLink().acquireLinkedObjectsIterator();
 			if (it != null) {
 				for(; it.isCorrect(); it.next()) {

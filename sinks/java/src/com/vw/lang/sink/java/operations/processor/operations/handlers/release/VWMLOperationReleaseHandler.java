@@ -64,8 +64,11 @@ public class VWMLOperationReleaseHandler extends VWMLOperationHandler {
 				dynContext = ((VWMLContext)c.getLink().getParent()).getContext();
 			}
 			VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, entity.buildReadableId());
-			if (e != null && e == entity && e.getClonedFrom() != null) {
+			if (e != null && e.getClonedFrom() != null) {
 				VWMLContextsRepository.releaseCloned(c);
+				if (e != entity) {
+					VWMLObjectsRepository.instance().remove(e);					
+				}
 			}
 		}
 		VWMLObjectsRepository.instance().remove(entity);

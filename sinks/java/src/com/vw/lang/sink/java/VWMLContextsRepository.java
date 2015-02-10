@@ -420,7 +420,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	protected void release(VWMLContext context) {
-		//System.out.println("release context '" + context.getContext() + "'");
+		System.out.println("release context '" + context.getContext() + "'");
 		VWMLLinkIncrementalIterator it = context.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
