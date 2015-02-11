@@ -69,6 +69,19 @@ public class VWMLContext extends VWMLObject {
 	}
 	
 	/**
+	 * Builds new context by copying context's name and parsed value only
+	 * @param proto
+	 * @return
+	 */
+	public static VWMLContext lazyClone(VWMLContext proto) {
+		VWMLContext c = instance(proto.getHashId());
+		c.setContext(proto.getContext());
+		c.setContextName(proto.getContextName());
+		c.setContextPath(proto.getContextPath());
+		return c;
+	}
+	
+	/**
 	 * Returns 'true' in case if context identified by contextId is child of parent context
 	 * @param parent
 	 * @param contextId
@@ -164,7 +177,7 @@ public class VWMLContext extends VWMLObject {
 				container.clear();
 			}
 		}
-		removeAllAssociatedEntities();
+		removeAllAssociatedEntities();		
 		entitiesMarkedAsObservable = null;
 		entitiesMarkedAsRecursive = null;
 		entityDynamicProperties = null;

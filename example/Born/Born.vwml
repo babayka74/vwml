@@ -31,12 +31,17 @@ module BornSimulation {
 		P1 ias (
 			Id ias 0;
 			Life ias (
+				M ias (a b c d e);
+				MT ias (
+					((Id Id~ and $~) Ew.out~) Do
+				);
 				((I am here Id~) Ew.out~) Do
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
 				((k is (AAA Id~)->k~) Ew.out~) Do
 				((l Id~) Id~)^
 				((The l is (l Id~)~) Ew.out~) Do
+				(M~ MT~) ForEach
 				1000 Relax
 				((AAA Id~)) Release
 			);		
@@ -57,7 +62,7 @@ module BornSimulation {
 				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 5) Ident)~ Exe
+			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 
 		source lifeterm = (

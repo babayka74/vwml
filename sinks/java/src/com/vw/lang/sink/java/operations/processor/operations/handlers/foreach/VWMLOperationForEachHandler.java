@@ -57,8 +57,16 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() < s_numOfOperationArgs) {
 			throw new Exception("Operation 'ForEach' requires 2 arguments (arguments and term)");
 		}
-		VWMLEntity args = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(0);
-		VWMLEntity term = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(1);
+		VWMLEntity argsO = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(0);
+		VWMLEntity termO = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(1);
+		VWMLEntity args = VWMLOperationUtils.lazyEntityLookup(interpreter.getContext(), argsO.getContext(), argsO);
+		VWMLEntity term = VWMLOperationUtils.lazyEntityLookup(interpreter.getContext(), termO.getContext(), termO);
+		if (args == null) {
+			throw new Exception("couldn't find entity '" + argsO.getId() + "' on context '" + argsO.getContext().getContext() + "'");
+		}
+		if (term == null) {
+			throw new Exception("couldn't find entity '" + termO.getId() + "' on context '" + termO.getContext().getContext() + "'");
+		}
 		if (args.isMarkedAsComplexEntity()) {
 			VWMLLinkIncrementalIterator it = ((VWMLComplexEntity)args).getLink().acquireLinkedObjectsIterator();
 			if (it != null) {

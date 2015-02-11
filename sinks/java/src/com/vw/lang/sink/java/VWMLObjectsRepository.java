@@ -10,6 +10,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
+import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 
 
@@ -139,17 +140,28 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					throw new Exception("unknown context '" + cPair.getOrigContextId() + "'");
 				}
 				VWMLEntity origEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxOrig);
-				if (origEntity != null) {
-					// found on original - creating in effective (cloned)
-					lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
-												id,
-												ctxEffective.getContext(),
-												prototype.getInterpretationHistorySize(),
-												VWMLObjectsRepository.asOriginal,
-												prototype.getLink().getLinkOperationVisitor());
-					lookedEntity.setInterpreting(origEntity.getOriginalInterpreting());
-					lookedEntity.buildReadableId();
+				if (origEntity == null) {
+					origEntity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(id, ctxOrig);
 				}
+				// found on original - creating in effective (cloned)
+				lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
+											id,
+											ctxEffective.getContext(),
+											prototype.getInterpretationHistorySize(),
+											VWMLObjectsRepository.asOriginal,
+											prototype.getLink().getLinkOperationVisitor());
+				if (origEntity != null) {
+					lookedEntity.setInterpreting(origEntity.getOriginalInterpreting());
+					lookedEntity.setAsArgPair(origEntity.getAsArgPair());
+					lookedEntity.setSynthetic(origEntity.isSynthetic());
+					VWMLLinkIncrementalIterator it = origEntity.getLink().acquireLinkedObjectsIterator();
+					if (it != null) {
+						for(; it.isCorrect(); it.next()) {
+							lookedEntity.getLink().link(origEntity.getLink().getConcreteLinkedEntity(it.getIt()));
+						}
+					}
+				}
+				lookedEntity.buildReadableId();
 			}
 		}
 		return lookedEntity;

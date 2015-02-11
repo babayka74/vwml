@@ -157,13 +157,8 @@ public class VWMLOperationUtils {
 		if (interpreter.getMasterInterpreter() != null) {
 			interpreter = interpreter.getMasterInterpreter();
 		}
+		VWMLContext forcedContext = VWMLContext.lazyClone(activeInterpreter.getContext());// VWMLContextsRepository.instance().createContextIfNotExists(VWMLContext.constructContextNameFromParts(term.getContext().getContext(), ((contextPrefix == null) ? "contextPrefix" : onOperation)));
 		// term is interpreted by own interpreter
-		VWMLContext forcedContext = VWMLContext.instance((contextPrefix != null) ? "contextPrefix" : onOperation + term.getContext().getContext());
-		String ctxName = forcedContextName;
-		if (ctxName == null) {
-			ctxName = term.getContext().getContext();
-		}
-		forcedContext.setContext(ctxName);
 		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
 			i.setPushed(true);
