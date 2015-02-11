@@ -333,7 +333,7 @@ public class VWMLOperationUtils {
 			if (activateUnlink) {
 				newComplexEntity.getLink().unlinkFromAll();
 			}
-			newComplexEntity.setLink(null);
+			//newComplexEntity.setLink(null);
 			newComplexEntity = lookedEntity;
 			newComplexEntity.buildReadableId();
 		}

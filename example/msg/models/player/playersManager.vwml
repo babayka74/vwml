@@ -57,7 +57,7 @@ module PlayersManager {
 					((Player PId~ has reinitialized after reset) Ew.Output~) Do
 #endif                          
 #if (release)                   
-                              		(((playermanagment playeradd ok alreadyActive) (Player PId~)) Ew.OutChannel~) Do
+                              		(((playermanagment playeradd ok reset) (Player PId~)) Ew.OutChannel~) Do
 #endif
 				);
 				(State active) ias (
