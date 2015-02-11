@@ -230,9 +230,43 @@ module msg {
 			Injection ias (
 #if (unittest)
 				(pm 0 playermanagment playeradd 0 nil)
-				(pm 0 playermanagment playeradd 1 nil)
-				(pm 0 playermanagment playeradd 2 nil)
 				(manager 0 nil delay 0 (3500))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+/*				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+				(player 0 deal setintention 0 ((0 1) updateconf ((vodka 200 360000 60 3600000 150) 300)))
+
+				(player 0 deal setintention 0 ((0 1) open (160)))
+				(player 0 deal setintention 0 ((0 2) open (16000)))
+
+*/
+/*
+				(player 0 deal setintention 0 ((0 3) open (16000)))
+				(player 0 deal setintention 0 ((0 4) open (16000)))
+
+				(player 0 deal setintention 0 ((0 5) open (160)))
+				(player 0 deal setintention 0 ((0 6) open (160)))
+				(player 0 deal setintention 0 ((0 7) open (160)))
+				(player 0 deal setintention 0 ((0 8) open (160)))
+				(player 0 deal setintention 0 ((0 9) open (160)))
+				(player 0 deal setintention 0 ((0 10) open (160)))
+				(player 0 deal setintention 0 ((0 11) open (160)))
+				(player 0 deal setintention 0 ((0 12) open (160)))
+				(player 0 deal setintention 0 ((0 13) open (160)))
+				(player 0 deal setintention 0 ((0 14) open (160)))
+				(player 0 deal setintention 0 ((0 15) open (160)))
+*/
 #endif
 			);
 		);

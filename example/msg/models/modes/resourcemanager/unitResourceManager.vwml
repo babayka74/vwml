@@ -49,6 +49,7 @@ module PlayerResourceManager {
 #endif
 					);
 					(CorrectUnit true) ias (
+						(Resources.Units.Hired (Resources.Units.Hired~ (U~)) Substruct)^
 #if (release)
 						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
 #endif
@@ -73,11 +74,15 @@ module PlayerResourceManager {
 				);
 				
 				PushOutUnit ias (
-					(HiredUnitId (CommandParams~ 0) Get)^
-					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Substruct)^
+					(CorrectUnit false) ias doNothing;
+					(CorrectUnit true) ias (
+						(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Substruct)^
 #if (verbose)
-					((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
+						((Player Id~ removed unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
+					);
+					(HiredUnitId (CommandParams~ 0) Get)^
+					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
 				);
 
 				MarkUnitAsIsInAction ias (

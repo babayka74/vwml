@@ -31,29 +31,14 @@ module Quartal {
 				Update ias (
 					QConf ias nil;
 					BribeR ias nil;
-					/* check input parameter */
-					CIP ias (
-						// name
-						P ias nil;
-						// value
-						V ias nil;
-						(NotSetIt true) ias doNothing;
-						(NotSetIt false) ias (P~ V~)^;
-						(NotSetIt (V~ nil) Ident)~ Exe
-					);
-					SetV ias (	((CIP.P Type)^ (CIP.V (QConf~ 0) Get)^)
-							((CIP.P Quantum)^ (CIP.V (QConf~ 1) Get)^)
-							((CIP.P Period)^ (CIP.V (QConf~ 2) Get)^)
-							((CIP.P Quantums)^ (CIP.V (QConf~ 3) Get)^)
-							((CIP.P OpenTime)^ (CIP.V (QConf~ 4) Get)^)
-							((CIP.P DesiredOpenInfoPrice)^ (CIP.V (QConf~ 5) Get)^)
-							((CIP.P Sherif.DesiredBribe)^ (CIP.V BribeR~)^)
-					);
-					SetIt ias (
-						$~ Exe
-						CIP~ Exe
-					);
-					(SetV~ SetIt~) ForEach	
+
+					(Type (QConf~ 0) Get)^
+					(Quantum (QConf~ 1) Get)^
+                                        (Period (QConf~ 2) Get)^
+					(Quantums (QConf~ 3) Get)^
+					(OpenTime (QConf~ 4) Get)^
+					(DesiredOpenInfoPrice (QConf~ 5) Get)^
+					(Sherif.DesiredBribe BribeR~)^
 				);
 				/* resource initialization point */
 				Init ias (
