@@ -77,7 +77,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 				// sometimes we need search for entity starting from parent. Usually it happens when assemble operation
 				// adds new entity to current context (but entity is moved to another, by Born/Clone command) and 
 				// this entity is called from current context
-				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(), (VWMLContext)(entity.getContext().getLink().getParent()));
+				VWMLEntity e = VWMLOperationUtils.lazyEntityLookup(context, (VWMLContext)entity.getContext().getLink().getParent(), entity);
 				if (e != null) {
 					interpretingEntity = deduceInterpretingEntity(interpreter, e);
 				}
@@ -101,7 +101,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		if (interpretingEntity == null) {
 			interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
 			if (interpretingEntity == null) {
-				interpretingEntity = entity.getInterpreting();
+				interpretingEntity = lazyInterpeting(entity);
 			}
 		}
 		return interpretingEntity;
@@ -144,7 +144,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 				entity = entity.getResolvedInRuntime();
 			}
 		}
-		interpretingEntity = entity.getInterpreting();
+		interpretingEntity = lazyInterpeting(entity);
 		if (interpretingEntity == null) {
 			VWMLContext onContext = entity.getContext();
 			String readableId = entity.buildReadableId();
@@ -156,7 +156,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 					throw new Exception("couldn't find entity '" + fullEntityId + "'");
 				}
 			}
-			interpretingEntity = entity.getInterpreting();
+			interpretingEntity = lazyInterpeting(entity);
 			if (interpretingEntity == null) {
 				// this case is checked when entity is defined on some contexts, usually happens during static entity definition (see Maze, battleModel3A)
 				if (entity.getContext().getLink().getParent() != null) {
@@ -182,5 +182,17 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 	
 	private VWMLEntity interpretationOfArgumentPair(VWMLInterpreterImpl interpreter, VWMLEntity entity) throws Exception {
 		return VWMLOperationUtils.getRelatedEntityByArgument(interpreter, entity);
+	}
+	
+	private VWMLEntity lazyInterpeting(VWMLEntity entity) throws Exception {
+		VWMLEntity e = null;
+		e = entity.getInterpreting();
+		if (e != null) {
+			VWMLEntity le = VWMLOperationUtils.lazyEntityLookup(entity.getContext(), e.getContext(), e);
+			if (le != null) {
+				e = le;
+			}
+		}
+		return e;
 	}
 }

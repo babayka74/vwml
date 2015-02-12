@@ -23,9 +23,13 @@ module BornSimulation {
 		in ias communication.in.read;
 		inc ias services.math.inc;
 		Id ias 0;
+		W ias 8;
 
 		AAA ias (
+			(x 2) ias 9;
 			k ias 0;
+			m ias k;
+			z ias (x 2);
 		);
 
 		P1 ias (
@@ -39,6 +43,9 @@ module BornSimulation {
 				((I am here Id~) Ew.out~) Do
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
+				1025 Bp
+				((z is (AAA Id~)->z~~) Ew.out~) Do
+				((m is (AAA Id~)->m~~) Ew.out~) Do
 				((k is (AAA Id~)->k~) Ew.out~) Do
 				((l Id~) Id~)^
 				((The l is (l Id~)~) Ew.out~) Do
@@ -63,7 +70,7 @@ module BornSimulation {
 				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 2) Ident)~ Exe
+			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 
 		source lifeterm = (

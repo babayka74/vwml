@@ -154,10 +154,15 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					lookedEntity.setInterpreting(origEntity.getOriginalInterpreting());
 					lookedEntity.setAsArgPair(origEntity.getAsArgPair());
 					lookedEntity.setSynthetic(origEntity.isSynthetic());
+					VWMLEntity itEntity = origEntity;
 					VWMLLinkIncrementalIterator it = origEntity.getLink().acquireLinkedObjectsIterator();
+					if (it == null) {
+						it = prototype.getLink().acquireLinkedObjectsIterator();
+						itEntity = prototype;
+					}
 					if (it != null) {
 						for(; it.isCorrect(); it.next()) {
-							lookedEntity.getLink().link(origEntity.getLink().getConcreteLinkedEntity(it.getIt()));
+							lookedEntity.getLink().link(itEntity.getLink().getConcreteLinkedEntity(it.getIt()));
 						}
 					}
 				}
