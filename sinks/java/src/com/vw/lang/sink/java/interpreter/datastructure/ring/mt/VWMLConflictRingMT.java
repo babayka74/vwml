@@ -197,32 +197,29 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		
 		@Override
 		public void handle(VWMLConflictRing ring) throws Exception {
-			synchronized(ring) {
-				try {
-					VWMLConflictRingMT mtRing = (VWMLConflictRingMT)ring;
-					// do not block node in case if at least one gate is in ready state
-					if (!mtRing.isBlockingAllowedByGates() || mtRing.doesRingHaveNonProcessedInternalMessages()) {
-						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' has at least one active gate; reject blocking request");
-						return;
+			VWMLConflictRingMT mtRing = (VWMLConflictRingMT)ring;
+			// do not block node in case if at least one gate is in ready state
+			if (!mtRing.isBlockingAllowedByGates() || mtRing.doesRingHaveNonProcessedInternalMessages()) {
+				System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' has at least one active gate; reject blocking request");
+				return;
+			}
+			if (mtRing.isActuallyBlocked()) {
+				// case when node is added during ring's expansion
+				if (mtRing.getInstantNumberOfBlockedNodes() >= mtRing.calculateNumberOfNodes()) {
+					System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
+					synchronized(ring) {
+						ring.wait();
 					}
-					if (mtRing.isActuallyBlocked()) {
-						// case when node is added during ring's expansion
-						if (mtRing.getInstantNumberOfBlockedNodes() >= mtRing.calculateNumberOfNodes()) {
-							System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
-							ring.wait();
-						}
-						else {
-							System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
-							if (mtRing.getBlockingGate() != null) {
-								mtRing.getBlockingGate().unblockActivity();
-							}
-						}
-					}
-					else {
-						System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
-					}
-				} catch (InterruptedException e) {
 				}
+				else {
+					System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
+					if (mtRing.getBlockingGate() != null) {
+						mtRing.getBlockingGate().unblockActivity();
+					}
+				}
+			}
+			else {
+				System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
 			}
 		}
 	}
