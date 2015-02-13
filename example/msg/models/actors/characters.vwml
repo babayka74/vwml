@@ -10,6 +10,12 @@ module Characters {
 				Type ias attacker;
 				/* kind of unit */
 				Kind ias skeleton;
+				/* unit's class (0, 1, 2 ... N) */
+				Class ias 0;
+				/* initial cost */
+				Cost ias 0;
+				/* contain  */
+				Contain ias 0;
 				/* unit's id */
 				Id ias nil;
 				/* creational id (set by unit's creator) */
@@ -37,6 +43,9 @@ module Characters {
 					(MarkedAsKilled false)^
 					(BattleFieldId nil)^
 					(InAction false)^
+					(Cost 0)^
+					(Contain 0)^
+					(Class 0)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
 				StopActivity ias (

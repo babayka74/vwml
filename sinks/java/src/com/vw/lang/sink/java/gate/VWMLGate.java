@@ -61,7 +61,7 @@ public class VWMLGate {
 		this.dockingTerm = dockingTerm;
 	}
 
-	public synchronized void blockActivity(VWMLInterpreterImpl blockedInterpreter) {
+	public void blockActivity(VWMLInterpreterImpl blockedInterpreter) {
 		if (isBlockedMode() && this.blockedInterpreter == null) {
 			setBlockedInterpreter(blockedInterpreter);
 			try {
@@ -73,7 +73,7 @@ public class VWMLGate {
 	}
 
 	// this method can be called from varios timer's callbacks, in particular from observer
-	public synchronized void unblockActivity() {
+	public void unblockActivity() {
 		if (isBlockedMode() && blockedInterpreter != null) {
 			resetBlockedInterpreter();
 			try {
