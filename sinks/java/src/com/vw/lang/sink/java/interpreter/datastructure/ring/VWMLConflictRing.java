@@ -13,6 +13,7 @@ import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
@@ -164,6 +165,7 @@ public class VWMLConflictRing {
 	private Long uniqId;
 	private int currentGroupIndex = 0;
 	private int artificialId = 0;
+	private int instantNodes = 0;
 	private boolean initialyEmptyRing = false;
 	private boolean master = false;
 	private boolean stopped = false;
@@ -202,6 +204,53 @@ public class VWMLConflictRing {
 	 */
 	public static void register(String conflict, String[] linkedConflicts) {
 		VWMLConflictRing.instance().link(conflict, linkedConflicts);
+	}
+	
+	/**
+	 * Puts node on wait state
+	 * @param node
+	 */
+	public static void sleepNode(VWMLConflictRingNode node) {
+		if (node != null && node.peekInterpreter() != null) {
+			if (node.peekInterpreter().getObserver() != null) {
+				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
+				node.getExecutionGroup().getRing().incrementNumOfBlockedNodes();
+				System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' goes to sleep");
+			}
+		}
+	}
+
+	/**
+	 * Wakeups node which previously was put to sleep by sleepNode
+	 * @param node
+	 */
+	public static void wakeupNode(VWMLConflictRingNode node) {
+		if (isNodeInSleepMode(node)) {
+			if (node.peekInterpreter().getObserver() != null) {
+				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
+				node.getExecutionGroup().getRing().decrementNumOfBlockedNodes();
+				System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' waken");
+			}
+		}
+	}
+	
+	/**
+	 * Returns 'true' in case if node is in sleep mode (set by sleepNode)
+	 * @param node
+	 * @return
+	 */
+	public static boolean isNodeInSleepMode(VWMLConflictRingNode node) {
+		boolean inSleep = false;
+		if (node != null && node.peekInterpreter() != null) {
+			if (node.peekInterpreter().getObserver() != null) {
+				VWMLConflictRingNodeAutomataInputs ii = node.peekInterpreter().getObserver().getConflictOperationalState(VWMLInterpreterObserver.getWaitContext());
+				if (ii == VWMLConflictRingNodeAutomataInputs.IN_W) {
+					System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' is in sleep mode");
+					inSleep = true;
+				}
+			}
+		}
+		return inSleep;
 	}
 	
 	/**
@@ -361,20 +410,44 @@ public class VWMLConflictRing {
 	 * For MT strategy only
 	 * Increments number of blocked nodes (called when gate blocks node - waits for data)
 	 */
-	public void incrementNumOfBlockedNodes(VWMLGate gate) throws Exception  {
+	public void incrementNumOfBlockedNodes() {
 	}
 
 	/**
 	 * For MT strategy only
 	 * Decrements number of blocked nodes (called when gate blocks node - waits for data)
 	 */
-	public void decrementNumOfBlockedNodes() throws Exception  {
+	public void decrementNumOfBlockedNodes() {
+	}
+
+	/**
+	 * Increments number of nodes operated by ring
+	 */
+	public void incrementInstantNumberOfNodes() {
+		instantNodes++;
+	}
+
+	/**
+	 * Decrements number of nodes operated by ring
+	 */
+	public void decrementInstantNumberOfNodes() {
+		if (instantNodes > 0) {
+			instantNodes--;
+		}
+	}
+
+	/**
+	 * Returns number of operational nodes
+	 * @return
+	 */
+	public int calculateNumberOfNodes() {
+		return instantNodes;
 	}
 	
 	/**
 	 * Blocks ring's thread (actual for MT strategy only)
 	 */
-	public boolean blockRing(VWMLGate gate) throws Exception  {
+	public boolean askToBlockRing() throws Exception  {
 		return false;
 	}
 
@@ -383,18 +456,6 @@ public class VWMLConflictRing {
 	 */
 	public boolean unblockRing() throws Exception  {
 		return false;
-	}
-	
-	/**
-	 * Returns number of operational nodes
-	 * @return
-	 */
-	public int calculateNumberOfNodes() {
-		int nodes = 0;
-		for(VWMLConflictRingExecutionGroup g : groupsConflictRing) {
-			nodes += g.nodes();
-		}
-		return nodes;
 	}
 	
 	/**

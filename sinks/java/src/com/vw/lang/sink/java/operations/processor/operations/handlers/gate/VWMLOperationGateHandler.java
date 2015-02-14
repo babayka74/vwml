@@ -122,7 +122,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 				b = gate.getRing().isGateOpened(ringDestTerm);
 			}
 			if (!b && gate.isBlockedMode()) {
-				gate.blockActivity(interpreter);
+				gate.blockActivity();
 			}
 //			System.out.println("ringDestTerm '" + ringDestTerm.getId() + "' b '" + b + "'");
 			result = (b) ? 	(VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_trueEntityId, VWMLContextsRepository.instance().getDefaultContext()) : 
@@ -130,13 +130,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		}
 		else
 		if (mode.getId().equals(modeRegister)) {
-			VWMLConflictRing ring = null;
-			if (interpreter.getRtNode() == null) {
-				ring = VWMLResourceHostManagerFactory.hostManagerInstance().findRingByExecutingTerm(ringDestTerm);
-			}
-			else {
-				ring = interpreter.getRtNode().getExecutionGroup().getRing();
-			}
+			VWMLConflictRing ring = interpreter.getRtNode().getExecutionGroup().getRing();
 			boolean blocked = false;
 			if (transportedEntity != null && transportedEntity.getId().equals(VWMLGate.s_blockedMode)) {
 				blocked = true;
@@ -144,19 +138,13 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			if (ring == null) {
 				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
 			}
-			VWMLGate gate = new VWMLGate(ring, (String)(ringDestTerm.getId()), blocked, handlerDestTerm);
+			VWMLGate gate = new VWMLGate(ring, interpreter.getRtNode(), (String)(ringDestTerm.getId()), blocked, handlerDestTerm);
 			ring.associateGate(gate);
 			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), gate);
 		}
 		else
 		if (mode.getId().equals(modeUnregister)) {
-			VWMLConflictRing ring = null;
-			if (interpreter.getRtNode() == null) {
-				ring = VWMLResourceHostManagerFactory.hostManagerInstance().findRingByExecutingTerm(ringDestTerm);
-			}
-			else {
-				ring = interpreter.getRtNode().getExecutionGroup().getRing();
-			}
+			VWMLConflictRing ring = interpreter.getRtNode().getExecutionGroup().getRing();
 			VWMLGate gate = unblockGate(ringDestTerm);
 			ring.unAssociateGate(gate);
 			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().unregisterGate((String)ringDestTerm.getId());

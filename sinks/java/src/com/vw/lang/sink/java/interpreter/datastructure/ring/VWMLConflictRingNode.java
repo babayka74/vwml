@@ -391,7 +391,13 @@ public class VWMLConflictRingNode extends VWMLObject {
 			}
 		}
 		if (operationalNode != null) {
-			input = i.getObserver().getConflictOperationalState((String)operationalNode.getId());
+			if (!i.getObserver().isInStateWait()) {
+				input = i.getObserver().getConflictOperationalState((String)operationalNode.getId());
+			}
+			else {
+				//System.out.println("wait on node for context '" + i.getContext().getContext() + "'");
+				input = VWMLConflictRingNodeAutomataInputs.IN_W;
+			}
 			state = VWMLConflictRingNodeAutomataStates.STATE_PAS;
 			if (operationalNode.getSigma() == 0 || operationalNode.isLooped(i.getRtNode())) {
 				state = VWMLConflictRingNodeAutomataStates.STATE_ACT;

@@ -107,7 +107,12 @@ module msg {
 						(NoAutoCommand true) ias (() Ew.InChannelBlockInput~) Do;
 						(NoAutoCommand (AutoCommands.Injection~ ()) Ident)~ Exe
 					);
-					(WaitForCommand false) ias (Manager Tx Cmd~) Gate;
+					(WaitForCommand false) ias (
+#if (verbose)
+						((The command Cmd~ passed to Manager) Ew.Output~) Do
+#endif
+						(Manager Tx Cmd~) Gate
+					);
 					/* waiting for command, in non-blocking manner */ 
 					(Cmd (() Ew.InChannel~) Do)^
 					(WaitForCommand (Cmd~ nil) Ident)~ Exe

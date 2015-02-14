@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
 /**
@@ -47,7 +48,7 @@ public class VWMLConflictRingNodeMT extends VWMLConflictRingNode {
 		if (nodesForDeferredUnlock.size() != 0) {
 			incSigma(); // deferred sigma; waken node will decrease sigma
 			for(VWMLConflictRingNode n : nodesForDeferredUnlock) {
-				VWMLConflictRingMT.wakeupNode(n);
+				VWMLConflictRing.wakeupNode(n);
 				System.out.println("Awoke from model node '" + this.getId() + "(" + this.getSigma() + ")'; rt node '" + n.getId() + "'");
 			}
 			nodesForDeferredUnlock.clear();

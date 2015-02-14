@@ -47,7 +47,6 @@ public abstract class VWMLInterpreterTimerCallback {
 	public void defCallback(VWMLInterpreterTimer timer, VWMLEntity completitionTerm, boolean delayExecution) {
 		VWMLInterpreterConfiguration.RESOURCE_STRATEGY st = VWMLResourceHostManagerFactory.getResourceStrategy();
 		VWMLInterpreterImpl interpreter = (VWMLInterpreterImpl)timer.getUserData();
-		unblockActivity(interpreter);
 		if (completitionTerm != null) {
 			if (!delayExecution && st == VWMLInterpreterConfiguration.RESOURCE_STRATEGY.ST) {
 				try {
@@ -67,6 +66,7 @@ public abstract class VWMLInterpreterTimerCallback {
 				}
 			}
 		}
+		unblockActivity(interpreter);
 	}
 	
 	private VWMLInterpreterInterruptTimerDeferredTask prepareTask(VWMLInterpreterImpl interpreter, VWMLEntity completitionTerm, String name) {

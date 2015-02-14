@@ -7,14 +7,12 @@ import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.sink.java.VWMLFringesRepository;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLStack;
-import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.operations.VWMLOperation;
 import com.vw.lang.sink.java.operations.processor.VWMLOperationHandler;
@@ -90,15 +88,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 			IVWMLGate fringeGate = VWMLFringesRepository.getGateByFringeName(VWMLFringesRepository.getTimerManagerFringeName());
 			VWMLOperationRelaxTimerCallback callback = new VWMLOperationRelaxTimerCallback(runOnRegularCompletition, runOnTerminatedCompletition);
 			callback.setRing(interpreter.getRtNode().getExecutionGroup().getRing());
-			if (interpreter.getObserver() != null) {
-				interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
-				if (gateEntity != null) {
-					VWMLGate gate = VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().getGate((String)gateEntity.getId());
-					if (gate != null && gate.isBlockedMode()) {
-						gate.blockActivity(interpreter);
-					}
-				}
-			}
+			VWMLConflictRing.sleepNode(interpreter.getRtNode());
 			if (interpreter.getTimerManager() != null) {
 				EWEntity e = fringeGate.invokeEW(IVWMLGate.builtInTimeCommandId, null);
 				interpreter.getTimerManager().addTimer(e.getId(), delay, Long.valueOf((String)e.getId()), interpreter, callback);

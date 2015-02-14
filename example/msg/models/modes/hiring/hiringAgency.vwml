@@ -155,6 +155,9 @@ module HiringAgency {
 					(RequestsInProgress (RequestsInProgress~ (RqId~)) Substruct)^
 					(CharacterIdInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
 					(CharacterProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+#if (business)
+					(CostInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+#endif
 					// creating unit (aka found)
 					(UnitId (CharacterIdInfo~ 1) Get)^
 #if (verbose)
@@ -164,6 +167,9 @@ module HiringAgency {
 					((Characters)->(Unit UnitId~)->PlayerId Owner~)^
 					((Characters)->(Unit UnitId~)->Id UnitId~)^
 					((Characters)->(Unit UnitId~)->CId RqId~)^
+#if (business)
+					((Characters)->(Unit UnitId~)->Cost CostInfo~)^
+#endif
 					// concrete mechanism of properties setting
 					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
 					((Characters)->(Unit UnitId~)) Activate
@@ -201,8 +207,11 @@ module HiringAgency {
 								((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
 #endif
 #if (release)
-								(CharacterIdInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
-								(GetKindOfUnit.UnitProps (Request~ CmdFormat.RqCharacterInfoIndex~) Get)^
+								// fetching original request from deal's response
+								(OrigRq (Request~ 1) Get)^
+								// ... fetching evrything what we need
+								(CharacterIdInfo ((OrigRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+								(GetKindOfUnit.UnitProps (OrigRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 								GetKindOfUnit~ Exe
                                                                 (UnitId (CharacterIdInfo~ 1) Get)^
 								(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
