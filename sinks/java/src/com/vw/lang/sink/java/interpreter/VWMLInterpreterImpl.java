@@ -54,7 +54,7 @@ public abstract class VWMLInterpreterImpl extends VWMLObject {
 	// operating processor
 	private VWMLOperationProcessor processor = VWMLOperationProcessor.instance();
 	// observer
-	private VWMLInterpreterObserver observer = new VWMLInterpreterObserver();
+	private VWMLInterpreterObserver observer = new VWMLInterpreterObserver(this);
 	// reactive timer manager
 	private VWMLInterpreterTimerManager timerManager = VWMLInterpreterTimerManager.instance();
 	// interpreting entity (or component in terms of ForEach operation) of synthetic entity

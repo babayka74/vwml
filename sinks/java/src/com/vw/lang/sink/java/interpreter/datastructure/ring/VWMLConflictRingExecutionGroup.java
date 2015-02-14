@@ -96,12 +96,14 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		group.add(n);
 		activeNodes = group.size();
 		lookup.add((String)n.getId());
+		ring.incrementInstantNumberOfNodes();
 	}
 	
 	public void remove(VWMLConflictRingNode n) {
 		group.remove(n);
 		activeNodes = group.size();
 		lookup.remove((String)n.getId());
+		ring.decrementInstantNumberOfNodes();
 	}
 	
 	public boolean belong(String id) {
@@ -307,9 +309,6 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 				if (implicitMaster == null && n.isMarkAsCandidatOnClone()) {
 					implicitMaster = n;
 				}
-				if (ring != null) {
-					ring.resetBlockingGatesTrigger();
-				}
 			}
 			rIndex++;
 			rIndex = rIndex % group.size();
@@ -350,5 +349,6 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 		group.remove(index);
 		activeNodes = group.size();
 		lookup.remove((String)n.getId());
+		ring.decrementInstantNumberOfNodes();
 	}
 }

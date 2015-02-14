@@ -2,6 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.recall;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerCallback;
@@ -22,8 +23,13 @@ public class VWMLOperationRecallTimerCallback extends VWMLInterpreterTimerCallba
 
 	@Override
 	public void unblockActivity(VWMLInterpreterImpl interpreter) {
-		if (interpreter.getObserver().getBlockedByGate() != null) {
-			interpreter.getObserver().getBlockedByGate().unblockActivity();
+		if (interpreter.getRtNode() != null) {
+			try {
+				VWMLConflictRing.wakeupNode(interpreter.getRtNode());
+				interpreter.getRtNode().getExecutionGroup().getRing().unblockRing();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -1,8 +1,8 @@
 package com.vw.lang.sink.java.gate;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 
 /**
  * Live entity's gate
@@ -14,19 +14,20 @@ public class VWMLGate {
 	private String registrationKey;
 	// blocked mode
 	private boolean blockedMode;
-	private VWMLInterpreterImpl blockedInterpreter;
+	private VWMLConflictRingNode node;
 	// gates starts interpretation process of dockingTerm in case if 'Ready' operation returns 'false'
 	// usually dockingTerm is interpreted as 'fringe' operation
 	private VWMLEntity dockingTerm;
 	
 	public static final String s_blockedMode = "blocked";	
 	
-	public VWMLGate(VWMLConflictRing ring, String registrationKey, boolean blockedMode, VWMLEntity dockingTerm) {
+	public VWMLGate(VWMLConflictRing ring, VWMLConflictRingNode node, String registrationKey, boolean blockedMode, VWMLEntity dockingTerm) {
 		super();
 		this.ring = ring;
 		this.registrationKey = registrationKey;
 		this.blockedMode = blockedMode;
 		this.dockingTerm = dockingTerm;
+		this.node = node;
 	}
 
 	public VWMLConflictRing getRing() {
@@ -61,38 +62,16 @@ public class VWMLGate {
 		this.dockingTerm = dockingTerm;
 	}
 
-	public void blockActivity(VWMLInterpreterImpl blockedInterpreter) {
-		if (isBlockedMode() && this.blockedInterpreter == null) {
-			setBlockedInterpreter(blockedInterpreter);
-			try {
-				ring.incrementNumOfBlockedNodes(this);
-			} catch (Exception e) {
-				// nothing todo
-			}
+	public void blockActivity() {
+		if (isBlockedMode()) {
+			VWMLConflictRing.sleepNode(node);
 		}
 	}
 
 	// this method can be called from varios timer's callbacks, in particular from observer
 	public void unblockActivity() {
-		if (isBlockedMode() && blockedInterpreter != null) {
-			resetBlockedInterpreter();
-			try {
-				ring.decrementNumOfBlockedNodes();
-			} catch (Exception e) {
-				// nothing todo
-			}
+		if (isBlockedMode()) {
+			VWMLConflictRing.wakeupNode(node);
 		}
-	}
-
-	public void resetBlockedInterpreter() {
-		if (blockedInterpreter != null) {
-			blockedInterpreter.getObserver().setBlockedByGate(null);
-			blockedInterpreter = null;
-		}
-	}
-	
-	protected void setBlockedInterpreter(VWMLInterpreterImpl blockedInterpreter) {
-		this.blockedInterpreter = blockedInterpreter;
-		blockedInterpreter.getObserver().setBlockedByGate(this);
 	}
 }

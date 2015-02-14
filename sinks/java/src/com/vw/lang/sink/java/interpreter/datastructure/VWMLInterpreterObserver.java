@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.vw.lang.sink.java.gate.VWMLGate;
+import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 
 /**
@@ -54,26 +55,44 @@ public class VWMLInterpreterObserver {
 	// interpreter is in active state, so no operation OPCONFLICTSITUATIONSTART or OPCONFLICTSITUATIONEND is executed
 	private Map<String, VWMLInterpreterObserverData> observed = new HashMap<String, VWMLInterpreterObserverData>();
 	private VWMLGate blockedByGate = null;
+	private VWMLInterpreterImpl interpreter = null;
 	private String activeConflictContext = null;
 	
+	public VWMLInterpreterObserver(VWMLInterpreterImpl interpreter) {
+		this.interpreter = interpreter;
+	}
+	
+	public VWMLInterpreterImpl getInterpreter() {
+		return interpreter;
+	}
+
 	public static String getWaitContext() {
 		return s_waitContext;
 	}
 	
+	public boolean isInStateWait() {
+		if (observed.get(getWaitContext()) != null) {
+			return true;
+		}
+		return false;
+	}
+	
 	public VWMLConflictRingNodeAutomataInputs getConflictOperationalState(String context) {
-		VWMLConflictRingNodeAutomataInputs input = null;	
+		VWMLConflictRingNodeAutomataInputs input = VWMLConflictRingNodeAutomataInputs.IN_N;	
 		if (observed.get(getWaitContext()) != null) {
 			return VWMLConflictRingNodeAutomataInputs.IN_W;
 		}
 		VWMLInterpreterObserverData data = observed.get(context);
-		if (data == null) {
+		if (data == null && !context.equals(getWaitContext())) {
 			data = new VWMLInterpreterObserverData();
 			input = VWMLConflictRingNodeAutomataInputs.IN_N;
 			data.setAutomataInputs(input);
 			observed.put(context, data);
 		}
 		else {
-			input = data.getAutomataInputs();
+			if (data != null) {
+				input = data.getAutomataInputs();
+			}
 		}
 		return input;
 	}
@@ -96,7 +115,7 @@ public class VWMLInterpreterObserver {
 		if (conflictOperationalState == null) {
 			if (useRefCounter) {
 				VWMLInterpreterObserverData data = observed.get(context);
-				if (data.decRefCounter() == 0) {
+				if (data != null && data.decRefCounter() == 0) {
 					observed.remove(context);
 				}
 			}

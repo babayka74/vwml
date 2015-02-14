@@ -10,11 +10,9 @@ import com.vw.lang.sink.java.gate.VWMLGate;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
-import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNodeAutomataInputs;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.recall.VWMLOperationRecallTimerCallback;
@@ -197,30 +195,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		
 		@Override
 		public void handle(VWMLConflictRing ring) throws Exception {
-			VWMLConflictRingMT mtRing = (VWMLConflictRingMT)ring;
-			// do not block node in case if at least one gate is in ready state
-			if (!mtRing.isBlockingAllowedByGates() || mtRing.doesRingHaveNonProcessedInternalMessages()) {
-				System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' has at least one active gate; reject blocking request");
-				return;
-			}
-			if (mtRing.isActuallyBlocked()) {
-				// case when node is added during ring's expansion
-				if (mtRing.getInstantNumberOfBlockedNodes() >= mtRing.calculateNumberOfNodes()) {
-					System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' blocked");
-					synchronized(ring) {
-						ring.wait();
-					}
-				}
-				else {
-					System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
-					if (mtRing.getBlockingGate() != null) {
-						mtRing.getBlockingGate().unblockActivity();
-					}
-				}
-			}
-			else {
-				System.out.println("Ring '" + ring + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
-			}
+			((VWMLConflictRingMT)ring).blockRing();
 		}
 	}
 	
@@ -269,33 +244,6 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	private ConcurrentHashMap<String, VWMLGate> gates = new ConcurrentHashMap<String, VWMLGate>();
 	private AtomicInteger blockedNodes = new AtomicInteger(0);
 	private AtomicBoolean actuallyBlocked = new AtomicBoolean(false);
-	private VWMLGate blockedByGate = null;
-	
-	/**
-	 * Puts node on wait state
-	 * @param node
-	 */
-	public static void sleepNode(VWMLConflictRingNode node) {
-		if (node != null && node.peekInterpreter() != null) {
-			if (node.peekInterpreter().getObserver() != null) {
-				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
-				System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' goes to sleep");
-			}
-		}
-	}
-
-	/**
-	 * Wakeups node which previously was put to sleep by sleepNode
-	 * @param node
-	 */
-	public static void wakeupNode(VWMLConflictRingNode node) {
-		if (node != null && node.peekInterpreter() != null) {
-			if (node.peekInterpreter().getObserver() != null) {
-				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
-				System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' waken");
-			}
-		}
-	}
 	
 	@Override
 	public boolean isStopped() {
@@ -318,67 +266,91 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		return n;
 	}
 	
 	/**
 	 * Increments number of blocked nodes (called when gate blocks node - waits for data)
 	 */
-	public void incrementNumOfBlockedNodes(VWMLGate gate) throws Exception {
+	public void incrementNumOfBlockedNodes() {
 		if (blockedNodes.get() >= calculateNumberOfNodes()) {
 			return;
 		}
 		blockedNodes.incrementAndGet();
-//		System.out.println("Inc b nodes '" + blockedNodes.get() + "'; nodes '" + calculateNumberOfNodes() + "'");
+		System.out.println("Inc b nodes '" + blockedNodes.get() + "'; nodes '" + calculateNumberOfNodes() + "'");
 		if (blockedNodes.intValue() == calculateNumberOfNodes()) {
-			blockRing(gate);
+			try {
+				askToBlockRing();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	/**
 	 * Decrements number of blocked nodes (called when gate blocks node - waits for data)
 	 */
-	public void decrementNumOfBlockedNodes() throws Exception {
+	public void decrementNumOfBlockedNodes() {
 		if (blockedNodes.intValue() > 0) {
 			blockedNodes.decrementAndGet();
-//			System.out.println("Dec b nodes '" + blockedNodes.get() + "'; nodes '" + calculateNumberOfNodes() + "'");
+			System.out.println("Dec b nodes '" + blockedNodes.get() + "'; nodes '" + calculateNumberOfNodes() + "'");
 			if (blockedNodes.intValue() < calculateNumberOfNodes()) {
-				unblockRing();
+				try {
+					unblockRing();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
 	
 	/**
-	 * Blocks ring's thread (actual for MT strategy only)
+	 * Blocks ring's activity if allowed
 	 */
-	public boolean blockRing(VWMLGate gate) throws Exception {
-		VWMLInterpreterConfiguration.RESOURCE_STRATEGY st = VWMLResourceHostManagerFactory.getResourceStrategy();
-		if (st == VWMLInterpreterConfiguration.RESOURCE_STRATEGY.ST && getRingInitialInterpreter().getTimerManager().timers() != 0) {
-			System.out.println("The ring '" + this + "' can't be blocked due to active timers");
+	public boolean blockRing() throws Exception {
+		boolean blocked = false;
+		// do not block node in case if at least one gate is in ready state
+		if (!isBlockingAllowedByGates() || doesRingHaveNonProcessedInternalMessages()) {
+			System.out.println("Ring '" + this + "'; thread '" + Thread.currentThread().getId() + "' has at least one active gate; reject blocking request");
+			setActuallyBlocked(false);
+			return blocked;
 		}
-		else {
-			if (blockedByGate == null) {
-				blockedByGate = gate;
-				setActuallyBlocked(true);
-				postEvent(new VWMLRingBlockEvent());
+		if (isActuallyBlocked()) {
+			// case when node is added during ring's expansion
+			if (getInstantNumberOfBlockedNodes() >= calculateNumberOfNodes()) {
+				System.out.println("Ring '" + this + "'; thread '" + Thread.currentThread().getId() + "' blocked");
+				synchronized(this) {
+					wait();
+					// post result
+					blocked = true;
+				}
+			}
+			else {
+				System.out.println("Ring '" + this + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
+				setActuallyBlocked(false);
 			}
 		}
-		return true;
+		else {
+			System.out.println("Ring '" + this + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
+		}
+		return blocked;
 	}
-
+	
 	/**
 	 * Unblocks ring's thread (actual for MT strategy only)
 	 */
 	public boolean unblockRing() throws Exception {
-		if (blockedByGate != null) {
+		boolean unblocked = false;
+		if (isActuallyBlocked()) {
 			setActuallyBlocked(false);
 			synchronized(this) {
 				this.notifyAll();
 			}
-			blockedByGate = null;
 			System.out.println("Ring '" + this + "' unblocked");
+			unblocked = true;
 		}
-		return true;
+		return unblocked;
 	}
 	
 	/**
@@ -428,38 +400,18 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 	
 	/**
-	 * Resets gates. Blocked interpreter which is used as trigger is set to 'null', allowing to reschedule gate
-	 */
-	@Override
-	public void resetBlockingGatesTrigger() {
-		// forces ring's gates to be rescheduled
-		blockedNodes.set(0);
-		for(VWMLGate gate : gates.values()) {
-			gate.resetBlockedInterpreter();
-		}
-	}
-	
-	/**
 	 * Returns number of operational nodes
 	 * @return
 	 */
 	@Override
 	public int calculateNumberOfNodes() {
 		int nodes = 0;
-		synchronized(VWMLConflictRingMT.class) {
+		synchronized(this) {
 			nodes = super.calculateNumberOfNodes();
 		}
 		return nodes;
 	}
 
-	
-	/**
-	 * Returns ring's blocking gate, if exists
-	 * @return
-	 */
-	public VWMLGate getBlockingGate() {
-		return blockedByGate;
-	}
 	
 	/**
 	 * Returns instant number of ring's blocked nodes
@@ -526,6 +478,21 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		}
 		return opened;
 	}
+
+	/**
+	 * Posts request to blocks ring's thread (actual for MT strategy only)
+	 */
+	public boolean askToBlockRing() throws Exception {
+		VWMLInterpreterConfiguration.RESOURCE_STRATEGY st = VWMLResourceHostManagerFactory.getResourceStrategy();
+		if (st == VWMLInterpreterConfiguration.RESOURCE_STRATEGY.ST && getRingInitialInterpreter().getTimerManager().timers() != 0) {
+			System.out.println("The ring '" + this + "' can't be blocked due to active timers");
+		}
+		else {
+			setActuallyBlocked(true);
+			postEvent(new VWMLRingBlockEvent());
+		}
+		return true;
+	}
 	
 	/**
 	 * Activates gate on given ring; the gate is used in order to pass data between rings
@@ -544,13 +511,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			toGate(event);
 		}
 		if (gate != null) {
-			if (blockedByGate != null && gate != blockedByGate) {
-				resetBlockingGatesTrigger();
-				unblockRing();
-			}
-			else {
-				gate.unblockActivity();
-			}
+			gate.unblockActivity();
 		}
 		else {
 			throw new Exception("Couldn't find gate by term '" + ringDestTerm.getId() + "'");
@@ -608,9 +569,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		event.setRtNode(interpreter.getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
 		postEvent(event);
-		if (blockedByGate != null) {
-			blockedByGate.unblockActivity();
-		}
+		unblockRing();
 	}
 
 	/**
@@ -623,9 +582,6 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		event.setRtNode(task.getActiveInterpreter().getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
 		postEvent(event);
-		if (blockedByGate != null) {
-			blockedByGate.unblockActivity();
-		}
 	}
 
 	/**
@@ -638,9 +594,6 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		event.setRtNode(task.getActiveInterpreter().getRtNode());
 		event.setRing(event.getRtNode().getExecutionGroup().getRing());
 		postEvent(event);
-		if (blockedByGate != null) {
-			blockedByGate.unblockActivity();
-		}
 	}
 	
 	/**
@@ -680,11 +633,9 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	}
 	
 	protected VWMLRingEvent sendEvent(VWMLRingEvent event) throws Exception {
-		if (blockedByGate != null) {
-			blockedByGate.unblockActivity();
-		}
 		//System.out.println("Sent event '" + event + "' to '" + this + "'; thread '" + Thread.currentThread().getId() + "'");
 		eventQueue.offer(event);
+		unblockRing();
 		waitForResult(event);
 		return event;
 	}

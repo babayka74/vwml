@@ -2,7 +2,7 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.relax;
 
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
-import com.vw.lang.sink.java.interpreter.datastructure.VWMLInterpreterObserver;
+import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterInterruptTimerDeferredTask;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimer;
 import com.vw.lang.sink.java.interpreter.datastructure.timer.VWMLInterpreterTimerCallback;
@@ -39,12 +39,7 @@ public class VWMLOperationRelaxTimerCallback extends VWMLInterpreterTimerCallbac
 	
 	@Override
 	public void unblockActivity(VWMLInterpreterImpl interpreter) {
-		if (interpreter != null) {
-			interpreter.getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
-		}
-		if (interpreter.getObserver().getBlockedByGate() != null) {
-			interpreter.getObserver().getBlockedByGate().unblockActivity();
-		}
+		VWMLConflictRing.wakeupNode(interpreter.getRtNode());
 	}
 	
 	@Override

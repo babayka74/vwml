@@ -236,7 +236,7 @@ public class VWMLConflictRingMTArbiter {
 	 */
 	public void sleepOppositeRTNodeStrategy(VWMLConflictRingNode modelNode, VWMLConflictRingNode rtNode) throws Exception {
 		// conflict node to sleep
-		VWMLConflictRingMT.sleepNode(rtNode);
+		VWMLConflictRing.sleepNode(rtNode);
 		// conflict node will be waken up after n is waken
 		System.out.println("Deferred wakeup for model node '" + modelNode.getId() + "(" + modelNode.getSigma() + ")'; rt node '" + rtNode.getId() + "'");
 		modelNode.addDeferredWakeupOnUnlock(rtNode);
