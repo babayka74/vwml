@@ -3,19 +3,21 @@ module Characters {
 		Characters ias (
 			/* general game unit */
 			Unit ias (
-				Properties ias (kind type attack defence);
+				Properties ias (kind type attack defence contain clazz);
 				/* available unit's types  */
 				Types ias (attacker defender);
 				/* default type is attacker */
 				Type ias attacker;
 				/* kind of unit */
 				Kind ias skeleton;
+#if (business)
 				/* unit's class (0, 1, 2 ... N) */
 				Class ias 0;
 				/* initial cost */
 				Cost ias 0;
-				/* contain  */
+				/* contain (<resource> <quantum> <period>)  */
 				Contain ias 0;
+#endif
 				/* unit's id */
 				Id ias nil;
 				/* creational id (set by unit's creator) */
@@ -117,6 +119,16 @@ module Characters {
 								((The unit Id~ has kind Kind~) Ew.Output~) Do
 #endif
 							);
+#if (business)
+							(Property clazz) ias (
+								(Class Value~)^
+								((The unit Id~ has clazz Class~) Ew.Output~) Do
+							);
+							(Property contain) ias (
+								(Contain Value~)^
+								((The unit Id~ has contain by resources Contain~) Ew.Output~) Do
+							);
+#endif
 							(Property type) ias (
 								(Type Value~)^
 								CreateConcreteUnitByType~ Exe
@@ -190,9 +202,18 @@ module Characters {
 					((The unit Id~ belong to player PlayerId~ got self check message) Ew.Output~) Do
 #endif
 					// notify player about success hiring operation
+#if (business)
+					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ hireunit PlayerId~ (Id~ Kind~ Class~ Cost~ Contain~))) Gate
+#else
 					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ hireunit PlayerId~ (Id~))) Gate
-#if (release)                   	
+#endif
+#if (release)
+	#if (business)
+					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ Class~ Cost~ Contain~ CId~) Ew.OutChannel~) Do
+
+	#else                   	
 					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~) Ew.OutChannel~) Do
+	#endif
 #endif
 				);
 				/* unit receives commands in deferred manner */

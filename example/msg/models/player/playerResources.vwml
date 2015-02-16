@@ -130,36 +130,64 @@ module PlayerResources {
 				/* Business development factor */
 				Business ias (
 					RQ ias 0; // quantum
+#if (business)
+					GDevelop ias 0; // see StrategyGame_Hiring&Dismiss
+#endif
 					Value ias nil;
 					Result ias false;
 					Init ias (
 						/* by resource type */
-						(Update.From Ew.BusinessConf.Factors~)^
+#if (business)
+						(Update.From (Ew.BusinessConf.Factors~ (Ew.BusinessConf.GDevelop~)))^
+#else
+						(Update.From (Ew.BusinessConf.Factors~))^
+#endif
 						Update~ Exe
 #if (verbose)
 						((Player Id~ initialized business factor resources) Ew.Output~) Do
 #endif
 					);
 					Update ias (
-						// factors' indexes inside Factors entity
-						FType ias 0;
-						BDFactor ias 1;
-						KFactor ias 2;
-						// example: ((vodka 0 1) (food 0 1) (gold 0 1) (viski 0 1))
+						// ((<factors>)(<gdevelop>))
 						From ias nil;
-						AssociateByRt ias (
-							(Type ($~ FType~) Get)^
-							((Bdf Type~) ($~ BDFactor~) Get)^
-							((Bdf Type~) Business true) Context
-							((Kdf Type~) ($~ KFactor~) Get)^
-							((Kdf Type~) Business true) Context
+						UpdateFactors ias (
+							// factors' indexes inside Factors entity
+							FType ias 0;
+							BDFactor ias 1;
+							KFactor ias 2;
+							// example: ((vodka 0 1) (food 0 1) (gold 0 1) (viski 0 1))
+							F ias nil;
+							AssociateByRt ias (
+								(Type ($~ FType~) Get)^
+								((Bdf Type~) ($~ BDFactor~) Get)^
+								((Bdf Type~) Business true) Context
+								((Kdf Type~) ($~ KFactor~) Get)^
+								((Kdf Type~) Business true) Context
 #if (verbose)
-							((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~) Ew.Output~) Do 
+								((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~) Ew.Output~) Do 
+#endif
+							);
+							(F~ AssociateByRt~) ForEach
+						);
+#if (business)
+						UpdateGDevelop ias (
+							// (<number>)
+							F ias nil;
+							(GDevelop (F~ 0) Get)^
+#if (verbose)                           	
+							((Player Id~ has gdevelop factor GDevelop~) Ew.Output~) Do 
 #endif
 						);
-						(From~ AssociateByRt~) ForEach
+						(UpdateGDevelop.F (From~ 1) Get)^
+						UpdateGDevelop~ Exe
+#endif
+						(UpdateFactors.F  (From~ 0) Get)^
+						UpdateFactors~ Exe
 					);
 					Report ias (
+#if (release)
+						Fs ias ();
+#endif
 						Report ias (
 							(T ($~ 0) Get)^
 #if (verbose)
@@ -174,7 +202,6 @@ module PlayerResources {
 						((Player Id~ compiled business factors Fs~) Ew.Output~) Do
 #endif
 #if (release)
-						Fs ias ();
 						(((business factor done) (player Id~) Fs~) Ew.OutChannel~) Do
 #endif
 					);

@@ -211,11 +211,13 @@ public class VWMLConflictRing {
 	 * @param node
 	 */
 	public static void sleepNode(VWMLConflictRingNode node) {
-		if (node != null && node.peekInterpreter() != null) {
-			if (node.peekInterpreter().getObserver() != null) {
-				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
-				node.getExecutionGroup().getRing().incrementNumOfBlockedNodes();
-				System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' goes to sleep");
+		synchronized(node) {
+			if (node.peekInterpreter() != null) {
+				if (node.peekInterpreter().getObserver() != null) {
+					node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), VWMLConflictRingNodeAutomataInputs.IN_W);
+					node.getExecutionGroup().getRing().incrementNumOfBlockedNodes();
+					System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' goes to sleep");
+				}
 			}
 		}
 	}
@@ -225,11 +227,13 @@ public class VWMLConflictRing {
 	 * @param node
 	 */
 	public static void wakeupNode(VWMLConflictRingNode node) {
-		if (isNodeInSleepMode(node)) {
-			if (node.peekInterpreter().getObserver() != null) {
-				node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
-				node.getExecutionGroup().getRing().decrementNumOfBlockedNodes();
-				System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' waken");
+		synchronized(node) {
+			if (isNodeInSleepMode(node)) {
+				if (node.peekInterpreter().getObserver() != null) {
+					node.peekInterpreter().getObserver().setConflictOperationalState(VWMLInterpreterObserver.getWaitContext(), null);
+					node.getExecutionGroup().getRing().decrementNumOfBlockedNodes();
+					System.out.println("rt node '" + node.getId() + "' for ring '" + node.getExecutionGroup().getRing() + "' waken");
+				}
 			}
 		}
 	}

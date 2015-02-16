@@ -309,6 +309,13 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 				if (implicitMaster == null && n.isMarkAsCandidatOnClone()) {
 					implicitMaster = n;
 				}
+				else {
+					try {
+						getRing().askToBlockRing();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			rIndex++;
 			rIndex = rIndex % group.size();
