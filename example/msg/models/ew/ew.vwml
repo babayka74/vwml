@@ -132,7 +132,8 @@ module ExternalWorld {
 			Factors ias ();
 #if (business)
 			GDevelop ias 0;
-			ConfFields ias (Factors GDevelop);
+			UnitsInfo ias ();
+			ConfFields ias (Factors GDevelop UnitsInfo);
 #else
 			ConfFields ias (Factors);
 #endif
@@ -184,6 +185,7 @@ module ExternalWorld {
 		DecValue ias services.math.dec;
 		Sum ias services.math.sum;
 		Sub ias services.math.substr;
+		Mul ias services.math.mult;
 		Compare ias services.math.compare;
 		RecalcQuantum ias services.economic.recalcquantum;
 #if (business)

@@ -131,14 +131,17 @@ module PlayerResources {
 				Business ias (
 					RQ ias 0; // quantum
 #if (business)
-					GDevelop ias 0; // see StrategyGame_Hiring&Dismiss
+					GDevelop ias 0;		// see StrategyGame_Hiring&Dismiss
+					GHCostPerClass ias 0;	// see StrategyGame_Hiring&Dismiss
 #endif
 					Value ias nil;
 					Result ias false;
 					Init ias (
 						/* by resource type */
 #if (business)
-						(Update.From (Ew.BusinessConf.Factors~ (Ew.BusinessConf.GDevelop~)))^
+						(GDevelop 0)^
+						(GHCostPerClass 0)^
+						(Update.From (Ew.BusinessConf.Factors~ (Ew.BusinessConf.GDevelop~) Ew.BusinessConf.UnitsInfo~))^
 #else
 						(Update.From (Ew.BusinessConf.Factors~))^
 #endif
@@ -178,9 +181,42 @@ module PlayerResources {
 							((Player Id~ has gdevelop factor GDevelop~) Ew.Output~) Do 
 #endif
 						);
+						UpdateUnitsInfo ias (
+							F ias nil;
+							K ias nil;
+							(Ignore false) ias (
+								ParseInfo ias (
+									// parses property
+									(PP clazz) ias (
+										// setups Q counter (Q kind class); see TakeOnBoardUnit
+										SQC ias (
+											((Q K~ $~) 0)^
+											// make it addressable -> Resources.Business
+											((Q K~ $~) Business true) Context
+#if (verbose)                                           	
+											((Player Id~ initialized (Q K~ $~) to (Q K~ $~)~ ) Ew.Output~) Do
+#endif                                                  	
+										);
+										// available classes
+										((P~ 1) Get SQC~) ForEach
+									);
+									// kind of unit
+									(K ($~ 0) Get)^
+									// properties
+									(P ($~ 1) Get)^
+									(PP (P~ 0) Get)~ Exe
+								);
+								(F~ ParseInfo~) ForEach
+							);
+							(Ignore true) ias doNothing;
+							(Ignore (F~ nil) Ident)~ Exe
+						);
+
 						(UpdateGDevelop.F (From~ 1) Get)^
 						UpdateGDevelop~ Exe
-#endif
+						(UpdateUnitsInfo.F (From~ 2) Get)^
+						UpdateUnitsInfo~ Exe
+#endif // business
 						(UpdateFactors.F  (From~ 0) Get)^
 						UpdateFactors~ Exe
 					);
