@@ -130,7 +130,13 @@ module ExternalWorld {
 		BusinessConf ias (
 			Conf ias nil;
 			Factors ias ();
+#if (business)
+			GDevelop ias 0;
+			UnitsInfo ias ();
+			ConfFields ias (Factors GDevelop UnitsInfo);
+#else
 			ConfFields ias (Factors);
+#endif
 			// dynamic load configuration
 			Load ias (
 				Conf ias nil;
@@ -150,7 +156,11 @@ module ExternalWorld {
 			);
 			Load~ Exe
 #if (verbose)
+	#if (business)
+			((The business configuration is Factors~ and GDevelop~) Ew.Output~) Do
+	#else
 			((The business configuration is Factors~) Ew.Output~) Do
+	#endif
 #endif
 		);
 
@@ -175,8 +185,12 @@ module ExternalWorld {
 		DecValue ias services.math.dec;
 		Sum ias services.math.sum;
 		Sub ias services.math.substr;
+		Mul ias services.math.mult;
 		Compare ias services.math.compare;
 		RecalcQuantum ias services.economic.recalcquantum;
+#if (business)
+		RecalcGDevelop ias services.economic.recalcgdevelop;
+#endif
 		LoadGraph ias services.graph.load;
 		LoadConf ias services.configuration.load;
 

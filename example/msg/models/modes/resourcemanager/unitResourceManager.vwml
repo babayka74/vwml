@@ -64,6 +64,20 @@ module PlayerResourceManager {
 
 				TakeOnBoardUnit ias (
 					(HiredUnitId (CommandParams~ 0) Get)^
+#if (business)
+					(Kind (CommandParams~ 1) Get)^
+					(Class (CommandParams~ 2) Get)^
+					(Cost (CommandParams~ 3) Get)^
+					(Contain (CommandParams~ 4) Get)^
+					// increments number of units of specific kind
+					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
+					(Resources.Business.GHCostPerClass ((Resources.Business.GHCostPerClass~ ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do) Ew.Sum~) Do)^
+					// calculating partial GDevelop factor for specific unit's kind and class
+					(Resources.Business.GDevelop ((Resources.Business.GDevelop~ ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do) Ew.Sum~) Do)^
+#if (verbose)
+					((Updated factors for player Id~ gdevelop is Resources.Business.GDevelop~ and HCost is Resources.Business.GHCostPerClass~) Ew.Output~) Do					
+#endif
+#endif /* business */
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^
 #if (verbose)
 					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do

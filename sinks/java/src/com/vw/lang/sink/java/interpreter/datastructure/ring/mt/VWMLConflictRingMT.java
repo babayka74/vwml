@@ -321,9 +321,14 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 			if (getInstantNumberOfBlockedNodes() >= calculateNumberOfNodes()) {
 				System.out.println("Ring '" + this + "'; thread '" + Thread.currentThread().getId() + "' blocked");
 				synchronized(this) {
-					wait();
-					// post result
-					blocked = true;
+					if (isActuallyBlocked()) {
+						wait();
+						// post result
+						blocked = true;
+					}
+					else {
+						System.out.println("Ring '" + this + "'; thread '" + Thread.currentThread().getId() + "' reject blocking request");
+					}
 				}
 			}
 			else {
@@ -343,8 +348,8 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	public boolean unblockRing() throws Exception {
 		boolean unblocked = false;
 		if (isActuallyBlocked()) {
-			setActuallyBlocked(false);
 			synchronized(this) {
+				setActuallyBlocked(false);
 				this.notifyAll();
 			}
 			System.out.println("Ring '" + this + "' unblocked");
