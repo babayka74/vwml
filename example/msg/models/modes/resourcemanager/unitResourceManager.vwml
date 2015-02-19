@@ -73,7 +73,7 @@ module PlayerResourceManager {
 					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
 					(Resources.Business.GHCostPerClass ((Resources.Business.GHCostPerClass~ ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do) Ew.Sum~) Do)^
 					// calculating partial GDevelop factor for specific unit's kind and class
-					(Resources.Business.GDevelop ((Resources.Business.GDevelop~ ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do) Ew.Sum~) Do)^
+					(Resources.Business.GDevelop ((Resources.Business.GDevelop~ Resources.Business.GHCostPerClass~) Ew.Sum~) Do)^
 #if (verbose)
 					((Updated factors for player Id~ gdevelop is Resources.Business.GDevelop~ and HCost is Resources.Business.GHCostPerClass~) Ew.Output~) Do					
 #endif
