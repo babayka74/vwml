@@ -35,8 +35,14 @@ module BornSimulation {
 		P1 ias (
 			Id ias 0;
 			Life ias (
+				X ias (l m n k x);
+				XT ias (
+					($~ Id~)^
+					(($~~) Ew.out~) Do
+				);
 				M ias ((a Id~)^ (b Id~)^ (c Id~)^ (d Id~)^ (e Id~)^);
 				MT ias (
+					(X~ XT~) ForEach
 					$~ Exe
 					((Id Id~ and M.a~ M.b~ M.c~ M.d~ M.e~) Ew.out~) Do
 				);
