@@ -25,7 +25,6 @@ public class VWMLOperationExeHandler extends VWMLOperationHandler {
 		VWMLOperationStackInspector inspector = new VWMLOperationStackInspector(interpreter, context);
 		stack.inspect(inspector);
 		// since inspector reads until empty mark we should read entity's original context
-		VWMLContext originalContext = context.peekContext();
 		List<VWMLEntity> entities = inspector.getReversedStack();
 		VWMLEntity entity = null;
 		if (entities.size() == 1) {

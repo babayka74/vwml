@@ -51,7 +51,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		VWMLObject obj = instance().checkObjectOnContext(id, c);
 		if (obj == null) { // not found in repository...
 			boolean contextChanged = false;
-			if (((String)id).contains(".")) {
+			if (isStaticallyAddressed((String)id)) {
 				c = instance().getEffectiveContextFromEntityId(id, context);
 				if (c == null) {
 					throw new Exception("couldn't find context for entity '" + id + "'");
@@ -198,6 +198,17 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		return r;
 	}
 
+	/**
+	 * Returns 'true' in case entity's id is statically addressed
+	 * @param id
+	 * @return
+	 */
+	public static boolean isStaticallyAddressed(String id) {
+		int bracket = id.indexOf('(');
+		int dot = id.indexOf('.');
+		return ((dot != -1 && bracket != -1 && dot < bracket) || (dot != -1 && bracket == -1));
+	}
+	
 	public void init() {
 		repo = VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepoContainer();
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
@@ -406,7 +417,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	public VWMLObject getTranslatedObject(Object translationKey) {
 		return translatedObjects.get(translationKey);
 	}
-	
+
 	protected VWMLContext findInheritedContext(String contextId, VWMLContext parent) {
 		VWMLContext context = null;
 		if (parent.getContextPath() != null) {
@@ -460,11 +471,8 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	}
 
 	protected VWMLObject getByContext(Object id, VWMLContext context, boolean concreteContext) throws Exception {
-		String ids = (String)id;
 		VWMLContext effectiveContext = context;
-		int bracket = ids.indexOf('(');
-		int dot = ids.indexOf('.');
-		if ((dot != -1 && bracket != -1 && dot < bracket) || (dot != -1 && bracket == -1)) {
+		if (isStaticallyAddressed((String)id)) {
 			return getByFullSpecifiedPath(id, context);
 		}
 		if (effectiveContext == null) {
