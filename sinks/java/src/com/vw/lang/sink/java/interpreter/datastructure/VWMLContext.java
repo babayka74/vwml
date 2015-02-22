@@ -398,6 +398,15 @@ public class VWMLContext extends VWMLObject {
 		return getCodeStack().peek();
 	}
 	
+	public VWMLObject peekParentEntity() {
+		VWMLObject obj = null;
+		VWMLSequentialTermInterpreterCodeStackFrame frame = (VWMLSequentialTermInterpreterCodeStackFrame)peekStackFrame();
+		if (frame != null) {
+			obj = frame.getAssociatedEntity();
+		}
+		return obj;
+	}
+	
 	/**
 	 * Set of methods which are used in order to manage entities inside the context
 	 * @param entity

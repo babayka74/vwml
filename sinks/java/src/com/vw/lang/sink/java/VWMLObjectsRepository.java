@@ -7,10 +7,12 @@ import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
+import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 
 
@@ -115,8 +117,28 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	 * @throws Exception
 	 */
 	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype) throws Exception {
+		return getAndCreateInCaseOfClone(cPair, prototype, true);
+	}
+	
+	/**
+	 * Lookups for entity on context pair, supposing that context may be cloned
+	 * 1. lookup on original context
+	 * 2. in case if entity found on original context it must be created on effective (meaning that effective is cloned_
+	 * 3. in case if entity not found on original context - exception is thrown
+	 * @param cPair
+	 * @param prototype
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype, boolean recursive) throws Exception {
 		VWMLEntity lookedEntity = null;
-		String id = prototype.buildReadableId();
+		String id = null;
+		if (prototype.isTerm()) {
+			id = (String)prototype.getId();
+		}
+		else {
+			id = prototype.buildReadableId();
+		}
 		// get context by effective (interpreter) id
 		VWMLContext ctxEffective = VWMLContextsRepository.instance().get(cPair.getEffectiveContextId());
 		if (!cPair.isCloneOfOriginal()) {
@@ -125,6 +147,12 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			}
 			// if not cloned - do as usual
 			lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxEffective);
+			if (lookedEntity == null) {
+				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(prototype.buildReadableId(), ctxEffective);
+				if (lookedEntity == null) {
+					lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(prototype.getId(), ctxEffective);
+				}
+			}
 		}
 		else {
 			// otherwise creating context
@@ -151,9 +179,22 @@ public class VWMLObjectsRepository extends VWMLRepository {
 											VWMLObjectsRepository.asOriginal,
 											prototype.getLink().getLinkOperationVisitor());
 				if (origEntity != null) {
-					lookedEntity.setInterpreting(origEntity.getOriginalInterpreting());
+					if (prototype.isTerm()) {
+						VWMLEntity eA = ((VWMLTerm)prototype).getAssociatedEntity();
+						eA = VWMLOperationUtils.lazyEntityLookup(ctxEffective, eA.getContext(), eA, false);
+						((VWMLTerm)lookedEntity).setAssociatedEntity(eA);
+						((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
+					}
+					if (origEntity.getOriginalInterpreting() != null) {
+						VWMLEntity e = VWMLOperationUtils.lazyEntityLookup(ctxEffective,
+																			origEntity.getOriginalInterpreting().getContext(),
+																			origEntity.getOriginalInterpreting(),
+																			false);
+						lookedEntity.setInterpreting(e);
+					}
 					lookedEntity.setAsArgPair(origEntity.getAsArgPair());
 					lookedEntity.setSynthetic(origEntity.isSynthetic());
+					lookedEntity.setClonedFrom(origEntity);
 					VWMLEntity itEntity = origEntity;
 					VWMLLinkIncrementalIterator it = origEntity.getLink().acquireLinkedObjectsIterator();
 					if (it == null) {
@@ -162,7 +203,8 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					}
 					if (it != null) {
 						for(; it.isCorrect(); it.next()) {
-							lookedEntity.getLink().link(itEntity.getLink().getConcreteLinkedEntity(it.getIt()));
+							VWMLEntity e = (VWMLEntity)itEntity.getLink().getConcreteLinkedEntity(it.getIt());
+							lookedEntity.getLink().link(e);
 						}
 					}
 				}

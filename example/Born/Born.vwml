@@ -30,16 +30,22 @@ module BornSimulation {
 			k ias 0;
 			m ias k;
 			z ias (x 2);
+			I ias ((output k k~) Ew.out~) Do;
 		);
 
 		P1 ias (
 			Id ias 0;
 			Life ias (
+				T ias (
+					((Id is Id~ and param is $~) Ew.out~) Do
+				);
 				X ias (M.a M.b M.c M.d M.e);
+				Y ias (1 2 3 4 5 6 7 8 9 10 11 12);
 				XT ias (
 					(($~~) Ew.out~) Do
 				);
 				M ias ((a Id~)^ (b Id~)^ (c Id~)^ (d Id~)^ (e Id~)^);
+				ML ias ((Id~ $~) Ew.out~) Do;
 				MT ias (
 					$~ Exe
 					((Id Id~ and M.a~ M.b~ M.c~ M.d~ M.e~) Ew.out~) Do
@@ -48,14 +54,19 @@ module BornSimulation {
 				((I am here Id~) Ew.out~) Do
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
+				1025 Bp
+				(AAA Id~)->I~ Exe
 				((z is (AAA Id~)->z~~) Ew.out~) Do
 				((m is (AAA Id~)->m~~) Ew.out~) Do
 				((k is (AAA Id~)->k~) Ew.out~) Do
 				((l Id~) Id~)^
 				((The l is (l Id~)~) Ew.out~) Do
 				1025 Bp
+				(Y~ ML~) ForEach
 				(M~ MT~) ForEach
-				1000 Relax
+				(((AAA Id~)->m~~ (AAA Id~)->z~~) 11)^
+				(2000 Id~ T~ nil ((AAA Id~)->m~~ (AAA Id~)->z~~)~) Recall
+				5000 Relax
 				((AAA Id~)) Release
 			);		
 			lifeterm = (
@@ -64,7 +75,37 @@ module BornSimulation {
 			) Exe
 		);
 
+		Conf ias (
+			N1 ias (
+				E1 ias (test2);
+			);
+		);
+
+		Ex ias (
+			AX ias (
+				A1 ias (test1);
+				(A1 (A1~ Conf.N1.E1~) Join)^
+				((A1 A1~) Ew.out~) Do
+			);
+
+			Init ias (
+				ConfFields ias (SherifBribeRanges Resources);
+				SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
+				Resources ias ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50));
+				((The quartals configuration is) Ew.out~) Do
+				
+				ShowField ias (($~ $~~) Ew.out~) Do;
+				(ConfFields~ ShowField~) ForEach
+			);
+		);
+
 		Life ias (
+/*
+			Ex.AX~ Exe
+			Ex.Init~ Exe
+			300000 Relax
+*/
+
 			(StopBorn true) ias (
 				((Cloner stops) Ew.out~) Do
 			);

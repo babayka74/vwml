@@ -11,6 +11,7 @@ import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
@@ -70,7 +71,10 @@ public class VWMLOperationUtils {
 				if (entityCtxPair == null || interpreterCtxPair == null) {
 					throw new Exception("unknown context '" + context.getContext() + "' or '" + effectiveContext.getContext() + "'");
 				}
-				context = VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(interpreterCtxPair, entityCtxPair);
+				VWMLContext updatedContext = VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(interpreterCtxPair, entityCtxPair);
+				if (updatedContext != null) {
+					context = updatedContext;
+				}
 				// looking on interpreter's context
 				VWMLEntity e = lookupAndRelinkEntityOnContext(entityCtxPair, newComplexEntity);
 				addToRepositoryIfTheSame(e, newComplexEntity, context);
@@ -96,14 +100,38 @@ public class VWMLOperationUtils {
 	 * @return
 	 */
 	public static VWMLEntity lazyEntityLookup(VWMLContext interpreterContext, VWMLContext originalContext, VWMLEntity prototype) throws Exception {
+		return lazyEntityLookup(interpreterContext, originalContext, prototype, true);
+	}
+
+	/**
+	 * Looks for entity using algorithm of lazy instantiation depending on recursive flag
+	 * @param interpreterCtx
+	 * @param originalContext
+	 * @param prototype
+	 * @param recursive
+	 * @return
+	 */
+	public static VWMLEntity lazyEntityLookup(VWMLContext interpreterContext, VWMLContext originalContext, VWMLEntity prototype, boolean recursive) throws Exception {
 		VWMLEntity entity = prototype;
 		ContextIdPair interpreterCtxPair = VWMLContextsRepository.instance().wellFormedContext(interpreterContext.getContext());
-		ContextIdPair entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(prototype.getContext().getContext());
+		ContextIdPair entityCtxPair = null;
+		if (!prototype.isTerm()) {
+			if (prototype.getContext() != null) {
+				entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(prototype.getContext().getContext());
+			}
+			else {
+				System.out.println("Nullable '" + prototype.buildReadableId() + "'; " + prototype.getLink().getParent());
+				entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(VWMLContextsRepository.getDefaultContextId());
+			}
+		}
+		else {
+			entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(((VWMLTerm)prototype).getAssociatedEntity().getContext().getContext());
+		}
 		if (entityCtxPair == null || interpreterCtxPair == null) {
 			throw new Exception("unknown context '" + originalContext.getContext() + "' or '" + interpreterContext.getContext() + "'");
 		}
 		VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(interpreterCtxPair, entityCtxPair);
-		entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(entityCtxPair, entity);
+		entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(entityCtxPair, entity, recursive);
 		return entity;
 	}
 	

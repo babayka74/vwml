@@ -112,6 +112,72 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 	}
 
 	public List<VWMLEntity> getReversedStack() {
+		for(int i = 0; i < reversedStack.size(); i++) {
+			VWMLEntity e = reversedStack.get(i);
+/*			
+			if (e.getLink().getParent() == null) {
+				VWMLEntity pe = (VWMLEntity)interpreter.getContext().peekParentEntity();
+				if (pe != null && e != pe) {
+					e.getLink().setParent(pe);
+				}
+			}
+*/			
+			if (!e.isDynamicAddressedInRunTime()) {
+				if (e.buildReadableId().equals("k")) {
+					int h = 0;
+					h++;
+				}
+				boolean cloneDetected = false;
+				VWMLContext ctx = null;
+				if (e.getLink().getParent() == null) {
+					ctx = e.getContext();
+				}
+				else {
+					VWMLEntity parent = null;
+					parent = (VWMLEntity)e.getLink().getParent();
+					VWMLEntity p1 = null;
+					VWMLEntity p = parent;
+					while(p != null) {
+						if (p.getClonedFrom() != null) {
+							cloneDetected = true;
+							break;
+						}
+						p1 = ((VWMLEntity)p.getLink().getParent());
+						if (p1 == p) {
+							break;
+						}
+						p = p1;
+					}
+					if (p == null) {
+						p = parent;
+					}
+					ctx = p.getContext();
+				}
+				if (cloneDetected) {
+					try {
+						VWMLEntity e1 = null;
+						e1 = (VWMLEntity)VWMLObjectsRepository.instance().get(e.buildReadableId(), ctx);
+						if (e1 == null) {
+							ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(ctx.getContext());
+							if (cPair == null) {
+								throw new Exception("non-wellformed context '" + ctx.getContext() + "'");
+							}
+							e1 = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, e);
+							if (e1 != null && e1 != e) {
+								reversedStack.set(i, e1);
+							}
+						}
+						else {
+							if (e != e1) {
+								reversedStack.set(i, e1);
+							}
+						}
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				}
+			}
+		}
 		return reversedStack;
 	}
 	

@@ -178,11 +178,13 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 				// assemble operation is used if we need to collect result of entity interpretation process
 				VWMLDynamicEntityProperties props = context.getEntityDynamicProperties(lastInterpretedEntity, true);
 				props.setMarkedAsArtificalTerm(true);
+				lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 				pushEmptyMark = true;
 			}
 			else
 			if (lastInterpretedEntity.isTerm() && ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity() != null) {
 				lastInterpretedEntity = ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity();
+				lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 				pushEmptyMark = true;
 			}
 			if (pushEmptyMark) {
@@ -198,6 +200,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 				if (getStatus() == nextEntityToProcess && context.getNextProcessedEntity() != null) {
 					// process next entity
 					lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
+					lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 					return;
 				} // else processing current entity					
 			}
@@ -228,6 +231,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
 			context.setNextProcessedEntity(defferredEntity);
 			lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
+			lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 			resetArtificialEntityProperty(context, lastInterpretedEntity, null);				
 			setStatus(nextEntityToProcess);
 			return;
@@ -253,6 +257,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			if (getStatus() == nextEntityToProcess && context.getNextProcessedEntity() != null) {
 				// process next entity
 				lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
+				lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 			}
 			else
 			if (getStatus() == continueProcessingOfCurrentEntity) {

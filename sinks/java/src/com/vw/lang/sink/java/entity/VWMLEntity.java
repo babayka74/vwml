@@ -463,6 +463,14 @@ public class VWMLEntity extends VWMLObject {
 		return it;
 	}
 	
+	/**
+	 * Copies operations and debug info
+	 * @param from
+	 */
+	public void copyOperations(VWMLEntity from) {
+		setAssociatedOperations(from.getAssociatedOperations());
+	}
+	
 	public boolean isLifeTerm() {
 		return isLifeTerm;
 	}
