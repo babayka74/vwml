@@ -314,11 +314,16 @@ public class VWMLOperationUtils {
 				if (lookedEntity.getLink() != null) {
 					lookedEntity.getLink().getLinkedObjects().clear();
 				}
-				lookedEntity.setLink(newComplexEntity.getLink());
 				VWMLLinkIncrementalIterator it = newComplexEntity.getLink().acquireLinkedObjectsIterator();
 				if (it != null) {
 					for(; it.isCorrect(); it.next()) {
-						newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()).getLink().setParent(lookedEntity);
+						VWMLEntity ei = (VWMLEntity)newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt());
+						if (ei != null) {
+							lookedEntity.getLink().link(ei);
+						}
+						else {
+							System.out.println("Strange ! newComplexEntity has 'null' element; newComplexEntity '" + id + "' before relink");
+						}
 					}
 				}
 				activateUnlink = false;
