@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
@@ -98,6 +99,27 @@ public class VWMLContext extends VWMLObject {
 	}
 
 	/**
+	 * Returns 'true' in case if context identified by contextId is child of parent context
+	 * @param cPair
+	 * @param contextId
+	 * @return
+	 */
+	public static boolean isContextChildOf(ContextIdPair cPair, String contextId) {
+		if (contextId.equals(VWMLContextsRepository.getDefaultContextId())) {
+			return false;
+		}
+		String[] ctxs = {cPair.getOrigContextId(), cPair.getEffectiveContextId()};
+		for(String ctx : ctxs) {
+			if (ctx != null) {
+				if (VWMLContext.isContextChildOf(ctx, contextId)) {
+					return true; // should be cloned
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Returns relative context path
 	 * @param parent
 	 * @param contextId
@@ -115,6 +137,75 @@ public class VWMLContext extends VWMLObject {
 			return contextId.substring(p.length());
 		}
 		return null;
+	}
+
+	/**
+	 * Returns common contexts path
+	 * @param ctx1
+	 * @param ctx2
+	 * @return
+	 */
+	public static String getCommonContextPath(String ctx1, String ctx2) {
+		if ((ctx1.intern() == VWMLContextsRepository.getDefaultContextId() || ctx1.intern() == VWMLContextsRepository.getDefaultContextId())) {
+			return null;
+		}
+		if ((ctx2.intern() == VWMLContextsRepository.getDefaultContextId() || ctx2.intern() == VWMLContextsRepository.getDefaultContextId())) {
+			return null;
+		}
+		if (ctx1.equals(ctx2)) {
+			return ctx1;
+		}
+		String[] p1 = VWMLJavaExportUtils.parseContext(ctx1);
+		String[] p2 = VWMLJavaExportUtils.parseContext(ctx2);
+		return getCommonContextPath(p1, p2);
+	}
+
+	/**
+	 * Returns common contexts path
+	 * @param ctx1
+	 * @param ctx2
+	 * @return
+	 */
+	public static String getCommonContextPath(String[] ctx1, String[] ctx2) {
+		int l1 = ctx1.length;
+		int l2 = ctx2.length;
+		int sF = l1;
+		if (l1 > l2) {
+			sF = l2;
+		}
+		String c = null;
+		for(int i = 0; i < sF && ctx1[i].equals(ctx2[i]); i++) {
+			if (c == null) {
+				c = new String(ctx1[i]);
+			}
+			else {
+				c += "." + ctx1[i];
+			}
+		}
+		return c;
+	}
+	
+	/**
+	 * Returns context (as string) by parsing it and fetching sub-context by specified depth
+	 * @param context
+	 * @param depth
+	 * @return
+	 */
+	public static String getSubContextAsString(String context, int depth) {
+		String[] p = VWMLJavaExportUtils.parseContext(context);
+		if (p == null || p.length <= depth) {
+			return context;
+		}
+		String c = null;
+		for(int i = 0; i < depth; i++) {
+			if (c == null) {
+				c = new String(p[i]);
+			}
+			else {
+				c += "." + p[i];
+			}
+		}
+		return c;
 	}
 	
 	public static boolean isDynamicContextPointsToSelf(String dynContext) {

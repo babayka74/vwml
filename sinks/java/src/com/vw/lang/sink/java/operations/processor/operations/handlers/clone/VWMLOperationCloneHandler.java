@@ -71,7 +71,6 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getId())) != null) {
 			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
 		}
-		origEntity = VWMLOperationUtils.lazyEntityLookup(interpreterContext, origEntity.getContext(), origEntity);
 		VWMLEntity cloned = VWMLCloneFactory.cloneContextLazy(origEntity, clonedObject);
 		if (cloned.getReadableId() == null) {
 			cloned.buildReadableId();

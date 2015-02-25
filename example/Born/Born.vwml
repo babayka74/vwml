@@ -18,6 +18,15 @@ options {
 }
 
 module BornSimulation {
+	SSS ias (
+		k ias 7;
+		((SSS output k k~) Ew.out~) Do
+	);
+	LLL ias (
+		k ias 12;
+		((LLL output k k~) Ew.out~) Do
+	);
+
 	Ew ias (
 		out ias communication.out.write;
 		in ias communication.in.read;
@@ -30,7 +39,12 @@ module BornSimulation {
 			k ias 0;
 			m ias k;
 			z ias (x 2);
-			I ias ((output k k~) Ew.out~) Do;
+			II ias ((II output k k~) Ew.out~) Do;
+			I ias (
+				((I output k k~) Ew.out~) Do
+				(SSS.k 9)^
+				SSS~ Exe
+			);
 		);
 
 		P1 ias (
@@ -55,7 +69,10 @@ module BornSimulation {
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
 				1025 Bp
+				(AAA Id~)->II~ Exe
 				(AAA Id~)->I~ Exe
+				(LLL.k 19)^
+				LLL~ Exe
 				((z is (AAA Id~)->z~~) Ew.out~) Do
 				((m is (AAA Id~)->m~~) Ew.out~) Do
 				((k is (AAA Id~)->k~) Ew.out~) Do
@@ -99,10 +116,38 @@ module BornSimulation {
 			);
 		);
 
+		Es ias (
+			QuartalsConf ias (
+				ConfFields ias (SherifBribeRanges Resources);
+				// dynamic load configuration
+				Load ias (
+					Conf ias nil;
+					ConfIndex ias 0;
+					ShowField ias (($~ $~~) Ew.out~) Do;
+					ApplyConf ias (
+						SetConfField ias (
+							($~ ((Conf~ ConfIndex~) Get 1) Get)^
+							($~ QuartalsConf true) Context
+							(ConfIndex ((ConfIndex~) Ew.inc~) Do)^
+						);
+						(ConfIndex 0)^
+						(ConfFields~ SetConfField~) ForEach 
+					);
+					(NotReady true) ias doNothing;
+					(NotReady false) ias ApplyConf~ Exe;
+					(NotReady (Conf~ nil) Ident)~ Exe
+
+					((The quartals configuration is) Ew.out~) Do
+					(ConfFields~ ShowField~) ForEach
+				);
+			);
+		);
+
 		Life ias (
 /*
-			Ex.AX~ Exe
-			Ex.Init~ Exe
+			(Es.QuartalsConf.Load.Conf ((SherifBribeRanges (300 200 300 100 200 400 500 100 200 100 100 50 10 20 40)) (Resources ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50) (viski 50 500 9 5000 50)))))^
+			((The loaded quartals configuration is Es.QuartalsConf.Load.Conf~) Ew.out~) Do
+			Es.QuartalsConf.Load~ Exe
 			300000 Relax
 */
 

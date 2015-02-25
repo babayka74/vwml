@@ -40,11 +40,7 @@ public class VWMLOperationCreateExprHandler extends VWMLOperationHandler {
 				if (argRef != null) {
 					interpretedEntity = argRef;
 				}
-				VWMLEntity e = VWMLOperationUtils.lazyEntityLookup(context, context.peekContext(), interpretedEntity);
-				if (e == null) {
-					throw new Exception("undefined entity '" + interpretedEntity.buildReadableId() + "' on context '" + context.getContext() + "'");
-				}
-				e.setInterpreting(interpretingEntity);
+				interpretedEntity.setInterpreting(interpretingEntity);
 				VWMLOperationUtils.activateInterceptor(interpreter, interpretedEntity, interpretingEntity);
 			}
 			else {

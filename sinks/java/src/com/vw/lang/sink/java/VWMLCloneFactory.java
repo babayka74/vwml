@@ -59,14 +59,15 @@ public class VWMLCloneFactory {
 				ContextIdPair origEntityInterpCtxPair = VWMLContextsRepository.instance().wellFormedContext(origEntity.getInterpreting().getContext().getContext());
 				ctxForClonedEntity = VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(origEntityCtxPair, origEntityInterpCtxPair);
 			}
-			VWMLContextsRepository.cloneLazy(clonedObject.getId(), ctxForClonedEntity);
+			VWMLContext ctx = VWMLContextsRepository.cloneLazy(clonedObject.getId(), ctxForClonedEntity);
 			clonedEntity = (VWMLEntity)VWMLObjectsRepository.acquire(clonedObject.deduceEntityType(),
 																	clonedObject.getId(),
 																	((VWMLContext)ctxForClonedEntity.getLink().getParent()).getContext(),
 																	origEntity.getInterpretationHistorySize(),
-																	VWMLObjectsRepository.asOriginal,
+																	VWMLObjectsRepository.notAsOriginal,
 																	origEntity.getLink().getLinkOperationVisitor());
-			clonedEntity.setInterpreting(origEntity.getInterpreting());
+			ContextIdPair clonedPair =  VWMLContextsRepository.instance().wellFormedContext(ctx.getContext());
+			clonedEntity.setInterpreting((VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(clonedPair, origEntity.getInterpreting()));
 			clonedEntity.setClonedFrom(origEntity);
 			VWMLLinkIncrementalIterator it = clonedObject.getLink().acquireLinkedObjectsIterator();
 			if (it != null) {

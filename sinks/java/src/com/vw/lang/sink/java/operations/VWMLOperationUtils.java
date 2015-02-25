@@ -11,7 +11,6 @@ import com.vw.lang.sink.java.VWMLObjectBuilder.VWMLObjectType;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
-import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterListener;
@@ -75,14 +74,17 @@ public class VWMLOperationUtils {
 				if (updatedContext != null) {
 					context = updatedContext;
 				}
+				newComplexEntity.setContext(context);
 				// looking on interpreter's context
 				VWMLEntity e = lookupAndRelinkEntityOnContext(entityCtxPair, newComplexEntity);
 				addToRepositoryIfTheSame(e, newComplexEntity, context);
 				newComplexEntity = e;
 			}
 			else {
+				newComplexEntity.setLookedByReadableId(true);
 				if (newComplexEntity.getContext() == null) {
 					newComplexEntity.setContext(context);
+					context.associateEntity(newComplexEntity);
 				}
 			}
 		}
@@ -94,26 +96,14 @@ public class VWMLOperationUtils {
 
 	/**
 	 * Looks for entity using algorithm of lazy instantiation
-	 * @param interpreterCtx
 	 * @param originalContext
 	 * @param prototype
 	 * @return
 	 */
-	public static VWMLEntity lazyEntityLookup(VWMLContext interpreterContext, VWMLContext originalContext, VWMLEntity prototype) throws Exception {
-		return lazyEntityLookup(interpreterContext, originalContext, prototype, true);
-	}
-
-	/**
-	 * Looks for entity using algorithm of lazy instantiation depending on recursive flag
-	 * @param interpreterCtx
-	 * @param originalContext
-	 * @param prototype
-	 * @param recursive
-	 * @return
-	 */
-	public static VWMLEntity lazyEntityLookup(VWMLContext interpreterContext, VWMLContext originalContext, VWMLEntity prototype, boolean recursive) throws Exception {
+/*	
+	public static VWMLEntity lazyEntityLookup(VWMLContext originalContext, VWMLEntity prototype) throws Exception {
 		VWMLEntity entity = prototype;
-		ContextIdPair interpreterCtxPair = VWMLContextsRepository.instance().wellFormedContext(interpreterContext.getContext());
+		ContextIdPair modelCtxPair = VWMLContextsRepository.instance().wellFormedContext(originalContext.getContext());
 		ContextIdPair entityCtxPair = null;
 		if (!prototype.isTerm()) {
 			if (prototype.getContext() != null) {
@@ -127,14 +117,11 @@ public class VWMLOperationUtils {
 		else {
 			entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(((VWMLTerm)prototype).getAssociatedEntity().getContext().getContext());
 		}
-		if (entityCtxPair == null || interpreterCtxPair == null) {
-			throw new Exception("unknown context '" + originalContext.getContext() + "' or '" + interpreterContext.getContext() + "'");
-		}
-		VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(interpreterCtxPair, entityCtxPair);
-		entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(entityCtxPair, entity, recursive);
+		VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(modelCtxPair, entityCtxPair);
+		entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(entityCtxPair, entity, false);
 		return entity;
 	}
-	
+*/	
 	/**
 	 * Rebuilds complex entity from list by adding entities starting from the end of the list; name is random
 	 * @param entities
@@ -341,27 +328,21 @@ public class VWMLOperationUtils {
 	}
 	
 	private static VWMLEntity lookupAndRelinkEntityOnContext(ContextIdPair ctxPair, VWMLEntity newComplexEntity) throws Exception {
-		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(ctxPair, newComplexEntity);
+		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(ctxPair, newComplexEntity, true);
 		if (lookedEntity != null) {
-			boolean activateUnlink = true;
 			if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
 				if (lookedEntity.getLink() != null) {
 					lookedEntity.getLink().getLinkedObjects().clear();
 				}
-				lookedEntity.setLink(newComplexEntity.getLink());
 				VWMLLinkIncrementalIterator it = newComplexEntity.getLink().acquireLinkedObjectsIterator();
 				if (it != null) {
 					for(; it.isCorrect(); it.next()) {
-						newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()).getLink().setParent(lookedEntity);
+						lookedEntity.getLink().link(newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()));
 					}
 				}
-				activateUnlink = false;
 			}
 			VWMLObjectsRepository.instance().remove(newComplexEntity);
-			if (activateUnlink) {
-				newComplexEntity.getLink().unlinkFromAll();
-			}
-			//newComplexEntity.setLink(null);
+			newComplexEntity.getLink().unlinkFromAll();
 			newComplexEntity = lookedEntity;
 			newComplexEntity.buildReadableId();
 		}

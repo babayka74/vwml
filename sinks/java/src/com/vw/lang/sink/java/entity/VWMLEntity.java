@@ -50,6 +50,9 @@ public class VWMLEntity extends VWMLObject {
 	// addressed using dynamic context in runtime (->)
 	// used during interpretation phase in order to deduce active context
 	private boolean isDynamicAddressedInRunTime = false;
+	// entities which are created by 'generateComplexEntityFromEntitiesReversedStack' with flag 'doNotAddIfUnknown'
+	// must set this flag to 'true'
+	private boolean isLookedByReadableId = false;
 	// entity is interpreted as argument pair (see CallP operation)
 	private ArgPair asArgPair;
 	private int interpretationHistorySize;
@@ -391,6 +394,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setDynamicAddressedInRunTime(boolean isDynamicAddressedInRunTime) {
 		this.isDynamicAddressedInRunTime = isDynamicAddressedInRunTime;
+	}
+
+	public boolean isLookedByReadableId() {
+		return isLookedByReadableId;
+	}
+
+	public void setLookedByReadableId(boolean isLookedByReadableId) {
+		this.isLookedByReadableId = isLookedByReadableId;
 	}
 
 	public boolean isStaticAdressedInRunTime() {

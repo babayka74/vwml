@@ -2,6 +2,8 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.interpret
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
@@ -52,7 +54,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLEntity entity = null;
 		VWMLEntity interpretingEntity = null;
 		if (entities.size() == 1) {
-			entity = VWMLOperationUtils.lazyEntityLookup(context, originalContext, entities.get(0));
+			entity = entities.get(0);
 			interpretingEntity = interpretationOfArgumentPair(interpreter, entity);
 			if (interpretingEntity == null) {
 				interpretingEntity = interpretationOfSyntheticEntity(interpreter, entity);
@@ -77,7 +79,8 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 				// sometimes we need search for entity starting from parent. Usually it happens when assemble operation
 				// adds new entity to current context (but entity is moved to another, by Born/Clone command) and 
 				// this entity is called from current context
-				VWMLEntity e = VWMLOperationUtils.lazyEntityLookup(context, (VWMLContext)entity.getContext().getLink().getParent(), entity);
+				ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(((VWMLContext)entity.getContext().getLink().getParent()).getContext());
+				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, entity);
 				if (e != null) {
 					interpretingEntity = deduceInterpretingEntity(interpreter, e);
 				}
@@ -187,12 +190,6 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 	private VWMLEntity lazyInterpeting(VWMLEntity entity) throws Exception {
 		VWMLEntity e = null;
 		e = entity.getInterpreting();
-		if (e != null) {
-			VWMLEntity le = VWMLOperationUtils.lazyEntityLookup(entity.getContext(), e.getContext(), e);
-			if (le != null) {
-				e = le;
-			}
-		}
 		return e;
 	}
 }

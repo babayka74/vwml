@@ -12,7 +12,6 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
-import com.vw.lang.sink.java.operations.VWMLOperationUtils;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 
 
@@ -117,7 +116,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	 * @throws Exception
 	 */
 	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype) throws Exception {
-		return getAndCreateInCaseOfClone(cPair, prototype, true);
+		return getAndCreateInCaseOfClone(cPair, prototype, false);
 	}
 	
 	/**
@@ -130,14 +129,20 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	 * @return
 	 * @throws Exception
 	 */
-	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype, boolean recursive) throws Exception {
+	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype, boolean lookupByReadableId) throws Exception {
 		VWMLEntity lookedEntity = null;
+		// 1. checks for special kind of entities
+		// 2. checks whether context is child of cPair or no
+		if (!prototype.isDynamicAddressedInRunTime() &&
+			(prototype.isSynthetic() || prototype.getAsArgPair() != null)) {
+			return prototype;
+		}
 		String id = null;
-		if (prototype.isTerm()) {
-			id = (String)prototype.getId();
+		if (lookupByReadableId || prototype.isLookedByReadableId()) {
+			id = prototype.buildReadableId();
 		}
 		else {
-			id = prototype.buildReadableId();
+			id = (String)prototype.getId();
 		}
 		// get context by effective (interpreter) id
 		VWMLContext ctxEffective = VWMLContextsRepository.instance().get(cPair.getEffectiveContextId());
@@ -146,66 +151,90 @@ public class VWMLObjectsRepository extends VWMLRepository {
 				throw new Exception("unknown context '" + cPair.getEffectiveContextId() + "'");
 			}
 			// if not cloned - do as usual
-			lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxEffective);
-			if (lookedEntity == null) {
-				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(prototype.buildReadableId(), ctxEffective);
-				if (lookedEntity == null) {
-					lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(prototype.getId(), ctxEffective);
-				}
+			lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
+			if (lookedEntity == null && !prototype.isDynamicAddressedInRunTime()) {
+				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxEffective);
 			}
 		}
 		else {
 			// otherwise creating context
-			if (ctxEffective == null) {
-				ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(cPair.getEffectiveContextId());
+			if (ctxEffective != null) {
+				// if entity wasn't found on cloned context
+				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
 			}
-			// if entity wasn't found on cloned context
-			lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
 			if (lookedEntity == null) {
-				// checking its on original (aka model)
-				VWMLContext ctxOrig = VWMLContextsRepository.instance().get(cPair.getOrigContextId());
-				if (ctxOrig == null) {
-					throw new Exception("unknown context '" + cPair.getOrigContextId() + "'");
+				if (!prototype.isDynamicAddressedInRunTime()) {
+					// checking its on original (aka model)
+					VWMLContext ctxOnModel = VWMLContextsRepository.instance().get(cPair.getOrigContextId());
+					if (ctxOnModel == null) {
+						throw new Exception("unknown context '" + cPair.getOrigContextId() + "'");
+					}
+					VWMLEntity onModelEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxOnModel);
+					if (onModelEntity == null) {
+						onModelEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxOnModel);
+					}
+					if (onModelEntity == null) {
+						// looks like entity has already been created during implicit assembling operation
+						lookedEntity = onModelEntity;
+						return lookedEntity;
+					}
+					String cp = VWMLContext.getCommonContextPath(cPair.getOrigContextId(), onModelEntity.getContext().getContext());
+					if (cp == null) {
+						// means that model entity is out-of-cloned-scope
+						lookedEntity = onModelEntity;
+						return lookedEntity;
+					}
+					// sub-context which is considered as cloneable
+					String sc = VWMLContext.getSubContextAsString(cPair.getEffectiveContextId(), VWMLJavaExportUtils.parseContext(cp).length);
+					ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(sc);
+					// re-check, maybe it has already been created before, so no need to check it on 'acquire' operation
+					lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
+					if (lookedEntity != null) {
+						return lookedEntity;
+					}
+					cPair = VWMLContextsRepository.instance().wellFormedContext(ctxEffective.getContext());
+					prototype = onModelEntity;
 				}
-				VWMLEntity origEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxOrig);
-				if (origEntity == null) {
-					origEntity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(id, ctxOrig);
+				else {
+					int h = 0;
+					h++;
 				}
 				// found on original - creating in effective (cloned)
 				lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
-											id,
+											prototype.getId(),
 											ctxEffective.getContext(),
 											prototype.getInterpretationHistorySize(),
-											VWMLObjectsRepository.asOriginal,
+											VWMLObjectsRepository.notAsOriginal,
 											prototype.getLink().getLinkOperationVisitor());
-				if (origEntity != null) {
-					if (prototype.isTerm()) {
-						VWMLEntity eA = ((VWMLTerm)prototype).getAssociatedEntity();
-						eA = VWMLOperationUtils.lazyEntityLookup(ctxEffective, eA.getContext(), eA, false);
-						((VWMLTerm)lookedEntity).setAssociatedEntity(eA);
-						((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
+				if (prototype.isTerm()) {
+					VWMLEntity eA = ((VWMLTerm)prototype).getAssociatedEntity();
+					eA = (VWMLEntity) getAndCreateInCaseOfClone(cPair, eA);
+					((VWMLTerm)lookedEntity).setAssociatedEntity(eA);
+					((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
+				}
+				if (prototype.getOriginalInterpreting() != null) {
+					// suppose that prototype.id identifies some context
+					String ci = VWMLContext.constructContextNameFromParts(cPair.getOrigContextId(), prototype.buildReadableId());
+					// check it by creating pair
+					ContextIdPair cPairI = VWMLContextsRepository.instance().wellFormedContext(ci);
+					if (cPairI != null) {
+						ci = VWMLContext.constructContextNameFromParts(cPair.getEffectiveContextId(), prototype.buildReadableId());
+						// ... looks like context, on model, exists - so we have to clone new one 
+						ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(ci);
+						// ... and update pair
+						cPair = VWMLContextsRepository.instance().wellFormedContext(ctxEffective.getContext());
 					}
-					if (origEntity.getOriginalInterpreting() != null) {
-						VWMLEntity e = VWMLOperationUtils.lazyEntityLookup(ctxEffective,
-																			origEntity.getOriginalInterpreting().getContext(),
-																			origEntity.getOriginalInterpreting(),
-																			false);
-						lookedEntity.setInterpreting(e);
-					}
-					lookedEntity.setAsArgPair(origEntity.getAsArgPair());
-					lookedEntity.setSynthetic(origEntity.isSynthetic());
-					lookedEntity.setClonedFrom(origEntity);
-					VWMLEntity itEntity = origEntity;
-					VWMLLinkIncrementalIterator it = origEntity.getLink().acquireLinkedObjectsIterator();
-					if (it == null) {
-						it = prototype.getLink().acquireLinkedObjectsIterator();
-						itEntity = prototype;
-					}
-					if (it != null) {
-						for(; it.isCorrect(); it.next()) {
-							VWMLEntity e = (VWMLEntity)itEntity.getLink().getConcreteLinkedEntity(it.getIt());
-							lookedEntity.getLink().link(e);
-						}
+					VWMLEntity e = (VWMLEntity) getAndCreateInCaseOfClone(cPair, prototype.getOriginalInterpreting());
+					lookedEntity.setInterpreting(e);
+				}
+				lookedEntity.setAsArgPair(prototype.getAsArgPair());
+				lookedEntity.setSynthetic(prototype.isSynthetic());
+				lookedEntity.setClonedFrom(prototype);
+				VWMLLinkIncrementalIterator it = prototype.getLink().acquireLinkedObjectsIterator();
+				if (it != null) {
+					for(; it.isCorrect(); it.next()) {
+						VWMLEntity e = (VWMLEntity)prototype.getLink().getConcreteLinkedEntity(it.getIt());
+						lookedEntity.getLink().link(e);
 					}
 				}
 				lookedEntity.buildReadableId();

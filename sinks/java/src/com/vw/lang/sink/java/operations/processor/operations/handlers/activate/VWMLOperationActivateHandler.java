@@ -30,8 +30,8 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 			throw new Exception("operation 'Activate' requires 1 argument; check code");
 		}
 		if (entities.size() == 1) {
-			VWMLEntity entity = VWMLOperationUtils.lazyEntityLookup(context, originalContext, entities.get(0));
-			handleActivateOperation(entity, context, interpreter);
+			// VWMLEntity entity = VWMLOperationUtils.lazyEntityLookup(originalContext, entities.get(0));
+			handleActivateOperation(entities.get(0), context, interpreter);
 		}
 		else {
 			VWMLEntity entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
