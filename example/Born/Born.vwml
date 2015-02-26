@@ -27,6 +27,8 @@ module BornSimulation {
 		((LLL output k k~) Ew.out~) Do
 	);
 
+	(1 9) ias 12;
+
 	Ew ias (
 		out ias communication.out.write;
 		in ias communication.in.read;
@@ -42,6 +44,7 @@ module BornSimulation {
 			II ias ((II output k k~) Ew.out~) Do;
 			I ias (
 				((I output k k~) Ew.out~) Do
+				1025 Bp
 				(SSS.k 9)^
 				SSS~ Exe
 			);
@@ -49,6 +52,7 @@ module BornSimulation {
 
 		P1 ias (
 			Id ias 0;
+			(1 9) ias 13;
 			Life ias (
 				T ias (
 					((Id is Id~ and param is $~) Ew.out~) Do
@@ -68,11 +72,11 @@ module BornSimulation {
 				((I am here Id~) Ew.out~) Do
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
-				1025 Bp
 				(AAA Id~)->II~ Exe
 				(AAA Id~)->I~ Exe
 				(LLL.k 19)^
 				LLL~ Exe
+				1025 Bp
 				((z is (AAA Id~)->z~~) Ew.out~) Do
 				((m is (AAA Id~)->m~~) Ew.out~) Do
 				((k is (AAA Id~)->k~) Ew.out~) Do
@@ -81,7 +85,7 @@ module BornSimulation {
 				1025 Bp
 				(Y~ ML~) ForEach
 				(M~ MT~) ForEach
-				(((AAA Id~)->m~~ (AAA Id~)->z~~) 11)^
+				//(((AAA Id~)->m~~ (AAA Id~)->z~~) 11)^
 				(2000 Id~ T~ nil ((AAA Id~)->m~~ (AAA Id~)->z~~)~) Recall
 				5000 Relax
 				((AAA Id~)) Release
@@ -145,6 +149,9 @@ module BornSimulation {
 
 		Life ias (
 /*
+			Ex.AX~ Exe
+			Ex.Init~ Exe
+
 			(Es.QuartalsConf.Load.Conf ((SherifBribeRanges (300 200 300 100 200 400 500 100 200 100 100 50 10 20 40)) (Resources ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50) (viski 50 500 9 5000 50)))))^
 			((The loaded quartals configuration is Es.QuartalsConf.Load.Conf~) Ew.out~) Do
 			Es.QuartalsConf.Load~ Exe

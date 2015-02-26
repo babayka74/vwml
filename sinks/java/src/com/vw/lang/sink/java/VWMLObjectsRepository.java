@@ -118,6 +118,38 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype) throws Exception {
 		return getAndCreateInCaseOfClone(cPair, prototype, false);
 	}
+
+	/**
+	 * See 'getAndCreateInCaseOfClone' below
+	 * @param contextId
+	 * @param prototypeId
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLObject getAndCreateInCaseOfClone(String contextId, String prototypeId) throws Exception {
+		VWMLEntity prototype = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, prototypeId, prototypeId, null, 0, null);
+		ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(contextId);
+		if (cPair == null) {
+			return null;
+		}
+		prototype.setReadableId(prototypeId);
+		return getAndCreateInCaseOfClone(cPair, prototype, true);
+	}
+
+	/**
+	 * See 'getAndCreateInCaseOfClone' below
+	 * @param contextId
+	 * @param prototypeId
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLObject getAndCreateInCaseOfClone(String contextId, VWMLEntity prototype, boolean lookupByReadableId) throws Exception {
+		ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(contextId);
+		if (cPair == null) {
+			return null;
+		}
+		return getAndCreateInCaseOfClone(cPair, prototype, true);
+	}	
 	
 	/**
 	 * Lookups for entity on context pair, supposing that context may be cloned
@@ -163,42 +195,46 @@ public class VWMLObjectsRepository extends VWMLRepository {
 				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
 			}
 			if (lookedEntity == null) {
-				if (!prototype.isDynamicAddressedInRunTime()) {
-					// checking its on original (aka model)
-					VWMLContext ctxOnModel = VWMLContextsRepository.instance().get(cPair.getOrigContextId());
-					if (ctxOnModel == null) {
-						throw new Exception("unknown context '" + cPair.getOrigContextId() + "'");
-					}
-					VWMLEntity onModelEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxOnModel);
-					if (onModelEntity == null) {
-						onModelEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxOnModel);
-					}
-					if (onModelEntity == null) {
-						// looks like entity has already been created during implicit assembling operation
-						lookedEntity = onModelEntity;
-						return lookedEntity;
-					}
-					String cp = VWMLContext.getCommonContextPath(cPair.getOrigContextId(), onModelEntity.getContext().getContext());
-					if (cp == null) {
-						// means that model entity is out-of-cloned-scope
-						lookedEntity = onModelEntity;
-						return lookedEntity;
-					}
-					// sub-context which is considered as cloneable
-					String sc = VWMLContext.getSubContextAsString(cPair.getEffectiveContextId(), VWMLJavaExportUtils.parseContext(cp).length);
-					ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(sc);
-					// re-check, maybe it has already been created before, so no need to check it on 'acquire' operation
-					lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
-					if (lookedEntity != null) {
-						return lookedEntity;
-					}
-					cPair = VWMLContextsRepository.instance().wellFormedContext(ctxEffective.getContext());
-					prototype = onModelEntity;
+				VWMLContext ctxOnModel = null;
+				// get context pair of prototype's context
+				ContextIdPair prototypeCPair = VWMLContextsRepository.instance().wellFormedContext(prototype.getContext().getContext());
+				// whether prototype belongs to 'current operational' context or no - searching for model's context
+				String cp = VWMLContext.getCommonContextPath(cPair.getOrigContextId(), prototypeCPair.getOrigContextId());
+				if (cp == null) {
+					ctxOnModel = VWMLContextsRepository.instance().get(prototypeCPair.getOrigContextId());
 				}
 				else {
-					int h = 0;
-					h++;
+					// checking its on original (aka model)
+					ctxOnModel = VWMLContextsRepository.instance().get(cPair.getOrigContextId());
 				}
+				if (ctxOnModel == null) {
+					throw new Exception("unknown context '" + cPair.getOrigContextId() + "'");
+				}
+				VWMLEntity onModelEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxOnModel);
+				if (onModelEntity == null) {
+					onModelEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxOnModel);
+				}
+				if (onModelEntity == null) {
+					// looks like entity has already been created during implicit assembling operation
+					lookedEntity = onModelEntity;
+					return lookedEntity;
+				}
+				cp = VWMLContext.getCommonContextPath(cPair.getOrigContextId(), onModelEntity.getContext().getContext());
+				if (cp == null) {
+					// means that model entity is out-of-cloned-scope
+					lookedEntity = onModelEntity;
+					return lookedEntity;
+				}
+				// sub-context which is considered as cloneable
+				String sc = VWMLContext.getSubContextAsString(cPair.getEffectiveContextId(), VWMLJavaExportUtils.parseContext(cp).length);
+				ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(sc);
+				// re-check, maybe it has already been created before, so no need to check it on 'acquire' operation
+				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
+				if (lookedEntity != null) {
+					return lookedEntity;
+				}
+				cPair = VWMLContextsRepository.instance().wellFormedContext(ctxEffective.getContext());
+				prototype = onModelEntity;
 				// found on original - creating in effective (cloned)
 				lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
 											prototype.getId(),
@@ -213,12 +249,18 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
 				}
 				if (prototype.getOriginalInterpreting() != null) {
+					// get readableId
+					String readableId = prototype.buildReadableId();
+					// special case when context is entity
+					if (readableId != null && readableId.equals(VWMLEntity.s_EmptyEntityId)) {
+						readableId = (String)prototype.getId();
+					}
 					// suppose that prototype.id identifies some context
-					String ci = VWMLContext.constructContextNameFromParts(cPair.getOrigContextId(), prototype.buildReadableId());
+					String ci = VWMLContext.constructContextNameFromParts(cPair.getOrigContextId(), readableId);
 					// check it by creating pair
 					ContextIdPair cPairI = VWMLContextsRepository.instance().wellFormedContext(ci);
 					if (cPairI != null) {
-						ci = VWMLContext.constructContextNameFromParts(cPair.getEffectiveContextId(), prototype.buildReadableId());
+						ci = VWMLContext.constructContextNameFromParts(cPair.getEffectiveContextId(), readableId);
 						// ... looks like context, on model, exists - so we have to clone new one 
 						ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(ci);
 						// ... and update pair

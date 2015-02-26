@@ -133,8 +133,7 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 				int le = contextId.lastIndexOf(".");
 				if (le != -1) {
 					contextId = contextId.substring(0, le);
-					String fullEntityId = contextId + "." + entity.buildReadableId();
-					entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
+					entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(contextId, entity.buildReadableId());
 					if (entity == null) {
 						entity = initialEntity;
 					}
@@ -151,19 +150,18 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		if (interpretingEntity == null) {
 			VWMLContext onContext = entity.getContext();
 			String readableId = entity.buildReadableId();
-			String fullEntityId = onContext.getContext() + "." + readableId;
-			entity = (VWMLEntity)VWMLObjectsRepository.instance().get(fullEntityId, originalContext);
+			entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(onContext.getContext(), entity, true);
 			if (entity == null) {
 				entity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(readableId, onContext);
 				if (entity == null) {
-					throw new Exception("couldn't find entity '" + fullEntityId + "'");
+					throw new Exception("couldn't find entity '" + readableId + "' on context '" + onContext.getContext() + "'");
 				}
 			}
 			interpretingEntity = lazyInterpeting(entity);
 			if (interpretingEntity == null) {
 				// this case is checked when entity is defined on some contexts, usually happens during static entity definition (see Maze, battleModel3A)
 				if (entity.getContext().getLink().getParent() != null) {
-					VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(readableId, (VWMLContext)(entity.getContext().getLink().getParent()));
+					VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(onContext.getContext(), entity, true);
 					interpretingEntity = deduceInterpretingEntity(interpreter, e);
 				}
 				if (interpretingEntity == null) {
