@@ -50,6 +50,23 @@ module PlayerResourceManager {
 					);
 					(CorrectUnit true) ias (
 						(Resources.Units.Hired (Resources.Units.Hired~ (U~)) Substruct)^
+#if (business)
+						(Kind (Characters)->(Unit U~)->Kind~)^
+						(Class (Characters)->(Unit U~)->Class~)^
+						(Cost (Characters)->(Unit U~)->Cost~)^
+						(Contain (Characters)->(Unit U~)->Contain~)^
+
+						(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.DecValue~) Do)^
+						(TH ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
+						(TC ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 2) Get) Ew.Mul~) Do)^
+						// calculating partial GDevelop factor for specific unit's kind and class
+						(Resources.Business.GDevelop ((Resources.Business.GDevelop~ TH~) Ew.Dec~) Do)^
+						(Resources.Business.GContain ((Resources.Business.GContain~ TC~) Ew.Dec~) Do)^
+#if (verbose)
+						((Business factors (qclazz gdevelop gcontain) changed (Resources.Business.(Q Kind~ Class~)~ Resources.Business.GDevelop~ Resources.Business.GContain~) for player Id~) Ew.Output~) Do
+#endif
+#endif // business
+
 #if (release)
 						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
 #endif
@@ -71,11 +88,13 @@ module PlayerResourceManager {
 					(Contain (CommandParams~ 4) Get)^
 					// increments number of units of specific kind
 					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
-					(Resources.Business.GHCostPerClass ((Resources.Business.GHCostPerClass~ ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do) Ew.Sum~) Do)^
+					(TH ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
+					(TC ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 2) Get) Ew.Mul~) Do)^
 					// calculating partial GDevelop factor for specific unit's kind and class
-					(Resources.Business.GDevelop ((Resources.Business.GDevelop~ Resources.Business.GHCostPerClass~) Ew.Sum~) Do)^
+					(Resources.Business.GDevelop ((Resources.Business.GDevelop~ TH~) Ew.Sum~) Do)^
+					(Resources.Business.GContain ((Resources.Business.GContain~ TC~) Ew.Sum~) Do)^
 #if (verbose)
-					((Updated factors for player Id~ gdevelop is Resources.Business.GDevelop~ and HCost is Resources.Business.GHCostPerClass~) Ew.Output~) Do					
+					((Business factors (qclazz gdevelop gcontain) changed (Resources.Business.(Q Kind~ Class~)~ Resources.Business.GDevelop~ Resources.Business.GContain~) for player Id~) Ew.Output~) Do
 #endif
 #endif /* business */
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^
