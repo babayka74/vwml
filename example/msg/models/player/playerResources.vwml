@@ -132,7 +132,7 @@ module PlayerResources {
 					RQ ias 0; // quantum
 #if (business)
 					GDevelop ias 0;		// see StrategyGame_Hiring&Dismiss
-					GHCostPerClass ias 0;	// see StrategyGame_Hiring&Dismiss
+					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
 #endif
 					Value ias nil;
 					Result ias false;
@@ -140,8 +140,8 @@ module PlayerResources {
 						/* by resource type */
 #if (business)
 						(GDevelop 0)^
-						(GHCostPerClass 0)^
-						(Update.From (Ew.BusinessConf.Factors~ (Ew.BusinessConf.GDevelop~) Ew.BusinessConf.UnitsInfo~))^
+						(GContain 0)^
+						(Update.From (Ew.BusinessConf.Factors~ (Ew.BusinessConf.GDevelop~) (Ew.BusinessConf.GContain~) Ew.BusinessConf.UnitsInfo~))^
 #else
 						(Update.From (Ew.BusinessConf.Factors~))^
 #endif
@@ -181,6 +181,16 @@ module PlayerResources {
 							((Player Id~ has gdevelop factor GDevelop~) Ew.Output~) Do 
 #endif
 						);
+
+						UpdateGContain ias (
+							// (<number>)
+							F ias nil;
+							(GContain (F~ 0) Get)^
+#if (verbose)                           	
+							((Player Id~ has gcontain factor GContain~) Ew.Output~) Do 
+#endif
+						);
+
 						UpdateUnitsInfo ias (
 							F ias nil;
 							K ias nil;
@@ -190,11 +200,12 @@ module PlayerResources {
 									(PP clazz) ias (
 										// setups Q counter (Q kind class); see TakeOnBoardUnit
 										SQC ias (
+											// quantity
 											((Q K~ $~) 0)^
 											// make it addressable -> Resources.Business
 											((Q K~ $~) Business true) Context
 #if (verbose)                                           	
-											((Player Id~ initialized (Q K~ $~) to (Q K~ $~)~ ) Ew.Output~) Do
+											((Player Id~ initialized (Q K~ $~) to (Q K~ $~)~) Ew.Output~) Do
 #endif                                                  	
 										);
 										// available classes
@@ -214,7 +225,9 @@ module PlayerResources {
 
 						(UpdateGDevelop.F (From~ 1) Get)^
 						UpdateGDevelop~ Exe
-						(UpdateUnitsInfo.F (From~ 2) Get)^
+						(UpdateGContain.F (From~ 2) Get)^
+						UpdateGContain~ Exe
+						(UpdateUnitsInfo.F (From~ 3) Get)^
 						UpdateUnitsInfo~ Exe
 #endif // business
 						(UpdateFactors.F  (From~ 0) Get)^
