@@ -8,6 +8,7 @@ import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
  *
  */
 public class VWMLModuleInfo {
+	private String name;
 	private StartModuleProps props;
 	private String testCode;
 	
@@ -39,6 +40,14 @@ public class VWMLModuleInfo {
 	
 	public void setTestCode(String testCode) {
 		this.testCode = testCode;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@Override

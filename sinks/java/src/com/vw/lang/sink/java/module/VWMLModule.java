@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.module;
 
+import com.vw.lang.sink.java.entity.InterpretationObserver;
 import com.vw.lang.sink.java.link.VWMLLinkage;
 import com.vw.lang.sink.java.repository.VWMLRepository;
 
@@ -10,6 +11,16 @@ import com.vw.lang.sink.java.repository.VWMLRepository;
  *
  */
 public abstract class VWMLModule {
+
+	private InterpretationObserver interpretationObserver = null;
+	
+	public InterpretationObserver getInterpretationObserver() {
+		return interpretationObserver;
+	}
+
+	public void setInterpretationObserver(InterpretationObserver interpretationObserver) {
+		this.interpretationObserver = interpretationObserver;
+	}
 
 	/**
 	 * Performs module's initialization steps, runs before build method

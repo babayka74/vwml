@@ -6,6 +6,7 @@ import java.util.List;
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.IVWMLInterpreterBroker;
+import com.vw.lang.sink.java.entity.InterpretationObserver;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPairLookUp;
@@ -28,6 +29,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 	private VWMLModule[] modules = null;
 	private VWMLPair[] propPairs = null;
 	private boolean modulesBuilt = false;
+	private InterpretationObserver interpretationObserver = null;
 	private VWMLInterpreterConfiguration config = VWMLInterpreterConfiguration.instance();
 	
 	/**
@@ -37,6 +39,14 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		
 	}
 	
+	public InterpretationObserver getInterpretationObserver() {
+		return interpretationObserver;
+	}
+
+	public void setInterpretationObserver(InterpretationObserver interpretationObserver) {
+		this.interpretationObserver = interpretationObserver;
+	}
+
 	/**
 	 * Instantiates and initializes interpreter
 	 * @param modules
@@ -74,6 +84,9 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (modules == null) {
 			throw new Exception("modules were not set; check flow");
 		}
+		if (getInterpretationObserver() != null) {
+			getInterpretationObserver().setAmbiguosOn(true);
+		}
 		for(VWMLModule module : modules) {
 			module.prepare();
 		}
@@ -82,7 +95,10 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		}
 		for(VWMLModule module : modules) {
 			module.linkage();
-		}		
+		}
+		if (getInterpretationObserver() != null) {
+			getInterpretationObserver().setAmbiguosOn(false);
+		}
 		modulesBuilt = true;
 	}
 

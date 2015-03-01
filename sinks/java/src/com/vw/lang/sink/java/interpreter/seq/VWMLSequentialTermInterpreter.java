@@ -178,7 +178,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 				// assemble operation is used if we need to collect result of entity interpretation process
 				VWMLDynamicEntityProperties props = context.getEntityDynamicProperties(lastInterpretedEntity, true);
 				props.setMarkedAsArtificalTerm(true);
-				lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
+				//lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 				pushEmptyMark = true;
 			}
 			else
@@ -200,7 +200,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 				if (getStatus() == nextEntityToProcess && context.getNextProcessedEntity() != null) {
 					// process next entity
 					lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-					lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
+					//lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 					return;
 				} // else processing current entity					
 			}
@@ -231,7 +231,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			context.setCurrentCodeStackFrame((VWMLSequentialTermInterpreterCodeStackFrame)context.peekStackFrame());
 			context.setNextProcessedEntity(defferredEntity);
 			lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-			lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
+			//lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 			resetArtificialEntityProperty(context, lastInterpretedEntity, null);				
 			setStatus(nextEntityToProcess);
 			return;
@@ -257,7 +257,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			if (getStatus() == nextEntityToProcess && context.getNextProcessedEntity() != null) {
 				// process next entity
 				lastInterpretedEntity = lastInterpretedTerm = context.getNextProcessedEntity();
-				lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
+				//lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 			}
 			else
 			if (getStatus() == continueProcessingOfCurrentEntity) {
@@ -282,7 +282,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			// iterate through linked object, if exist
 			if (le != null) {
 				result = nextEntityToProcess;
-				nextProcessed = le;				
+				nextProcessed = le;
 			}
 			else {
 				result = finishedEntityProcessing;

@@ -2,6 +2,7 @@ package com.vw.lang.processor.model.builder.specific;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -70,7 +71,7 @@ public class VWML2JavaInterpreterBridge {
 				"};\r\n"
 		};
 		
-		Set<String> vwmlModules = modelBuilder.getProcessedModules();
+		List<VWMLModuleInfo> vwmlModules = modelBuilder.getProcessedModules();
 		if (vwmlModules == null) {
 			throw new Exception("there are no any processed modules; bridge can't be created");
 		}
@@ -103,7 +104,7 @@ public class VWML2JavaInterpreterBridge {
 		return String.format(s_caption, ((JavaModuleStartProps)props).getAuthor(), ((JavaModuleStartProps)props).getDate());
 	}
 	
-	private String prepareImports(JavaModuleStartProps projProps, Set<String> vwmlModules) {
+	private String prepareImports(JavaModuleStartProps projProps, List<VWMLModuleInfo> vwmlModules) {
 		String imports = "";
 		// prepare imports
 		imports += "import " + VWMLModule.class.getName() + ";\r\n";
@@ -132,8 +133,7 @@ public class VWML2JavaInterpreterBridge {
 				}
 			}
 		}
-		for(String name : vwmlModules) {
-			VWMLModuleInfo mi = modelBuilder.getModuleInfo(name);
+		for(VWMLModuleInfo mi : vwmlModules) {
 			JavaModuleStartProps props = (JavaModuleStartProps)mi.getProps();
 			imports += "import " + props.getModulePackage() + "." + props.getActualModuleName() + ";\r\n";
 		}
@@ -141,7 +141,7 @@ public class VWML2JavaInterpreterBridge {
 		return imports;
 	}
 	
-	private String prepareBody(Set<String> vwmlModules, JavaModuleStartProps projProps) {
+	private String prepareBody(List<VWMLModuleInfo> vwmlModules, JavaModuleStartProps projProps) {
 		String body = prepareDeclarations(vwmlModules, projProps);
 		body += "\tprivate static " + s_className + " s_instance = new " + s_className + "();\r\n\r\n\tprivate " + s_className + "() {\r\n\t}\r\n\r\n";
 		body += "\tpublic static " + s_className + " instance() {\r\n\t\ts_instance.init();\r\n\t\treturn s_instance;\r\n\t}\r\n\r\n";
@@ -158,7 +158,7 @@ public class VWML2JavaInterpreterBridge {
 		return body;
 	}
 	
-	private String prepareDeclarations(Set<String> vwmlModules, JavaModuleStartProps projProps) {
+	private String prepareDeclarations(List<VWMLModuleInfo> vwmlModules, JavaModuleStartProps projProps) {
 		String declarations = prepareModulesDeclaration(vwmlModules) + "\r\n";
 		declarations += prepareInterpretersProperties(projProps.getInterpretationProps());
 		declarations += "\tprivate IVWMLInterpreterBroker vwmlInterpreterBroker = null;\r\n\r\n";
@@ -166,16 +166,15 @@ public class VWML2JavaInterpreterBridge {
 		return declarations;
 	}
 	
-	private String prepareModulesDeclaration(Set<String> vwmlModules) {
+	private String prepareModulesDeclaration(List<VWMLModuleInfo> vwmlModules) {
 		boolean firstIt = true;
 		String modulesDeclaration = "";
 		modulesDeclaration += "\tprivate VWMLModule modules[] = {\r\n";
-		for(String name : vwmlModules) {
+		for(VWMLModuleInfo mi : vwmlModules) {
 			if (!firstIt) {
 				modulesDeclaration += ",\r\n";
 			} 
 			firstIt = false;
-			VWMLModuleInfo mi = modelBuilder.getModuleInfo(name);
 			JavaModuleStartProps props = (JavaModuleStartProps)mi.getProps();
 			modulesDeclaration += "\t\tnew " + props.getActualModuleName() + "()";
 		}

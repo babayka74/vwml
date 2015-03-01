@@ -48,6 +48,8 @@ include "models/algorithm/pathFinder.vwml"
 
 include "models/ew/ew.vwml"
 
+include "models/player/player.vwml"
+
 include "models/modes/battle/attackbroker.vwml"
 include "models/modes/battle/attackmanager.vwml"
 include "models/modes/battle/battlefield.vwml"
@@ -66,7 +68,6 @@ include "models/modes/resourcemanager/unitResourceManager.vwml"
 include "models/modes/banking/playerbanking.vwml"
 
 include "models/player/playerResources.vwml"
-include "models/player/player.vwml"
 include "models/player/playersManager.vwml"
 
 include "models/gbanker/globalBankerBroker.vwml"
@@ -235,7 +236,7 @@ module msg {
 			Injection ias (
 #if (unittest)
 				(pm 0 playermanagment playeradd 0 nil)
-				(manager 0 nil delay 0 (2500))
+/*				(manager 0 nil delay 0 (2500))
 				(pm 0 playermanagment playeradd 1 nil)
 				(manager 0 nil delay 0 (2500))
 				(pm 0 playermanagment playeradd 2 nil)
@@ -356,7 +357,7 @@ module msg {
 				(manager 0 nil delay 0 (2500))
 				(pm 0 playermanagment playeradd 60 nil)
 				(manager 0 nil delay 0 (2500))
-
+*/
 #endif
 			);
 		);

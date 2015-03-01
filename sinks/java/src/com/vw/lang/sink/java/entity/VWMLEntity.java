@@ -72,6 +72,9 @@ public class VWMLEntity extends VWMLObject {
 	private boolean activated = false;
 	// sets during release operation in order to mark entity as removed from context and related storage
 	private boolean removed = false;
+	// see description (non-cloned); usually is used on static linking phase in order to detect ambiguous 
+	// interpretation (meaning entity has more than one statically defined interpretation)
+	private InterpretationObserver interpretationObserver = null;
 	
 	public VWMLEntity(Object hashId) {
 		super(hashId);
@@ -408,7 +411,23 @@ public class VWMLEntity extends VWMLObject {
 		return ((String)getId()).contains(".");
 	}
 
+	public InterpretationObserver getInterpretationObserver() {
+		return interpretationObserver;
+	}
+
+	public void setInterpretationObserver(InterpretationObserver interpretationObserver) {
+		this.interpretationObserver = interpretationObserver;
+	}
+
 	public void setInterpreting(VWMLEntity interpreting) {
+		if (interpretationObserver != null) {
+			// checks func's flags
+			if (interpretationObserver.isAmbiguosOn()) {
+				if (interpreting != null) {
+					interpretationObserver.ambiguous(this, interpreting);
+				}
+			}
+		}
 		this.interpreting = interpreting;
 		if (interpreting != null) {
 			interpretationHistory.store(interpreting);

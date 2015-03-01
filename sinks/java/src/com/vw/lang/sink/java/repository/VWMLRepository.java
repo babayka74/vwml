@@ -1,5 +1,6 @@
 package com.vw.lang.sink.java.repository;
 
+import com.vw.lang.sink.java.entity.InterpretationObserver;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
 /**
@@ -8,6 +9,17 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  *
  */
 public class VWMLRepository {
+
+	private InterpretationObserver interpretationObserver = null;
+	
+	public InterpretationObserver getInterpretationObserver() {
+		return interpretationObserver;
+	}
+
+	public void setInterpretationObserver(
+			InterpretationObserver interpretationObserver) {
+		this.interpretationObserver = interpretationObserver;
+	}
 
 	/**
 	 * Overridden by concrete repository; returns structure visualizer

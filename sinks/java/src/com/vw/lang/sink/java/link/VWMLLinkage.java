@@ -7,6 +7,7 @@ import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.entity.InterpretationOfUndefinedEntityStrategyId;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.entity.InterpretationObserver;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEmptyComplexEntityInterpretationStrategy;
 import com.vw.lang.sink.java.entity.undefined.strategy.UndefinedEntityAsEntityInterpretationStrategy;
@@ -22,8 +23,17 @@ import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
  */
 public class VWMLLinkage {
 
+	private InterpretationObserver interpretationObserver = null;
 	private static List<VWMLEntity> modLifeTerms = new ArrayList<VWMLEntity>();
 	
+	public InterpretationObserver getInterpretationObserver() {
+		return interpretationObserver;
+	}
+
+	public void setInterpretationObserver(InterpretationObserver interpretationObserver) {
+		this.interpretationObserver = interpretationObserver;
+	}
+
 	/**
 	 * Adds life term
 	 * @param entityAsTerm

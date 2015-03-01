@@ -130,6 +130,7 @@ public final class JavaCodeGeneratorTemplates {
 		"\t\tfor(VWMLLinkWrap obj : interpretedObjectPairs) {\r\n" +
 			"\t\t\tVWMLEntity entity = (VWMLEntity)getEntityById(obj.getId(), obj.getContext());\r\n" +
 			"\t\t\tVWMLEntity linkedEntity = (VWMLEntity)processLinkedEntity(obj);\r\n" +
+			"\t\t\tentity.setInterpretationObserver(getInterpretationObserver());\r\n" +
 			"\t\t\tentity.setInterpreting(linkedEntity);\r\n" +
 		"\t\t}\r\n\r\n" +
 	"\t}\r\n\r\n" +

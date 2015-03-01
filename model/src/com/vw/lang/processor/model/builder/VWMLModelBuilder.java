@@ -1,9 +1,10 @@
 package com.vw.lang.processor.model.builder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRStringStream;
@@ -185,7 +186,7 @@ public class VWMLModelBuilder extends Debuggable {
 
 	private CompilationSink compilationSink = null;
 	// associates modules' names and their info - this information is needed on final steps of source generation
-	private Map<String, VWMLModuleInfo> modulesInfo = new HashMap<String, VWMLModuleInfo>();
+	private List<VWMLModuleInfo> modulesInfo = new ArrayList<VWMLModuleInfo>();
 	
 	// testing mode property
 	public static final String s_TestModeProp = "testMode";
@@ -194,20 +195,11 @@ public class VWMLModelBuilder extends Debuggable {
 	}
 
 	/**
-	 * Returns reference to module's information by its name
-	 * @param name
-	 * @return
-	 */
-	public VWMLModuleInfo getModuleInfo(String name) {
-		return modulesInfo.get(name);
-	}
-	
-	/**
 	 * Returns set of VWML processed modules
 	 * @return
 	 */
-	public Set<String> getProcessedModules() {
-		return modulesInfo.keySet();
+	public List<VWMLModuleInfo> getProcessedModules() {
+		return modulesInfo;
 	}
 	
 	/**
@@ -216,7 +208,8 @@ public class VWMLModelBuilder extends Debuggable {
 	 * @param mi
 	 */
 	public void addModuleInfo(String name, VWMLModuleInfo mi) {
-		modulesInfo.put(name, mi);
+		mi.setName(name);
+		modulesInfo.add(mi);
 	}
 	
 	public InterpretationProps getInterpretationProps() {
