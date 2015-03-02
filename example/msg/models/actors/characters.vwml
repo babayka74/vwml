@@ -45,9 +45,6 @@ module Characters {
 					(MarkedAsKilled false)^
 					(BattleFieldId nil)^
 					(InAction false)^
-					(Cost 0)^
-					(Contain 0)^
-					(Class 0)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
 				StopActivity ias (

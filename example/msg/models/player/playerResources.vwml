@@ -141,9 +141,9 @@ module PlayerResources {
 #if (business)
 						(GDevelop 0)^
 						(GContain 0)^
-						(Update.From (Ew.BusinessConf.Factors~ (Ew.BusinessConf.GDevelop~) (Ew.BusinessConf.GContain~) Ew.BusinessConf.UnitsInfo~))^
+						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~)))^
 #else
-						(Update.From (Ew.BusinessConf.Factors~))^
+						(Update.From (Factors Ew.BusinessConf.Factors~))^
 #endif
 						Update~ Exe
 #if (verbose)
@@ -160,23 +160,30 @@ module PlayerResources {
 							KFactor ias 2;
 							// example: ((vodka 0 1) (food 0 1) (gold 0 1) (viski 0 1))
 							F ias nil;
-							AssociateByRt ias (
-								(Type ($~ FType~) Get)^
-								((Bdf Type~) ($~ BDFactor~) Get)^
-								((Bdf Type~) Business true) Context
-								((Kdf Type~) ($~ KFactor~) Get)^
-								((Kdf Type~) Business true) Context
-#if (verbose)
-								((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~) Ew.Output~) Do 
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (
+								AssociateByRt ias (
+									(Type ($~ FType~) Get)^
+									((Bdf Type~) ($~ BDFactor~) Get)^
+									((Bdf Type~) Business true) Context
+									((Kdf Type~) ($~ KFactor~) Get)^
+									((Kdf Type~) Business true) Context
+#if (verbose)                                           	
+									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~) Ew.Output~) Do 
 #endif
+								);
+								(F (F~ 1) Get)^
+								(F~ AssociateByRt~) ForEach
 							);
-							(F~ AssociateByRt~) ForEach
+							(Ignore (F~ nil) Ident)~ Exe
 						);
 #if (business)
 						UpdateGDevelop ias (
 							// (<number>)
 							F ias nil;
-							(GDevelop (F~ 0) Get)^
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (GDevelop (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
 							((Player Id~ has gdevelop factor GDevelop~) Ew.Output~) Do 
 #endif
@@ -185,7 +192,9 @@ module PlayerResources {
 						UpdateGContain ias (
 							// (<number>)
 							F ias nil;
-							(GContain (F~ 0) Get)^
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (GContain (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
 							((Player Id~ has gcontain factor GContain~) Ew.Output~) Do 
 #endif
@@ -194,6 +203,8 @@ module PlayerResources {
 						UpdateUnitsInfo ias (
 							F ias nil;
 							K ias nil;
+							P ias nil;
+							PP ias nil;
 							(Ignore false) ias (
 								ParseInfo ias (
 									// parses property
@@ -201,11 +212,11 @@ module PlayerResources {
 										// setups Q counter (Q kind class); see TakeOnBoardUnit
 										SQC ias (
 											// quantity
-											((Q K~ $~) 0)^
+											((Q K~ ($~ 0) Get) ($~ 1) Get)^
 											// make it addressable -> Resources.Business
-											((Q K~ $~) Business true) Context
+											((Q K~ ($~ 0) Get) Business true) Context
 #if (verbose)                                           	
-											((Player Id~ initialized (Q K~ $~) to (Q K~ $~)~) Ew.Output~) Do
+											((Player Id~ initialized (Q K~ ($~ 0) Get) to (Q K~ ($~ 0) Get)~) Ew.Output~) Do
 #endif                                                  	
 										);
 										// available classes
@@ -217,12 +228,12 @@ module PlayerResources {
 									(P ($~ 1) Get)^
 									(PP (P~ 0) Get)~ Exe
 								);
+								(F (F~ 1) Get)^
 								(F~ ParseInfo~) ForEach
 							);
 							(Ignore true) ias doNothing;
 							(Ignore (F~ nil) Ident)~ Exe
 						);
-
 						(UpdateGDevelop.F (From~ 1) Get)^
 						UpdateGDevelop~ Exe
 						(UpdateGContain.F (From~ 2) Get)^
