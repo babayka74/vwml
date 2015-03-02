@@ -17,6 +17,10 @@ public abstract class InterpretationObserver {
 		this.ambiguosOn = ambiguosOn;
 	}
 
+	public void reset() {
+		setAmbiguosOn(false);
+	}
+	
 	/**
 	 * Called when ambiguous interpretation detected
 	 * @param interpreted

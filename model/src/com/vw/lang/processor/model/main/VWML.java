@@ -72,6 +72,7 @@ public final class VWML {
 			// the module's props are set during compilation phase (see grammar file, term 'filedef')
 			modelBuilder.setInterpretationProps(buildInterpretationProps(args));
 			modelBuilder.setCompilationSink(compilationSink);
+			modelBuilder.setWarningFlags(args.getWarnings());
 			if (chunkVwmlCode != null) {
 				modelBuilder.compileInMemoryFile(chunkVwmlCode);
 			}
@@ -291,12 +292,15 @@ public final class VWML {
 		private String preprocessorDirective = null;
 		@Option(name="-debuginfo", usage="includes debug info in case if true specified")
 		private String includeDebugInfo = null;
+		@Option(name="-w", usage="warning flags")
+		private String warningFlags = null;
 		
 		 // receives other command line parameters than options
 	    @Argument
 	    private List<String> arguments = new ArrayList<String>();
 	    private List<String> directives = new ArrayList<String>();
-
+	    private List<String> warnings = new ArrayList<String>();
+	    
 		public String getAddons() {
 			return addons;
 		}
@@ -353,12 +357,24 @@ public final class VWML {
 			this.preprocessorDirective = preprocessorDirective;
 		}
 		
+		public String getWarningFlags() {
+			return warningFlags;
+		}
+
+		public void setWarningFlags(String warningFlags) {
+			this.warningFlags = warningFlags;
+		}
+
 		public List<String> getDirectives() {
 			return directives;
 		}
 
 		public List<String> getArguments() {
 			return arguments;
+		}
+
+		public List<String> getWarnings() {
+			return warnings;
 		}
 
 		public void setArguments(List<String> arguments) {
@@ -381,6 +397,7 @@ public final class VWML {
 					+ interpreterProps + ", addons=" + addons
 					+ ", includeDebugInfo=" + includeDebugInfo
 					+ ", arguments=" + arguments + ", directives=" + directives
+					+ ", warningFlags=" + warningFlags
 					+ "]";
 		}
 	}
@@ -450,6 +467,12 @@ public final class VWML {
 				String[] list = vwmlArgs.getPreprocessorDirective().split(",");
 				for(String directive : list) {
 					vwmlArgs.getDirectives().add(directive);
+				}
+			}
+			if (vwmlArgs.getWarningFlags() != null) {
+				String[] list = vwmlArgs.getWarningFlags().split(",");
+				for(String wFlag : list) {
+					vwmlArgs.getWarnings().add(wFlag);
 				}
 			}
 			if (logger.isInfoEnabled()) {

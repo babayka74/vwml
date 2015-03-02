@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java;
 
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
+import com.vw.lang.sink.java.entity.InterpretationObserver;
 
 /**
  * Interpterer's export interface
@@ -15,6 +16,12 @@ public interface IVWMLInterpreterBroker {
 	 */
 	public void setDebuggerGate(IVWMLGate debuggerGate);
 
+	/**
+	 * Sets interpretation observer
+	 * @param interpretationObserver
+	 */
+	public void setInterpretationObserver(InterpretationObserver interpretationObserver);
+	
 	/**
 	 * Actually starts interpretation process
 	 * @throws Exception

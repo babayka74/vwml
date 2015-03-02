@@ -84,10 +84,10 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (modules == null) {
 			throw new Exception("modules were not set; check flow");
 		}
-		if (getInterpretationObserver() != null) {
-			getInterpretationObserver().setAmbiguosOn(true);
-		}
 		for(VWMLModule module : modules) {
+			if (getInterpretationObserver() != null) {
+				module.setInterpretationObserver(getInterpretationObserver());
+			}
 			module.prepare();
 		}
 		for(VWMLModule module : modules) {
@@ -97,7 +97,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 			module.linkage();
 		}
 		if (getInterpretationObserver() != null) {
-			getInterpretationObserver().setAmbiguosOn(false);
+			getInterpretationObserver().reset();
 		}
 		modulesBuilt = true;
 	}

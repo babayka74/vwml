@@ -13,6 +13,7 @@ import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.InterpretationProps;
 import com.vw.lang.sink.java.IVWMLInterpreterBroker;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
+import com.vw.lang.sink.java.entity.InterpretationObserver;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterBroker;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
 import com.vw.lang.sink.java.module.VWMLModule;
@@ -112,6 +113,7 @@ public class VWML2JavaInterpreterBridge {
 		imports += "import " + VWMLInterpreterBroker.class.getName() + ";\r\n";
 		imports += "import " + VWMLPair.class.getName() + ";\r\n";
 		imports += "import " + IVWMLGate.class.getName() + ";\r\n";
+		imports += "import " + InterpretationObserver.class.getName() + ";\r\n";
 		// looking for debugger's property
 		if (projProps.getInterpretationProps().isActivateDebugger()) {
 			Properties p = projProps.getInterpretationProps().getDynamicProps();
@@ -146,9 +148,10 @@ public class VWML2JavaInterpreterBridge {
 		body += "\tprivate static " + s_className + " s_instance = new " + s_className + "();\r\n\r\n\tprivate " + s_className + "() {\r\n\t}\r\n\r\n";
 		body += "\tpublic static " + s_className + " instance() {\r\n\t\ts_instance.init();\r\n\t\treturn s_instance;\r\n\t}\r\n\r\n";
 		body += "\tpublic VWMLModule[] getModules() {\r\n\t\treturn modules;\r\n\t}\r\n\r\n";
-		body += "\tpublic void startInterpretationProcess() throws Exception {\r\n\t\tif (vwmlInterpreterBroker == null) {\r\n\t\t\tvwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\t\t}\r\n\t\tvwmlInterpreterBroker.setDebuggerGate(debuggerGate);\r\n\t\tvwmlInterpreterBroker.start();\r\n\t}\r\n\r\n";
+		body += "\tpublic void setInterpretationObserver(InterpretationObserver interpretationObserver) {\r\n\t\tthis.interpretationObserver = interpretationObserver;\r\n\t}\r\n\r\n";
+		body += "\tpublic void startInterpretationProcess() throws Exception {\r\n\t\tif (vwmlInterpreterBroker == null) {\r\n\t\t\tvwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\t\t}\r\n\t\tvwmlInterpreterBroker.setDebuggerGate(debuggerGate);\r\n\t\tvwmlInterpreterBroker.setInterpretationObserver(interpretationObserver);\r\n\t\tvwmlInterpreterBroker.start();\r\n\t}\r\n\r\n";
 		body += "\tpublic void clearResources() throws Exception {\r\n\t\tvwmlInterpreterBroker.clear();\r\n\t\tvwmlInterpreterBroker = null;\r\n\t}\r\n\r\n";
-		body += "\tpublic void buildLinks() throws Exception {\r\n\t\tif (vwmlInterpreterBroker == null) {\r\n\t\t\tvwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\t\t}\r\n\t\tvwmlInterpreterBroker.build();\r\n\t}\r\n\r\n";
+		body += "\tpublic void buildLinks() throws Exception {\r\n\t\tif (vwmlInterpreterBroker == null) {\r\n\t\t\tvwmlInterpreterBroker = VWMLInterpreterBroker.instance(modules, propPairs);\r\n\t\t}\r\n\t\tvwmlInterpreterBroker.setInterpretationObserver(interpretationObserver);\r\n\t\t;vwmlInterpreterBroker.build();\r\n\t}\r\n\r\n";
 		if (debuggerGateName != null) {
 			body += "\tprotected void init() {\r\n\t\tdebuggerGate = " + debuggerGateName + ".instance();\r\n\t}\r\n";
 		}
@@ -163,6 +166,7 @@ public class VWML2JavaInterpreterBridge {
 		declarations += prepareInterpretersProperties(projProps.getInterpretationProps());
 		declarations += "\tprivate IVWMLInterpreterBroker vwmlInterpreterBroker = null;\r\n\r\n";
 		declarations += "\tprivate IVWMLGate debuggerGate = null;\r\n\r\n";
+		declarations += "\tprivate InterpretationObserver interpretationObserver = null;\r\n\r\n";
 		return declarations;
 	}
 	

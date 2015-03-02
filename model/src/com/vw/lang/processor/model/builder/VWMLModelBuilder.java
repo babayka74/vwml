@@ -158,6 +158,7 @@ public class VWMLModelBuilder extends Debuggable {
 	private InterpretationProps interpretationProps = null;
 	private StartModuleProps projectProps = null;
 	private boolean operatedFromIDE = false;
+	private List<String> warningFlags = null;
 	private final Logger logger = Logger.getLogger(VWMLModelBuilder.class);
 	// association between sink type and code generator
 	@SuppressWarnings("serial")
@@ -250,6 +251,14 @@ public class VWMLModelBuilder extends Debuggable {
 
 	public void setOperatedFromIDE(boolean operatedFromIDE) {
 		this.operatedFromIDE = operatedFromIDE;
+	}
+
+	public List<String> getWarningFlags() {
+		return warningFlags;
+	}
+
+	public void setWarningFlags(List<String> warningFlags) {
+		this.warningFlags = warningFlags;
 	}
 
 	/**
