@@ -149,7 +149,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 						if (cPair == null) {
 							throw new Exception("non-wellformed context '" + ctx.getContext() + "'");
 						}
-						VWMLEntity e1 = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, e);
+						VWMLEntity e1 = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfCloneOnStackInspector(cPair, e);
 						if (e1 != null && e1 != e) {
 							reversedStack.set(i, e1);
 						}

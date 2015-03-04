@@ -16,6 +16,16 @@ public class VWMLBuilderInterpretationObserver extends InterpretationObserver {
 	
 	@Override
 	public void ambiguous(VWMLEntity interpreted, VWMLEntity interpreting) {
-		logger.warn("ambiguous interpretation of '" + interpreted.getContext() + "." + interpreted.getId() + " -> " + interpreting.getContext() + "." + interpreting.getId());
+		logger.warn("ambiguous interpretation of '" + interpreted.getContext().getContext() + "." + interpreted.getId() + " -> " + "[" + interpreted.getInterpreting().getContext().getContext() + "." + interpreted.getInterpreting().getId() + "] / [" + interpreting.getContext().getContext() + "." + interpreting.getId() + "]");
+	}
+
+	@Override
+	public void unresolvedAmbiguous(VWMLEntity interpreted, VWMLEntity interpreting) {
+		logger.error("unresolved ambiguous interpretation of '" + interpreted.getContext().getContext() + "." + interpreted.getId() + " -> " + "[" + interpreted.getInterpreting().getContext().getContext() + "." + interpreted.getInterpreting().getId() + "] / [" + interpreting.getContext().getContext() + "." + interpreting.getId() + "]");
+	}
+
+	@Override
+	public void resolvedAmbiguous() {
+		logger.info("all unresolved ambiguous interpretations were resolved successfully");
 	}
 }

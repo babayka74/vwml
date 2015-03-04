@@ -68,6 +68,7 @@ public class JavaCodeGeneratorModule extends JavaCodeGeneratorComponent {
 		// generates linkage method which calls repository's and link's methods
 		getFw().write("\t@Override\r\n\tpublic void prepare() throws Exception {\r\n");
 		getFw().write("\t\trepository.setInterpretationObserver(getInterpretationObserver());\r\n");
+		getFw().write("\t\tlinkage.setInterpretationObserver(getInterpretationObserver());\r\n");
 		getFw().write("\t\trepository.addContexts();\r\n");
 		getFw().write("\t}\r\n\r\n");
 	}

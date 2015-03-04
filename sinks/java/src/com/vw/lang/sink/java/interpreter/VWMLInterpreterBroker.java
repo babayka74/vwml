@@ -2,10 +2,13 @@ package com.vw.lang.sink.java.interpreter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.vw.lang.beyond.java.fringe.gate.IVWMLGate;
 import com.vw.lang.conflictring.visitor.VWMLConflictRingVisitor;
 import com.vw.lang.sink.java.IVWMLInterpreterBroker;
+import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.InterpretationObserver;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLPair;
@@ -84,6 +87,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		if (modules == null) {
 			throw new Exception("modules were not set; check flow");
 		}
+		VWMLObjectsRepository.instance().setUnderConstruction(true);
 		for(VWMLModule module : modules) {
 			if (getInterpretationObserver() != null) {
 				module.setInterpretationObserver(getInterpretationObserver());
@@ -96,6 +100,19 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		for(VWMLModule module : modules) {
 			module.linkage();
 		}
+		Map<VWMLObject, VWMLObject> nr = VWMLObjectsRepository.instance().resolve();
+		if (getInterpretationObserver() != null) {
+			if (nr.size() != 0) {
+				for(VWMLObject f : nr.keySet()) {
+					getInterpretationObserver().unresolvedAmbiguous((VWMLEntity)f, (VWMLEntity)nr.get(f));
+				}
+			}
+			else {
+				getInterpretationObserver().resolvedAmbiguous();
+			}
+		}
+		nr.clear();
+		VWMLObjectsRepository.instance().setUnderConstruction(false);
 		if (getInterpretationObserver() != null) {
 			getInterpretationObserver().reset();
 		}

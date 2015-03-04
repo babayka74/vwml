@@ -237,7 +237,7 @@ module PlayerResources {
 #if (release)
 						Fs ias ();
 #endif
-						Report ias (
+						R ias (
 							(T ($~ 0) Get)^
 #if (verbose)
 							((Player Id~ has business conf for resource (Bdf T~) (Bdf T~)~ and (Kdf T~) (Kdf T~)~) Ew.Output~) Do
@@ -246,7 +246,7 @@ module PlayerResources {
 							(Fs (Fs~ ((T~ (Bdf T~)~ (Kdf T~)~))) Join)^
 #endif
 						);
-						(Ew.BusinessConf.Factors~ Report~) ForEach
+						(Ew.BusinessConf.Factors~ R~) ForEach
 #if (verbose)
 						((Player Id~ compiled business factors Fs~) Ew.Output~) Do
 #endif
@@ -388,6 +388,7 @@ module PlayerResources {
 					);
 				);
 				PreInit ias (
+					1025 Bp
 					ResourceManager.Init~ Exe
 					Units.Init~ Exe
 					Account.Init~ Exe

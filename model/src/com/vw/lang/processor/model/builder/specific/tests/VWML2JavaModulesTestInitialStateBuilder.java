@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import com.vw.lang.processor.model.builder.specific.VWML2JavaInterpreterBridge;
 import com.vw.lang.sink.ICodeGenerator.StartModuleProps;
 import com.vw.lang.sink.java.code.JavaCodeGenerator.JavaModuleStartProps;
+import com.vw.lang.sink.java.entity.InterpretationObserver;
+import com.vw.lang.sink.java.interpreter.ext.observer.VWMLBuilderInterpretationObserver;
 
 /**
  * Constructs java unit-test cases for created modules
@@ -79,19 +81,43 @@ public class VWML2JavaModulesTestInitialStateBuilder extends TestBuilder {
 			imports += importClass + "\r\n";
 		}
 		if (getInterpretationObserver() != null) {
-			imports += "import " + getInterpretationObserver().getClass().getName() + ";";
+			imports += "import " + InterpretationObserver.class.getName() + ";\r\n";
+			imports += "import " + VWMLBuilderInterpretationObserver.class.getName() + ";\r\n";
 		}
 		imports += "\r\n";
 		return imports;
 	}	
 	
+	private String prepareDeclarations() {
+		boolean firstIt = true;
+		String declarations = "";
+		String warnFlags = "";
+		if (this.getWarningFlags() != null && this.getWarningFlags().size() != 0) {
+			warnFlags += "\r\n\tprivate String warnFlags[] = {\r\n";
+			for(String wf : this.getWarningFlags()) {
+				if (!firstIt) {
+					warnFlags += ",\r\n";
+				} 
+				firstIt = false;
+				warnFlags += "\t\t\"" + wf + "\"";
+			}
+			warnFlags += "\r\n\t};\r\n\r\n";
+		}
+		declarations += warnFlags;
+		return declarations;
+	}
+	
 	private String prepareTestBody() {
+		String decls = prepareDeclarations();
 		String body = "\r\n\t@Test\r\n\tpublic void testGeneratedCode() throws Exception {\r\n";
 		if (getInterpretationObserver() != null) {
-			body += "\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().setInterpretationObserver(" + getInterpretationObserver().getClass().getSimpleName() + ".instance());\r\n";
+			body += "\t\tInterpretationObserver interpretationObserver = " + getInterpretationObserver().getClass().getSimpleName() + ".instance();\r\n";
+			body += "\t\tinterpretationObserver.setFlags(warnFlags);\r\n";
+			body += "\t\tinterpretationObserver.setup();\r\n";
+			body += "\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().setInterpretationObserver(interpretationObserver);\r\n";
 		}
 		body += "\t\t" + VWML2JavaInterpreterBridge.s_className + ".instance().buildLinks();";
 		body += "\r\n\t}\r\n\r\n";
-		return body;
+		return decls + "\r\n" + body;
 	}
 }

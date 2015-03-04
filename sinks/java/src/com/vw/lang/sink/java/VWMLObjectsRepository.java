@@ -27,7 +27,9 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = null;
-	private Map<Object, VWMLObject> translatedObjects  = new HashMap<Object, VWMLObject>();
+	private Map<VWMLObject, VWMLObject> translatedObjects  = new HashMap<VWMLObject, VWMLObject>();
+	// sets to 'true' during model's linkage phase
+	private boolean isUnderConstruction = false;
 	
 	public static VWMLObjectsRepository instance() {
 		return VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepo();
@@ -116,9 +118,23 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	 * @throws Exception
 	 */
 	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype) throws Exception {
-		return getAndCreateInCaseOfClone(cPair, prototype, false);
+		return getAndCreateInCaseOfClone(cPair, prototype, false, false);
 	}
 
+	/**
+	 * Lookups for entity on context pair, supposing that context may be cloned
+	 * 1. lookup on original context
+	 * 2. in case if entity found on original context it must be created on effective (meaning that effective is cloned_
+	 * 3. in case if entity not found on original context - exception is thrown
+	 * @param cPair
+	 * @param prototype
+	 * @return
+	 * @throws Exception
+	 */
+	public static VWMLObject getAndCreateInCaseOfCloneOnStackInspector(ContextIdPair cPair, VWMLEntity prototype) throws Exception {
+		return getAndCreateInCaseOfClone(cPair, prototype, false, true);
+	}
+	
 	/**
 	 * See 'getAndCreateInCaseOfClone' below
 	 * @param contextId
@@ -133,7 +149,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			return null;
 		}
 		prototype.setReadableId(prototypeId);
-		return getAndCreateInCaseOfClone(cPair, prototype, true);
+		return getAndCreateInCaseOfClone(cPair, prototype, true, false);
 	}
 
 	/**
@@ -148,7 +164,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		if (cPair == null) {
 			return null;
 		}
-		return getAndCreateInCaseOfClone(cPair, prototype, true);
+		return getAndCreateInCaseOfClone(cPair, prototype, true, false);
 	}	
 	
 	/**
@@ -161,7 +177,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	 * @return
 	 * @throws Exception
 	 */
-	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype, boolean lookupByReadableId) throws Exception {
+	public static VWMLObject getAndCreateInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype, boolean lookupByReadableId, boolean lookupOnStackInspector) throws Exception {
 		VWMLEntity lookedEntity = null;
 		// 1. checks for special kind of entities
 		// 2. checks whether context is child of cPair or no
@@ -204,7 +220,6 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					ctxOnModel = VWMLContextsRepository.instance().get(prototypeCPair.getOrigContextId());
 				}
 				else {
-					// checking its on original (aka model)
 					ctxOnModel = VWMLContextsRepository.instance().get(cPair.getOrigContextId());
 				}
 				if (ctxOnModel == null) {
@@ -523,12 +538,58 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	 * @param translationKey
 	 * @param obj
 	 */
-	public void addTranslatedObject(Object translationKey, VWMLObject obj) {
-		translatedObjects.put(translationKey, obj);
+	public void addTranslatedObject(VWMLObject from, VWMLObject to) {
+		translatedObjects.put(from, to);
 	}
 	
-	public VWMLObject getTranslatedObject(Object translationKey) {
-		return translatedObjects.get(translationKey);
+	public VWMLObject getTranslatedObject(Object from) {
+		return translatedObjects.get(from);
+	}
+
+	public Map<VWMLObject, VWMLObject> resolve() {
+		Map<VWMLObject, VWMLObject> nonResolved = new HashMap<VWMLObject, VWMLObject>();
+		for(VWMLObject from : translatedObjects.keySet()) {
+			VWMLObject to = translatedObjects.get(from);
+			if (((VWMLEntity)from).deduceEntityType() == ((VWMLEntity)to).deduceEntityType()) {
+				if (from.equals(to)) {
+					continue;
+				}
+				if (((VWMLEntity)from).isTerm()) {
+					if (((VWMLTerm)from).getAssociatedEntity().equals(((VWMLTerm)to).getAssociatedEntity())) {
+						continue;
+					}
+					else {
+						// non - resolvable
+						nonResolved.put(from, to);
+					}
+				}
+				else {
+					VWMLLinkIncrementalIterator it = ((VWMLEntity)from).getLink().acquireLinkedObjectsIterator();
+					if (it != null) {
+						for(; it.isCorrect(); it.next()) {
+							VWMLObject o = ((VWMLEntity)from).getLink().getConcreteLinkedEntity(it.getIt());
+							to.getLink().link(o);
+						}
+						from.getLink().clear();
+						from.getLink().setParent(null);
+					}
+				}
+			}
+			else {
+				// non - resolvable
+				nonResolved.put(from, to);
+			}
+		}
+		translatedObjects.clear();
+		return nonResolved;
+	}
+	
+	public boolean isUnderConstruction() {
+		return isUnderConstruction;
+	}
+
+	public void setUnderConstruction(boolean isUnderConstruction) {
+		this.isUnderConstruction = isUnderConstruction;
 	}
 
 	protected VWMLContext findInheritedContext(String contextId, VWMLContext parent) {

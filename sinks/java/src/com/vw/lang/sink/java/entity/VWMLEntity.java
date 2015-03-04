@@ -420,26 +420,29 @@ public class VWMLEntity extends VWMLObject {
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {
-		if (interpretationObserver != null) {
-			// checks func's flags
-			if (interpretationObserver.isAmbiguosOn()) {
-				if (interpreting != null) {
-					interpretationObserver.ambiguous(this, interpreting);
+		if (getInterpreting() != null && VWMLObjectsRepository.instance().isUnderConstruction()) {
+			// notify observer about ambiguous interpretation
+			if (interpretationObserver != null && interpretationObserver.isAmbiguosOn()) {
+				interpretationObserver.ambiguous(this, interpreting);
+			}
+			// ambiguous interpretation must be resolved on repository's construction phase
+			// change interpeting.id -> this.getInterpreting().id
+			VWMLObjectsRepository.instance().addTranslatedObject(interpreting, getInterpreting());
+		}
+		else {
+			this.interpreting = interpreting;
+			if (interpreting != null) {
+				interpretationHistory.store(interpreting);
+				if (interpreting.equals(VWMLObjectsRepository.instance().getNullEntity())) {
+					interpreting = null;
 				}
 			}
-		}
-		this.interpreting = interpreting;
-		if (interpreting != null) {
-			interpretationHistory.store(interpreting);
-			if (interpreting.equals(VWMLObjectsRepository.instance().getNullEntity())) {
-				interpreting = null;
+			if (originalInterpreting == null) {
+				originalInterpreting = interpreting;
 			}
-		}
-		if (originalInterpreting == null) {
-			originalInterpreting = interpreting;
-		}
-		if (this.getLink().getLinkOperationVisitor() != null) {
-			this.getLink().getLinkOperationVisitor().interpretObjectAs(this, interpreting);
+			if (this.getLink().getLinkOperationVisitor() != null) {
+				this.getLink().getLinkOperationVisitor().interpretObjectAs(this, interpreting);
+			}
 		}
 	}
 	

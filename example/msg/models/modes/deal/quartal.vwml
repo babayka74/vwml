@@ -370,7 +370,7 @@ module Quartal {
 						(State wtp)^
 					);
 					// invest isn't allowed
-				        (invest cnp),(invest onp),(invest wtp),(invest cp) ias (
+				        (invest cnp),(invest onp),(invest cp) ias (
 #if (verbose)
 						((The quartal Id~ belongs to Owner~ is in state State~ and investment not allowed) Ew.Output~) Do					
 #endif

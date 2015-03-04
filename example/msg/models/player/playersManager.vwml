@@ -48,7 +48,6 @@ module PlayersManager {
 #endif                                  	
 					((Player PId~)->Id PId~)^
 					((Player PId~)->Stop false)^
-					1025 Bp
 					((Player PId~)) Activate
 				);
 				(State resetted) ias (

@@ -20,8 +20,9 @@ import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
  */
 public class VWMLContext extends VWMLObject {
 
+	public static String same_context = ".";
+	
 	private static String contexts_fake_object = "__fake_object__";
-	private static String same_context = ".";
 	
 	private String[] contextPath;
 	private String context;
