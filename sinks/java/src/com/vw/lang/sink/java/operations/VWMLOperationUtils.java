@@ -329,7 +329,7 @@ public class VWMLOperationUtils {
 	
 	private static VWMLEntity lookupAndRelinkEntityOnContext(ContextIdPair ctxPair, VWMLEntity newComplexEntity) throws Exception {
 		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(ctxPair, newComplexEntity, true, false);
-		if (lookedEntity != null) {
+		if (lookedEntity != null && lookedEntity != newComplexEntity) {
 			if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
 				if (lookedEntity.getLink() != null) {
 					lookedEntity.getLink().getLinkedObjects().clear();

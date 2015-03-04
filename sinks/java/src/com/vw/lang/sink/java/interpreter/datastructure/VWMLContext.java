@@ -251,6 +251,22 @@ public class VWMLContext extends VWMLObject {
 	}
 	
 	/**
+	 * Returns context's first cloned context on its path, if exists
+	 * @return
+	 */
+	public VWMLContext getFirstCloned() {
+		VWMLContext p = this, r = null;
+		while (p != null) {
+			r = p;
+			if (p.getClonedFrom() != null) {
+				break;
+			}
+			p = (VWMLContext)p.getLink().getParent();
+		}
+		return r;
+	}
+	
+	/**
 	 * Clears context's resources
 	 */
 	public void clear() {

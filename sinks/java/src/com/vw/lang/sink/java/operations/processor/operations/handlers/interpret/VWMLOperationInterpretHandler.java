@@ -123,29 +123,6 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 				throw new Exception("inconsistency found for term '" + entity + "'; please check initial state initialization");
 			}
 		}
-		// if entity wasn't defined using IAS operator and its interpretation was setup using 
-		// undefined interpetation strategy then interpretation 
-		// should be considered in more complicated way
-		if (entity.isRecursiveInterpretationOnOriginal()) {
-			if (entity.getResolvedInRuntime() == null) {
-				// looking for entities for which interpreting expression ^ was applied
-				String contextId = entity.getContext().getContext();
-				int le = contextId.lastIndexOf(".");
-				if (le != -1) {
-					contextId = contextId.substring(0, le);
-					entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(contextId, entity.buildReadableId());
-					if (entity == null) {
-						entity = initialEntity;
-					}
-					else {
-						entity.setResolvedInRuntime(entity);
-					}
-				}
-			}
-			else {
-				entity = entity.getResolvedInRuntime();
-			}
-		}
 		interpretingEntity = lazyInterpeting(entity);
 		if (interpretingEntity == null) {
 			VWMLContext onContext = entity.getContext();

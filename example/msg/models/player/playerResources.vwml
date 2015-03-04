@@ -388,7 +388,6 @@ module PlayerResources {
 					);
 				);
 				PreInit ias (
-					1025 Bp
 					ResourceManager.Init~ Exe
 					Units.Init~ Exe
 					Account.Init~ Exe

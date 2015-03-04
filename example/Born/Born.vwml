@@ -35,6 +35,14 @@ module BornSimulation {
 		inc ias services.math.inc;
 		Id ias 0;
 		W ias 8;
+		QuartalsConf ias (
+			Resources ias ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50) (viski 50 500 9 5000 50));
+			SherifBribeRanges ias (300 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
+		);
+
+		ModeInfo ias (
+			ModeDeal ias deal;
+		);
 
 		AAA ias (
 			(x 2) ias 9;
@@ -44,15 +52,76 @@ module BornSimulation {
 			II ias ((II output k k~) Ew.out~) Do;
 			I ias (
 				((I output k k~) Ew.out~) Do
-				1025 Bp
 				(SSS.k 9)^
 				SSS~ Exe
 			);
 		);
 
+		Update2 ias (
+			Account ias ();
+			From ias ((kofe 900) (vino 300));
+			AssociateByRt ias (
+				(Type ($~ 0) Get)^
+				((Rt Type~) ($~ 1) Get)^
+				((Rt Type~) Account true) Context
+				((Player G has resource (Rt Type~) (Rt Type~)~) Ew.out~) Do 
+			);
+			(From~ AssociateByRt~) ForEach
+		);
+
 		P1 ias (
 			Id ias 0;
 			(1 9) ias 13;
+			Account ias ();
+
+			Type ias 0;
+			Quantum ias 0;
+			Period ias 0;
+			Quantums ias 0;
+			OpenTime ias 0;
+			DesiredOpenInfoPrice ias 0;
+
+			ActiveModes ias (
+				((mode is ModeInfo.ModeDeal~) Ew.out~) Do
+			);
+
+			Sherif ias (
+				DesiredBribe ias 0;
+			);
+
+			UpdateQ ias (
+				QConf ias nil;
+				BribeR ias nil;
+
+				(Type (QConf~ 0) Get)^
+				(Quantum (QConf~ 1) Get)^
+                                (Period (QConf~ 2) Get)^
+				(Quantums (QConf~ 3) Get)^
+				(OpenTime (QConf~ 4) Get)^
+				(DesiredOpenInfoPrice (QConf~ 5) Get)^
+				(Sherif.DesiredBribe BribeR~)^
+			);
+
+			/* resource initialization point */
+			Init ias (
+				1025 Bp
+				(UpdateQ.QConf Ew.QuartalsConf.Resources~ Random)^
+				(UpdateQ.BribeR Ew.QuartalsConf.SherifBribeRanges~ Random)^
+				UpdateQ~ Exe
+				((The quartal Id~ initialized with configuration (Type~ Quantum~ Period~ Quantums~ OpenTime~ DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.out~) Do					
+			);
+
+			Update ias (
+				From ias ((vodka 100) (kola 200));
+				AssociateByRt ias (
+					(Type ($~ 0) Get)^
+					((Rt Type~) ($~ 1) Get)^
+					((Rt Type~) Account true) Context
+					((Player Id~ has resource (Rt Type~) (Rt Type~)~) Ew.out~) Do 
+				);
+				(From~ AssociateByRt~) ForEach
+			);
+
 			Life ias (
 				T ias (
 					((Id is Id~ and param is $~) Ew.out~) Do
@@ -70,93 +139,37 @@ module BornSimulation {
 					(X~ XT~) ForEach
 				);
 				((I am here Id~) Ew.out~) Do
+				Update2~ Exe
+				Update~ Exe
+				((on account ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
+				ActiveModes~ Exe
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
 				(AAA Id~)->II~ Exe
 				(AAA Id~)->I~ Exe
 				(LLL.k 19)^
 				LLL~ Exe
-				1025 Bp
 				((z is (AAA Id~)->z~~) Ew.out~) Do
 				((m is (AAA Id~)->m~~) Ew.out~) Do
 				((k is (AAA Id~)->k~) Ew.out~) Do
 				((l Id~) Id~)^
 				((The l is (l Id~)~) Ew.out~) Do
-				1025 Bp
 				(Y~ ML~) ForEach
 				(M~ MT~) ForEach
 				//(((AAA Id~)->m~~ (AAA Id~)->z~~) 11)^
-				(2000 Id~ T~ nil ((AAA Id~)->m~~ (AAA Id~)->z~~)~) Recall
-				5000 Relax
+				(1000 Id~ T~ nil ((AAA Id~)->m~~ (AAA Id~)->z~~)~) Recall
+				2000 Relax
 				((AAA Id~)) Release
 			);		
 			lifeterm = (
+				((Id~ on start) Ew.out~) Do
+				Init~ Exe
 				Life~ Exe
 				((Id~ says bye) Ew.out~) Do
 			) Exe
 		);
 
-		Conf ias (
-			N1 ias (
-				E1 ias (test2);
-			);
-		);
-
-		Ex ias (
-			AX ias (
-				A1 ias (test1);
-				(A1 (A1~ Conf.N1.E1~) Join)^
-				((A1 A1~) Ew.out~) Do
-			);
-
-			Init ias (
-				ConfFields ias (SherifBribeRanges Resources);
-				SherifBribeRanges ias (100 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
-				Resources ias ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50));
-				((The quartals configuration is) Ew.out~) Do
-				
-				ShowField ias (($~ $~~) Ew.out~) Do;
-				(ConfFields~ ShowField~) ForEach
-			);
-		);
-
-		Es ias (
-			QuartalsConf ias (
-				ConfFields ias (SherifBribeRanges Resources);
-				// dynamic load configuration
-				Load ias (
-					Conf ias nil;
-					ConfIndex ias 0;
-					ShowField ias (($~ $~~) Ew.out~) Do;
-					ApplyConf ias (
-						SetConfField ias (
-							($~ ((Conf~ ConfIndex~) Get 1) Get)^
-							($~ QuartalsConf true) Context
-							(ConfIndex ((ConfIndex~) Ew.inc~) Do)^
-						);
-						(ConfIndex 0)^
-						(ConfFields~ SetConfField~) ForEach 
-					);
-					(NotReady true) ias doNothing;
-					(NotReady false) ias ApplyConf~ Exe;
-					(NotReady (Conf~ nil) Ident)~ Exe
-
-					((The quartals configuration is) Ew.out~) Do
-					(ConfFields~ ShowField~) ForEach
-				);
-			);
-		);
-
 		Life ias (
-/*
-			Ex.AX~ Exe
-			Ex.Init~ Exe
-
-			(Es.QuartalsConf.Load.Conf ((SherifBribeRanges (300 200 300 100 200 400 500 100 200 100 100 50 10 20 40)) (Resources ((vodka 100 500 12 3000 100) (gold 10 500 10 4000 70) (food 50 500 9 5000 50) (viski 50 500 9 5000 50)))))^
-			((The loaded quartals configuration is Es.QuartalsConf.Load.Conf~) Ew.out~) Do
-			Es.QuartalsConf.Load~ Exe
-			300000 Relax
-*/
 
 			(StopBorn true) ias (
 				((Cloner stops) Ew.out~) Do
@@ -166,14 +179,15 @@ module BornSimulation {
 				(P1 (P1 Ew.Id~) defer) Born
 				((P1 Ew.Id~)->Id Ew.Id~)^
 				((P1 Ew.Id~)) Activate
+				5000 Relax
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 1) Ident)~ Exe
+			(StopBorn (Ew.Id~ 2) Ident)~ Exe
 		);
 
 		source lifeterm = (
 			Life~ Exe
-			15000 Relax
+			150000 Relax
 		) Exe
 	);
 }
