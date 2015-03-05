@@ -79,6 +79,7 @@ module BornSimulation {
 			Account ias (
 				Withdraw ias (
 					R ias vodka;
+					1025 Bp
 					(ByRtType (Rt R~))^
 					((inside account ByRtType~~) Ew.out~) Do
 				);
@@ -98,6 +99,9 @@ module BornSimulation {
 
 			Sherif ias (
 				DesiredBribe ias 0;
+				Resources ias (
+					Result ias true;
+				);
 			);
 
 			UpdateQ ias (
@@ -115,7 +119,6 @@ module BornSimulation {
 
 			/* resource initialization point */
 			Init ias (
-				1025 Bp
 				(UpdateQ.QConf Ew.QuartalsConf.Resources~ Random)^
 				(UpdateQ.BribeR Ew.QuartalsConf.SherifBribeRanges~ Random)^
 				UpdateQ~ Exe
@@ -134,6 +137,10 @@ module BornSimulation {
 			);
 
 			Life ias (
+				(Result true) ias (
+					((Id is Id~ and result true) Ew.out~) Do
+				);
+				(Result false) ias 0;
 				T ias (
 					((Id is Id~ and param is $~) Ew.out~) Do
 				);
@@ -150,6 +157,8 @@ module BornSimulation {
 					(X~ XT~) ForEach
 				);
 				((I am here Id~) Ew.out~) Do
+				1025 Bp
+				(Result Sherif.Resources.Result~)~ Exe
 				Update2~ Exe
 				Update~ Exe
 				((on account ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
@@ -193,7 +202,7 @@ module BornSimulation {
 				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 1) Ident)~ Exe
+			(StopBorn (Ew.Id~ 5) Ident)~ Exe
 		);
 
 		source lifeterm = (

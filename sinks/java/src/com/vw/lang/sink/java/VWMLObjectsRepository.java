@@ -192,6 +192,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		else {
 			id = (String)prototype.getId();
 		}
+		ContextIdPair prototypeCPair = VWMLContextsRepository.instance().wellFormedContext(prototype.getContext().getContext());
 		// get context by effective (interpreter) id
 		VWMLContext ctxEffective = VWMLContextsRepository.instance().get(cPair.getEffectiveContextId());
 		if (!cPair.isCloneOfOriginal()) {
@@ -209,13 +210,18 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			if (ctxEffective != null) {
 				// if entity wasn't found on cloned context
 				lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(id, ctxEffective);
+				if (!prototype.isDynamicAddressedInRunTime() && lookedEntity != null) {
+					ContextIdPair lookedCtxIdPair = VWMLContextsRepository.instance().wellFormedContext(lookedEntity.getContext().getContext());
+					if (cPair.getEffectiveContextId().equals(lookedCtxIdPair.getEffectiveContextId())) {
+						lookedEntity = null;
+					}
+				}
 			}
 			if (lookedEntity == null) {
 				VWMLEntity onModelEntity = null;
 				VWMLContext ctxOnModel = null;
 				if (!prototype.isDynamicAddressedInRunTime()) {
 					// get context pair of prototype's context
-					ContextIdPair prototypeCPair = VWMLContextsRepository.instance().wellFormedContext(prototype.getContext().getContext());
 					VWMLContext firstClonedCtx = ctxEffective.getFirstCloned();
 					if (firstClonedCtx == null) {
 						throw new Exception("not found first cloned on '" + ctxEffective.getContext() + "'");
@@ -257,6 +263,10 @@ public class VWMLObjectsRepository extends VWMLRepository {
 							}
 						}
 						if (onModelEntity == null) {
+							lookedEntity = (VWMLEntity)VWMLObjectsRepository.instance().get(id, ctxEffective);
+							if (lookedEntity != null) {
+								prototype = lookedEntity;
+							}
 							return prototype;
 						}
 						String modelRelCtx = VWMLContext.getRelContextPath(firstClonedCtxPair.getOrigContextId(), onModelEntity.getContext().getContext());
