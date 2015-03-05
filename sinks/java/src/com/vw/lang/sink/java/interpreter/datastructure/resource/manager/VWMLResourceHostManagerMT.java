@@ -13,6 +13,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectsRelation;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.gate.VWMLGate;
@@ -85,6 +86,11 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 		return new ConcurrentHashMap<Object, VWMLObject>();
 	}
 
+	@Override
+	public Map<Object, VWMLObjectsRelation> requestObjectsRelationContainer() {
+		return new ConcurrentHashMap<Object, VWMLObjectsRelation>();
+	}
+	
 	@Override
 	public Map<VWMLEntity, VWMLEntity> requestEntityAssociatedContainer() {
 		return new ConcurrentHashMap<VWMLEntity, VWMLEntity>();
@@ -401,5 +407,4 @@ public class VWMLResourceHostManagerMT extends VWMLResourceHostManager {
 			}
 		}
 	}
-	
 }

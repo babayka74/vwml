@@ -326,7 +326,8 @@ public class VWMLObjectsRepository extends VWMLRepository {
 				if (it != null) {
 					for(; it.isCorrect(); it.next()) {
 						VWMLEntity e = (VWMLEntity)prototype.getLink().getConcreteLinkedEntity(it.getIt());
-						lookedEntity.getLink().link(e);
+						VWMLEntity eC = (VWMLEntity) getAndCreateInCaseOfClone(cPair, e);
+						lookedEntity.getLink().link(eC);
 					}
 				}
 				lookedEntity.buildReadableId();

@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectsRelation;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.gate.VWMLGate;
@@ -287,6 +288,12 @@ public abstract class VWMLResourceHostManager {
 	 * @return
 	 */
 	public abstract Map<Object, VWMLObject> requestObjectsRepoContainer();
+
+	/**
+	 * Requests container which is used by objects' relation
+	 * @return
+	 */
+	public abstract Map<Object, VWMLObjectsRelation> requestObjectsRelationContainer();
 	
 	/**
 	 * Requests container which is used by interceptor's repository

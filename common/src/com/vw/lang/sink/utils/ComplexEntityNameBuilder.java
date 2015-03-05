@@ -66,7 +66,7 @@ public class ComplexEntityNameBuilder {
 	private ComplexEntity currentComplexEntity = null;
 	private ComplexEntity rootComplexEntity = null;
 	private EntityWalker walker = EntityWalker.instance();
-	private IEntityNameBuilderVisitor nameBuilderVisitor = null;
+//	private IEntityNameBuilderVisitor nameBuilderVisitor = null;
 	
 	private static String s_empty_name = "()";
 	
@@ -98,7 +98,7 @@ public class ComplexEntityNameBuilder {
 	public static String generateRootId(String modName) {
 		return "CERModule_" + modName;
 	}
-	
+/*	
 	public IEntityNameBuilderVisitor getNameBuilderVisitor() {
 		return nameBuilderVisitor;
 	}
@@ -106,7 +106,7 @@ public class ComplexEntityNameBuilder {
 	public void setNameBuilderVisitor(IEntityNameBuilderVisitor nameBuilderVisitor) {
 		this.nameBuilderVisitor = nameBuilderVisitor;
 	}
-
+*/
 	/**
 	 * Generates empty complex entity
 	 * @return

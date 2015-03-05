@@ -11,6 +11,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectsRelation;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.gate.VWMLGate;
@@ -90,6 +91,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	@Override
 	public List<VWMLInterpreterTimer> requestTimerManagerContainer() {
 		return new ArrayList<VWMLInterpreterTimer>();
+	}
+
+	@Override
+	public Map<Object, VWMLObjectsRelation> requestObjectsRelationContainer() {
+		return new HashMap<Object, VWMLObjectsRelation>();
 	}
 	
 	@Override

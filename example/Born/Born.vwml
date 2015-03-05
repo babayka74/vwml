@@ -28,6 +28,10 @@ module BornSimulation {
 	);
 
 	(1 9) ias 12;
+	(2 9) ias 17;
+        (3 9) ias 18;
+	(4 9) ias 19;
+	(5 9) ias 20;
 
 	Ew ias (
 		out ias communication.out.write;
@@ -72,7 +76,14 @@ module BornSimulation {
 		P1 ias (
 			Id ias 0;
 			(1 9) ias 13;
-			Account ias ();
+			Account ias (
+				Withdraw ias (
+					R ias vodka;
+					(ByRtType (Rt R~))^
+					((inside account ByRtType~~) Ew.out~) Do
+				);
+				Withdraw~ Exe
+			);
 
 			Type ias 0;
 			Quantum ias 0;
@@ -142,6 +153,7 @@ module BornSimulation {
 				Update2~ Exe
 				Update~ Exe
 				((on account ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
+				Account~ Exe
 				ActiveModes~ Exe
 				(AAA (AAA Id~)) Born
 				((AAA Id~)->k Id~)^
@@ -179,10 +191,9 @@ module BornSimulation {
 				(P1 (P1 Ew.Id~) defer) Born
 				((P1 Ew.Id~)->Id Ew.Id~)^
 				((P1 Ew.Id~)) Activate
-				5000 Relax
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 2) Ident)~ Exe
+			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 
 		source lifeterm = (

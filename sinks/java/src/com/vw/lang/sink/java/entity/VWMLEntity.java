@@ -312,8 +312,6 @@ public class VWMLEntity extends VWMLObject {
 		}
 		for(VWMLObject e : getLink().getLinkedObjects()) {
 			((VWMLEntity)e).release();
-			e.getLink().getLinkedObjects().clear();
-			e.getLink().setParent(null);
 		}
 /*		
 		if (buildReadableId() != null) {

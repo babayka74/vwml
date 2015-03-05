@@ -16,6 +16,7 @@ public class VWMLLink {
 	
 	private volatile VWMLObject itself;
 	private volatile VWMLObject parent;
+	private volatile VWMLObject originalParent;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	private List<VWMLObject> linkedObjects = Collections.synchronizedList(new ArrayList<VWMLObject>());
 	
@@ -42,6 +43,18 @@ public class VWMLLink {
 
 	public void setParent(VWMLObject parent) {
 		this.parent = parent;
+		if (getOriginalParent() == null) {
+			setOriginalParent(parent);
+		}			
+	}
+
+	public VWMLObject getOriginalParent() {
+		return originalParent;
+	}
+
+	public void setOriginalParent(VWMLObject originalParent) {
+		this.originalParent = originalParent;
+		correctParentInTermCase(originalParent);
 	}
 
 	public AbstractVWMLLinkVisitor getLinkOperationVisitor() {
@@ -175,5 +188,11 @@ public class VWMLLink {
 			return null;
 		}
 		return linkedObjects.get(number);
+	}
+	
+	private void correctParentInTermCase(VWMLObject parent) {
+		if (itself != null && itself instanceof com.vw.lang.sink.java.entity.VWMLTerm && ((com.vw.lang.sink.java.entity.VWMLTerm)itself).getAssociatedEntity() != null) {
+			((com.vw.lang.sink.java.entity.VWMLTerm)itself).getAssociatedEntity().getLink().setOriginalParent(parent);
+		}
 	}
 }

@@ -184,7 +184,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 			else
 			if (lastInterpretedEntity.isTerm() && ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity() != null) {
 				lastInterpretedEntity = ((VWMLTerm)lastInterpretedEntity).getAssociatedEntity();
-				lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
+				//lastInterpretedEntity.getLink().setParent(context.peekParentEntity());
 				pushEmptyMark = true;
 			}
 			if (pushEmptyMark) {

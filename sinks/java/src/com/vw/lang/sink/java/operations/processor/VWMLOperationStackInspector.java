@@ -124,7 +124,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				else {
 					// entity belongs to code flow
 					VWMLEntity parent = null;
-					parent = (VWMLEntity)e.getLink().getParent();
+					parent = (VWMLEntity)e.getLink().getOriginalParent();
 					VWMLEntity p1 = null;
 					VWMLEntity p = parent;
 					while(p != null) {
@@ -132,7 +132,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 							cloneDetected = true;
 							break;
 						}
-						p1 = ((VWMLEntity)p.getLink().getParent());
+						p1 = ((VWMLEntity)p.getLink().getOriginalParent());
 						if (p1 == p) {
 							break;
 						}
