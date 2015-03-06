@@ -188,7 +188,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			VWMLContext c = null;
 			// re-process 'dyncontext' on separating parts in order to check well-forming
 			ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(dynContext);
-			if (cPair != null && cPair.isCloneOfOriginal()) {
+			if (cPair != null) {
 				c = VWMLContextsRepository.instance().createContextIfNotExists(cPair.getEffectiveContextId());
 			}
 			else {

@@ -86,6 +86,7 @@ public class VWMLOperationUtils {
 					newComplexEntity.setContext(context);
 					context.associateEntity(newComplexEntity);
 				}
+				newComplexEntity.buildReadableId();
 			}
 		}
 		else {

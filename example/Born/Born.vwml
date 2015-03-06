@@ -48,6 +48,12 @@ module BornSimulation {
 			ModeDeal ias deal;
 		);
 
+		Characters ias (
+			(Unit 1) ias (
+				Mode ias battle;
+			);
+		);
+
 		AAA ias (
 			(x 2) ias 9;
 			k ias 0;
@@ -79,9 +85,12 @@ module BornSimulation {
 			Account ias (
 				Withdraw ias (
 					R ias vodka;
-					1025 Bp
 					(ByRtType (Rt R~))^
 					((inside account ByRtType~~) Ew.out~) Do
+				);
+				(Test 1) ias (
+					R ias viski;
+					((inside test account R~) Ew.out~) Do
 				);
 				Withdraw~ Exe
 			);
@@ -137,6 +146,7 @@ module BornSimulation {
 			);
 
 			Life ias (
+				N ias 1;
 				(Result true) ias (
 					((Id is Id~ and result true) Ew.out~) Do
 				);
@@ -157,11 +167,14 @@ module BornSimulation {
 					(X~ XT~) ForEach
 				);
 				((I am here Id~) Ew.out~) Do
-				1025 Bp
 				(Result Sherif.Resources.Result~)~ Exe
 				Update2~ Exe
 				Update~ Exe
-				((on account ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
+				1025 Bp
+				
+				((on test characters (Characters)->(Unit N~)->Mode~) Ew.out~) Do
+				((on test account (Account)->(Test N~)->R~) Ew.out~) Do
+				((on account (Account)->(Rt vodka)~ ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
 				Account~ Exe
 				ActiveModes~ Exe
 				(AAA (AAA Id~)) Born
@@ -202,7 +215,7 @@ module BornSimulation {
 				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
-			(StopBorn (Ew.Id~ 5) Ident)~ Exe
+			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 
 		source lifeterm = (
