@@ -206,7 +206,7 @@ module Characters {
 #endif
 #if (release)
 	#if (business)
-					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ Class~ Cost~ Contain~ CId~) Ew.OutChannel~) Do
+					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~ Class~ Cost~ Contain~) Ew.OutChannel~) Do
 
 	#else                   	
 					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~) Ew.OutChannel~) Do
