@@ -132,8 +132,9 @@ module ExternalWorld {
 			Factors ias ();
 #if (business)
 			GDevelop ias 0;
+			GContain ias 0;
 			UnitsInfo ias ();
-			ConfFields ias (Factors GDevelop UnitsInfo);
+			ConfFields ias (Factors GDevelop GContain UnitsInfo);
 #else
 			ConfFields ias (Factors);
 #endif
@@ -157,7 +158,7 @@ module ExternalWorld {
 			Load~ Exe
 #if (verbose)
 	#if (business)
-			((The business configuration is Factors~ and GDevelop~) Ew.Output~) Do
+			((The business configuration is Factors~ and GDevelop~ and GContain~ and UnitsInfo~) Ew.Output~) Do
 	#else
 			((The business configuration is Factors~) Ew.Output~) Do
 	#endif

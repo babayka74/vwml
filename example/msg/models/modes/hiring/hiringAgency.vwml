@@ -169,6 +169,8 @@ module HiringAgency {
 					((Characters)->(Unit UnitId~)->CId RqId~)^
 #if (business)
 					((Characters)->(Unit UnitId~)->Cost CostInfo~)^
+					((Characters)->(Unit UnitId~)->Contain 0)^
+					((Characters)->(Unit UnitId~)->Class 0)^
 #endif
 					// concrete mechanism of properties setting
 					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach

@@ -45,9 +45,6 @@ module Characters {
 					(MarkedAsKilled false)^
 					(BattleFieldId nil)^
 					(InAction false)^
-					(Cost 0)^
-					(Contain 0)^
-					(Class 0)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
 				StopActivity ias (
@@ -209,7 +206,7 @@ module Characters {
 #endif
 #if (release)
 	#if (business)
-					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ Class~ Cost~ Contain~ CId~) Ew.OutChannel~) Do
+					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~ Class~ Cost~ Contain~) Ew.OutChannel~) Do
 
 	#else                   	
 					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~) Ew.OutChannel~) Do
