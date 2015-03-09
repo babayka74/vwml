@@ -10,6 +10,7 @@ import com.vw.lang.sink.java.VWMLJavaExportUtils;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
+import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 
@@ -521,6 +522,18 @@ public class VWMLContext extends VWMLObject {
 	 */
 	public void associateEntity(VWMLEntity entity) {
 		entity.rebuildHashId(this.getContext());
+		if (this.context.equals("Ew.(UpdateUnitsInfo 0).(Ignore false).ParseInfo.(PP clazz).SQC")) {
+			if (!entity.isTerm()) {
+				System.out.println("associated '" + entity.getContext().getContext() + "." + entity.buildReadableId() + "/" + entity.getId() + "'");
+			}
+			else {
+				VWMLTerm te = (VWMLTerm)entity;
+				VWMLEntity ate = te.getAssociatedEntity();
+				if (ate != null) {
+					System.out.println("associated '" + ate.getContext().getContext() + "." + ate.buildReadableId() + "/" + ate.getId() + "'");
+				}
+			}
+		}
 		associatedEntities.add(entity);
 	}
 	

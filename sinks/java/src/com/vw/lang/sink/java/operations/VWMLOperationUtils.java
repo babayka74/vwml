@@ -81,6 +81,7 @@ public class VWMLOperationUtils {
 				newComplexEntity = e;
 			}
 			else {
+				newComplexEntity.setAsFantom(true);
 				newComplexEntity.setLookedByReadableId(true);
 				if (newComplexEntity.getContext() == null) {
 					newComplexEntity.setContext(context);
@@ -173,10 +174,11 @@ public class VWMLOperationUtils {
 		if (interpreter.getMasterInterpreter() != null) {
 			interpreter = interpreter.getMasterInterpreter();
 		}
-		VWMLContext forcedContext = VWMLContext.lazyClone(activeInterpreter.getContext());// VWMLContextsRepository.instance().createContextIfNotExists(VWMLContext.constructContextNameFromParts(term.getContext().getContext(), ((contextPrefix == null) ? "contextPrefix" : onOperation)));
+		VWMLContext forcedContext = term.getContext();// VWMLContextsRepository.instance().createContextIfNotExists();
 		// term is interpreted by own interpreter
 		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
+			i.setReleaseClonedResource(true);
 			i.setPushed(true);
 			if (!interpretComponentAsArg) {
 				i.setInterpretingEntityForArgEntity(activeInterpreter.getInterpretingEntityForArgEntity());

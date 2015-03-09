@@ -67,6 +67,18 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		return true;
 	}
 
+	public void resurrect() {
+		id = null;
+		hashId = null;
+		readableId = null;
+		simpleName = null;
+		parsedName = null;
+		compoundName = false;
+		superviser = null;
+		refCounter = 0;
+		link.resurrect();
+	}
+	
 	public Object getId() {
 		return id;
 	}

@@ -75,6 +75,10 @@ public class VWMLEntity extends VWMLObject {
 	// see description (non-cloned); usually is used on static linking phase in order to detect ambiguous 
 	// interpretation (meaning entity has more than one statically defined interpretation)
 	private InterpretationObserver interpretationObserver = null;
+	// entities which are created during 'assemble' of 'relink' operations and not cloned from any entity are marked as fantom
+	// the marking is needed in order to have some sign to remove it during 'release' operation
+	// (not clonable)
+	private boolean asFantom = false;
 	
 	public VWMLEntity(Object hashId) {
 		super(hashId);
@@ -84,6 +88,34 @@ public class VWMLEntity extends VWMLObject {
 		super(hashId, id, readableId);
 	}
 
+	public void resurrect() {
+		super.resurrect();
+		isCreature = false;
+		context = null;
+		originalInterpreting = null;
+		interpreting = null;
+		interpretationHistory = new VWMLEntityInterpretationHistory();
+		associatedOperations = new VWMLOperations("__associated_operation__" + this);
+		isLifeTerm = false;
+		isLifeTermAsSource = false;
+		isMarkedAsArtificalTerm = false;
+		isOperatesByExe = false;
+		isOriginal = false;
+		isSynthetic = false;
+		isDynamicAddressedInRunTime = false;
+		isLookedByReadableId = false;
+		asArgPair = null;
+		interpretationHistorySize = 0;
+		clonedFrom = null;
+		resolvedInRuntime = null;
+		specialLinkedEntity = null;
+		isPartOfDynamicContext = false;
+		activated = false;
+		removed = false;
+		asFantom = false;
+		interpretationObserver = null;
+	}
+	
 	/**
 	 * New entity was born
 	 * @param proto
@@ -291,38 +323,92 @@ public class VWMLEntity extends VWMLObject {
 		return cloned;
 	}
 	
-	public void release() {
-		if (getClonedFrom() == null || removed) {
+	/**
+	 * Clones entity without taking into consideration following things:
+	 * 1. terms
+	 * The entity is cloned as data and moved to context 'cloneToCtx'
+	 * @param cloneToCtx
+	 * @param cloneInterpreting
+	 * @return
+	 */
+	public VWMLEntity simpleCloneOnContext(VWMLContext cloneToCtx, boolean cloneInterpreting) throws Exception {
+		VWMLEntity cloned = null;
+		cloned = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(getReadableId(), cloneToCtx);
+		if (cloned != null) {
+			return cloned;
+		}
+		VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
+		cloned = (VWMLEntity)VWMLObjectsRepository.acquire(type,
+				  this.getId(),
+				  cloneToCtx.getContext(),
+				  getInterpretationHistorySize(),
+				  VWMLObjectsRepository.notAsOriginal,
+				  getLink().getLinkOperationVisitor());
+		cloned.setAsFantom(true);
+		if (cloneInterpreting && getInterpreting() != null) {
+			VWMLEntity ic = getInterpreting().simpleCloneOnContext(cloneToCtx, cloneInterpreting);
+			cloned.setInterpreting(ic);
+		}
+		VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				VWMLEntity e = (VWMLEntity)getLink().getConcreteLinkedEntity(it.getIt());
+				cloned.getLink().link(e.simpleCloneOnContext(cloneToCtx, cloneInterpreting));
+			}
+		}
+		cloned.buildReadableId();
+		return cloned;
+	}
+	
+	public void release(VWMLContext controlling) {
+		if ((getClonedFrom() == null && !isAsFantom()) || removed) {
 			return;
 		}
+		String rid = buildReadableId();
 		removed = true;
-		if (getOriginalInterpreting() != null) {
-			if (!getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
-//				System.out.println("interpreting release '" + getOriginalInterpreting().buildReadableId() + "'");
-				getOriginalInterpreting().release();
+		if (!VWMLContext.isContextChildOf(controlling.getContext(), getContext().getContext())) {
+			System.out.println("ignored release '" + getContext().getContext() + "." + rid + "'");
+			return;
+		}
+		VWMLEntity parent = (VWMLEntity)getLink().getParent();
+		if (parent != null && parent.getContext().getContext().contains("Resources.Business")) {
+			int h = 0;
+			h++;
+			if (!VWMLContext.isContextChildOf(controlling.getContext(), parent.getContext().getContext())) {
+				System.out.println("ignored release '" + getContext().getContext() + "." + rid + "'");
+				return;
 			}
+		}
+		if (getInterpreting() != null && !isAsFantom()) {
+			System.out.println("interpreting release '" + getInterpreting().getContext().getContext() + "." + getInterpreting().buildReadableId() + "'");
+			getInterpreting().release(controlling);
+			setInterpreting(null);
 		}
 		VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
 		if (type == VWMLObjectBuilder.VWMLObjectType.TERM) {
 			VWMLEntity et = ((VWMLTerm)this).getAssociatedEntity();
 			if (et != null) {
-				et.release();
-				((VWMLTerm)this).setAssociatedEntity(null);
+				et.release(controlling);
+				//((VWMLTerm)this).setAssociatedEntity(null);
+				return;
 			}
 		}
 		for(VWMLObject e : getLink().getLinkedObjects()) {
-			((VWMLEntity)e).release();
-		}
-/*		
+			((VWMLEntity)e).release(controlling);
+		}		
 		if (buildReadableId() != null) {
-			System.out.println("removed '" + buildReadableId() + "' context '" + ((context != null) ? context.getContext() : "null") + "'");
-		}
-*/		
+			System.out.println("released '" + getContext().getContext() + "." + rid + "/" + getId() + "'");
+		}		
 		VWMLObjectsRepository.instance().removeWithoutContextCleaning(this);
 		//setReadableId("__removed__" + buildReadableId());
 		//setId("__removed__");
 		getLink().getLinkedObjects().clear();
 		getLink().setParent(null);
+/*		
+		if (VWMLObjectsRepository.instance().getGarbageManager() != null) {
+			VWMLObjectsRepository.instance().getGarbageManager().garbageEntity(this);
+		}
+*/		
 	}
 	
 	@Override
@@ -415,6 +501,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setInterpretationObserver(InterpretationObserver interpretationObserver) {
 		this.interpretationObserver = interpretationObserver;
+	}
+
+	public boolean isAsFantom() {
+		return asFantom;
+	}
+
+	public void setAsFantom(boolean asFantom) {
+		this.asFantom = asFantom;
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {

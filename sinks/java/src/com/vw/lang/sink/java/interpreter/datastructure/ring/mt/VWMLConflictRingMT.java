@@ -373,6 +373,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 	 */
 	@Override
 	public void unAssociateGate(VWMLGate gate) {
+		super.unAssociateGate(gate);
 		gates.remove(gate.getRegistrationKey());
 	}
 	
@@ -610,6 +611,11 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		throw new Exception("Not implemented yet for MT strategy");
 	}
 
+	public void removeTxQ(VWMLGate gate) {
+		if (this.nonAckGateEventQueue.remove(gate.getRegistrationKey()) != null) {
+			System.out.println("removed TxQ of gate '" + gate.getRegistrationKey() + "'");
+		}
+	}
 	/**
 	 * Processes incoming requests (called from ring's thread)
 	 */
@@ -654,6 +660,7 @@ public class VWMLConflictRingMT extends VWMLConflictRing {
 		if (q == null) {
 			q = new ConcurrentLinkedQueue<VWMLRingEvent>();
 			nonAckGateEventQueue.put((String)event.getRingDestTerm().getId(), q);
+			System.out.println("created TxQ of gate '" + event.getRingDestTerm().getId() + "'");
 		}
 		q.offer(event);
 	}

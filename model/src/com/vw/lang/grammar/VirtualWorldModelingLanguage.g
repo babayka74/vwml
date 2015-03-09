@@ -56,6 +56,7 @@ tokens {
     OPEXISTSI='ExistsI';
     OPEXISTSI_S='EI';
     OPLTT='LTT';
+    OPCLONEON='CloneOn';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1403,6 +1404,7 @@ opclist
     | OPEXISTSI
     | OPEXISTSI_S
     | OPLTT
+    | OPCLONEON
     ;
 
 termLanguages

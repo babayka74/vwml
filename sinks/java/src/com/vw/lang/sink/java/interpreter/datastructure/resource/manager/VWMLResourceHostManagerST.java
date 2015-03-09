@@ -11,6 +11,7 @@ import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLGatesRepository;
 import com.vw.lang.sink.java.VWMLInterceptorsRepository;
 import com.vw.lang.sink.java.VWMLObject;
+import com.vw.lang.sink.java.VWMLObjectBuilder;
 import com.vw.lang.sink.java.VWMLObjectsRelation;
 import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
@@ -19,6 +20,7 @@ import com.vw.lang.sink.java.interceptor.VWMLInterceptor;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterConfiguration;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLGarbageManager.VWMLGarbageEntityInfo;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.timer.st.VWMLTimerManagerSTBroker;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
@@ -96,6 +98,11 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 	@Override
 	public Map<Object, VWMLObjectsRelation> requestObjectsRelationContainer() {
 		return new HashMap<Object, VWMLObjectsRelation>();
+	}
+	
+	@Override
+	public Map<VWMLObjectBuilder.VWMLObjectType, List<VWMLGarbageEntityInfo>> requestGarbageManagerContainer() {
+		return new HashMap<VWMLObjectBuilder.VWMLObjectType, List<VWMLGarbageEntityInfo>>();
 	}
 	
 	@Override
@@ -188,7 +195,6 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 			repo.init();
 			r.setGatesRepo(repo);
 		}
-		
 	}
 
 	@Override
@@ -210,6 +216,23 @@ public class VWMLResourceHostManagerST extends VWMLResourceHostManager {
 		if (r.getTimerManagerBroker() != null) {
 			r.getTimerManagerBroker().done();
 			r.setTimerManagerBroker(null);
+		}
+	}
+
+	@Override
+	protected void garbageManagerInit(VWMLHostedResources r) {
+		if (r.getGarbageManager() == null) {
+			VWMLGarbageManager garbageManager = VWMLGarbageManager.instance();
+			garbageManager.init();
+			r.setGarbageManager(garbageManager);
+		}
+	}
+
+	@Override
+	protected void garbageManagerDone(VWMLHostedResources r) {
+		if (r.getGarbageManager() != null) {
+			r.getGarbageManager().done();
+			r.setGarbageManager(null);
 		}
 	}
 }

@@ -16,7 +16,6 @@ public class VWMLLink {
 	
 	private volatile VWMLObject itself;
 	private volatile VWMLObject parent;
-	private volatile VWMLObject originalParent;
 	private AbstractVWMLLinkVisitor linkOperationVisitor = null;
 	private List<VWMLObject> linkedObjects = Collections.synchronizedList(new ArrayList<VWMLObject>());
 	
@@ -25,6 +24,12 @@ public class VWMLLink {
 		this.itself = itself;
 	}
 
+	public void resurrect() {
+		parent = null;
+		linkOperationVisitor = null;
+		linkedObjects.clear();
+	}
+	
 	public VWMLObject getItself() {
 		return itself;
 	}
@@ -43,20 +48,24 @@ public class VWMLLink {
 
 	public void setParent(VWMLObject parent) {
 		this.parent = parent;
-		if (getOriginalParent() == null) {
-			setOriginalParent(parent);
-		}			
+		if (parent != null) {
+			setParentRelation(parent);
+		}
 	}
 
-	public VWMLObject getOriginalParent() {
-		return originalParent;
+	public List<VWMLObject> getParentRelations() {
+		return null;
 	}
 
-	public void setOriginalParent(VWMLObject originalParent) {
-		this.originalParent = originalParent;
-		correctParentInTermCase(originalParent);
+	public VWMLObject getFirstOnContextParentRelation() {
+		VWMLObject e = null;
+		List<VWMLObject> parents = getParentRelations();
+		if (parents != null) {
+			e = parents.get(0);
+		}
+		return e;
 	}
-
+	
 	public AbstractVWMLLinkVisitor getLinkOperationVisitor() {
 		return linkOperationVisitor;
 	}
@@ -189,10 +198,14 @@ public class VWMLLink {
 		}
 		return linkedObjects.get(number);
 	}
-	
+
+	protected void setParentRelation(VWMLObject parent) {
+		correctParentInTermCase(parent);
+	}
+
 	private void correctParentInTermCase(VWMLObject parent) {
 		if (itself != null && itself instanceof com.vw.lang.sink.java.entity.VWMLTerm && ((com.vw.lang.sink.java.entity.VWMLTerm)itself).getAssociatedEntity() != null) {
-			((com.vw.lang.sink.java.entity.VWMLTerm)itself).getAssociatedEntity().getLink().setOriginalParent(parent);
+			((com.vw.lang.sink.java.entity.VWMLTerm)itself).getAssociatedEntity().getLink().setParentRelation(parent);
 		}
 	}
 }

@@ -55,8 +55,14 @@ public class VWMLObjectBuilder {
 	
 	public static abstract class Builder {
 		
-		public VWMLObject objectBuilder(Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
-			VWMLEntity obj = (VWMLEntity)build(hashId, id);
+		public VWMLObject objectBuilder(VWMLEntity obj, Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
+			if (obj == null) {
+				obj = (VWMLEntity)build(hashId, id);
+			}
+			else {
+				obj.setId(id);
+				obj.setHashId(hashId);
+			}
 			obj.setContext(context);
 			setInterpretationHistorySize(obj, entityHistorySize);
 			if (visitor != null) {			
@@ -162,6 +168,11 @@ public class VWMLObjectBuilder {
 	 * @return
 	 */
 	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
-		return s_builders.get(builderType).objectBuilder(hashId, id, context, entityHistorySize, visitor);
+		VWMLObject obj = null;
+		if (VWMLObjectsRepository.instance().getGarbageManager() != null) {
+			obj = VWMLObjectsRepository.instance().getGarbageManager().requestForEntity(builderType);
+		}
+		obj = s_builders.get(builderType).objectBuilder((VWMLEntity)obj, hashId, id, context, entityHistorySize, visitor);
+		return obj;
 	}
 }

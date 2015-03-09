@@ -23,6 +23,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.bp.VWMLOpe
 import com.vw.lang.sink.java.operations.processor.operations.handlers.callp.VWMLOperationCallPHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.cartesian.VWMLOperationCartesianHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.clone.VWMLOperationCloneHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.cloneon.VWMLOperationCloneOnHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictend.VWMLOperationConflictSituationEndHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.conflictstart.VWMLOperationConflictSituationStartHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.copy.VWMLOperationCopyHandler;
@@ -119,6 +120,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPEXISTSI),   				new VWMLOperationExistsIHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPEXISTSI_S),   			new VWMLOperationExistsIHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPLTT),   					new VWMLOperationLTTHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPCLONEON),   				new VWMLOperationCloneOnHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());

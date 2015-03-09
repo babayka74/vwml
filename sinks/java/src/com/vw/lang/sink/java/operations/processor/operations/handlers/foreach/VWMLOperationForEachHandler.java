@@ -2,6 +2,9 @@ package com.vw.lang.sink.java.operations.processor.operations.handlers.foreach;
 
 import java.util.List;
 
+import com.vw.lang.sink.java.VWMLContextsRepository;
+import com.vw.lang.sink.java.VWMLObjectsRepository;
+import com.vw.lang.sink.java.VWMLContextsRepository.ContextIdPair;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
@@ -67,6 +70,9 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 					if (!forEach(interpreter, e, term)) {
 						break;
 					}
+					VWMLContext ctx = VWMLContextsRepository.instance().createContextIfNotExists(term.getContext().getContext());
+					ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(ctx.getContext());
+					term = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, term);
 				}
 			}
 		}

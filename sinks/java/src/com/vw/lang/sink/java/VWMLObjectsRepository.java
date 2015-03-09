@@ -9,6 +9,7 @@ import com.vw.lang.sink.java.entity.VWMLComplexEntity;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.entity.VWMLTerm;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
+import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLGarbageManager;
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
 import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
@@ -28,6 +29,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = null;
 	private Map<VWMLObject, VWMLObject> translatedObjects  = new HashMap<VWMLObject, VWMLObject>();
+	private VWMLGarbageManager garbageManager = null;
 	// sets to 'true' during model's linkage phase
 	private boolean isUnderConstruction = false;
 	
@@ -336,6 +338,10 @@ public class VWMLObjectsRepository extends VWMLRepository {
 				if (it != null) {
 					for(; it.isCorrect(); it.next()) {
 						VWMLEntity e = (VWMLEntity)prototype.getLink().getConcreteLinkedEntity(it.getIt());
+						if (e.getContext().getContext().contains("Resources.Business")) {
+							int h = 0;
+							h++;
+						}
 						VWMLEntity eC = (VWMLEntity) getAndCreateInCaseOfClone(cPair, e);
 						lookedEntity.getLink().link(eC);
 					}
@@ -385,6 +391,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	
 	public void init() {
 		repo = VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepoContainer();
+		garbageManager = VWMLResourceHostManagerFactory.hostManagerInstance().requestGarbageManager();
 		VWMLContext defaultContext = VWMLContextsRepository.instance().getDefaultContext();
 		VWMLEntity e = null;
 		// built-in complex entity id
@@ -421,6 +428,10 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		add(e);
 	}
 	
+	public VWMLGarbageManager getGarbageManager() {
+		return garbageManager;
+	}
+
 	public void add(VWMLEntity obj) {
 		if (obj.getContext() == null) {
 			return; // temporary entity
@@ -454,8 +465,8 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			return false; // temporary entity
 		}
 		String key = buildAssociatingKeyOnContext(obj);
-		repo.remove(key);
-		return true;
+		Object p = repo.remove(key);
+		return (p != null);
 	}
 	
 	public VWMLObject get(Object id, VWMLContext context) throws Exception {

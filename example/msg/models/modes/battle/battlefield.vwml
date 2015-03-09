@@ -89,8 +89,7 @@ module BattleField {
 			);
 			Done ias (
 				ReturnAllRemainedUnits~ Exe
-				((Player PlayerId~)->(Resources)->SelectedBattle nil)^
-				((BattleField Id~)) Release
+				((Player PlayerId~) Tx (ModeInfo.ModeMain~ bfdestroyed Id~ (battlefield))) Gate
 			);
 			Reset ias (
 				ReturnAllRemainedUnits~ Exe

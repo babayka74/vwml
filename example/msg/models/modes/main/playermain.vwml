@@ -58,6 +58,7 @@ module PlayerModeMain {
 #endif
 				);
 				(Handle partclosed) ias (
+					Params ias nil;
 					CA ias nil;
 					(ResetMode true) ias (
 						(CA battlefield) ias Resources.Hiring.Reset~ Exe;
@@ -108,7 +109,7 @@ module PlayerModeMain {
 					((Player Id~ updated accounts resources) Ew.Output~) Do
 #endif
 #if (release)
-					(((main updateaccount ok) (player PlayerId~)) Ew.OutChannel~) Do
+					(((main updateaccount ok) (player Id~)) Ew.OutChannel~) Do
 #endif
 				);
 				(Handle updatebusinessconf) ias (
@@ -118,10 +119,17 @@ module PlayerModeMain {
 					((Player Id~ updated business configuration) Ew.Output~) Do
 #endif
 #if (release)
-					(((main updatebusinessconf ok) (player PlayerId~)) Ew.OutChannel~) Do
+					(((main updatebusinessconf ok) (player Id~)) Ew.OutChannel~) Do
 #endif
 				);
 				(Handle getbalance) ias Resources.Account.Report~ Exe;
+				(Handle bfdestroyed) ias (
+					((BattleField Resources.SelectedBattle~)) Release
+					(Resources.SelectedBattle nil)^
+#if (verbose)
+					((Battlefield of Player Id~ completely destroyed) Ew.Output~) Do
+#endif
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);

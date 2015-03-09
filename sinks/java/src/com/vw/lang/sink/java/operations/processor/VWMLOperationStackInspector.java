@@ -122,9 +122,11 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 					ctx = e.getContext();
 				}
 				else {
+					VWMLEntity p = e;
+					cloneDetected = (p.getClonedFrom() != null);
 					// entity belongs to code flow
-					VWMLEntity parent = null;
-					parent = (VWMLEntity)e.getLink().getOriginalParent();
+/*					VWMLEntity parent = null;
+					parent = (VWMLEntity)e.getLink().getFirstOnContextParentRelation();
 					VWMLEntity p1 = null;
 					VWMLEntity p = parent;
 					while(p != null) {
@@ -132,15 +134,15 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 							cloneDetected = true;
 							break;
 						}
-						p1 = ((VWMLEntity)p.getLink().getOriginalParent());
+						p1 = ((VWMLEntity)p.getLink().getFirstOnContextParentRelation());
 						if (p1 == p) {
 							break;
 						}
 						p = p1;
-					}
+					} 
 					if (p == null) {
 						p = parent;
-					}
+					}*/
 					ctx = p.getContext();
 				}
 				if (cloneDetected) {

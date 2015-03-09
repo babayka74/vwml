@@ -28,6 +28,10 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 
 	// simple transmission; transmitted data put to queue
 	private static final String modeTx     = "Tx";
+	// synchronous transmission
+	private static final String modeTxS    = "TxS";
+	// wakeup
+	private static final String modeWp     = "Wakeup";
 	// receiving
 	private static final String modeRx     = "Rx";
 	// checks if something is in queue
@@ -89,17 +93,29 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		VWMLEntity transportedEntity = null;
 		VWMLEntity ringDestTerm = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(0);
 		VWMLEntity mode = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(1);
-		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfArgsForTx) {
+		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() >= s_numOfArgsForTx) {
 			transportedEntity = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(2);
 		}
-		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfArgsForDestHandler) {
+		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() >= s_numOfArgsForDestHandler) {
 			handlerDestTerm = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(3);
 		}
-		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() == s_numOfArgsForDestHandlerArg) {
+		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() >= s_numOfArgsForDestHandlerArg) {
 			handlerDestTermArg = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);
 		}
 		if (mode.getId().equals(modeTx)) {
 			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(getGate(ringDestTerm), getGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
+		}
+		else
+		if (mode.getId().equals(modeTxS)) {
+			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(getGate(ringDestTerm), getGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, null);
+			if (handlerDestTerm != null) {
+				VWMLGate sleepGate = getGate(handlerDestTerm);
+				sleepGate.blockActivity();
+			}
+		}		
+		else
+		if (mode.getId().equals(modeWp)) {
+			getGate(ringDestTerm).unblockActivity();
 		}
 		else
 		if (mode.getId().equals(modeRx)) {
@@ -146,6 +162,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		if (mode.getId().equals(modeUnregister)) {
 			VWMLConflictRing ring = interpreter.getRtNode().getExecutionGroup().getRing();
 			VWMLGate gate = unblockGate(ringDestTerm);
+			gate.getRing().removeTxQ(gate);
 			ring.unAssociateGate(gate);
 			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().unregisterGate((String)ringDestTerm.getId());
 		}

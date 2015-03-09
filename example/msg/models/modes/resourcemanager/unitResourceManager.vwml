@@ -11,11 +11,12 @@ module PlayerResourceManager {
 					(StopRM false)^
 				);
 				// notifies battlefield about returning all remained units to base
-				NotifyAboutFBComplete ias (
+				NotifyAboutBFComplete ias (
 					(StopRM false) ias doNothing;
 					(StopRM true) ias (
-						(UnitsInAction 0 NotifyAboutFBComplete~) FinishInterception
+						(UnitsInAction 0 NotifyAboutBFComplete~) FinishInterception
 						((Player Id~) Tx (ModeInfo.ModeMain~ partclosed 0 (battlefield))) Gate
+						((Player Id~) Tx (ModeInfo.ModeMain~ bfdestroyed 0 (battlefield))) Gate
 					);
 					(StopRM StopRM~)~ Exe
 #if (verbose)
@@ -60,8 +61,8 @@ module PlayerResourceManager {
 						(TH ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
 						(TC ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 2) Get) Ew.Mul~) Do)^
 						// calculating partial GDevelop factor for specific unit's kind and class
-						(Resources.Business.GDevelop ((Resources.Business.GDevelop~ TH~) Ew.Dec~) Do)^
-						(Resources.Business.GContain ((Resources.Business.GContain~ TC~) Ew.Dec~) Do)^
+						(Resources.Business.GDevelop ((Resources.Business.GDevelop~ TH~) Ew.Sub~) Do)^
+						(Resources.Business.GContain ((Resources.Business.GContain~ TC~) Ew.Sub~) Do)^
 #if (verbose)
 						((Business factors (qclazz gdevelop gcontain) changed (Resources.Business.(Q Kind~ Class~)~ Resources.Business.GDevelop~ Resources.Business.GContain~) for player Id~) Ew.Output~) Do
 #endif
@@ -87,6 +88,7 @@ module PlayerResourceManager {
 					(Cost (CommandParams~ 3) Get)^
 					(Contain (CommandParams~ 4) Get)^
 					// increments number of units of specific kind
+					1025 Bp
 					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
 					(TH ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
 					(TC ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 2) Get) Ew.Mul~) Do)^
@@ -127,7 +129,7 @@ module PlayerResourceManager {
 					(CorrectUnit true) ias (
 						(UnitInAction true) ias ((Player Id~) Tx ((CommandParams~ 2) Get rejectedunit HiredUnitId~ ())) Gate;
 						(UnitInAction false) ias (
-							(FirstUnit true) ias (UnitsInAction 0 NotifyAboutFBComplete~) StartInterception;
+							(FirstUnit true) ias (UnitsInAction 0 NotifyAboutBFComplete~) StartInterception;
 							(FirstUnit false) ias doNothing;
 							((Characters)->(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
 							(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe

@@ -28,7 +28,8 @@ module HiringAgency {
 #endif
 			);
 			Done ias (
-				((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (hiringagency))) Gate
+				(Msg ((ModeInfo.ModeMain~ partclosed Id~ (hiringagency)) (Player Id~)->(Resources)->Garbage) CloneOn)^
+				((Player Id~) Tx Msg~) Gate
 #if (verbose)
 				((The hiring agency for player Owner~ uninitialized) Ew.Output~) Do
 #endif
@@ -281,8 +282,8 @@ module HiringAgency {
 				((HiringAgency Id~) Tx (check 0 ())) Gate
 				((Player Owner~) Tx (ModeInfo.ModeMain~ hainitialized Id~ ())) Gate
 				HiringAgencyLifeStep~ Exe
-				((HiringAgency Id~) Unregister) Gate
 				Done~ Exe
+				((HiringAgency Id~) Unregister) Gate
 #if (verbose)
 				((The hiring agency Id~ deactivated for owner Owner~) Ew.Output~) Do
 #endif

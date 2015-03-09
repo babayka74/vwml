@@ -428,8 +428,14 @@ module Quartal {
 				((Player Owner~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ (Id~))) Gate
 				((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
 				QuartalLifeStep~ Exe
+				// creates temp entity and copies it to context
+				(Msg ((ModeInfo.ModeDeal~ releasedquartal Id~ (Id~)) (Player Owner~)->(Resources)->Garbage) CloneOn)^
+				((Player Owner~) Tx Msg~) Gate
 				((Quartal Id~) Unregister) Gate
-				((Player Owner~) Tx (ModeInfo.ModeDeal~ releasedquartal Id~ (Id~))) Gate
+#if (verbose)
+				((The quartal Id~ of Owner~ completely finished) Ew.Output~) Do
+#endif
+
 			) Exe
 		);
 	);

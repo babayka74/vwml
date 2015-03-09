@@ -390,6 +390,12 @@ public class VWMLConflictRing {
 		this.hidden = hidden;
 	}
 
+	public void removeTxQ(VWMLGate gate) {
+		if (this.nonAckGateEventQueue.remove(gate.getRegistrationKey()) != null) {
+			System.out.println("removed TxQ of gate '" + gate.getRegistrationKey() + "'");
+		}
+	}
+	
 	/**
 	 * Resets gates. Blocked interpreter which is used as trigger is set to 'null', allowing to reschedule gate
 	 * (for MT strategy only)
@@ -796,6 +802,7 @@ public class VWMLConflictRing {
 		if (q == null) {
 			q = new ArrayList<VWMLRingEvent>();
 			nonAckGateEventQueue.put((String)event.getRingDestTerm().getId(), q);
+			System.out.println("created TxQ of gate '" + event.getRingDestTerm().getId() + "'");
 		}
 		q.add(event);
 	}

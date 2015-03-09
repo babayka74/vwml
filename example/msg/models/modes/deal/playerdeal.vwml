@@ -5,6 +5,12 @@ module PlayerDeal {
 				CommandId ias nil;
 				CommandParams ias nil;
 				QuartalId ias nil;
+				DecActiveQuartals ias (
+					(Resources.ActiveQuartals ((Resources.ActiveQuartals~) Ew.DecValue~) Do)^
+#if (verbose)
+					((The player Id~ left quartals Resources.ActiveQuartals~) Ew.Output~) Do
+#endif
+				);
 				UnlinkQ ias (
 					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^;
 					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;
@@ -57,12 +63,7 @@ module PlayerDeal {
 					(QuartalId (CommandParams~ 0) Get)^
 					((Quartal QuartalId~) Tx (Id~ reset ())) Gate
 				);
-				(Handle releasedquartal),(Handle resettedquartal) ias (
-					(Resources.ActiveQuartals ((Resources.ActiveQuartals~) Ew.DecValue~) Do)^
-#if (verbose)
-					((The player Id~ left quartals Resources.ActiveQuartals~) Ew.Output~) Do
-#endif
-				);
+				(Handle resettedquartal),(Handle releasedquartal) ias DecActiveQuartals~ Exe;
 				(Handle quartalreport) ias (
 					Report ias (
 #if (verbose)

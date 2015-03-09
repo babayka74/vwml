@@ -44,6 +44,46 @@ module BornSimulation {
 			SherifBribeRanges ias (300 200 300 100 200 400 500 100 200 100 100 50 10 20 40);
 		);
 
+
+		UpdateUnitsInfo ias (
+
+			Resources ias (
+				Business ias ();
+			);
+
+			F ias nil;
+			K ias nil;
+			P ias nil;
+			PP ias nil;
+			(Ignore false) ias (
+				ParseInfo ias (
+				// parses property
+					(PP clazz) ias (
+						// setups Q counter (Q kind class); see TakeOnBoardUnit
+						SQC ias (
+							// quantity
+							((Q K~ ($~ 0) Get) ($~ 1) Get)^
+							// make it addressable -> Resources.Business
+							((Q K~ ($~ 0) Get) Resources.Business false) CloneOn
+							((Player initialized Resources.Business.(Q K~ ($~ 0) Get) to Resources.Business.(Q K~ ($~ 0) Get)~) Ew.out~) Do
+						);
+						// available classes
+						((P~ 1) Get SQC~) ForEach
+					);
+					// kind of unit
+					(K ($~ 0) Get)^
+					// properties
+					(P ($~ 1) Get)^
+					(PP (P~ 0) Get)~ Exe
+				);
+				(F (F~ 1) Get)^
+				(F~ ParseInfo~) ForEach
+			);
+			(Ignore true) ias doNothing;
+			(Ignore (F~ nil) Ident)~ Exe
+		);
+
+
 		ModeInfo ias (
 			ModeDeal ias deal;
 		);
@@ -215,6 +255,17 @@ module BornSimulation {
 				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
+			(UU (UnitsInfo ( (zombak1 (clazz ((1 1) (2 0) (3 0)))))))^
+			(UpdateUnitsInfo (UpdateUnitsInfo Ew.Id~) defer) Born
+			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
+			(UpdateUnitsInfo Ew.Id~)~ Exe
+			1025 Bp
+			((UpdateUnitsInfo Ew.Id~)) Release
+			(UpdateUnitsInfo (UpdateUnitsInfo Ew.Id~) defer) Born
+			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
+			(UpdateUnitsInfo Ew.Id~)~ Exe
+			((UpdateUnitsInfo Ew.Id~)) Release
+			150000 Relax
 			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 

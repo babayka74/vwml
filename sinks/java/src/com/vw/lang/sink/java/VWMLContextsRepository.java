@@ -134,18 +134,6 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	/**
-	 * Removes entity which was associated with context from context itslef
-	 * @param entity
-	 * @param context
-	 */
-	public static synchronized void removeAssociatedEntityFromContext(VWMLEntity entity, VWMLContext context) {
-		if (entity != null && context != null) {
-			VWMLContextsRepository.instance().removeAssociatedEntity(entity, context);
-			entity.getLink().unlinkFromAll();
-		}
-	}
-	
-	/**
 	 * Returns true in case if context belongs to the storage
 	 * @param context
 	 * @return
@@ -432,7 +420,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}
 		context.getLink().clear();
 		for(VWMLEntity e : context.getAssociatedEntities()) {
-			e.release();
+			e.release(context);
 		}
 		context.removeAllAssociatedEntities();
 	}

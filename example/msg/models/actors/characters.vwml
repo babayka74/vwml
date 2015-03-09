@@ -49,9 +49,8 @@ module Characters {
 				);
 				StopActivity ias (
 					(StopUnit true)^
-#if (verbose)
-					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ unitstopped Id~ (Id~))) Gate
-#endif
+					(Msg ((ModeInfo.ModeResourceMgr~ unitstopped Id~ (Id~)) (Player PlayerId~)->(Resources)->Garbage) CloneOn)^
+					((Player PlayerId~) Tx Msg~) Gate
 				);
 				/* each unit has following properties: power of attack and defence */
 				Power ias (

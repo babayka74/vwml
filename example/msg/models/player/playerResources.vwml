@@ -14,6 +14,9 @@ module PlayerResources {
 #endif
 
 				);
+				/* all garbage is placed here */
+				Garbage ias (
+				);
 				/* available units */
 				Units ias (
 					Hired ias ();
@@ -214,9 +217,9 @@ module PlayerResources {
 											// quantity
 											((Q K~ ($~ 0) Get) ($~ 1) Get)^
 											// make it addressable -> Resources.Business
-											((Q K~ ($~ 0) Get) Business true) Context
+											((Q K~ ($~ 0) Get) Business false) CloneOn
 #if (verbose)                                           	
-											((Player Id~ initialized (Q K~ ($~ 0) Get) to (Q K~ ($~ 0) Get)~) Ew.Output~) Do
+											((Player Id~ initialized Resources.Business.(Q K~ ($~ 0) Get) to Resources.Business.(Q K~ ($~ 0) Get)~) Ew.Output~) Do
 #endif                                                  	
 										);
 										// available classes
