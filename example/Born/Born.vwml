@@ -113,7 +113,7 @@ module BornSimulation {
 			AssociateByRt ias (
 				(Type ($~ 0) Get)^
 				((Rt Type~) ($~ 1) Get)^
-				((Rt Type~) Account true) Context
+				((Rt Type~) Account false) CloneOn
 				((Player G has resource (Rt Type~) (Rt Type~)~) Ew.out~) Do 
 			);
 			(From~ AssociateByRt~) ForEach
@@ -179,7 +179,7 @@ module BornSimulation {
 				AssociateByRt ias (
 					(Type ($~ 0) Get)^
 					((Rt Type~) ($~ 1) Get)^
-					((Rt Type~) Account true) Context
+					((Rt Type~) Account false) CloneOn
 					((Player Id~ has resource (Rt Type~) (Rt Type~)~) Ew.out~) Do 
 				);
 				(From~ AssociateByRt~) ForEach
@@ -209,11 +209,11 @@ module BornSimulation {
 				((I am here Id~) Ew.out~) Do
 				(Result Sherif.Resources.Result~)~ Exe
 				Update2~ Exe
-				Update~ Exe
 				1025 Bp
-				
+				((on kofe account Update2.Account.(Rt kofe)~) Ew.out~) Do
+				Update~ Exe
 				((on test characters (Characters)->(Unit N~)->Mode~) Ew.out~) Do
-				((on test account (Account)->(Test N~)->R~) Ew.out~) Do
+				((on test account (Account)->(Test N~)->R~) Ew.out~) Do                         	
 				((on account (Account)->(Rt vodka)~ ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
 				Account~ Exe
 				ActiveModes~ Exe
@@ -243,6 +243,20 @@ module BornSimulation {
 			) Exe
 		);
 
+		TestUnitsInfo ias (
+			(UU (UnitsInfo ( (zombak1 (clazz ((1 1) (2 0) (3 0)))))))^
+			(UpdateUnitsInfo (UpdateUnitsInfo Ew.Id~) defer) Born
+			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
+			(UpdateUnitsInfo Ew.Id~)~ Exe
+			1025 Bp
+			((UpdateUnitsInfo Ew.Id~)) Release
+			(UpdateUnitsInfo (UpdateUnitsInfo Ew.Id~) defer) Born
+			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
+			(UpdateUnitsInfo Ew.Id~)~ Exe
+			((UpdateUnitsInfo Ew.Id~)) Release
+			5000 Relax
+		);
+
 		Life ias (
 
 			(StopBorn true) ias (
@@ -255,17 +269,6 @@ module BornSimulation {
 				((P1 Ew.Id~)) Activate
 				Life~ Exe
 			);
-			(UU (UnitsInfo ( (zombak1 (clazz ((1 1) (2 0) (3 0)))))))^
-			(UpdateUnitsInfo (UpdateUnitsInfo Ew.Id~) defer) Born
-			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
-			(UpdateUnitsInfo Ew.Id~)~ Exe
-			1025 Bp
-			((UpdateUnitsInfo Ew.Id~)) Release
-			(UpdateUnitsInfo (UpdateUnitsInfo Ew.Id~) defer) Born
-			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
-			(UpdateUnitsInfo Ew.Id~)~ Exe
-			((UpdateUnitsInfo Ew.Id~)) Release
-			150000 Relax
 			(StopBorn (Ew.Id~ 1) Ident)~ Exe
 		);
 

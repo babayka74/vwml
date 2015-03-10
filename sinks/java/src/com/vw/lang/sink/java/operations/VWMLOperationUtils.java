@@ -77,7 +77,6 @@ public class VWMLOperationUtils {
 				newComplexEntity.setContext(context);
 				// looking on interpreter's context
 				VWMLEntity e = lookupAndRelinkEntityOnContext(entityCtxPair, newComplexEntity);
-				addToRepositoryIfTheSame(e, newComplexEntity, context);
 				newComplexEntity = e;
 			}
 			else {
@@ -174,11 +173,11 @@ public class VWMLOperationUtils {
 		if (interpreter.getMasterInterpreter() != null) {
 			interpreter = interpreter.getMasterInterpreter();
 		}
-		VWMLContext forcedContext = term.getContext();// VWMLContextsRepository.instance().createContextIfNotExists();
+		VWMLContext forcedContext = VWMLContext.lazyClone(term.getContext());// VWMLContextsRepository.instance().createContextIfNotExists();
 		// term is interpreted by own interpreter
 		VWMLInterpreterImpl i = interpreter.addTermInRunTime(g, activeInterpreter, term, forcedContext, listener, true);
 		if (i != null) {
-			i.setReleaseClonedResource(true);
+			//i.setReleaseClonedResource(true);
 			i.setPushed(true);
 			if (!interpretComponentAsArg) {
 				i.setInterpretingEntityForArgEntity(activeInterpreter.getInterpretingEntityForArgEntity());
@@ -320,16 +319,6 @@ public class VWMLOperationUtils {
 		return e;
 	}
 	
-	private static void addToRepository(VWMLContext context, VWMLEntity newComplexEntity) throws Exception {
-		VWMLObjectsRepository.instance().remove(newComplexEntity);
-		String id = newComplexEntity.buildReadableId();
-		newComplexEntity.setId(id);
-		if (newComplexEntity.getContext() == null) {
-			newComplexEntity.setContext(context);
-		}
-		VWMLObjectsRepository.instance().addConcrete(newComplexEntity, context);
-	}
-	
 	private static VWMLEntity lookupAndRelinkEntityOnContext(ContextIdPair ctxPair, VWMLEntity newComplexEntity) throws Exception {
 		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(ctxPair, newComplexEntity, true, false);
 		if (lookedEntity != null && lookedEntity != newComplexEntity) {
@@ -347,7 +336,13 @@ public class VWMLOperationUtils {
 			VWMLObjectsRepository.instance().remove(newComplexEntity);
 			newComplexEntity.getLink().unlinkFromAll();
 			newComplexEntity = lookedEntity;
-			newComplexEntity.buildReadableId();
+		}
+		else {
+			if (lookedEntity == null) {
+				newComplexEntity.buildReadableId();
+				newComplexEntity.setId(newComplexEntity.getReadableId());
+				VWMLObjectsRepository.instance().addConcrete(newComplexEntity, newComplexEntity.getContext());
+			}
 		}
 		return newComplexEntity;
 	}
@@ -422,14 +417,5 @@ public class VWMLOperationUtils {
 			VWMLActivateInterceptorDeferredTask task = new VWMLActivateInterceptorDeferredTask(interpreter, interceptor);
 			interpreter.setDeferredTask(task);
 		}
-	}
-	
-	private static boolean addToRepositoryIfTheSame(VWMLEntity e, VWMLEntity newComplexEntity, VWMLContext context) throws Exception {
-		boolean added = false;
-		if (e == newComplexEntity) {
-			addToRepository(context, newComplexEntity);
-			added = true;
-		}
-		return added;
 	}
 }

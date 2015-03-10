@@ -79,6 +79,11 @@ public class VWMLEntity extends VWMLObject {
 	// the marking is needed in order to have some sign to remove it during 'release' operation
 	// (not clonable)
 	private boolean asFantom = false;
+	// entity belongs to another context and entity to which belongs this entity is going to be released then 
+	// this entity is marked as 'potential invalid' and must be re-assembled during get operation
+	private boolean markedAsPotentialInvalid = false;
+	// repository's registration key
+	private String registrationKey = null;
 	
 	public VWMLEntity(Object hashId) {
 		super(hashId);
@@ -114,6 +119,8 @@ public class VWMLEntity extends VWMLObject {
 		removed = false;
 		asFantom = false;
 		interpretationObserver = null;
+		markedAsPotentialInvalid = false;
+		registrationKey = null;
 	}
 	
 	/**
@@ -334,26 +341,30 @@ public class VWMLEntity extends VWMLObject {
 	public VWMLEntity simpleCloneOnContext(VWMLContext cloneToCtx, boolean cloneInterpreting) throws Exception {
 		VWMLEntity cloned = null;
 		cloned = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(getReadableId(), cloneToCtx);
-		if (cloned != null) {
-			return cloned;
+		if (cloned == null) {
+			VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
+			cloned = (VWMLEntity)VWMLObjectsRepository.acquire(type,
+														  this.getId(),
+														  cloneToCtx.getContext(),
+														  getInterpretationHistorySize(),
+														  VWMLObjectsRepository.notAsOriginal,
+														  getLink().getLinkOperationVisitor());
+			cloned.setAsFantom(true);
+			VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
+			if (it != null) {
+				for(; it.isCorrect(); it.next()) {
+					VWMLEntity e = (VWMLEntity)getLink().getConcreteLinkedEntity(it.getIt());
+					cloned.getLink().link(e.simpleCloneOnContext(cloneToCtx, cloneInterpreting));
+				}
+			}
 		}
-		VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
-		cloned = (VWMLEntity)VWMLObjectsRepository.acquire(type,
-				  this.getId(),
-				  cloneToCtx.getContext(),
-				  getInterpretationHistorySize(),
-				  VWMLObjectsRepository.notAsOriginal,
-				  getLink().getLinkOperationVisitor());
-		cloned.setAsFantom(true);
-		if (cloneInterpreting && getInterpreting() != null) {
-			VWMLEntity ic = getInterpreting().simpleCloneOnContext(cloneToCtx, cloneInterpreting);
-			cloned.setInterpreting(ic);
-		}
-		VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
-		if (it != null) {
-			for(; it.isCorrect(); it.next()) {
-				VWMLEntity e = (VWMLEntity)getLink().getConcreteLinkedEntity(it.getIt());
-				cloned.getLink().link(e.simpleCloneOnContext(cloneToCtx, cloneInterpreting));
+		if (cloneInterpreting) {
+			if (getInterpreting() != null && !getInterpreting().isRecursiveInterpretationOnRuntime()) {
+				VWMLEntity ic = getInterpreting().simpleCloneOnContext(cloneToCtx, cloneInterpreting);
+				cloned.setInterpreting(ic);
+			}
+			else {
+				cloned.setInterpreting(getInterpreting());
 			}
 		}
 		cloned.buildReadableId();
@@ -364,23 +375,15 @@ public class VWMLEntity extends VWMLObject {
 		if ((getClonedFrom() == null && !isAsFantom()) || removed) {
 			return;
 		}
-		String rid = buildReadableId();
+//		String rid = buildReadableId();
 		removed = true;
 		if (!VWMLContext.isContextChildOf(controlling.getContext(), getContext().getContext())) {
-			System.out.println("ignored release '" + getContext().getContext() + "." + rid + "'");
+//			System.out.println("ignored release '" + getContext().getContext() + "." + rid + "'");
+			setMarkedAsPotentialInvalid(true);
 			return;
 		}
-		VWMLEntity parent = (VWMLEntity)getLink().getParent();
-		if (parent != null && parent.getContext().getContext().contains("Resources.Business")) {
-			int h = 0;
-			h++;
-			if (!VWMLContext.isContextChildOf(controlling.getContext(), parent.getContext().getContext())) {
-				System.out.println("ignored release '" + getContext().getContext() + "." + rid + "'");
-				return;
-			}
-		}
 		if (getInterpreting() != null && !isAsFantom()) {
-			System.out.println("interpreting release '" + getInterpreting().getContext().getContext() + "." + getInterpreting().buildReadableId() + "'");
+//			System.out.println("interpreting release '" + getInterpreting().getContext().getContext() + "." + getInterpreting().buildReadableId() + "'");
 			getInterpreting().release(controlling);
 			setInterpreting(null);
 		}
@@ -389,16 +392,16 @@ public class VWMLEntity extends VWMLObject {
 			VWMLEntity et = ((VWMLTerm)this).getAssociatedEntity();
 			if (et != null) {
 				et.release(controlling);
-				//((VWMLTerm)this).setAssociatedEntity(null);
+				((VWMLTerm)this).setAssociatedEntity(null);
 				return;
 			}
 		}
 		for(VWMLObject e : getLink().getLinkedObjects()) {
 			((VWMLEntity)e).release(controlling);
 		}		
-		if (buildReadableId() != null) {
-			System.out.println("released '" + getContext().getContext() + "." + rid + "/" + getId() + "'");
-		}		
+//		if (buildReadableId() != null) {
+//			System.out.println("released '" + getContext().getContext() + "." + rid + "/" + getId() + "'");
+//		}		
 		VWMLObjectsRepository.instance().removeWithoutContextCleaning(this);
 		//setReadableId("__removed__" + buildReadableId());
 		//setId("__removed__");
@@ -509,6 +512,22 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setAsFantom(boolean asFantom) {
 		this.asFantom = asFantom;
+	}
+
+	public boolean isMarkedAsPotentialInvalid() {
+		return markedAsPotentialInvalid;
+	}
+
+	public void setMarkedAsPotentialInvalid(boolean markedAsPotentialInvalid) {
+		this.markedAsPotentialInvalid = markedAsPotentialInvalid;
+	}
+
+	public String getRegistrationKey() {
+		return registrationKey;
+	}
+
+	public void setRegistrationKey(String registrationKey) {
+		this.registrationKey = registrationKey;
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {

@@ -338,16 +338,18 @@ public class VWMLObjectsRepository extends VWMLRepository {
 				if (it != null) {
 					for(; it.isCorrect(); it.next()) {
 						VWMLEntity e = (VWMLEntity)prototype.getLink().getConcreteLinkedEntity(it.getIt());
-						if (e.getContext().getContext().contains("Resources.Business")) {
-							int h = 0;
-							h++;
-						}
 						VWMLEntity eC = (VWMLEntity) getAndCreateInCaseOfClone(cPair, e);
 						lookedEntity.getLink().link(eC);
 					}
 				}
 				lookedEntity.buildReadableId();
 			}
+		}
+		if (lookedEntity != null && lookedEntity.isMarkedAsPotentialInvalid()) {
+			lookedEntity.setMarkedAsPotentialInvalid(false);
+			cPair = VWMLContextsRepository.instance().wellFormedContext(lookedEntity.getContext().getContext());
+			VWMLObjectsRepository.instance().remove(lookedEntity);
+			lookedEntity = (VWMLEntity) getAndCreateInCaseOfClone(cPair, prototype);
 		}
 		return lookedEntity;
 	}
@@ -439,6 +441,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		String key = buildAssociatingKeyOnContext(obj);
 		if (!repo.containsKey(key)) {
 			repo.put(key, obj);
+			obj.setRegistrationKey(key);
 			// associates acquired entity with context
 			obj.getContext().associateEntity((VWMLEntity)obj);
 		}
@@ -461,12 +464,34 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	}
 	
 	public boolean removeWithoutContextCleaning(VWMLEntity obj) {
+		boolean b = false;
 		if (obj.getContext() == null) {
 			return false; // temporary entity
 		}
-		String key = buildAssociatingKeyOnContext(obj);
-		Object p = repo.remove(key);
-		return (p != null);
+		String[] keys = null;
+		if (obj.getRegistrationKey() == null) {
+			if (obj.isStaticAdressedInRunTime()) {
+				keys = new String [] {	buildAssociationKey(obj.getContext().getContext(), obj.getSimpleName()),
+								 		buildAssociatingReadableKeyOnContext(obj)
+								 	 };
+			}
+			else {
+				keys = new String [] {
+						buildAssociatingKeyOnContext(obj),
+						buildAssociatingReadableKeyOnContext(obj)
+				};
+			}
+			for(String key : keys) {
+				if (repo.containsKey(key)) {
+					b = (repo.remove(key) != null);
+					break;
+				}
+			}
+		}
+		else {
+			b = (repo.remove(obj.getRegistrationKey()) != null);
+		}
+		return b;
 	}
 	
 	public VWMLObject get(Object id, VWMLContext context) throws Exception {
@@ -585,6 +610,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		String k = buildAssociationKey(context.getContext(), entity.getSimpleName());
 		if (!repo.containsKey(k)) {
 			repo.put(k, entity);
+			entity.setRegistrationKey(k);
 			// associates acquired entity with context
 			context.associateEntity(entity);
 		}
@@ -732,6 +758,10 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	
 	protected String buildAssociatingKeyOnContext(VWMLEntity obj) {
 		return buildAssociationKey(obj.getContext().getContext(), (String)obj.getId());
+	}
+
+	protected String buildAssociatingReadableKeyOnContext(VWMLEntity obj) {
+		return buildAssociationKey(obj.getContext().getContext(), (String)obj.getReadableId());
 	}
 	
 	protected void markAsInvalid() {
