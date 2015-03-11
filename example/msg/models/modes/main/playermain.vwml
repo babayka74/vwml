@@ -4,6 +4,17 @@ module PlayerModeMain {
 			Main ias (
 				CommandId ias nil;
 				CommandParams ias nil;
+				ExternalBattleResultProcessing ias (
+					WinId ias 0;
+					WinCost ias nil;
+
+					(WinId (CommandParams~ 0) Get)^
+					(WinCost (CommandParams~ 1) Get)^
+#if (verbose)
+					((Player Id~ transfers WinCost~ to player WinId~) Ew.Output~) Do
+#endif
+					((GlobalBanker 0) Tx (transfer starttransfer Id~ (Id~ WinId~ WinCost~))) Gate 
+				);
 				NotifyAboutActivitiesStopped ias (
 					(Activities () NotifyAboutActivitiesStopped~) FinishInterception
 					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldstopped Id~ ())) Gate
@@ -122,6 +133,7 @@ module PlayerModeMain {
 #endif
 				);
 				(Handle getbalance) ias Resources.Account.Report~ Exe;
+				(Handle extbattleresult) ias ExternalBattleResultProcessing~ Exe;
 				(Handle CommandId~)~ Exe
 			);
 		);
