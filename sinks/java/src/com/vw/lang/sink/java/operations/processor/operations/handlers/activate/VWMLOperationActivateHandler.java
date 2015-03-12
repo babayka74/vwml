@@ -77,7 +77,7 @@ public class VWMLOperationActivateHandler extends VWMLOperationHandler {
 			VWMLOperationUtils.activateTerm(interpreter, context, term);
 		}
 		else {
-			throw new Exception("trying to activate active term '" + term.getId() + "' belongs to context '" + term.getContext().getContext() + "'on context '" + context.getContext() + "'");
+			throw new Exception("trying to activate active term '" + term.getNativeId() + "' belongs to context '" + term.getContext().getContext() + "'on context '" + context.getContext() + "'");
 		}
 	}
 	

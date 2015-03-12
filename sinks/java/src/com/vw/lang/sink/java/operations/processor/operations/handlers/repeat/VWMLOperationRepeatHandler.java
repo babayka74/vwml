@@ -62,7 +62,7 @@ public class VWMLOperationRepeatHandler extends VWMLOperationHandler {
 		VWMLEntity term = (VWMLEntity)((VWMLComplexEntity)entity).getLink().getConcreteLinkedEntity(1);
 		if (!counter.isMarkedAsComplexEntity()) {
 			int c = 0;
-			c = Integer.valueOf((String)counter.getId()).intValue();
+			c = Integer.valueOf((String)counter.getNativeId()).intValue();
 			for(int i = 0; i < c; i++) {
 				String id = String.valueOf(i);
 				VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, id, id, context, 0, null);

@@ -93,14 +93,14 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 			}
 		}
 		else {
-			throw new Exception("couldn't find fringe '" + onFringe.getId() + "'; check VWML code");
+			throw new Exception("couldn't find fringe '" + onFringe.getNativeId() + "'; check VWML code");
 		}
 		return answerFromEW;
 	}
 	
 	protected String getActionOnFringe(VWMLEntity onFringe) {
 		String action = null;
-		String id = (String)onFringe.getId();
+		String id = (String)onFringe.getNativeId();
 		int l = id.lastIndexOf(".");
 		if (l != -1) {
 			action = id.substring(l + 1);

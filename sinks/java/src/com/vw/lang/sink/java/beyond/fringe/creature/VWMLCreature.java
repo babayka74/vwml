@@ -52,7 +52,6 @@ public class VWMLCreature extends VWMLEntity {
 		if (e != null) {
 			e.setReadableId(null);
 			e.buildReadableId();
-			e.setId(e.getReadableId());
 		}
 		return e; 
 	}
@@ -83,10 +82,12 @@ public class VWMLCreature extends VWMLEntity {
 	private static VWMLEntity transformSimpleEWEntityToVWML(VWMLContext context, VWMLEntity parent, EWEntity ewEntity) throws Exception {
 		VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY,
 														   context.getContext(),
-														   ewEntity.getId(),
+														   buildHashIdFrom(ewEntity.getId()),
 														   context,
 														   0,
 														   null);
+		e.setNativeId(ewEntity.getId());
+		e.setHashId(e.getId());
 		if (parent != null) {
 			parent.getLink().link(e);
 		}
@@ -96,10 +97,12 @@ public class VWMLCreature extends VWMLEntity {
 	private static VWMLEntity transformComplexEWEntityToVWML(VWMLContext context, VWMLEntity parent, EWEntity ewEntity) throws Exception {
 		VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY,
 														   context.getContext(),
-														   ewEntity.getId(),
+														   buildHashIdFrom(ewEntity.getId()),
 														   context,
 														   0,
 														   null);
+		e.setNativeId(ewEntity.getId());
+		e.setReadableId((String)e.getNativeId());
 		for(EWObject ewo : ewEntity.getLink().getLinkedObjects()) {
 			EWEntity ewe = (EWEntity)ewo;
 			if (!ewe.isMarkedAsComplexEntity()) {
@@ -119,7 +122,7 @@ public class VWMLCreature extends VWMLEntity {
 	}
 	
 	private static EWEntity transformSimpleVWMLEntityToEW(EWEntity parent, VWMLEntity vwmlEntity) throws Exception {
-		EWEntity e = EWEntityBuilder.buildSimpleEntity(vwmlEntity.getId(), vwmlEntity.getContext().getContext());
+		EWEntity e = EWEntityBuilder.buildSimpleEntity(vwmlEntity.getNativeId(), vwmlEntity.getContext().getContext());
 		if (parent != null) {
 			parent.getLink().link(e);
 		}

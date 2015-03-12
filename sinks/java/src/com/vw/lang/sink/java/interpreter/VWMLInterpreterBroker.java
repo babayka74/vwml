@@ -113,6 +113,7 @@ public class VWMLInterpreterBroker implements IVWMLInterpreterBroker {
 		}
 		nr.clear();
 		VWMLObjectsRepository.instance().setUnderConstruction(false);
+		VWMLObjectsRepository.instance().rebuildEntitiesPrimaryIds();
 		if (getInterpretationObserver() != null) {
 			getInterpretationObserver().reset();
 		}

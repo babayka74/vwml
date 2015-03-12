@@ -99,9 +99,9 @@ module BornSimulation {
 			k ias 0;
 			m ias k;
 			z ias (x 2);
-			II ias ((II output k k~) Ew.out~) Do;
+			II ias ((II AAA output k k~) Ew.out~) Do;
 			I ias (
-				((I output k k~) Ew.out~) Do
+				((I AAA output k k~) Ew.out~) Do
 				(SSS.k 9)^
 				SSS~ Exe
 			);
@@ -234,6 +234,12 @@ module BornSimulation {
 				(1000 Id~ T~ nil ((AAA Id~)->m~~ (AAA Id~)->z~~)~) Recall
 				2000 Relax
 				((AAA Id~)) Release
+				(AAA (AAA Id~)) Born
+				((AAA Id~)->k 110)^
+				(AAA Id~)->II~ Exe
+				(AAA Id~)->I~ Exe
+				((AAA Id~)) Release
+				2000 Relax
 			);		
 			lifeterm = (
 				((Id~ on start) Ew.out~) Do
@@ -254,7 +260,7 @@ module BornSimulation {
 			((UpdateUnitsInfo Ew.Id~)->F UU~ )^
 			(UpdateUnitsInfo Ew.Id~)~ Exe
 			((UpdateUnitsInfo Ew.Id~)) Release
-			5000 Relax
+			150000 Relax
 		);
 
 		Life ias (

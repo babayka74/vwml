@@ -1,7 +1,6 @@
 package com.vw.lang.sink.java.entity;
 
 import com.vw.lang.sink.OperationInfo;
-import com.vw.lang.sink.java.VWMLCloneAuxCache;
 import com.vw.lang.sink.java.VWMLContextsRepository;
 import com.vw.lang.sink.java.VWMLObject;
 import com.vw.lang.sink.java.VWMLObjectBuilder;
@@ -18,14 +17,23 @@ import com.vw.lang.sink.java.operations.VWMLOperations;
  */
 public class VWMLEntity extends VWMLObject {
 
-	public static final String s_NilEntityId       = "nil";
-	public static final String s_NullEntityId      = "null";
-	public static final String s_EmptyEntityId     = "()";
-	public static final String s_doNothingEntityId = "doNothing";
-	public static final String s_doNothingEntityId2 = "DoNothing";
-	public static final String s_doNothingEntityId3 = "donothing";	
-	public static final String s_trueEntityId      = "true";
-	public static final String s_falseEntityId     = "false";
+	public static final String s_NilEntityNId        = "nil";
+	public static final String s_NullEntityNId       = "null";
+	public static final String s_EmptyEntityNId      = "()";
+	public static final String s_doNothingEntityNId  = "doNothing";
+	public static final String s_doNothingEntityNId2 = "DoNothing";
+	public static final String s_doNothingEntityNId3 = "donothing";
+	public static final String s_trueEntityNId       = "true";
+	public static final String s_falseEntityNId      = "false";
+
+	public static final String s_NilEntityId        = (String)buildHashIdFrom(s_NilEntityNId);
+	public static final String s_NullEntityId       = (String)buildHashIdFrom(s_NullEntityNId);
+	public static final String s_EmptyEntityId      = (String)buildHashIdFrom(s_EmptyEntityNId);
+	public static final String s_doNothingEntityId  = (String)buildHashIdFrom(s_doNothingEntityNId);
+	public static final String s_doNothingEntityId2 = (String)buildHashIdFrom(s_doNothingEntityNId2);
+	public static final String s_doNothingEntityId3 = (String)buildHashIdFrom(s_doNothingEntityNId3);
+	public static final String s_trueEntityId       = (String)buildHashIdFrom(s_trueEntityNId);
+	public static final String s_falseEntityId      = (String)buildHashIdFrom(s_falseEntityNId);
 
 	// true means that entity lives on intersection of worlds (see VWMLCreature)
 	protected boolean isCreature = false;
@@ -124,213 +132,6 @@ public class VWMLEntity extends VWMLObject {
 	}
 	
 	/**
-	 * New entity was born
-	 * @param proto
-	 * @param id (new entity's id)
-	 * @param initialContext
-	 * @param auxCache
-	 * @return
-	 * @throws Exception
-	 */
-	public VWMLEntity born(VWMLEntity proto, Object id, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
-		VWMLEntity cloned = born(proto, (String)getId(), (String)id, getContext(), initialContext, auxCache);
-		return cloned;
-	}
-
-	/**
-	 * Born new entity based on current entity, the Id is changed to newId
-	 * (usually used by operation 'Born' when new source lifeterm is created in runtime)
-	 * @param oldId
-	 * @param newId
-	 * @param context
-	 * @param initialContext
-	 * @param auxCache
-	 * @return
-	 */
-	public VWMLEntity born(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
-		return clone(proto, oldId, newId, context, initialContext, auxCache, true, true);
-	}
-	
-	/**
-	 * Clones entity
-	 * @param proto
-	 * @param id (new entity's id)
-	 * @param initialContext
-	 * @param auxCache
-	 * @return
-	 * @throws Exception
-	 */
-	public VWMLEntity clone(VWMLEntity proto, Object id, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
-		VWMLEntity cloned = clone(proto, (String)getId(), (String)id, getContext(), initialContext, auxCache);
-		return cloned;
-	}
-	
-	/**
-	 * Clones current entity, the Id is changed to newId
-	 * (usually used by operation 'Clone' when new source lifeterm is created in runtime)
-	 * @param oldId
-	 * @param newId
-	 * @param context
-	 * @param initialContext
-	 * @param auxCache
-	 * @return
-	 */
-	public VWMLEntity clone(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache) throws Exception {
-		return clone(proto, oldId, newId, context, initialContext, auxCache, true, false);
-	}
-
-	/**
-	 * More parameters for clone operations
-	 * @param proto
-	 * @param oldId
-	 * @param newId
-	 * @param context
-	 * @param initialContext
-	 * @param auxCache
-	 * @param firstIteration
-	 * @param bornMode
-	 * @return
-	 * @throws Exception
-	 */
-	public VWMLEntity clone(VWMLEntity proto, String oldId, String newId, VWMLContext context, VWMLContext initialContext, VWMLCloneAuxCache auxCache, boolean firstIteration, boolean bornMode) throws Exception {
-		// check if entity is in cloned context
-		if (!firstIteration) {
-			if ((!VWMLContext.isContextChildOf(initialContext.getContext(), getContext().getContext())) ||
-				(this.getContext() == VWMLContextsRepository.instance().getDefaultContext())) {
-				return this; // no need to clone entity which doesn't belong to cloned context
-			}
-		}
-		if (auxCache != null && auxCache.check(this)) {
-			VWMLEntity cloned = auxCache.get(this);
-			if (cloned != null) {
-				return cloned;
-			}
-		}
-		// entity declared on another context, so it should be changed on new
-		context = createEntityContextBasedOnNewEntityName(context, oldId, newId);
-		VWMLEntity termAssociatedEntity = null;
-		// proto is active for first iteration only
-		VWMLObjectBuilder.VWMLObjectType type = null;
-		if (proto == null) {
-			type = deductEntityTypeByProto(this);
-		}
-		else {
-			type = deductEntityTypeByProto(proto);			
-		}
-		if (type == VWMLObjectBuilder.VWMLObjectType.TERM) {
-			termAssociatedEntity = ((VWMLTerm)this).getOriginalAssociatedEntity();
-		}		
-		if (termAssociatedEntity != null) {
-			termAssociatedEntity = termAssociatedEntity.clone(null,
-															  oldId,
-															  newId,
-															  termAssociatedEntity.getContext(),
-															  initialContext,
-															  auxCache,
-															  false,
-															  bornMode);	
-		}
-		VWMLEntity interpretingEntity = null, eIAS = null;
-		boolean recursion = false;
-		if (!bornMode) {
-			eIAS = getOriginalInterpreting();
-			if (eIAS != null) {
-				recursion = eIAS.isRecursiveInterpretationOnOriginal();
-			}
-		}
-		else {
-			eIAS = getInterpreting();
-			if (eIAS != null) {
-				recursion = eIAS.isRecursiveInterpretationOnRuntime();
-			}
-		}
-		if (eIAS != null && eIAS.getAsArgPair() != null && recursion) {
-			VWMLContext eIASArgAsPairContext = createEntityContextBasedOnNewEntityName(eIAS.getContext(), oldId, newId);
-			eIAS = (VWMLEntity)VWMLObjectsRepository.acquire( type,
-															  eIAS.getId(),
-															  eIASArgAsPairContext.getContext(),
-															  getInterpretationHistorySize(),
-															  VWMLObjectsRepository.asOriginal,
-															  getLink().getLinkOperationVisitor());
-			//System.out.println("cloned (IAS) '" + eIAS.getId() + "' context '" + eIASArgAsPairContext.getContext() + "'");
-		}
-		if (eIAS != null && !recursion) {
-			interpretingEntity = eIAS.clone( null,
-											 oldId,
-											 newId,
-											 eIAS.getContext(),
-											 initialContext,
-											 auxCache,
-											 false,
-											 bornMode);	
-		}
-		else
-		if (eIAS != null && recursion) {
-			interpretingEntity = eIAS;
-		}
-		// new entity is registered on repository
-		Object eId = getId();
-		if (firstIteration) {
-			eId = newId;
-		}
-		if (((String)eId).contains("." + oldId)) {
-			eId = ((String)eId).replaceFirst("\\." + oldId, "." + newId);
-		}
-		VWMLEntity cloned = (VWMLEntity)VWMLObjectsRepository.acquire(type,
-																	  eId,
-																	  context.getContext(),
-																	  getInterpretationHistorySize(),
-																	  VWMLObjectsRepository.asOriginal,
-																	  getLink().getLinkOperationVisitor());
-		if (firstIteration && proto != null && proto.isMarkedAsComplexEntity() && cloned.isMarkedAsComplexEntity()) {
-			VWMLLinkIncrementalIterator it = proto.getLink().acquireLinkedObjectsIterator();
-			if (it != null) {
-				for(; it.isCorrect(); it.next()) {
-					cloned.getLink().link(proto.getLink().getConcreteLinkedEntity(it.getIt()));
-				}
-				cloned.setReadableId(null);
-				//System.out.println("cloned (ORG -> FI) '" + cloned.buildReadableId() + "' context '" + context.getContext() + "'");
-			}
-		}
-		auxCache.add(this, cloned);
-		ArgPair argPair = getAsArgPair();
-		if (argPair != null) {
-			ArgPair clonedArgPair = new ArgPair();
-			clonedArgPair.setPlaceNumber(argPair.getPlaceNumber());
-			cloned.setAsArgPair(clonedArgPair);
-		}
-		cloned.setSynthetic(isSynthetic());
-		cloned.setLifeTerm(isLifeTerm());
-		cloned.setLifeTermAsSource(isLifeTermAsSource());
-		cloned.setClonedFrom(this);
-		if (termAssociatedEntity != null) {
-			cloned.setAssociatedOperations(getAssociatedOperations());
-			((VWMLTerm)cloned).setAssociatedEntity(termAssociatedEntity);
-		}
-		cloned.setInterpreting(interpretingEntity);
-		if (interpretingEntity == null) {
-			VWMLLinkIncrementalIterator it = getLink().acquireLinkedObjectsIterator();
-			if (it != null) {
-				for(; it.isCorrect(); it.next()) {
-					VWMLEntity linked = ((VWMLEntity)getLink().getConcreteLinkedEntity(it.getIt()));
-					linked = linked.clone(null,
-										  oldId,
-							              newId,
-							              linked.getContext(),
-							              initialContext,
-							              auxCache,
-							              false,
-							              bornMode);
-					cloned.getLink().link(linked);
-				}
-				cloned.setReadableId(null);
-//				System.out.println("cloned (ORG -> IE) '" + cloned.buildReadableId() + "' context '" + context.getContext() + "'");
-			}
-		}
-		return cloned;
-	}
-	
-	/**
 	 * Clones entity without taking into consideration following things:
 	 * 1. terms
 	 * The entity is cloned as data and moved to context 'cloneToCtx'
@@ -340,7 +141,7 @@ public class VWMLEntity extends VWMLObject {
 	 */
 	public VWMLEntity simpleCloneOnContext(VWMLContext cloneToCtx, boolean cloneInterpreting) throws Exception {
 		VWMLEntity cloned = null;
-		cloned = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(getReadableId(), cloneToCtx);
+		cloned = (VWMLEntity)VWMLObjectsRepository.instance().checkObjectOnContext(getId(), cloneToCtx);
 		if (cloned == null) {
 			VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
 			cloned = (VWMLEntity)VWMLObjectsRepository.acquire(type,
@@ -357,6 +158,7 @@ public class VWMLEntity extends VWMLObject {
 					cloned.getLink().link(e.simpleCloneOnContext(cloneToCtx, cloneInterpreting));
 				}
 			}
+			VWMLObjectsRepository.instance().lateBinding(cloned, (String)getNativeId());
 		}
 		if (cloneInterpreting) {
 			if (getInterpreting() != null && !getInterpreting().isRecursiveInterpretationOnRuntime()) {
@@ -367,12 +169,11 @@ public class VWMLEntity extends VWMLObject {
 				cloned.setInterpreting(getInterpreting());
 			}
 		}
-		cloned.buildReadableId();
 		return cloned;
 	}
 	
 	public void release(VWMLContext controlling) {
-		if ((getClonedFrom() == null && !isAsFantom()) || removed) {
+		if (getClonedFrom() == null || removed) {
 			return;
 		}
 //		String rid = buildReadableId();
@@ -382,7 +183,7 @@ public class VWMLEntity extends VWMLObject {
 			setMarkedAsPotentialInvalid(true);
 			return;
 		}
-		if (getInterpreting() != null && !isAsFantom()) {
+		if (getInterpreting() != null) {
 //			System.out.println("interpreting release '" + getInterpreting().getContext().getContext() + "." + getInterpreting().buildReadableId() + "'");
 			getInterpreting().release(controlling);
 			setInterpreting(null);
@@ -416,6 +217,8 @@ public class VWMLEntity extends VWMLObject {
 	
 	@Override
 	public String buildReadableId() {
+		return (String)getNativeId();
+/*		
 		if (isTerm()) {
 			if (((VWMLTerm)this).getAssociatedEntity() != null) {
 				return ((VWMLTerm)this).getAssociatedEntity().buildReadableId();
@@ -425,8 +228,9 @@ public class VWMLEntity extends VWMLObject {
 			}
 		}
 		else {
-			return (String)getId();
+			return (String)getNativeId();
 		}
+*/		
 	}
 	
 	public VWMLContext getContext() {

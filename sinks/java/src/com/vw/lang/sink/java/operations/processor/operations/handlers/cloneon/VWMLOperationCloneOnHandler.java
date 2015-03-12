@@ -78,7 +78,7 @@ public class VWMLOperationCloneOnHandler extends VWMLOperationHandler {
 	}
 
 	protected VWMLEntity handleCloneOnOperation(VWMLInterpreterImpl interpreter, VWMLContext interpreterContext, VWMLEntity entityToClone, VWMLEntity onContext, boolean cloneInterpreting) throws Exception {
-		String ctxName = VWMLContext.constructContextNameFromParts(onContext.getContext().getContext(), (String)onContext.getId());
+		String ctxName = VWMLContext.constructContextNameFromParts(onContext.getContext().getContext(), (String)onContext.getNativeId());
 		VWMLContext ctx = VWMLContextsRepository.instance().get(ctxName);
 		if (ctx == null) {
 			throw new Exception("Context '" + ctxName + "' not found");

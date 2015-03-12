@@ -11,6 +11,7 @@ import com.vw.lang.sink.java.link.VWMLLink;
  */
 public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	private Object id;
+	private Object nativeId;
 	private Object hashId;
 	private String readableId;
 	private String simpleName;
@@ -37,6 +38,10 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		setReadableId(readableId);
 	}
 
+	public static Object buildHashIdFrom(Object from) {
+		return String.valueOf(from.hashCode());
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -85,14 +90,8 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	
 	public void setId(Object id) {
 		this.id = id;
-		if (id != null && ((String)id).contains(".")) {
-			setCompoundName(true);
-			int le = ((String)id).lastIndexOf(".");
-			simpleName = ((String)id).substring(le + 1);
-			parsedName = ((String)id).split(".");			
-		}
-		else {
-			simpleName = ((String)id);
+		if (VWMLObjectsRepository.instance().isUnderConstruction()) {
+			setNames(id);
 		}
 	}
 
@@ -112,6 +111,18 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		this.readableId = readableId;
 	}
 	
+	public Object getNativeId() {
+		if (nativeId == null) {
+			return getId();
+		}
+		return nativeId;
+	}
+
+	public void setNativeId(Object nativeId) {
+		this.nativeId = nativeId;
+		setNames(nativeId);
+	}
+
 	public boolean isCompoundName() {
 		return compoundName;
 	}
@@ -219,22 +230,44 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		return r;
 	}
 
-	protected void setHashId(Object hashId) {
+	public void setHashId(Object hashId) {
 		this.hashId = hashId;
 	}
-	
-	protected Object buildCompleteHashId() {
-		if (getId() != null && getHashId() != null) {
-			return getHashId() + "." + getId();
-		}
-		return (getId() == null) ? getHashId() : getId();
+
+	public Object getHashId() {
+		return hashId;
 	}
-	
+
+	public Object buildCompleteHashId() {
+		if (VWMLObjectsRepository.instance().isUnderConstruction()) {
+			if (getId() != null && getHashId() != null) {
+				return getHashId() + "." + getId();
+			}
+			return (getId() == null) ? getHashId() : getId();
+		}
+		String rid = buildReadableId();
+		if (rid == null) {
+			rid = (String)getNativeId();
+			if (rid.contains(".")) {
+				rid = getSimpleName();
+			}
+		}
+		return buildHashIdFrom(rid);
+	}
+
 	protected void setCompoundName(boolean compoundName) {
 		this.compoundName = compoundName;
 	}
-
-	protected Object getHashId() {
-		return hashId;
+	
+	protected void setNames(Object id) {
+		if (id != null && ((String)id).contains(".")) {
+			setCompoundName(true);
+			int le = ((String)id).lastIndexOf(".");
+			simpleName = ((String)id).substring(le + 1);
+			parsedName = ((String)id).split(".");			
+		}
+		else {
+			simpleName = ((String)id);
+		}
 	}
 }

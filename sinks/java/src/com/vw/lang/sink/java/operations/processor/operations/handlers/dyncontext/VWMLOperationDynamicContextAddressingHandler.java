@@ -37,7 +37,6 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		else
 		if (entities.size() == 1) {
 			entity = entities.get(0);
-			entity.setReadableId((String)entity.getId());
 		}
 		else {
 			entity = VWMLOperationUtils.generateComplexEntityFromEntitiesReversedStack(
@@ -53,10 +52,10 @@ public class VWMLOperationDynamicContextAddressingHandler extends VWMLOperationH
 		
 		if (entity.getContext() != null) {
 			try {
-				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(),
+				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(),
 																				(VWMLContext)entity.getContext().getLink().getParent());
 				if (e == null) {
-					e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getReadableId(), entity.getContext());
+					e = (VWMLEntity)VWMLObjectsRepository.instance().get(entity.getId(), entity.getContext());
 				}
 				if (e != null) {
 					entity.setContext(e.getContext());

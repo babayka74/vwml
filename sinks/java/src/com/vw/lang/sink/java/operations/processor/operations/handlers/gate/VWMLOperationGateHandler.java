@@ -102,11 +102,11 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 		if (((VWMLComplexEntity)entity).getLink().getLinkedObjectsOnThisTime() >= s_numOfArgsForDestHandlerArg) {
 			handlerDestTermArg = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);
 		}
-		if (mode.getId().equals(modeTx)) {
+		if (mode.getNativeId().equals(modeTx)) {
 			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(getGate(ringDestTerm), getGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
 		}
 		else
-		if (mode.getId().equals(modeTxS)) {
+		if (mode.getNativeId().equals(modeTxS)) {
 			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(getGate(ringDestTerm), getGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, null);
 			if (handlerDestTerm != null) {
 				VWMLGate sleepGate = getGate(handlerDestTerm);
@@ -114,11 +114,11 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			}
 		}		
 		else
-		if (mode.getId().equals(modeWp)) {
+		if (mode.getNativeId().equals(modeWp)) {
 			getGate(ringDestTerm).unblockActivity();
 		}
 		else
-		if (mode.getId().equals(modeRx)) {
+		if (mode.getNativeId().equals(modeRx)) {
 			VWMLRingActivateGateEvent event = (VWMLRingActivateGateEvent)getGate(ringDestTerm).getRing().fromGate(ringDestTerm);
 			if (event != null) {
 				result = event.getTransportedEntity();
@@ -128,7 +128,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			}
 		}
 		else
-		if (mode.getId().equals(modeReady)) {
+		if (mode.getNativeId().equals(modeReady)) {
 			VWMLGate gate = getGate(ringDestTerm);
 			boolean b = gate.getRing().isGateOpened(ringDestTerm);
 			if (!b && gate.getDockingTerm() != null) {
@@ -145,21 +145,21 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 				  			(VWMLEntity)VWMLObjectsRepository.instance().get(VWMLEntity.s_falseEntityId, VWMLContextsRepository.instance().getDefaultContext());
 		}
 		else
-		if (mode.getId().equals(modeRegister)) {
+		if (mode.getNativeId().equals(modeRegister)) {
 			VWMLConflictRing ring = interpreter.getRtNode().getExecutionGroup().getRing();
 			boolean blocked = false;
-			if (transportedEntity != null && transportedEntity.getId().equals(VWMLGate.s_blockedMode)) {
+			if (transportedEntity != null && transportedEntity.getNativeId().equals(VWMLGate.s_blockedMode)) {
 				blocked = true;
 			}
 			if (ring == null) {
-				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getId() + "'");
+				throw new Exception("Couldn't find ring by term '" + ringDestTerm.getNativeId() + "'");
 			}
 			VWMLGate gate = new VWMLGate(ring, interpreter.getRtNode(), (String)(ringDestTerm.getId()), blocked, handlerDestTerm);
 			ring.associateGate(gate);
 			VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().registerGate((String)ringDestTerm.getId(), gate);
 		}
 		else
-		if (mode.getId().equals(modeUnregister)) {
+		if (mode.getNativeId().equals(modeUnregister)) {
 			VWMLConflictRing ring = interpreter.getRtNode().getExecutionGroup().getRing();
 			VWMLGate gate = unblockGate(ringDestTerm);
 			gate.getRing().removeTxQ(gate);
@@ -172,7 +172,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 	private VWMLGate getGate(VWMLEntity ringDestTerm) throws Exception {
 		VWMLGate gate = VWMLResourceHostManagerFactory.hostManagerInstance().requestGatesRepo().getGate((String)ringDestTerm.getId());
 		if (gate == null) {
-			throw new Exception("Couldn't find gate by term '" + ringDestTerm.getId() + "'");
+			throw new Exception("Couldn't find gate by term '" + ringDestTerm.getNativeId() + "'");
 		}
 		return gate;
 	}

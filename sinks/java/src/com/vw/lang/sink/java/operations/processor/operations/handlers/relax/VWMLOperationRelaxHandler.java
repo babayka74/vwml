@@ -59,7 +59,7 @@ public class VWMLOperationRelaxHandler extends VWMLOperationHandler {
 				}
 			}
 			try {
-				timeToRelax = Integer.parseInt((String)relaxEntity.getId());
+				timeToRelax = Integer.parseInt((String)relaxEntity.getNativeId());
 			}
 			finally {
 			}

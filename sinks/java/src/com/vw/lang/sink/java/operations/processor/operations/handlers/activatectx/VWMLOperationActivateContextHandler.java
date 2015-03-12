@@ -32,7 +32,7 @@ public class VWMLOperationActivateContextHandler extends VWMLOperationHandler {
 		Object activatedContextId = null;
 		if (entities.size() == 1) { // specific case where only one entity on stack
 			entity = entities.get(0);
-			activatedContextId = entity.getId();
+			activatedContextId = entity.getNativeId();
 		}
 		else {
 			// entity defines context which is activated

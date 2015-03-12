@@ -30,6 +30,9 @@ public class VWMLComplexEntity extends VWMLEntity {
 		assembleReadableId(ce, this);
 		setReadableId(ce.build());
 		ce.clear();
+		if (getReadableId() != null && getReadableId().equals(VWMLEntity.s_EmptyEntityNId) && getNativeId() != null) {
+			setReadableId((String)getNativeId());
+		}
 		return getReadableId();
 	}
 

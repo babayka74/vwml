@@ -46,7 +46,7 @@ public class VWMLOperationConflictSituationStartHandler extends VWMLOperationHan
 		if (entity.getClonedFrom() != null) {
 			entity = entity.getClonedFrom();
 		}
-		reportInterpreterInternalState((String)entity.getId(), interpreter);
+		reportInterpreterInternalState((String)entity.getNativeId(), interpreter);
 		inspector.clear();
 		entities.clear();
 		if (clear) {

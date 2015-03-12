@@ -72,7 +72,7 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 			}
 		}
 		try {
-			time = Integer.parseInt((String)timeEntity.getId());
+			time = Integer.parseInt((String)timeEntity.getNativeId());
 		}
 		finally {
 		}

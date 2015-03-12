@@ -18,7 +18,7 @@ public class VWMLSimpleEntity extends VWMLEntity {
 	@Override
 	public String buildReadableId() {
 		if (getReadableId() == null) {
-			setReadableId((String)getId());
+			setReadableId((String)getNativeId());
 		}
 		return getReadableId();
 	}

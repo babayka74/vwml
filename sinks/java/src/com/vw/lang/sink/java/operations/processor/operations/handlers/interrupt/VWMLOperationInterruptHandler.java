@@ -50,12 +50,12 @@ public class VWMLOperationInterruptHandler extends VWMLOperationHandler {
 		if (entity.getClonedFrom() != null) {
 			masterEntity = entity.getClonedFrom();
 		}
-		VWMLContext masterOfInterruptedContext = VWMLContextsRepository.instance().get(masterEntity.getId());
+		VWMLContext masterOfInterruptedContext = VWMLContextsRepository.instance().get(masterEntity.getNativeId());
 		if (masterOfInterruptedContext == null) {
-			throw new Exception("Coudn't find context to interrupt; context '" + masterEntity.getId() + "'");
+			throw new Exception("Coudn't find context to interrupt; context '" + masterEntity.getNativeId() + "'");
 		}
 		VWMLConflictRingExecutionGroup g = interpreter.getRing().findGroupByEntityContext(masterOfInterruptedContext.getContext(), true);
-		VWMLInterpreterImpl interruptedInterpreter = g.findInterpreterByContext((String)entity.getId());
+		VWMLInterpreterImpl interruptedInterpreter = g.findInterpreterByContext((String)entity.getNativeId());
 		if (interruptedInterpreter != null) {
 			Object timerId = interruptedInterpreter.getObserver().getAssociatedTimerWithContext(VWMLInterpreterObserver.getWaitContext());
 			if (timerId != null) {

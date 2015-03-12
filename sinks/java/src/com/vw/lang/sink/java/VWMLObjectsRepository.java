@@ -26,6 +26,17 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	public static boolean notAsOriginal = false;
 	public static boolean asOriginal = true;
 	
+	private static String predefinedEntitiesId[] = {
+		VWMLEntity.s_NilEntityId,
+		VWMLEntity.s_NullEntityId,
+		VWMLEntity.s_EmptyEntityId,
+		VWMLEntity.s_doNothingEntityId,
+		VWMLEntity.s_doNothingEntityId2,
+		VWMLEntity.s_doNothingEntityId3,
+		VWMLEntity.s_trueEntityId,
+		VWMLEntity.s_falseEntityId
+	};
+	
 	// builds association between object's id and its instance
 	private Map<Object, VWMLObject> repo = null;
 	private Map<VWMLObject, VWMLObject> translatedObjects  = new HashMap<VWMLObject, VWMLObject>();
@@ -37,6 +48,15 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		return VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepo();
 	}
 
+	public static boolean isEntityPredefined(VWMLEntity e) {
+		for(String id : predefinedEntitiesId) {
+			if (e.getId().equals(id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Acquires object identified by type and id and puts it to repository in case if it isn't found there
 	 * @param type
@@ -64,12 +84,15 @@ public class VWMLObjectsRepository extends VWMLRepository {
 				contextChanged = true;
 			}
 			obj = VWMLObjectBuilder.build(type, c.getContext(), id, c, entityHistorySize, visitor);
+			obj.setHashId(id);
 			((VWMLEntity)obj).setOriginal(asOriginalOnCreation);
-			if (!contextChanged) {
-				instance().add((VWMLEntity)obj);
-			}
-			else {
-				instance().addByEntityKey((VWMLEntity)obj, c);
+			if (instance().isUnderConstruction()) {
+				if (!contextChanged) {
+					instance().add((VWMLEntity)obj);
+				}
+				else {
+					instance().addByEntityKey((VWMLEntity)obj, c);
+				}
 			}
 		}
 		return obj;
@@ -108,7 +131,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		VWMLObject obj = instance().checkObjectOnContext(id, c);
 		return obj;
 	}
-
+	
 	/**
 	 * Lookups for entity on context pair, supposing that context may be cloned
 	 * 1. lookup on original context
@@ -189,7 +212,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		}
 		String id = null;
 		if (lookupByReadableId || prototype.isLookedByReadableId()) {
-			id = prototype.buildReadableId();
+			id = (String)prototype.getHashId();
 		}
 		else {
 			id = (String)prototype.getId();
@@ -297,6 +320,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					}
 					prototype = onModelEntity;
 				}
+				// System.out.println("getAndCreateInCaseOfClone for '" + prototype.buildReadableId() + "' " + prototype.isTerm() + "'");
 				// found on original - creating in effective (cloned)
 				lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
 											prototype.getId(),
@@ -310,27 +334,6 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					((VWMLTerm)lookedEntity).setAssociatedEntity(eA);
 					((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
 				}
-				if (prototype.getOriginalInterpreting() != null) {
-					// get readableId
-					String readableId = prototype.buildReadableId();
-					// special case when context is entity
-					if (readableId != null && readableId.equals(VWMLEntity.s_EmptyEntityId)) {
-						readableId = (String)prototype.getId();
-					}
-					// suppose that prototype.id identifies some context
-					String ci = VWMLContext.constructContextNameFromParts(cPair.getOrigContextId(), readableId);
-					// check it by creating pair
-					ContextIdPair cPairI = VWMLContextsRepository.instance().wellFormedContext(ci);
-					if (cPairI != null) {
-						ci = VWMLContext.constructContextNameFromParts(cPair.getEffectiveContextId(), readableId);
-						// ... looks like context, on model, exists - so we have to clone new one 
-						ctxEffective = VWMLContextsRepository.instance().createContextIfNotExists(ci);
-						// ... and update pair
-						cPair = VWMLContextsRepository.instance().wellFormedContext(ctxEffective.getContext());
-					}
-					VWMLEntity e = (VWMLEntity) getAndCreateInCaseOfClone(cPair, prototype.getOriginalInterpreting());
-					lookedEntity.setInterpreting(e);
-				}
 				lookedEntity.setAsArgPair(prototype.getAsArgPair());
 				lookedEntity.setSynthetic(prototype.isSynthetic());
 				lookedEntity.setClonedFrom(prototype);
@@ -342,7 +345,9 @@ public class VWMLObjectsRepository extends VWMLRepository {
 						lookedEntity.getLink().link(eC);
 					}
 				}
+				instance().lateBinding(lookedEntity, (String)prototype.getNativeId());
 				lookedEntity.buildReadableId();
+				lookedEntity.setInterpreting((VWMLEntity)getAndCreateInterpretedInCaseOfClone(cPair, ctxEffective, prototype));
 			}
 		}
 		if (lookedEntity != null && lookedEntity.isMarkedAsPotentialInvalid()) {
@@ -352,6 +357,51 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			lookedEntity = (VWMLEntity) getAndCreateInCaseOfClone(cPair, prototype);
 		}
 		return lookedEntity;
+	}
+
+	/**
+	 * Clones, if needed, interpreted part of interpreting entity (A <interpreting> ias B <interpreted>)
+	 * @param interpretingPair
+	 * @param interpretingContext
+	 * @param interpreting
+	 * @throws Exception
+	 */
+	public static VWMLObject getAndCreateInterpretedInCaseOfClone(ContextIdPair interpretingPair, VWMLContext interpretingContext, VWMLEntity interpreting) throws Exception {
+		VWMLEntity e = null;
+		if (interpreting.getOriginalInterpreting() != null) {
+			if (!interpreting.getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
+				// get readableId
+				String readableId = null;
+				if (interpreting.getReadableId() == null) {
+					readableId = interpreting.buildReadableId();
+				}
+				else {
+					readableId = interpreting.getReadableId();
+				}
+				// suppose that prototype.id identifies some context
+				String ci = VWMLContext.constructContextNameFromParts(interpretingPair.getOrigContextId(), readableId);
+				// check it by creating pair
+				ContextIdPair cPairI = VWMLContextsRepository.instance().wellFormedContext(ci);
+				if (cPairI != null) {
+					ci = VWMLContext.constructContextNameFromParts(interpretingPair.getEffectiveContextId(), readableId);
+					// ... looks like context, on model, exists - so we have to clone new one 
+					interpretingContext = VWMLContextsRepository.instance().createContextIfNotExists(ci);
+					// ... and update pair
+					interpretingPair = VWMLContextsRepository.instance().wellFormedContext(interpretingContext.getContext());
+				}
+				e = (VWMLEntity) getAndCreateInCaseOfClone(interpretingPair, interpreting.getOriginalInterpreting());
+			}
+			else {
+				e = (VWMLEntity)VWMLObjectsRepository.acquire(interpreting.getOriginalInterpreting().deduceEntityType(),
+															interpreting.getOriginalInterpreting().getNativeId(),
+															interpretingContext.getContext(),
+															interpreting.getOriginalInterpreting().getInterpretationHistorySize(),
+															VWMLObjectsRepository.notAsOriginal,
+															interpreting.getOriginalInterpreting().getLink().getLinkOperationVisitor());
+				instance().lateBinding(e, (String)interpreting.getOriginalInterpreting().getNativeId());
+			}
+		}
+		return e;
 	}
 	
 	/**
@@ -399,34 +449,48 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		// built-in complex entity id
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, VWMLEntity.s_EmptyEntityId, VWMLEntity.s_EmptyEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_EmptyEntityNId);
 		add(e);
 		// built-in simple entity id
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NilEntityId, VWMLEntity.s_NilEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_NilEntityNId);
 		add(e);
 		// built-in simple entity id
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_NullEntityId, VWMLEntity.s_NullEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_NullEntityNId);
+		e.setReadableId((String)e.getNativeId());
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId, VWMLEntity.s_doNothingEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_doNothingEntityNId);
+		e.setReadableId((String)e.getNativeId());
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId2, VWMLEntity.s_doNothingEntityId2, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_doNothingEntityNId2);
+		e.setReadableId((String)e.getNativeId());
 		add(e);
 		// when interpreter encounters such entity - then implicit operation 'doNothing' is activated
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_doNothingEntityId3, VWMLEntity.s_doNothingEntityId3, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_doNothingEntityNId3);
+		e.setReadableId((String)e.getNativeId());
 		add(e);
 		// built-in logical 'false' entity id
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_falseEntityId, VWMLEntity.s_falseEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_falseEntityNId);
+		e.setReadableId((String)e.getNativeId());
 		add(e);
 		// built-in logical 'true' entity id
 		e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, VWMLEntity.s_trueEntityId, VWMLEntity.s_trueEntityId, defaultContext, 0, null);
 		e.setOriginal(true);
+		e.setNativeId(VWMLEntity.s_trueEntityNId);
+		e.setReadableId((String)e.getNativeId());
 		add(e);
 	}
 	
@@ -434,11 +498,100 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		return garbageManager;
 	}
 
+	/**
+	 * Called during construction phase in order to build hash ids which substitute primary id
+	 * and can be constructed from readable id
+	 */
+	public void rebuildEntitiesPrimaryIds() {
+		Map<Object, VWMLObject> newRepo = VWMLResourceHostManagerFactory.hostManagerInstance().requestObjectsRepoContainer();
+		for(VWMLObject o : repo.values()) {
+			VWMLEntity e = (VWMLEntity)o;
+			if (isEntityPredefined(e)) {
+				newRepo.put(e.getRegistrationKey(), e);
+				continue;
+			}
+			if (e.isTerm()) {
+				e.setNativeId(e.getId());
+				newRepo.put(e.getRegistrationKey(), e);
+				continue;
+			}
+			e.getContext().unAssociateEntity(e);
+			Object hashId = null;
+			if (e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) {
+				hashId = VWMLEntity.buildHashIdFrom(e.getId());
+			}
+			else {
+				hashId = e.buildCompleteHashId();
+			}
+			e.setHashId(hashId);
+			e.setNativeId(e.getId());
+			e.setId(e.getHashId());
+			String nkey = buildAssociatingKeyOnContext(e);
+			if (!newRepo.containsKey(nkey)) {
+				newRepo.put(nkey, e);
+				e.setRegistrationKey(nkey);
+				e.getContext().associateEntity(e);
+				System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' registered on context '" + e.getContext().getContext() + "'");
+			}
+			else {
+				System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' exists on context '" + e.getContext().getContext() + "'");
+			}
+		}
+		repo.clear();
+		repo = newRepo;
+	}
+	
+	/**
+	 * Implements late binding by recalculating entity's id
+	 * @param e
+	 * @param nativeId
+	 */
+	public Object lateBinding(VWMLEntity e, String nativeId) {
+		e.getContext().unAssociateEntity(e);
+		if (nativeId != null) {
+			e.setNativeId(nativeId);
+		}
+		Object hashId = e.buildCompleteHashId();
+		e.setHashId(hashId);
+		e.setId(hashId);
+		add(e);
+		return hashId;
+	}
+	
+	/**
+	 * Adds created entity by context's key
+	 * @param entity
+	 * @param context
+	 * @return
+	 */
+	public void addByEntityKey(VWMLEntity entity, VWMLContext context) throws Exception {
+		String k = null;
+		if (isUnderConstruction) {
+			k = buildAssociationKey(context.getContext(), entity.getSimpleName());
+		}
+		else {
+			k = buildAssociationKey(context.getContext(), (String)entity.getHashId());
+		}
+		if (!repo.containsKey(k)) {
+			repo.put(k, entity);
+			entity.setRegistrationKey(k);
+			// associates acquired entity with context
+			context.associateEntity(entity);
+		}
+	}
+
+	
 	public void add(VWMLEntity obj) {
 		if (obj.getContext() == null) {
 			return; // temporary entity
 		}
-		String key = buildAssociatingKeyOnContext(obj);
+		String key = null;
+		if (isUnderConstruction) {
+			key = buildAssociatingKeyOnContext(obj);
+		}
+		else {
+			key = buildAssociationKey(obj.getContext().getContext(), (String)obj.getHashId());
+		}
 		if (!repo.containsKey(key)) {
 			repo.put(key, obj);
 			obj.setRegistrationKey(key);
@@ -600,22 +753,6 @@ public class VWMLObjectsRepository extends VWMLRepository {
 		}
 	}
 	
-	/**
-	 * Adds created entity by context's key
-	 * @param entity
-	 * @param context
-	 * @return
-	 */
-	public void addByEntityKey(VWMLEntity entity, VWMLContext context) throws Exception {
-		String k = buildAssociationKey(context.getContext(), entity.getSimpleName());
-		if (!repo.containsKey(k)) {
-			repo.put(k, entity);
-			entity.setRegistrationKey(k);
-			// associates acquired entity with context
-			context.associateEntity(entity);
-		}
-	}
-
 	/**
 	 * Adds translated objects; used fro translation between entity readable id and real entity
 	 * @param translationKey

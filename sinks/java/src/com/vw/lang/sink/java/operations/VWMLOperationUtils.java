@@ -20,7 +20,6 @@ import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRing;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingExecutionGroup;
 import com.vw.lang.sink.java.interpreter.datastructure.ring.VWMLConflictRingNode;
 import com.vw.lang.sink.java.link.AbstractVWMLLinkVisitor;
-import com.vw.lang.sink.java.link.VWMLLinkIncrementalIterator;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.interceptor.VWMLActivateInterceptorDeferredTask;
 import com.vw.lang.sink.utils.ComplexEntityNameBuilder;
 
@@ -63,6 +62,16 @@ public class VWMLOperationUtils {
 			newComplexEntity = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.COMPLEX_ENTITY, cen, cen, null, 0, null);
 			for(int i = fromPos; i >= 0; i--) {
 				newComplexEntity.getLink().link(entities.get(i));
+			}
+			Object hashId = newComplexEntity.buildCompleteHashId();
+			newComplexEntity.setId(hashId);
+			newComplexEntity.setHashId(hashId);
+			String rid = newComplexEntity.buildReadableId();
+			newComplexEntity.setNativeId(rid);
+			newComplexEntity.setReadableId(rid);
+			if (rid.equals("(Rt vino)")) {
+				int h = 0;
+				h++;
 			}
 			if (addIfUnknown) {
 				ContextIdPair interpreterCtxPair = VWMLContextsRepository.instance().wellFormedContext(effectiveContext.getContext());
@@ -238,7 +247,7 @@ public class VWMLOperationUtils {
 		clonedInterpreter.setClonedFromEntity(cloned);
 		clonedInterpreter.setCloned(true);
 		clonedInterpreter.setTerms(tl);
-		VWMLContext forcedContext = VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(cloned.getContext().getContext(), (String)cloned.getId()));
+		VWMLContext forcedContext = VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(cloned.getContext().getContext(), (String)cloned.getNativeId()));
 		clonedInterpreter.setForcedContext(forcedContext);
 		clonedNode.setExecutionGroup(group);
 		group.add(clonedNode);
@@ -312,7 +321,7 @@ public class VWMLOperationUtils {
 			VWMLComplexEntity args = (VWMLComplexEntity)interpreter.getInterpretingEntityForArgEntity();
 			int num = Integer.valueOf(entity.getAsArgPair().getPlaceNumber());
 			if (num >= args.getLink().getLinkedObjectsOnThisTime()) {
-				throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getId() + "'");
+				throw new Exception("argument's number '" + num + "' exceeds entity's number of arguments; args '" + args.getNativeId() + "'");
 			}
 			e = (VWMLEntity)args.getLink().getConcreteLinkedEntity(num);
 		}
@@ -321,30 +330,11 @@ public class VWMLOperationUtils {
 	
 	private static VWMLEntity lookupAndRelinkEntityOnContext(ContextIdPair ctxPair, VWMLEntity newComplexEntity) throws Exception {
 		VWMLEntity lookedEntity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(ctxPair, newComplexEntity, true, false);
-		if (lookedEntity != null && lookedEntity != newComplexEntity) {
-			if (lookedEntity.isMarkedAsComplexEntity() && newComplexEntity.isMarkedAsComplexEntity()) {
-				if (lookedEntity.getLink() != null) {
-					lookedEntity.getLink().getLinkedObjects().clear();
-				}
-				VWMLLinkIncrementalIterator it = newComplexEntity.getLink().acquireLinkedObjectsIterator();
-				if (it != null) {
-					for(; it.isCorrect(); it.next()) {
-						lookedEntity.getLink().link(newComplexEntity.getLink().getConcreteLinkedEntity(it.getIt()));
-					}
-				}
-			}
-			VWMLObjectsRepository.instance().remove(newComplexEntity);
-			newComplexEntity.getLink().unlinkFromAll();
-			newComplexEntity = lookedEntity;
+		if (lookedEntity == null || lookedEntity.getRegistrationKey() == null) {
+			VWMLObjectsRepository.instance().add(newComplexEntity);
+			lookedEntity = newComplexEntity;
 		}
-		else {
-			if (lookedEntity == null) {
-				newComplexEntity.buildReadableId();
-				newComplexEntity.setId(newComplexEntity.getReadableId());
-				VWMLObjectsRepository.instance().addConcrete(newComplexEntity, newComplexEntity.getContext());
-			}
-		}
-		return newComplexEntity;
+		return lookedEntity;
 	}
 	
 	/**

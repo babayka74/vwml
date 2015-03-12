@@ -63,18 +63,11 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		entities.clear();
 	}
 
-	public VWMLEntity clone(VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
-		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId(), false);
-	}
-
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLContext interpreterContext, VWMLEntity origEntity, VWMLEntity clonedObject, VWMLEntity deferExecution) throws Exception {
-		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getId())) != null) {
-			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
+		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getNativeId())) != null) {
+			throw new Exception("the context '" + clonedObject.getNativeId() + "' has already been cloned");
 		}
 		VWMLEntity cloned = VWMLCloneFactory.cloneContextLazy(origEntity, clonedObject);
-		if (cloned.getReadableId() == null) {
-			cloned.buildReadableId();
-		}
 		VWMLObjectsRepository.instance().remove(clonedObject);
 		if (cloned.getInterpreting() != null && interpreter.getRing() != null && deferExecution == null) {
 			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();

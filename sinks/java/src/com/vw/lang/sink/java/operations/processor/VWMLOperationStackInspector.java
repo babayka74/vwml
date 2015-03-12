@@ -218,14 +218,6 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			}
 			dynamicAddressedEntity.setDynamicAddressedInRunTime(true);
 			e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, dynamicAddressedEntity);
-			if (e.getReadableId() == null && ((e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) || !e.isMarkedAsComplexEntity())) {
-				// looks like context which built during compilation time
-				e.setReadableId((String)e.getId());
-			}
-			if (dynamicAddressedEntity != e) {
-				dynamicAddressedEntity.setDynamicAddressedInRunTime(false);
-				e.setDynamicAddressedInRunTime(true);
-			}
 			pushEntityToReversedStack(e);
 			dynContext = null;
 		}

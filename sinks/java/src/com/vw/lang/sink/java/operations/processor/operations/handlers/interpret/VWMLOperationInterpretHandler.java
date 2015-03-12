@@ -71,20 +71,10 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 																					   context.getEntityInterpretationHistorySize(),
 																					   context.getLinkOperationVisitor(),
 																					   VWMLOperationUtils.s_addIfUnknown);
-			
 			interpretingEntity = deduceInterpretingEntity(interpreter, entity);
 		}
 		if (interpretingEntity == null) {
-			if (entity.getContext() != null && entity.getContext().getLink().getParent() != null) {
-				// sometimes we need search for entity starting from parent. Usually it happens when assemble operation
-				// adds new entity to current context (but entity is moved to another, by Born/Clone command) and 
-				// this entity is called from current context
-				ContextIdPair cPair = VWMLContextsRepository.instance().wellFormedContext(((VWMLContext)entity.getContext().getLink().getParent()).getContext());
-				VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, entity);
-				if (e != null) {
-					interpretingEntity = deduceInterpretingEntity(interpreter, e);
-				}
-			}
+			interpretingEntity = lookingForHighLevelEntity(interpreter, entity);
 			if (interpretingEntity == null) {
 				throw new Exception("the interpreting entity '" + entity.getReadableId() + "' can't be 'null'; check VWML's code; entity '" + entity + "'");
 			}
@@ -125,25 +115,9 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		}
 		interpretingEntity = lazyInterpeting(entity);
 		if (interpretingEntity == null) {
-			VWMLContext onContext = entity.getContext();
-			String readableId = entity.buildReadableId();
-			entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(onContext.getContext(), entity, true);
-			if (entity == null) {
-				entity = (VWMLEntity)VWMLObjectsRepository.instance().findOnConcreteContextByReadableId(readableId, onContext);
-				if (entity == null) {
-					throw new Exception("couldn't find entity '" + readableId + "' on context '" + onContext.getContext() + "'");
-				}
-			}
-			interpretingEntity = lazyInterpeting(entity);
+			interpretingEntity = lookingForHighLevelEntity(interpreter, entity);
 			if (interpretingEntity == null) {
-				// this case is checked when entity is defined on some contexts, usually happens during static entity definition (see Maze, battleModel3A)
-				if (entity.getContext().getLink().getParent() != null) {
-					VWMLEntity e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(onContext.getContext(), entity, true);
-					interpretingEntity = deduceInterpretingEntity(interpreter, e);
-				}
-				if (interpretingEntity == null) {
-					throw new Exception("interpreting entity wasn't found for entity '" + readableId + "'; on contexts '" + onContext.getContext() + "/" + originalContext.getContext() + "'");
-				}
+				throw new Exception("interpreting entity wasn't found for entity '" + entity.buildReadableId() + "'; on contexts '" + entity.getContext().getContext() + "/" + originalContext.getContext() + "'");
 			}
 			// cached interpreting entity
 			initialEntity.setInterpreting(interpretingEntity);
@@ -166,5 +140,22 @@ public class VWMLOperationInterpretHandler extends VWMLOperationHandler {
 		VWMLEntity e = null;
 		e = entity.getInterpreting();
 		return e;
+	}
+	
+	private VWMLEntity lookingForHighLevelEntity(VWMLInterpreterImpl interpreter, VWMLEntity fromEntity) throws Exception {
+		VWMLEntity interpretingEntity = null;
+		// this case is checked when entity is defined on some contexts, usually happens during static entity definition (see Maze, battleModel3A)
+		if (fromEntity.getContext().getLink().getParent() != null) {
+			VWMLContext parentCtx = (VWMLContext)fromEntity.getContext().getLink().getParent();
+			ContextIdPair parentCtxPair = VWMLContextsRepository.instance().wellFormedContext(parentCtx.getContext());
+			if (parentCtxPair != null) {
+				VWMLEntity highLevelEntityOnModel = (VWMLEntity)VWMLObjectsRepository.instance().get(fromEntity.getId(), VWMLContextsRepository.instance().get(parentCtxPair.getOrigContextId()));
+				if (highLevelEntityOnModel != null) {
+					VWMLEntity entity = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(parentCtx.getContext(), highLevelEntityOnModel, true);
+					interpretingEntity = deduceInterpretingEntity(interpreter, entity);
+				}
+			}
+		}
+		return interpretingEntity;
 	}
 }
