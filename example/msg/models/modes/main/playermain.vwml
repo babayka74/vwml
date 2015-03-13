@@ -5,15 +5,21 @@ module PlayerModeMain {
 				CommandId ias nil;
 				CommandParams ias nil;
 				ExternalBattleResultProcessing ias (
+#if (business)
 					WinId ias 0;
 					WinCost ias nil;
+					Rt ias nil;
+					Loss ias 0;
 
 					(WinId (CommandParams~ 0) Get)^
-					(WinCost (CommandParams~ 1) Get)^
+					(Rt ((CommandParams~ 1) Get 1) Get)^
+					(Loss ((Resources.Account.(Rt Rt~)~ Resources.Business.LH~) Ew.RecalcBattleResult~) Do)^
+					(WinCost (cost Rt~ Loss~))^
 #if (verbose)
 					((Player Id~ transfers WinCost~ to player WinId~) Ew.Output~) Do
 #endif
-					((GlobalBanker 0) Tx (transfer starttransfer Id~ (Id~ WinId~ WinCost~))) Gate 
+					((GlobalBanker 0) Tx (transfer starttransfer Id~ (Id~ WinId~ WinCost~))) Gate
+#endif // business
 				);
 				NotifyAboutActivitiesStopped ias (
 					(Activities () NotifyAboutActivitiesStopped~) FinishInterception

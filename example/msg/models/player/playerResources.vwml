@@ -133,6 +133,7 @@ module PlayerResources {
 #if (business)
 					GDevelop ias 0;		// see StrategyGame_Hiring&Dismiss
 					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
+					LH ias 0; 		// see Battle result document
 #endif
 					Value ias nil;
 					Result ias false;
@@ -141,7 +142,7 @@ module PlayerResources {
 #if (business)
 						(GDevelop 0)^
 						(GContain 0)^
-						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~)))^
+						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~) (LH Ew.BusinessConf.LH~)))^
 #else
 						(Update.From (Factors Ew.BusinessConf.Factors~))^
 #endif
@@ -200,6 +201,18 @@ module PlayerResources {
 #endif
 						);
 
+						UpdateLH ias (
+							F ias nil;
+							// (<number>)
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (LH (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has LH factor LH~) Ew.Output~) Do 
+#endif
+						);
+
 						UpdateUnitsInfo ias (
 							F ias nil;
 							K ias nil;
@@ -240,6 +253,8 @@ module PlayerResources {
 						UpdateGContain~ Exe
 						(UpdateUnitsInfo.F (From~ 3) Get)^
 						UpdateUnitsInfo~ Exe
+						(UpdateLH.F (From~ 4) Get)^
+						UpdateLH~ Exe
 #endif // business
 						(UpdateFactors.F  (From~ 0) Get)^
 						UpdateFactors~ Exe
@@ -341,7 +356,7 @@ module PlayerResources {
 					);
 					Recharge ias (
 						(ByRtType (Rt (Value~ 1) Get))^
-						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sum~) Do)^
+						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.SumF~) Do)^
 						(Result true)^
 #if (verbose)
 						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
@@ -359,7 +374,7 @@ module PlayerResources {
 						);
 						(Allow 0),(Allow 1) ias (
 							(Result true)^
-							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.Sub~) Do)^
+							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.SubF~) Do)^
 #if (verbose)
 							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do
 #endif

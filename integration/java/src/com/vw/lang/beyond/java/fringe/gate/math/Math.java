@@ -51,6 +51,40 @@ public class Math implements IVWMLGate {
 		}
 		
 	}
+
+	private static class SumFHandler extends GateCommandHandler {
+
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			int i = 0;
+			for(EWObject o : commandArgs.getLink().getLinkedObjects()) {
+				EWEntity e = (EWEntity)o;
+				i += Math.convertString2Float((String)e.getId());
+			}
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+		}
+		
+	}
+
+	private static class SubstrFHandler extends GateCommandHandler {
+
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			float i = 0;
+			boolean ft = true;
+			for(EWObject o : commandArgs.getLink().getLinkedObjects()) {
+				EWEntity e = (EWEntity)o;
+				if (ft) {
+					i = Math.convertString2Float((String)e.getId());
+					ft = false;
+					continue;
+				}
+				i -= Math.convertString2Float((String)e.getId());
+			}
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+		}
+		
+	}
 	
 	private static class MultHandler extends GateCommandHandler {
 
@@ -267,6 +301,8 @@ public class Math implements IVWMLGate {
 		{
 			put("sum", new SumHandler());
 			put("substr", new SubstrHandler());
+			put("sumf", new SumFHandler());
+			put("substrf", new SubstrFHandler());
 			put("mult", new MultHandler());
 			put("div", new DivHandler());
 			put("inc", new IncHandler());
@@ -336,4 +372,17 @@ public class Math implements IVWMLGate {
 		}
 		return i;
 	}
+	
+	private static float convertString2Float(String s) {
+		float i = 0;
+		try {
+			i = Float.parseFloat(s);
+		}
+		catch(NumberFormatException ex) {
+			// swallow it simple; depends on business logic
+		}
+		return i;
+	}
+
 }
+

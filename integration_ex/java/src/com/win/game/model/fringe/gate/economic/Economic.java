@@ -35,10 +35,29 @@ public class Economic implements IVWMLGate {
 		}
 	}
 	
+	protected static class RecalcBattleResult extends Handler {
+
+		private static final int QUANTITY 	= 0x0;
+		private static final int LH 		= 0x1;
+		
+		
+		@Override
+		public EWEntity handle(Economic economic, EWEntity commandArgs) throws Exception {
+			EWEntity q = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(QUANTITY);
+			EWEntity lh = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(LH);
+			Float qFactor = Float.valueOf((String)q.getId());
+			Float lhFactor = Float.valueOf((String)lh.getId());
+			float loss = (qFactor * lhFactor);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(loss), null);
+		}
+		
+	}
+	
 	@SuppressWarnings("serial")
 	private Map<String, Handler> handlers = new HashMap<String, Handler>() {
 		{
 			put("recalcquantum", new RecalcResourceQuantum());
+			put("recalcbattleresult", new RecalcBattleResult());
 		}
 	};
 	
