@@ -12,7 +12,7 @@ module ExternalWorld {
 				Ctx ias nil;
 				(Node ($~ 0) Get)^
 				(LinkedNodes ($~ 1) Get)^
-				(Node~ Ctx~ true) Context
+				(Node~ Ctx~ false) CloneOn
 				(Node~ LinkedNodes~)^
 				(Stg~ (Stg~~ (Node~)) Join)^
 #if (verbose)
@@ -82,7 +82,7 @@ module ExternalWorld {
 				ApplyConf ias (
 					SetConfField ias (
 						($~ ((Conf~ ConfIndex~) Get 1) Get)^
-						($~ QuartalsConf true) Context
+						($~ QuartalsConf false) CloneOn
 						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
 					);
 					(ConfIndex 0)^
@@ -145,7 +145,7 @@ module ExternalWorld {
 				ApplyConf ias (
 					SetConfField ias (
 						($~ ((Conf~ ConfIndex~) Get 1) Get)^
-						($~ BusinessConf true) Context
+						($~ BusinessConf false) CloneOn
 						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
 					);
 					(ConfIndex 0)^

@@ -168,9 +168,9 @@ module PlayerResources {
 								AssociateByRt ias (
 									(Type ($~ FType~) Get)^
 									((Bdf Type~) ($~ BDFactor~) Get)^
-									((Bdf Type~) Business true) Context
+									((Bdf Type~) Business false) CloneOn
 									((Kdf Type~) ($~ KFactor~) Get)^
-									((Kdf Type~) Business true) Context
+									((Kdf Type~) Business false) CloneOn
 #if (verbose)                                           	
 									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~) Ew.Output~) Do 
 #endif
@@ -324,7 +324,7 @@ module PlayerResources {
 						AssociateByRt ias (
 							(Type ($~ 0) Get)^
 							((Rt Type~) ($~ 1) Get)^
-							((Rt Type~) Account true) Context
+							((Rt Type~) Account false) CloneOn
 #if (verbose)
 							((Player Id~ has resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
 #endif

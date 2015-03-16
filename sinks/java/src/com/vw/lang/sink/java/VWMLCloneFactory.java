@@ -31,7 +31,7 @@ public class VWMLCloneFactory {
 				ContextIdPair origEntityInterpCtxPair = VWMLContextsRepository.instance().wellFormedContext(origEntity.getInterpreting().getContext().getContext());
 				ctxForClonedEntity = VWMLContextsRepository.instance().updateContextAndCreateInCaseOfClone(origEntityCtxPair, origEntityInterpCtxPair);
 			}
-			VWMLContext ctx = VWMLContextsRepository.cloneLazy(clonedObject.getNativeId(), ctxForClonedEntity);
+			VWMLContext ctx = VWMLContextsRepository.cloneLazy(clonedObject.getReadableId(), ctxForClonedEntity);
 			clonedEntity = (VWMLEntity)VWMLObjectsRepository.acquire(clonedObject.deduceEntityType(),
 																	clonedObject.getId(),
 																	((VWMLContext)ctxForClonedEntity.getLink().getParent()).getContext(),

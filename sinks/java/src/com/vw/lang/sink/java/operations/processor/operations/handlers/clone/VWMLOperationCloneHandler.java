@@ -64,7 +64,7 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	}
 
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLContext interpreterContext, VWMLEntity origEntity, VWMLEntity clonedObject, VWMLEntity deferExecution) throws Exception {
-		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getNativeId())) != null) {
+		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), clonedObject.getReadableId())) != null) {
 			throw new Exception("the context '" + clonedObject.getNativeId() + "' has already been cloned");
 		}
 		VWMLEntity cloned = VWMLCloneFactory.cloneContextLazy(origEntity, clonedObject);

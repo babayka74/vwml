@@ -13,7 +13,7 @@ module Services {
 				CheckPosition ias (
 					(RightPosition true) ias (
 						(PosToBeSet~ PosToBeChecked~)^
-						(PosToBeChecked~ PosToBeCheckedCtx~ true) Context
+						(PosToBeChecked~ PosToBeCheckedCtx~ false) CloneOn
 					);
 					(RightPosition false) ias (
 						(PosToBeSet~ nil)^

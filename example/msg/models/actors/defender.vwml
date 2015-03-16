@@ -97,7 +97,7 @@ module Defender {
 						/* unit's position */
 						State ias nil;
 						SetStartPos ias (
-							(InvalidPositon false) ias (Movement.State~ (BattleField BattleFieldId~)->(Fields)->(Defence)->Nodes) Context;
+							(InvalidPositon false) ias (Movement.State~ (BattleField BattleFieldId~)->(Fields)->(Defence)->Nodes false) CloneOn;
 							(InvalidPositon true) ias doNothing;
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeChecked (Unit Id~)->(CommandDispatcher)->UnitCommandParams~)^
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeCheckedCtx (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes)^
