@@ -131,6 +131,8 @@ module PlayerResources {
 				Business ias (
 					RQ ias 0; // quantum
 #if (business)
+					InitialGDevelop ias 0;
+					InitialGContain ias 0;
 					GDevelop ias 0;		// see StrategyGame_Hiring&Dismiss
 					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
 					LH ias 0; 		// see Battle result document
@@ -151,6 +153,28 @@ module PlayerResources {
 						((Player Id~ initialized business factor resources) Ew.Output~) Do
 #endif
 					);
+					
+#if (business)
+					AssembleGDevelop ias (
+						AssembleByRt ias (GDevelop ((GDevelop~ (Gdf $~)~) Ew.Sum~) Do)^;
+						(GDevelop 0)^
+						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
+						(GDevelop ((GDevelop~ InitialGDevelop~) Ew.Sum~) Do)^
+#if (verbose)                           	
+						((Player Id~ has assembled gdevelop factor GDevelop~) Ew.Output~) Do 
+#endif
+					);
+
+					AssembleGContain ias (
+						AssembleByRt ias (GContain ((GContain~ (Ctf $~)~) Ew.Sum~) Do)^;
+						(GContain 0)^
+						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
+						(GContain ((GContain~ InitialGContain~) Ew.Sum~) Do)^
+#if (verbose)                           	
+						((Player Id~ has assembled gcontain factor GContain~) Ew.Output~) Do 
+#endif
+					);
+#endif // business
 					Update ias (
 						// ((<factors>)(<gdevelop>))
 						From ias nil;
@@ -159,18 +183,30 @@ module PlayerResources {
 							FType ias 0;
 							BDFactor ias 1;
 							KFactor ias 2;
+							CFactor ias 3;
+							GFactor ias 4;
 							// example: ((vodka 0 1) (food 0 1) (gold 0 1) (viski 0 1))
 							F ias nil;
 							(Ignore true) ias doNothing;
 							(Ignore false) ias (
 								AssociateByRt ias (
 									(Type ($~ FType~) Get)^
+									// business dev factor
 									((Bdf Type~) ($~ BDFactor~) Get)^
 									((Bdf Type~) Business true) Context
+									// k-factor
 									((Kdf Type~) ($~ KFactor~) Get)^
 									((Kdf Type~) Business true) Context
+#if (business)
+									// initial value of containment (aka hospitality per resource)
+									((Ctf Type~) ($~ CFactor~) Get)^
+									((Ctf Type~) Business true) Context
+									// initial value of gangster development (per resource)
+									((Gdf Type~) ($~ GFactor~) Get)^
+									((Gdf Type~) Business true) Context
+#endif
 #if (verbose)                                           	
-									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~) Ew.Output~) Do 
+									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~ and (Ctf Type~) (Ctf Type~)~ and (Gdf Type~) (Gdf Type~)~) Ew.Output~) Do 
 #endif
 								);
 								(F (F~ 1) Get)^
@@ -183,10 +219,10 @@ module PlayerResources {
 							// (<number>)
 							F ias nil;
 							(Ignore true) ias doNothing;
-							(Ignore false) ias (GDevelop (F~ 1) Get)^;
+							(Ignore false) ias (InitialGDevelop (F~ 1) Get)^;
 							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
-							((Player Id~ has gdevelop factor GDevelop~) Ew.Output~) Do 
+							((Player Id~ has initial gdevelop factor InitialGDevelop~) Ew.Output~) Do 
 #endif
 						);
 
@@ -194,10 +230,10 @@ module PlayerResources {
 							// (<number>)
 							F ias nil;
 							(Ignore true) ias doNothing;
-							(Ignore false) ias (GContain (F~ 1) Get)^;
+							(Ignore false) ias (InitialGContain (F~ 1) Get)^;
 							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
-							((Player Id~ has gcontain factor GContain~) Ew.Output~) Do 
+							((Player Id~ has gcontain factor InitialGContain~) Ew.Output~) Do 
 #endif
 						);
 
@@ -282,7 +318,7 @@ module PlayerResources {
 					);
 					IncreaseBF ias (
 						(ByBdfType (Bdf (Value~ 1) Get))^
-						(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.Sum~) Do)^
+						(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.SumF~) Do)^
 						(Result true)^
 #if (verbose)
 						((Player Id~ increased business dev factor ByBdfType~ on (Value~ 2) Get balance is ByBdfType~~) Ew.Output~) Do
@@ -300,7 +336,7 @@ module PlayerResources {
 						);
 						(Allow 0),(Allow 1) ias (
 							(Result true)^
-							(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.Sub~) Do)^
+							(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.SubF~) Do)^
 #if (verbose)
 							((Player Id~ decreased business dev factor (Value~ 2) Get balance is ByBdfType~~ for ByBdfType~) Ew.Output~) Do
 #endif
@@ -309,7 +345,7 @@ module PlayerResources {
 #endif
 						);
 						(ByBdfType (Bdf (Value~ 1) Get))^
-						(Allow ((ByBdfType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
+						(Allow ((ByBdfType~~ (Value~ 2) Get) Ew.CompareF~) Do)~ Exe
 					);
 					RecalcRQuantum ias (
 						// (Id~ Resource.Type~ Resource.Quantum~ LInvestQuantum~)
@@ -383,7 +419,7 @@ module PlayerResources {
 #endif
 						);
 						(ByRtType (Rt (Value~ 1) Get))^
-						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.Compare~) Do)~ Exe
+						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.CompareF~) Do)~ Exe
 					);
 				);
 				Hiring ias (

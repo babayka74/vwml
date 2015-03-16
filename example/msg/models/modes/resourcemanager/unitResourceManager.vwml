@@ -7,8 +7,24 @@ module PlayerResourceManager {
 				HiredUnitId ias nil;
 				UnitsInAction ias 0;
 				StopRM ias false;
+				Kind ias nil;
+				Class ias nil;
+				Cost ias nil;
+				Contain ias nil;
+				RT ias nil;
+
 				Init ias (
 					(StopRM false)^
+				);
+				// recalculates partial GDev and Contain(Hospitality) factors
+				RecalcFactors ias (
+					// calculating partial GDevelop factor for specific unit's kind and class and resource
+					(Resources.Business.(Gdf RT~) ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
+					// contain (hospitality) per resource
+					(Resources.Business.(Ctf RT~) ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 1) Get) Ew.Mul~) Do)^
+					// assembles integrated GDevelop and GContain factors
+					Resources.Business.AssembleGDevelop~ Exe
+					Resources.Business.AssembleGContain~ Exe
 				);
 				// notifies battlefield about returning all remained units to base
 				NotifyAboutFBComplete ias (
@@ -55,15 +71,14 @@ module PlayerResourceManager {
 						(Class (Characters)->(Unit U~)->Class~)^
 						(Cost (Characters)->(Unit U~)->Cost~)^
 						(Contain (Characters)->(Unit U~)->Contain~)^
+						// resource type
+						(RT (Cost~ 1) Get)^
 
-						(TH ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
-						(TC ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 2) Get) Ew.Mul~) Do)^
-						// calculating partial GDevelop factor for specific unit's kind and class
-						(Resources.Business.GDevelop ((Resources.Business.GDevelop~ TH~) Ew.Sub~) Do)^
-						(Resources.Business.GContain ((Resources.Business.GContain~ TC~) Ew.Sub~) Do)^
+						// decrements number of units of specific kind
 						(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.DecValue~) Do)^
+						RecalcFactors~ Exe
 #if (verbose)
-						((Business factors (qclazz gdevelop gcontain) changed (Resources.Business.(Q Kind~ Class~)~ Resources.Business.GDevelop~ Resources.Business.GContain~) for player Id~) Ew.Output~) Do
+						((clazz ($$)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf ($$)->(Resources)->(Business)->(Ctf RT~)~ part dev ($$)->(Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
 #endif
 #endif // business
 
@@ -86,15 +101,16 @@ module PlayerResourceManager {
 					(Class (CommandParams~ 2) Get)^
 					(Cost (CommandParams~ 3) Get)^
 					(Contain (CommandParams~ 4) Get)^
+					// resource type
+					(RT (Cost~ 1) Get)^
+#if (verbose)
+					((Unit HiredUnitId~ cost Cost~ contain Contain~ clazz Class~ for player Id~) Ew.Output~) Do
+#endif
 					// increments number of units of specific kind
 					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
-					(TH ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
-					(TC ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 2) Get) Ew.Mul~) Do)^
-					// calculating partial GDevelop factor for specific unit's kind and class
-					(Resources.Business.GDevelop ((Resources.Business.GDevelop~ TH~) Ew.Sum~) Do)^
-					(Resources.Business.GContain ((Resources.Business.GContain~ TC~) Ew.Sum~) Do)^
+					RecalcFactors~ Exe
 #if (verbose)
-					((Business factors (qclazz gdevelop gcontain) changed (Resources.Business.(Q Kind~ Class~)~ Resources.Business.GDevelop~ Resources.Business.GContain~) for player Id~) Ew.Output~) Do
+					((clazz ($$)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf ($$)->(Resources)->(Business)->(Ctf RT~)~ part dev ($$)->(Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
 #endif
 #endif /* business */
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^

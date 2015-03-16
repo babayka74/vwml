@@ -1,0 +1,12 @@
+module PlayerBanking {
+	MagicWorld ias (
+		Player ias (
+			Cashier ias (
+				Init ias (
+				);
+				Done ias (
+				);
+			);
+		);
+	);
+}

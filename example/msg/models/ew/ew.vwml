@@ -131,11 +131,12 @@ module ExternalWorld {
 			Conf ias nil;
 			Factors ias ();
 #if (business)
+			AvailableResources ias nil;
 			GDevelop ias 0;
 			GContain ias 0;
 			UnitsInfo ias ();
 			LH ias nil;
-			ConfFields ias (Factors GDevelop GContain UnitsInfo LH);
+			ConfFields ias (AvailableResources Factors GDevelop GContain UnitsInfo LH);
 #else
 			ConfFields ias (Factors);
 #endif
@@ -159,7 +160,7 @@ module ExternalWorld {
 			Load~ Exe
 #if (verbose)
 	#if (business)
-			((The business configuration is Factors~ and GDevelop~ and GContain~ and UnitsInfo~ and LH~) Ew.Output~) Do
+			((The business configuration is AvailableResources~ and Factors~ and GDevelop~ and GContain~ and UnitsInfo~ and LH~) Ew.Output~) Do
 	#else
 			((The business configuration is Factors~) Ew.Output~) Do
 	#endif
@@ -191,6 +192,7 @@ module ExternalWorld {
 		SubF ias services.math.substrf;
 		Mul ias services.math.mult;
 		Compare ias services.math.compare;
+		CompareF ias services.math.comparef;
 		RecalcQuantum ias services.economic.recalcquantum;
 #if (business)
 		RecalcBattleResult ias services.economic.recalcbattleresult;

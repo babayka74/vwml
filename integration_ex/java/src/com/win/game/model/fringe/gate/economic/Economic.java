@@ -26,11 +26,11 @@ public class Economic implements IVWMLGate {
 			EWEntity q = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(QUANTUM);
 			EWEntity i = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(INVESTMENT);
 			EWEntity k = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(KFACTOR);
-			Double qFactor = Double.valueOf((String)q.getId());
-			Double iFactor = Double.valueOf((String)i.getId());
-			Double kFactor = Double.valueOf((String)k.getId());
-			Double dp = kFactor * Math.log1p((1 / qFactor) * iFactor);
-			long r = dp.longValue() + qFactor.longValue();
+			Float qFactor = Float.valueOf((String)q.getId());
+			Float iFactor = Float.valueOf((String)i.getId());
+			Float kFactor = Float.valueOf((String)k.getId());
+			Float dp = (float)(kFactor * Math.log1p((1 / qFactor) * iFactor));
+			float r = dp.floatValue() + qFactor.floatValue();
 			return EWEntityBuilder.buildSimpleEntity(String.valueOf(r), null);
 		}
 	}
