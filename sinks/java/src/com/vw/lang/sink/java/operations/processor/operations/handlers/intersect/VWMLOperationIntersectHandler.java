@@ -56,6 +56,7 @@ public class VWMLOperationIntersectHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
+		result = finalizeAfterSetOrientedOperations(result);
 		stack.push(result);
 	}
 	

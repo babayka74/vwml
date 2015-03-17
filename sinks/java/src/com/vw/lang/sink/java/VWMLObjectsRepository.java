@@ -320,6 +320,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					}
 					prototype = onModelEntity;
 				}
+				
 				// System.out.println("getAndCreateInCaseOfClone for '" + prototype.buildReadableId() + "' " + prototype.isTerm() + "'");
 				// found on original - creating in effective (cloned)
 				lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
@@ -513,30 +514,15 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			if (e.isTerm()) {
 				e.setNativeId(e.getId());
 				newRepo.put(e.getRegistrationKey(), e);
+				VWMLObject associated = rebuildEntityCredentials(newRepo, ((VWMLTerm)e).getAssociatedEntity());
+				if (associated != ((VWMLTerm)e).getAssociatedEntity()) {
+					((VWMLTerm)e).setAssociatedEntity((VWMLEntity)associated);
+				}
 				continue;
 			}
-			e.getContext().unAssociateEntity(e);
-			Object hashId = null;
-			if (e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) {
-				hashId = VWMLEntity.buildHashIdFrom(e.getId());
-			}
-			else {
-				hashId = e.buildCompleteHashId();
-			}
-			e.setHashId(hashId);
-			e.setNativeId(e.getId());
-			e.setId(e.getHashId());
-			String nkey = buildAssociatingKeyOnContext(e);
-			if (!newRepo.containsKey(nkey)) {
-				newRepo.put(nkey, e);
-				e.setRegistrationKey(nkey);
-				e.getContext().associateEntity(e);
-				System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' registered on context '" + e.getContext().getContext() + "'");
-			}
-			else {
-				System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' exists on context '" + e.getContext().getContext() + "'");
-			}
+			rebuildEntityCredentials(newRepo, e);
 		}
+		System.out.println("Code squeeze factor is '" + (float)repo.size() / (float)newRepo.size() + "'");
 		repo.clear();
 		repo = newRepo;
 	}
@@ -903,5 +889,33 @@ public class VWMLObjectsRepository extends VWMLRepository {
 	
 	protected void markAsInvalid() {
 		VWMLResourceHostManagerFactory.hostManagerInstance().markObjectsRepoAsInvalid();
+	}
+	
+	protected VWMLObject rebuildEntityCredentials(Map<Object, VWMLObject> newRepo, VWMLEntity e) {
+		VWMLObject o = null;
+		e.getContext().unAssociateEntity(e);
+		Object hashId = null;
+		if (e.isMarkedAsComplexEntity() && e.getLink().getLinkedObjectsOnThisTime() == 0) {
+			hashId = VWMLEntity.buildHashIdFrom(e.getId());
+		}
+		else {
+			hashId = e.buildCompleteHashId();
+		}
+		String nkey = buildAssociationKey(e.getContext().getContext(), (String)hashId);
+		if (!newRepo.containsKey(nkey)) {
+			e.setHashId(hashId);
+			e.setNativeId(e.getId());
+			e.setId(e.getHashId());
+			newRepo.put(nkey, e);
+			e.setRegistrationKey(nkey);
+			e.getContext().associateEntity(e);
+			o = e;
+//			System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' registered on context '" + e.getContext().getContext() + "'");
+		}
+		else {
+			o = newRepo.get(nkey);
+//			System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' exists on context '" + e.getContext().getContext() + "'");
+		}
+		return o;
 	}
 }

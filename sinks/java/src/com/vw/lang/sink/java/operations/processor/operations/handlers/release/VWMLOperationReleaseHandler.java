@@ -54,9 +54,9 @@ public class VWMLOperationReleaseHandler extends VWMLOperationHandler {
 		if (entity.getInterpreting() != null && (entity.getInterpreting().getContext().findSourceLifeTerm() != null || entity.getInterpreting().getContext().findLifeTerm() != null)) {
 			return;
 		}
+		String dynContext = VWMLContext.constructContextNameInRunTime(null, entity);
+		VWMLContext c = VWMLContextsRepository.instance().get(dynContext);
 		if (entity.getInterpreting() != null) {
-			String dynContext = VWMLContext.constructContextNameInRunTime(null, entity);
-			VWMLContext c = VWMLContextsRepository.instance().get(dynContext);
 			if (c == null) {
 				throw new Exception("coudln't find context '" + dynContext + "'");
 			}
@@ -70,6 +70,9 @@ public class VWMLOperationReleaseHandler extends VWMLOperationHandler {
 					VWMLObjectsRepository.instance().remove(e);					
 				}
 			}
+		}
+		else {
+			VWMLContextsRepository.releaseCloned(c);
 		}
 		VWMLObjectsRepository.instance().remove(entity);
 	}

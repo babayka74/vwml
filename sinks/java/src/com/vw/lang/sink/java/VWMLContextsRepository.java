@@ -364,10 +364,13 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 	
 	protected void releaseClonedImpl(VWMLContext context) {
-		release(context);
+		VWMLContext parent = null;
 		if (context.getLink().getParent() != null) {
-			context.getLink().getParent().getLink().getLinkedObjects().remove(context);
-			context.getLink().setParent(null);
+			parent = (VWMLContext)context.getLink().getParent();
+		}
+		release(context);
+		if (parent != null) {
+			parent.getLink().getLinkedObjects().remove(context);
 		}
 	}
 	
@@ -383,6 +386,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 			}
 		}
 		context.getLink().clear();
+		context.getLink().setParent(null);
 		for(VWMLEntity e : context.getAssociatedEntities()) {
 			e.release(context);
 		}

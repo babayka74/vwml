@@ -53,6 +53,7 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 			entity.getLink().clear();
 			entity = null;
 		}
+		result = finalizeAfterSetOrientedOperations(result);
 		inspector.clear();
 		entities.clear();
 		stack.push(result);
@@ -115,5 +116,5 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 	private VWMLEntity join(VWMLEntity result, VWMLEntity e) {
 		result.getLink().link(e);
 		return result;
-	}
+	}	
 }

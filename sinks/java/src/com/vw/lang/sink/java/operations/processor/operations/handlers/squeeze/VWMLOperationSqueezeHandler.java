@@ -52,6 +52,7 @@ public class VWMLOperationSqueezeHandler extends VWMLOperationHandler {
 		}
 		inspector.clear();
 		entities.clear();
+		result = finalizeAfterSetOrientedOperations(result);
 		stack.push(result);
 	}
 	

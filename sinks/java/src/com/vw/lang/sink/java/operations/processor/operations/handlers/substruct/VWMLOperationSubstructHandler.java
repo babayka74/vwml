@@ -54,6 +54,7 @@ public class VWMLOperationSubstructHandler extends VWMLOperationHandler {
 			entity.getLink().clear();
 			entity = null;
 		}
+		result = finalizeAfterSetOrientedOperations(result);
 		inspector.clear();
 		entities.clear();
 		stack.push(result);

@@ -69,10 +69,6 @@ public class VWMLOperationUtils {
 			String rid = newComplexEntity.buildReadableId();
 			newComplexEntity.setNativeId(rid);
 			newComplexEntity.setReadableId(rid);
-			if (rid.equals("(Rt vino)")) {
-				int h = 0;
-				h++;
-			}
 			if (addIfUnknown) {
 				ContextIdPair interpreterCtxPair = VWMLContextsRepository.instance().wellFormedContext(effectiveContext.getContext());
 				ContextIdPair entityCtxPair = VWMLContextsRepository.instance().wellFormedContext(context.getContext());

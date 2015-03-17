@@ -206,7 +206,13 @@ module BornSimulation {
 					((Id Id~ and M.a~ M.b~ M.c~ M.d~ M.e~) Ew.out~) Do
 					(X~ XT~) ForEach
 				);
+				LXX ias (
+					((inside LXX LXXB~) Ew.out~) Do
+				);
 				((I am here Id~) Ew.out~) Do
+				1025 Bp
+				(LXXB Id~)^
+				LXX~ Exe
 				(Result Sherif.Resources.Result~)~ Exe
 				Update2~ Exe
 				1025 Bp

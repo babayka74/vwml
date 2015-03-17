@@ -194,7 +194,11 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				c = VWMLContextsRepository.instance().createContextIfNotExists(cPair.getEffectiveContextId());
 			}
 			else {
-				throw new Exception("the original context doesn't contain some parts '" + dynContext + "'; see VWML code");
+				c = VWMLContextsRepository.instance().createContextIfNotExists(dynContext);
+				cPair = VWMLContextsRepository.instance().wellFormedContext(dynContext);
+				if (cPair == null) {
+					throw new Exception("the original context doesn't contain some parts '" + dynContext + "'; see VWML code");
+				}
 			}
 			if (assemblyEntity && collector.size() > 1) {
 				if (c == null) {
@@ -210,14 +214,18 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 															  c,
 															  0,
 															  null,
-															  VWMLOperationUtils.s_dontAddIfUnknown);
+															  VWMLOperationUtils.s_addIfUnknown);
 				for(VWMLEntity entity : collector) {
 					reversedStack.remove(entity);
 				}
 				collector.clear();
+				dynamicAddressedEntity.setDynamicAddressedInRunTime(true);
+				e = dynamicAddressedEntity;
 			}
-			dynamicAddressedEntity.setDynamicAddressedInRunTime(true);
-			e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, dynamicAddressedEntity);
+			else {
+				dynamicAddressedEntity.setDynamicAddressedInRunTime(true);
+				e = (VWMLEntity)VWMLObjectsRepository.getAndCreateInCaseOfClone(cPair, dynamicAddressedEntity);
+			}
 			pushEntityToReversedStack(e);
 			dynContext = null;
 		}
