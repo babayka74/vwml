@@ -133,6 +133,33 @@ package com.vw.lang.grammar;
 
 @members {
 
+	public static class UnwindPair {
+	
+		private EntityWalker.Relation relation;
+		private String entityId;
+	
+		public UnwindPair(EntityWalker.Relation relation, String entityId) {
+			this.relation = relation;
+			this.entityId = entityId;
+		}
+		
+		public EntityWalker.Relation getRelation() {
+			return relation;
+		}
+		
+		public void setRelation(EntityWalker.Relation relation) {
+			this.relation = relation;
+		}
+		
+		public String getEntityId() {
+			return entityId;
+		}
+		
+		public void setEntityId(String entityId) {
+			this.entityId = entityId;
+		}
+	}
+
 	public static class VWMLCodeGeneratorRecognitionException extends RecognitionException {
 		private com.vw.lang.sink.OperationInfo opInfo;
 		
@@ -418,12 +445,13 @@ package com.vw.lang.grammar;
     		}
 	}
 
-	protected String unwindEffectiveContext() throws RecognitionException {
+	protected UnwindPair unwindEffectiveContext() throws RecognitionException {
 		ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
 		EntityWalker.EntityDescriptor entityDescr = null;
 		String c = "";
 		// top pushed entity's id should be changed on updated in case if its id is the same
 		EntityWalker.Relation rel = (EntityWalker.Relation)entityWalker.peek();		
+		UnwindPair unwindPair = new UnwindPair(rel, null);
 		if (contextDescriptor != null && logger.isDebugEnabled()) {
 			logger.debug("Starting unwinding process of defferred effective context; top pushed entity is '" + rel.getObj() + "'");
 		}
@@ -462,7 +490,8 @@ package com.vw.lang.grammar;
 				logger.debug("Finished unwinding process of defferred effective context");
 			}
 		}
-		return newEntityId;
+		unwindPair.setEntityId(newEntityId);
+		return unwindPair;
 	}
 
 	protected void addEffectiveContext(Object contextId) {
@@ -530,7 +559,7 @@ package com.vw.lang.grammar;
     				if (contextDescriptor.getUserData() == null) {
     					String[] contexts = vwmlContextBuilder.buildContext().asStrings();
     					contextDescriptor.setUserData(EntityDescriptor.build(id, contexts));
-					String newEntityId = unwindEffectiveContext();
+					String newEntityId = unwindEffectiveContext().getEntityId();
 					if (newEntityId != null) {
 						id = newEntityId;
 					}
@@ -1341,6 +1370,16 @@ oplist
     : opclist
     		{
     			if (!skipOff() && !scanOnly() && lastProcessedEntity != null && codeGenerator != null) { 
+    				ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
+    				if (contextDescriptor != null) {
+    					if (contextDescriptor.getUserData() != null) {
+						// next complex entity - chance to unwind deffreed effective context
+						String newEntityId = unwindEffectiveContext().getEntityId();
+						if (newEntityId != null) {
+							lastProcessedEntity.setObj(newEntityId);
+						}
+					}
+    				}
     				lastProcessedEntityAsTerm = true;
     				VWMLContextBuilder.Contexts contexts = vwmlContextBuilder.buildContext();
     				String c = contexts.first();
