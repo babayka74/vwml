@@ -52,12 +52,40 @@ public class Economic implements IVWMLGate {
 		}
 		
 	}
+
+	protected static class RecalcCompensation extends Handler {
+
+		private static final int BANKACCOUNT 	= 0x0;
+		private static final int CONTAIN 		= 0x1;
+		private static final int CEFACTOR 		= 0x2;
+		private static final int CCFACTOR 		= 0x3;
+		
+		@Override
+		public EWEntity handle(Economic economic, EWEntity commandArgs) throws Exception {
+			EWEntity account = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(BANKACCOUNT);
+			EWEntity contain = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(CONTAIN);
+			EWEntity cefactor = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(CEFACTOR);
+			EWEntity ccfactor = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(CCFACTOR);
+			
+			Float accountVal = Float.valueOf((String)account.getId());
+			Float containVal = Float.valueOf((String)contain.getId());
+			Float cefactorVal = Float.valueOf((String)cefactor.getId());
+			Float ccfactorVal = Float.valueOf((String)ccfactor.getId());
+			float z = containVal + ccfactorVal;
+			if (z == 0.0) {
+				z = (float)0.00001;
+			}
+			Float compensation = ((accountVal - cefactorVal) * containVal) / z;
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(compensation), null);
+		}
+	}
 	
 	@SuppressWarnings("serial")
 	private Map<String, Handler> handlers = new HashMap<String, Handler>() {
 		{
 			put("recalcquantum", new RecalcResourceQuantum());
 			put("recalcbattleresult", new RecalcBattleResult());
+			put("recalccompensation", new RecalcCompensation());
 		}
 	};
 	

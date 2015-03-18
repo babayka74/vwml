@@ -181,10 +181,16 @@ module PlayerResources {
 						UpdateFactors ias (
 							// factors' indexes inside Factors entity
 							FType ias 0;
+							// Business development
 							BDFactor ias 1;
 							KFactor ias 2;
+							// Containment (aka Hospitality)
 							CFactor ias 3;
+							// GDevelop 
 							GFactor ias 4;
+							// cashier
+							CEFactor ias 5;
+							CCFactor ias 6;
 							// example: ((vodka 0 1) (food 0 1) (gold 0 1) (viski 0 1))
 							F ias nil;
 							(Ignore true) ias doNothing;
@@ -204,9 +210,14 @@ module PlayerResources {
 									// initial value of gangster development (per resource)
 									((Gdf Type~) ($~ GFactor~) Get)^
 									((Gdf Type~) Business true) Context
+									// cashier (C & E) factors
+									((CEf Type~) ($~ CEFactor~) Get)^
+									((CEf Type~) Business true) Context
+									((CCf Type~) ($~ CCFactor~) Get)^
+									((CCf Type~) Business true) Context
 #endif
 #if (verbose)                                           	
-									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~ and (Ctf Type~) (Ctf Type~)~ and (Gdf Type~) (Gdf Type~)~) Ew.Output~) Do 
+									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~ and (Ctf Type~) (Ctf Type~)~ and (Gdf Type~) (Gdf Type~)~ and (CEf Type~) (CEf Type~)~ and (CCf Type~) (CCf Type~)~) Ew.Output~) Do 
 #endif
 								);
 								(F (F~ 1) Get)^
@@ -355,8 +366,10 @@ module PlayerResources {
 #endif
 					);
 				);
+
 				/* Account's information */
 				Account ias (
+					ByRtType ias nil;
 					Value ias nil;
 					Result ias false;
 					Init ias (
@@ -455,6 +468,10 @@ module PlayerResources {
 					Account.Init~ Exe
 					Business.Init~ Exe
 					Attacking.Init~ Exe
+#if (business)
+					(Cashier.Setup.Conf Ew.BusinessConf.Cashier~)^
+					Cashier.Start~ Exe
+#endif
 				);
 				Init ias (
 					(InitSteps (hiringagency quartals))^
@@ -470,9 +487,15 @@ module PlayerResources {
 				);
 				Done ias (
 					BattleFieldDone~ Exe
+#if (business)
+					Cashier.Stop~ Exe
+#endif
 				);
 				Reset ias (
 					BattleFieldReset~ Exe
+#if (business)
+					Cashier.Stop~ Exe
+#endif
 				);
 			);
 		);

@@ -1,10 +1,73 @@
-module PlayerBanking {
+module PlayerCashier {
 	MagicWorld ias (
 		Player ias (
 			Cashier ias (
-				Init ias (
+				Setup ias (
+					// period in ms to pay compensation to gangster's band
+					Period ias 0;
+					Conf ias nil;
+					(NS false) ias (
+						SC ias (
+							(P period) ias (
+								(Period ($~ 1) Get)^
+#if (verbose)
+								((Player Id~ configures cashier with period Period~ ms) Ew.Output~) Do
+#endif
+							);
+							(P ($~ 0) Get)~ Exe
+						);
+						(Conf~ SC~) ForEach
+					); 
+					(NS true) ias doNothing;
+					(NS (Conf~ nil) Ident)~ Exe
 				);
-				Done ias (
+				// taking 'contain', re-calculate using factors and withdraw from bank account
+				Compensation ias (
+					ByRt ias (
+						PAccount ias 0;
+						PContain ias 0;
+						PCE ias 0;
+						PCC ias 0;
+						(TR true) ias doNothing;
+						(TR false) ias (
+#if (verbose)
+							((Player Id~ does not have enougth resources to support band) Ew.Output~) Do
+#endif
+							($~ doNothing)^
+						);
+						// re-calculate value
+						(PAccount Resources.Account.(Rt $~)~)^
+						(PContain Resources.Business.(Ctf $~)~)^
+						(PCE Resources.Business.(CEf $~)~)^
+						(PCC Resources.Business.(CCf $~)~)^
+						(H ((PAccount~ PContain~ PCE~ PCC~) Ew.RecalcCompensation~) Do)^
+						(Resources.Account.Value (cost $~ H~))^
+						Resources.Account.Withdraw~ Exe
+						(TR Resources.Account.Result~)~ Exe
+					);
+					(Ew.BusinessConf.AvailableResources~ ByRt~) ForEach
+					(Setup.Period~ (Cashier Id~) Compensation~) Recall
+				);
+				Start ias (
+					(NS true) ias (
+#if (verbose)
+						((The cashier of player Id~ must set period before) Ew.Output~) Do
+#endif
+					);
+					(NS false) ias (
+						(Setup.Period~ (Cashier Id~) Compensation~) Recall
+#if (verbose)
+						((The cashier of player Id~ started with period Setup.Period~) Ew.Output~) Do
+#endif
+					);
+					Setup~ Exe
+					(NS (Setup.Period~ 0) Ident)~ Exe
+				);
+				Stop ias (
+					(-1 (Cashier Id~) Compensation~) Recall
+#if (verbose)
+					((The cashier of player Id~ stopped) Ew.Output~) Do
+#endif
 				);
 			);
 		);

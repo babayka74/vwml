@@ -22,9 +22,8 @@ module PlayerResourceManager {
 					(Resources.Business.(Gdf RT~) ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
 					// contain (hospitality) per resource
 					(Resources.Business.(Ctf RT~) ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 1) Get) Ew.Mul~) Do)^
-					// assembles integrated GDevelop and GContain factors
+					// assembles integrated GDevelop
 					Resources.Business.AssembleGDevelop~ Exe
-					Resources.Business.AssembleGContain~ Exe
 				);
 				// notifies battlefield about returning all remained units to base
 				NotifyAboutFBComplete ias (

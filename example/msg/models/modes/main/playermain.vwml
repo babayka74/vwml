@@ -140,6 +140,16 @@ module PlayerModeMain {
 				);
 				(Handle getbalance) ias Resources.Account.Report~ Exe;
 				(Handle extbattleresult) ias ExternalBattleResultProcessing~ Exe;
+				(Handle updatecashierconf) ias (
+					(Cashier.Setup.Conf CommandParams~)^
+					Cashier.Setup~ Exe
+#if (verbose)
+					((Player Id~ updated cashier configuration) Ew.Output~) Do
+#endif
+#if (release)
+					(((main updatecashierconf ok) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);
