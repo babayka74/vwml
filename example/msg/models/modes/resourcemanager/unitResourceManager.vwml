@@ -93,6 +93,29 @@ module PlayerResourceManager {
 					(CorrectUnit (Resources.Units.Hired~ U~) In)~ Exe
 				);
 
+				MarkAsFreeAndDismissUnit ias (
+					MarkUnitAsFree~ Exe
+					(DismissUnit.U (CommandParams~ 0) Get)^
+					DismissUnit~ Exe
+				);
+
+				SaleUnit ias (
+					U ias nil;
+					K ias nil;
+					// unit's id
+					(U (CommandParams~ 0) Get)^
+					(K (Characters)->(Unit U~)->Kind~)^
+					// fetch unit's cost
+					(Resources.Account.Value (Characters)->(Unit U~)->Cost~)^
+					// perform bank transaction
+					Resources.Account.Recharge~ Exe
+					// unit is marked as free and released (stopped and deactivated)
+					MarkAsFreeAndDismissUnit~ Exe
+#if (release)
+					(((resourcemanager saleunit done) (player Id~) (unit U~) K~) Ew.OutChannel~) Do
+#endif
+				);
+
 				TakeOnBoardUnit ias (
 					(HiredUnitId (CommandParams~ 0) Get)^
 #if (business)
@@ -131,6 +154,73 @@ module PlayerResourceManager {
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
+				);
+
+				DisjoinUnits ias (
+					U ias nil;
+					(U (CommandParams~ 0) Get)^
+					((Characters)->(Unit U~) Tx (Id~ disjoin 0 ((U~ cancel)))) Gate
+#if (verbose)
+					((Unit U~ initiated disjoin of player Id~) Ew.Output~) Do
+#endif
+				);
+
+				AckDisjoinUnitsCallback ias (
+					(R (CommandParams~ 0) Get)^
+#if (release)
+					(((resourcemanager disjoinunits done) (player Id~) (unit (R~ 1) Get) (unit (R~ 2) Get)) Ew.OutChannel~) Do
+#endif
+				);
+
+				RejectDisjoinUnitsCallback ias (
+					(R (CommandParams~ 0) Get)^
+#if (release)
+					(((resourcemanager disjoinunits failed (R~ 3) Get) (player Id~) (unit (R~ 1) Get) (unit (R~ 2) Get)) Ew.OutChannel~) Do
+#endif
+				);
+
+				JoinUnits ias (
+					// U1 is joined with U2 (U2 <- U1)
+					U1 ias nil;
+					U2 ias nil;
+					// join not allowed
+					(NJ true) ias (
+#if (verbose)
+						((Unit U1~ can not be joined with U2~ of player Id~) Ew.Output~) Do
+#endif
+#if (release)
+						(((resourcemanager joinunits failed) (player Id~) (unit U1~) (unit U2~)) Ew.OutChannel~) Do
+#endif
+					);
+					// join allowed
+					(NJ false) ias (
+						// 1. U1~ receives 'join'
+						// 2. fetches 0 element and processes 'invite'
+						// 3. Sends remained to U2~
+						// 4. U2~ performs the same steps, but processes 'ack' (sets JoinedWith)
+						// 5. Sends 'ackjoin' to player's resourcemanager to commit 'transaction'
+						((Characters)->(Unit U2~) Tx (Id~ join 0 ((U1~ invite)(U1~ ack U2~)(Id~ U1~ U2~ ackjoinunits)))) Gate
+#if (verbose)
+						((Unit U1~ initiated join with U2~ of player Id~) Ew.Output~) Do
+#endif
+					);
+					(U1 (CommandParams~ 0) Get)^
+					(U2 (CommandParams~ 1) Get)^
+					(NJ ((Characters)->(Unit U2~)->Capacity~ 0) Ident)~ Exe
+				);
+
+				AckJoinUnitsCallback ias (
+					(R (CommandParams~ 0) Get)^
+#if (release)
+					(((resourcemanager joinunits done) (player Id~) (unit (R~ 1) Get) (unit (R~ 2) Get)) Ew.OutChannel~) Do
+#endif
+				);
+
+				RejectJoinUnitsCallback ias (
+					(R (CommandParams~ 0) Get)^
+#if (release)
+					(((resourcemanager joinunits failed (R~ 3) Get) (player Id~) (unit (R~ 1) Get) (unit (R~ 2) Get)) Ew.OutChannel~) Do
+#endif
 				);
 
 				MarkUnitAsIsInAction ias (
@@ -189,11 +279,20 @@ module PlayerResourceManager {
 #endif
 				);
 				// unit's functionality doesn't need to player
-				(Handle dismissunit),(Handle releaseunit) ias (
-					MarkUnitAsFree~ Exe
-					(DismissUnit.U (CommandParams~ 0) Get)^
-					DismissUnit~ Exe
+				(Handle dismissunit),(Handle releaseunit) ias MarkAsFreeAndDismissUnit~ Exe;
+				(Handle saleunit) ias (
+#if (business)
+					SaleUnit~ Exe
+#endif
 				);
+				// join unit with another if capacity isn't 0
+				(Handle joinunits) ias JoinUnits~ Exe;
+				(Handle ackjoinunits) ias AckJoinUnitsCallback~ Exe;
+				(Handle rejectjoinunits) ias RejectJoinUnitsCallback~ Exe;
+				// disjoins previously joined units
+				(Handle disjoinunits) ias DisjoinUnits~ Exe;
+				(Handle ackdisjoinunits) ias AckDisjoinUnitsCallback~ Exe;
+				(Handle rejectdisjoinunits) ias RejectDisjoinUnitsCallback~ Exe;
 				// unitstopped is sent when command exit is sent to unit and unit finishes its work
 				(Handle unitstopped) ias PushOutUnit~ Exe;
 				// unit is in action (battle for example)

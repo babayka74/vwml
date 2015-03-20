@@ -25,7 +25,7 @@ module Player {
 			ModeAttack ias attack;
 			ModeBanking ias banking;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
-			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit unitstopped getunits exit);
+			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check report);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf);

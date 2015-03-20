@@ -172,6 +172,8 @@ module HiringAgency {
 					((Characters)->(Unit UnitId~)->Contain 0)^
 					((Characters)->(Unit UnitId~)->Class 0)^
 #endif
+					((Characters)->(Unit UnitId~)->Capacity 0)^
+
 					// concrete mechanism of properties setting
 					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
 					((Characters)->(Unit UnitId~)) Activate

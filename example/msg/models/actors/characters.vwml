@@ -3,13 +3,18 @@ module Characters {
 		Characters ias (
 			/* general game unit */
 			Unit ias (
-				Properties ias (kind type attack defence contain clazz);
+				Properties ias (kind type attack defence contain clazz capacity);
 				/* available unit's types  */
 				Types ias (attacker defender);
 				/* default type is attacker */
 				Type ias attacker;
 				/* kind of unit */
 				Kind ias skeleton;
+				/* some units may include other units */
+				Capacity ias 0;
+				/* container for joined units */
+				Joined ias ();
+				JoinedWith ias nil;
 #if (business)
 				/* unit's class (0, 1, 2 ... N) */
 				Class ias 0;
@@ -45,6 +50,8 @@ module Characters {
 					(MarkedAsKilled false)^
 					(BattleFieldId nil)^
 					(InAction false)^
+					(Joined ())^
+					(JoinedWith nil)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
 				StopActivity ias (
@@ -110,6 +117,12 @@ module Characters {
 					(RightProp true) ias (
 						(Pass true) ias doNothing;
 						(Pass false) ias (
+							(Property capacity) ias (
+								(Capacity Value~)^
+#if (verbose)
+								((The unit Id~ has capacity Capacity~) Ew.Output~) Do
+#endif
+							);
 							(Property kind) ias (
 								(Kind Value~)^
 #if (verbose)
@@ -213,6 +226,7 @@ module Characters {
 	#endif
 #endif
 				);
+
 				/* unit receives commands in deferred manner */
 				CommandDispatcher ias (
 					Dispatch ias nil;
@@ -222,6 +236,18 @@ module Characters {
 					UnitCommandParams ias nil;
 					// concrete unit's type not specialized
 					(ns true) ias (
+						(Handle join) ias (
+							(JoinUnit.Actions UnitCommandParams~)^
+							JoinUnit~ Exe
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
+						(Handle disjoin) ias (
+							(DisjoinUnit.Actions UnitCommandParams~)^
+							DisjoinUnit~ Exe
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
 						(Handle check) ias (
 							NotifyOwner~ Exe
 							(UnitCommandId stay)^
@@ -247,6 +273,18 @@ module Characters {
 					);
 					// concrete unit's type specialized
 					(ns false) ias (
+						(Handle join) ias (
+							(JoinUnit.Actions UnitCommandParams~)^
+							JoinUnit~ Exe
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
+						(Handle disjoin) ias (
+							(DisjoinUnit.Actions UnitCommandParams~)^
+							DisjoinUnit~ Exe
+							(UnitCommandId stay)^
+							UnitLifeStep~ Exe
+						);
 						(Handle check) ias (
 							NotifyOwner~ Exe
 							(UnitCommandId stay)^

@@ -1,0 +1,124 @@
+module CharactersGroupManager {
+	MagicWorld ias (
+		Characters ias (
+			/* general game unit */
+			Unit ias (
+				DisjoinUnit ias (
+					Action ias nil;
+					Actions ias nil;
+					U ias nil;
+					(Cmd cancel) ias (
+						// disjoin not allowed
+						(NAJ true) ias (
+#if (verbose)
+							((Unit U~ not joined of player PlayerId~) Ew.Output~) Do
+#endif
+							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectdisjoinunits PlayerId~ ((PlayerId~ U~ nil notJoined)))) Gate
+						);
+						// disjoin allowed
+						(NAJ false) ias (
+							((Characters)->(Unit JoinedWith~) Tx (Id~ disjoin 0 ((Id~ remove)))) Gate
+#if (verbose)
+							((Unit Id~ disjoined from JoinedWith~ of player PlayerId~) Ew.Output~) Do
+#endif
+							(JoinedWith nil)^
+						);
+						(NAJ (JoinedWith~ nil) Ident)~ Exe
+					);
+					(Cmd remove) ias (
+						(Joined (Joined~ (U~)) Substruct)^
+#if (verbose)
+						((Unit Id~ disjoins unit U~ and units are Joined~ of player PlayerId~) Ew.Output~) Do
+#endif
+						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ ackdisjoinunits PlayerId~ ((PlayerId~ U~ Id~)))) Gate
+					);
+					(Action (Actions~ 0) Get)^
+					(U (Action~ 0) Get)^
+					(Cmd (Action~ 1) Get)~ Exe
+				);
+
+				JoinUnit ias (
+					Action ias nil;
+					Actions ias nil;
+					U ias nil;
+					(Cmd cancel) ias (
+						// disjoin not allowed
+						(NAJ true) ias (
+#if (verbose)
+							((Unit U~ not joined with Id~ of player PlayerId~) Ew.Output~) Do
+#endif
+							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectdisjoinunits PlayerId~ ((U~ Id~ notJoined)))) Gate
+						);
+						// disjoin allowed
+						(NAJ false) ias (
+							(Joined (Joined~ (U~)) Substruct)^
+							(Actions (Actions~ (Action~)) Substruct)^
+							// next action in chain
+							(Action (Actions~ 0) Get)^
+							// next unit
+							(U (Action~ 0) Get)^
+							((Characters)->(Unit U~) Tx (Id~ disjoin 0 Actions~)) Gate
+
+#if (verbose)
+							((Unit Id~ disjoined with U~ and units are Joined~ of player PlayerId~ and actions Actions~ sent to unit U~) Ew.Output~) Do
+#endif
+						);
+						(NAJ (JoinedWith~ nil) Ident)~ Exe
+					);
+					(Cmd invite) ias (
+						// join not allowed
+						(NAJ true) ias (
+#if (verbose)
+							((Unit U~ already joined with Id~ of player PlayerId~) Ew.Output~) Do
+#endif
+							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectjoinunits PlayerId~ ((U~ Id~ alreadyJoined)))) Gate
+						);
+						// join allowed
+						(NAJ false) ias (
+							(NoPlace true) ias (
+#if (verbose)
+								((Unit U~ can not join with Id~ since no place of player PlayerId~) Ew.Output~) Do
+#endif
+								((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectjoinunits PlayerId~ ((U~ Id~ noPlace)))) Gate
+							);
+							(NoPlace false) ias (
+								(Joined (Joined~ (U~)) Join)^
+								(Actions (Actions~ (Action~)) Substruct)^
+								// next action in chain
+								(Action (Actions~ 0) Get)^
+								// next unit
+								(U (Action~ 0) Get)^
+								((Characters)->(Unit U~) Tx (Id~ join 0 Actions~)) Gate
+
+#if (verbose)
+								((Unit Id~ joined with U~ and units are Joined~ of player PlayerId~ and actions Actions~ sent to unit U~) Ew.Output~) Do
+#endif
+							);
+							(NoPlace ((Joined~) Size Capacity~) Ident)~ Exe
+						);
+						(NAJ (Joined~ U~) In)~ Exe
+					);
+					(Cmd ack) ias (
+						PId ias nil;
+						(JoinedWith (Action~ 2) Get)^
+#if (verbose)
+						((Unit Id~ acks join or disjoin with JoinedWith~ of player PlayerId~) Ew.Output~) Do
+#endif
+						(Actions (Actions~ (Action~)) Substruct)^
+						// next action in chain
+						(Action (Actions~ 0) Get)^
+						// notify player about successful join
+						(PId (Action~ 0) Get)^
+						((Player PId~) Tx (ModeInfo.ModeResourceMgr~ (Action~ 3) Get PId~ Actions~)) Gate
+#if (verbose)
+						((Unit Id~ sends successful ack Actions~ to player PId~) Ew.Output~) Do
+#endif
+					);
+					(Action (Actions~ 0) Get)^
+					(U (Action~ 0) Get)^
+					(Cmd (Action~ 1) Get)~ Exe
+				);
+			);
+		);
+	);
+}
