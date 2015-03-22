@@ -1372,7 +1372,7 @@ oplist
     			if (!skipOff() && !scanOnly() && lastProcessedEntity != null && codeGenerator != null) { 
     				ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
     				if (contextDescriptor != null) {
-    					if (contextDescriptor.getUserData() != null) {
+    					if (contextDescriptor.getUserData() != null && lastProcessedEntity.isParticipatesInComplexContextBuildingProcess()) {
 						// next complex entity - chance to unwind deffreed effective context
 						String newEntityId = unwindEffectiveContext().getEntityId();
 						if (newEntityId != null) {

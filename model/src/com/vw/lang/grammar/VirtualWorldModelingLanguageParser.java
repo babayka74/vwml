@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2015-03-19 00:00:54
+// $ANTLR 3.4 C:\\Users\\Oleg\\projects\\vwml\\model\\src\\com\\vw\\lang\\grammar\\VirtualWorldModelingLanguage.g 2015-03-22 17:23:17
 
 package com.vw.lang.grammar;
 
@@ -4451,7 +4451,7 @@ public class VirtualWorldModelingLanguageParser extends Parser {
                 			if (!skipOff() && !scanOnly() && lastProcessedEntity != null && codeGenerator != null) { 
                 				ComplexContextDescriptor contextDescriptor = (ComplexContextDescriptor)contextWalker.peek();
                 				if (contextDescriptor != null) {
-                					if (contextDescriptor.getUserData() != null) {
+                					if (contextDescriptor.getUserData() != null && lastProcessedEntity.isParticipatesInComplexContextBuildingProcess()) {
             						// next complex entity - chance to unwind deffreed effective context
             						String newEntityId = unwindEffectiveContext().getEntityId();
             						if (newEntityId != null) {

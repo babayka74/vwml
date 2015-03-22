@@ -262,6 +262,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 						if (onModelEntity == null) {
 							onModelEntity = prototype;
 						}
+						
 						return onModelEntity;
 					}
 					else {
@@ -320,35 +321,7 @@ public class VWMLObjectsRepository extends VWMLRepository {
 					}
 					prototype = onModelEntity;
 				}
-				
-				// System.out.println("getAndCreateInCaseOfClone for '" + prototype.buildReadableId() + "' " + prototype.isTerm() + "'");
-				// found on original - creating in effective (cloned)
-				lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
-											prototype.getId(),
-											ctxEffective.getContext(),
-											prototype.getInterpretationHistorySize(),
-											VWMLObjectsRepository.notAsOriginal,
-											prototype.getLink().getLinkOperationVisitor());
-				if (prototype.isTerm()) {
-					VWMLEntity eA = ((VWMLTerm)prototype).getAssociatedEntity();
-					eA = (VWMLEntity) getAndCreateInCaseOfClone(cPair, eA);
-					((VWMLTerm)lookedEntity).setAssociatedEntity(eA);
-					((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
-				}
-				lookedEntity.setAsArgPair(prototype.getAsArgPair());
-				lookedEntity.setSynthetic(prototype.isSynthetic());
-				lookedEntity.setClonedFrom(prototype);
-				VWMLLinkIncrementalIterator it = prototype.getLink().acquireLinkedObjectsIterator();
-				if (it != null) {
-					for(; it.isCorrect(); it.next()) {
-						VWMLEntity e = (VWMLEntity)prototype.getLink().getConcreteLinkedEntity(it.getIt());
-						VWMLEntity eC = (VWMLEntity) getAndCreateInCaseOfClone(cPair, e);
-						lookedEntity.getLink().link(eC);
-					}
-				}
-				instance().lateBinding(lookedEntity, (String)prototype.getNativeId());
-				lookedEntity.buildReadableId();
-				lookedEntity.setInterpreting((VWMLEntity)getAndCreateInterpretedInCaseOfClone(cPair, ctxEffective, prototype));
+				lookedEntity = createFromPrototypeAndLinkInCaseOfClone(cPair, prototype, ctxEffective);
 			}
 		}
 		if (lookedEntity != null && lookedEntity.isMarkedAsPotentialInvalid()) {
@@ -917,5 +890,38 @@ public class VWMLObjectsRepository extends VWMLRepository {
 //			System.out.println("Entity '" + e.getNativeId() + "/" + e.getId() + "/" + nkey + "' exists on context '" + e.getContext().getContext() + "'");
 		}
 		return o;
+	}
+	
+	protected static VWMLEntity createFromPrototypeAndLinkInCaseOfClone(ContextIdPair cPair, VWMLEntity prototype, VWMLContext ctxEffective) throws Exception {
+		// System.out.println("getAndCreateInCaseOfClone for '" + prototype.buildReadableId() + "' " + prototype.isTerm() + "'");
+		// found on original - creating in effective (cloned)
+		VWMLEntity lookedEntity = 	(VWMLEntity)VWMLObjectsRepository.acquire(prototype.deduceEntityType(),
+									prototype.getId(),
+									ctxEffective.getContext(),
+									prototype.getInterpretationHistorySize(),
+									VWMLObjectsRepository.notAsOriginal,
+									prototype.getLink().getLinkOperationVisitor());
+		if (prototype.isTerm()) {
+			VWMLEntity eA = ((VWMLTerm)prototype).getAssociatedEntity();
+			//System.out.println("eA '" + eA.buildReadableId() + "'");
+			eA = (VWMLEntity) getAndCreateInCaseOfClone(cPair, eA);
+			((VWMLTerm)lookedEntity).setAssociatedEntity(eA);
+			((VWMLTerm)lookedEntity).copyOperations((VWMLTerm)prototype);
+		}
+		lookedEntity.setAsArgPair(prototype.getAsArgPair());
+		lookedEntity.setSynthetic(prototype.isSynthetic());
+		lookedEntity.setClonedFrom(prototype);
+		VWMLLinkIncrementalIterator it = prototype.getLink().acquireLinkedObjectsIterator();
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				VWMLEntity e = (VWMLEntity)prototype.getLink().getConcreteLinkedEntity(it.getIt());
+				VWMLEntity eC = (VWMLEntity) getAndCreateInCaseOfClone(cPair, e);
+				lookedEntity.getLink().link(eC);
+			}
+		}
+		instance().lateBinding(lookedEntity, (String)prototype.getNativeId());
+		lookedEntity.buildReadableId();
+		lookedEntity.setInterpreting((VWMLEntity)getAndCreateInterpretedInCaseOfClone(cPair, ctxEffective, prototype));
+		return lookedEntity;
 	}
 }
