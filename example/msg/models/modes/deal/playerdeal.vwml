@@ -83,10 +83,12 @@ module PlayerDeal {
 					(Result Resources.Account.Result~)~ Exe
 				);
 				(Handle payforunit) ias (
+					RespCmd ias nil;
 					OrigRequest ias nil;
-					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ paymentresult Id~ (confirmed OrigRequest~))) Gate;
-					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ paymentresult Id~ (declined OrigRequest~))) Gate;
+					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (confirmed OrigRequest~))) Gate;
+					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (declined OrigRequest~))) Gate;
 					(OrigRequest (CommandParams~ 0) Get)^
+					(RespCmd (CommandParams~ 3) Get)^
 					(Resources.Account.Value CommandParams~)^
 					Resources.Account.Withdraw~ Exe
 					(Result Resources.Account.Result~)~ Exe
@@ -114,6 +116,22 @@ module PlayerDeal {
 					Resources.Business.IncreaseBF~ Exe
 					// sends quantum to quartal for updaiting contribution value
 					((Quartal QuartalId~) Tx (QuartalId~ rspcalcquantum (Resources.Business.RQ~))) Gate
+				);
+				(Handle reservegarageplace) ias (
+					RespCmd ias nil;
+					OrigRequest ias nil;
+					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (confirmed OrigRequest~))) Gate;
+					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (declined OrigRequest~))) Gate;
+					(OrigRequest (CommandParams~ 1) Get)^
+					(RespCmd (CommandParams~ 2) Get)^
+					// reserv places
+					(Resources.Garage.Reserve.Place (CommandParams~ 0) Get)^
+					Resources.Garage.Reserve~ Exe
+					(Result Resources.Garage.Reserve.Result~)~ Exe
+				);
+				(Handle cancelreservationgarageplace) ias (
+					(Resources.Garage.CancelReserve.Place (CommandParams~ 0) Get)^
+					Resources.Garage.CancelReserve~ Exe
 				);
 				(Handle back) ias (
 					(Player.Mode main)^

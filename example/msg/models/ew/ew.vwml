@@ -168,6 +168,34 @@ module ExternalWorld {
 #endif
 		);
 
+		// loads garage's configuration
+		GarageConf ias (
+			Conf ias nil;
+			Garage ias nil;
+			ConfFields ias (Garage);
+			// dynamic load configuration
+			Load ias (
+				Conf ias nil;
+				ConfIndex ias 0;
+				ApplyConf ias (
+					SetConfField ias (
+						($~ ((Conf~ ConfIndex~) Get 1) Get)^
+						($~ GarageConf true) Context
+						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
+					);
+					(ConfIndex 0)^
+					(ConfFields~ SetConfField~) ForEach 
+				);
+				(NotReady true) ias doNothing; 
+				(NotReady false) ias ApplyConf~ Exe;
+				(NotReady (Conf~ nil) Ident)~ Exe
+			);
+			Load~ Exe
+#if (verbose)
+			((The garage configuration is Garage~) Ew.Output~) Do
+#endif
+		);
+
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
@@ -209,6 +237,8 @@ module ExternalWorld {
 			QuartalsConf~ Exe
 			(BusinessConf.Load.Conf ((businessconf) Ew.LoadConf~) Do)^
 			BusinessConf~ Exe
+			(GarageConf.Load.Conf ((garageconf) Ew.LoadConf~) Do)^
+			GarageConf~ Exe
 		);
 	);
 }

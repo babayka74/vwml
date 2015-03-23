@@ -26,10 +26,10 @@ module Player {
 			ModeBanking ias banking;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
-			AvailablePlayerCommandsOnModeHiring  ias (starthiring cancelhiring paymentresult exit check report);
+			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking cancelcarlooking carpaymentresult starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf);
-			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange back);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf updategarageconf);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^

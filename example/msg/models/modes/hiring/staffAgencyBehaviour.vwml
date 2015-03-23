@@ -1,0 +1,40 @@
+module StaffAgencyHiringBehaviour {
+	MagicWorld ias (
+		HiringAgency ias (
+			Agent ias (
+				StaffHiringBehaviour ias (
+					(Command starthiring) ias (
+						// get cost and check if player has enough resources
+						(CostInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+						// (cost <resource> <value>)
+						// Request => original request
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ payforunit Owner~ (Request~ (CostInfo~ 1) Get (CostInfo~ 2) Get staffpaymentresult))) Gate
+					);
+					(Command cancelhiring) ias (
+						((HiringAgency Id~) Tx (cancel RequestId~ Request~)) Gate
+					);
+					(Command staffpaymentresult) ias (
+						(payment confirmed) ias ActuallyStartHiringRequest~ Exe;
+						(payment declined) ias (
+#if (verbose)
+							((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
+#endif
+#if (release)
+							// fetching original request from deal's response
+							(OrigRq (Request~ 1) Get)^
+							// ... fetching evrything what we need
+							(CharacterIdInfo ((OrigRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+							(GetKindOfUnit.UnitProps (OrigRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+							GetKindOfUnit~ Exe
+                                                        (UnitId (CharacterIdInfo~ 1) Get)^
+							(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
+#endif
+						);
+						(payment (Request~ 0) Get)~ Exe
+					);
+					(Command Command~)~ Exe
+				);
+			);
+		);
+	);
+}

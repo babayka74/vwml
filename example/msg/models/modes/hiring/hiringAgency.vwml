@@ -34,7 +34,9 @@ module HiringAgency {
 #endif
 			);
 			Agent ias (
-				Commands ias (starthiring cancelhiring paymentresult check reset exit report);
+				AgentCommands ias (cancel check reset exit report);
+				StaffHiringCommands ias (starthiring cancelhiring staffpaymentresult);
+				CarsLookingCommands ias (startcarlooking cancelcarlooking carpaymentresult);
 				Command ias nil;
 				Request ias nil;
 				RequestId ias 0;
@@ -48,12 +50,31 @@ module HiringAgency {
 					Kind ias nil;
 					FetchKindPropForReport ias (
 						(KindProp false) ias doNothing;
-						(KindProp true) ias (Kind ($~ 1) Get)^;
+						(KindProp true) ias (
+							(Kind ($~ 1) Get)^
+							($~ doNothing)^
+						);
 						(KindProp (kind ($~ 0) Get) Ident)~ Exe
 					);
 					(Kind nil)^
 					(UnitProps~ FetchKindPropForReport~) ForEach
 				);
+
+				GetClazzOfUnit ias (
+					UnitProps ias nil;
+					Clazz ias nil;
+					FetchClazzPropForReport ias (
+						(ClazzProp false) ias doNothing;
+						(ClazzProp true) ias (
+							(Clazz ($~ 1) Get)^
+							($~ doNothing)^
+						);
+						(ClazzProp (clazz ($~ 0) Get) Ident)~ Exe
+					);
+					(Clazz nil)^
+					(UnitProps~ FetchClazzPropForReport~) ForEach
+				);
+
 				CancelHiringRequests ias (
 					F ias nil;
 					(NoRequestsInProgress true) ias F~ Exe;
@@ -195,35 +216,8 @@ module HiringAgency {
 					(RequestsInProgress~ Report~) ForEach
 				);
 				Behavior ias (
-					(RightCommand false) ias doNothing;
-					(RightCommand true) ias (
-						(Command starthiring) ias (
-							// get cost and check if player has enough resources
-							(CostInfo ((Request~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
-							// (cost <resource> <value>)
-							// Request => original request
-							((Player Owner~) Tx (ModeInfo.ModeDeal~ payforunit Owner~ (Request~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
-						);
-						(Command paymentresult) ias (
-							(payment confirmed) ias ActuallyStartHiringRequest~ Exe;
-							(payment declined) ias (
-#if (verbose)
-								((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
-#endif
-#if (release)
-								// fetching original request from deal's response
-								(OrigRq (Request~ 1) Get)^
-								// ... fetching evrything what we need
-								(CharacterIdInfo ((OrigRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
-								(GetKindOfUnit.UnitProps (OrigRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
-								GetKindOfUnit~ Exe
-                                                                (UnitId (CharacterIdInfo~ 1) Get)^
-								(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
-#endif
-							);
-							(payment (Request~ 0) Get)~ Exe
-						);
-						(Command cancelhiring) ias (
+					(AgentCommands true) ias (
+						(Command cancel) ias (
 							(InProgress false) ias (
 #if (verbose)
 								((Invalid request id RequestId~) Ew.Output~) Do
@@ -242,7 +236,20 @@ module HiringAgency {
 						(Command reset) ias ResetAgencyProcess~ Exe;
 						(Command Command~)~ Exe
 					);
-					(RightCommand (Commands~ Command~) In)~ Exe					
+					(AgentCommands false) ias (
+						(Staff false) ias (
+							(Cars false) ias (
+#if (verbose)                           	
+								((The hiring agent Id~ reports about unsupported command Command~ for player Owner~) Ew.Output~) Do
+#endif
+							);
+							(Cars true) ias CarsHiringBehaviour~ Exe;
+							(Cars (CarsLookingCommands~ Command~) In)~ Exe
+						);
+						(Staff true) ias StaffHiringBehaviour~ Exe;
+						(Staff (StaffHiringCommands~ Command~) In)~ Exe
+					);
+					(AgentCommands (AgentCommands~ Command~) In)~ Exe
 				);
 			);
 

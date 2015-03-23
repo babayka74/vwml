@@ -150,6 +150,16 @@ module PlayerModeMain {
 					(((main updatecashierconf ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
+				(Handle updategarageconf) ias (
+					(Resources.Garage.Update.Conf CommandParams~)^
+					Resources.Garage.Update~ Exe
+#if (verbose)
+					((Player Id~ updated garage configuration) Ew.Output~) Do
+#endif
+#if (release)
+					(((main updategarageconf ok) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);

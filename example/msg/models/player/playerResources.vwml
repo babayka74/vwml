@@ -22,7 +22,114 @@ module PlayerResources {
 					UnitsStateSetLocker ias nil;
 					Init ias (
 						(Hired ())^
+#if (verbose)
 						((Player Id~ initialized hired units storage) Ew.Output~) Do
+#endif
+					);
+				);
+				/* cars' container */
+				Garage ias (
+					// max number of cars which can be placed here
+					Capacity ias 0;
+					Free ias 0;
+					Cars ias ();
+					Init ias (
+						(Cars ())^
+						(Update.Conf (Garage Ew.GarageConf.Garage~))^
+						Update~ Exe
+						((Player Id~ initialized garage) Ew.Output~) Do
+					);
+					Reserve ias (
+						Place ias 0;
+						Result ias false;
+						RP ias 0;
+						// reserving
+						(Allow 1) ias (
+							(Result true)^
+							(Free ((Free~ Place~) Ew.Sub~) Do)^
+#if (verbose)
+							((Garage of Player Id~ reserved Place~ and free places are Free~) Ew.Output~) Do
+#endif
+						);
+						// no places
+						(Allow 0),(Allow -1) ias (
+#if (verbose)
+							((Garage of Player Id~ does not have free places) Ew.Output~) Do
+#endif
+						);
+						(Result false)^
+						(RP ((Free~ Place~) Ew.Sub~) Do)^
+						(Allow ((RP~ 0) Ew.Compare~) Do)~ Exe
+					);
+					CancelReserve ias (
+						Place ias 0;
+						RP ias 0;
+						(Allow -1),(Allow 0) ias (
+							(Free ((Free~ Place~) Ew.Sum~) Do)^
+#if (verbose)
+							((Garage of Player Id~ canceled Place~ and free places are Free~) Ew.Output~) Do
+#endif
+						);
+						(Allow 1) ias (
+#if (verbose)
+							((Garage of Player Id~ exceeds number of free places Free~ and capacity Capacity~) Ew.Output~) Do
+#endif
+						);
+						(RP ((Free~ Place~) Ew.Sum~) Do)^
+						(Allow ((RP~ Capacity~) Ew.Compare~) Do)~ Exe
+					);
+					Update ias (
+						Conf ias nil;
+						(NotReady true) ias doNothing;
+						(NotReady false) ias (
+							F ias nil;
+							SetProps ias (
+								P ias nil;
+								(P capacity) ias (
+									// general garage's capacity
+									(Capacity ($~ 1) Get)^
+									(Free Capacity~)^
+#if (verbose)                           	
+									((Garage capacity of player Id~ initialized to Capacity~) Ew.Output~) Do
+#endif                                  	
+								);
+								(P cars) ias (
+									// cars types and classes
+									CTC ias nil;
+									SetCTC ias (
+										CarType ias nil;
+										CarClasses ias nil;
+										SetClasses ias (
+											// car's class
+											Clazz ias nil;
+											// occupied places in garage
+											(Clazz ($~ 0) Get)^
+											// quantity of cars of given class
+											((Q CarType~ Clazz~) 0)^
+											((Q CarType~ Clazz~) Garage true) Context
+											// number of places occupied by car in garage
+											((P CarType~ Clazz~) ($~ 1) Get)^
+											((P CarType~ Clazz~) Garage true) Context
+#if (verbose)                           	
+											((Inside garage quantity of (Q CarType~ Clazz~) (Q CarType~ Clazz~)~ and places (P CarType~ Clazz~) (P CarType~ Clazz~)~) Ew.Output~) Do
+#endif                                  	
+										);
+										// getting car type
+										(CarType ($~ 0) Get)^
+										(CarClasses ($~ 1) Get)^
+										// iterate over classes
+										(CarClasses~ SetClasses~) ForEach
+									);
+									(CTC ($~ 1) Get)^
+									// iterate over all types and create necessary data
+									(CTC~ SetCTC~) ForEach
+								);
+								(P ($~ 0) Get)~ Exe
+							);
+							(F (Conf~ 1) Get)^
+							(F~ SetProps~) ForEach
+						);
+						(NotReady (Conf~ nil) Ident)~ Exe
 					);
 				);
 				/* controlled/own/visible quartals */
@@ -465,6 +572,7 @@ module PlayerResources {
 				PreInit ias (
 					ResourceManager.Init~ Exe
 					Units.Init~ Exe
+					Garage.Init~ Exe
 					Account.Init~ Exe
 					Business.Init~ Exe
 					Attacking.Init~ Exe

@@ -1,0 +1,78 @@
+module CarAgencyHiringBehaviour {
+	MagicWorld ias (
+		HiringAgency ias (
+			Agent ias (
+				CarsHiringBehaviour ias (
+					GetCarReservationPlaces ias (
+						Rq ias nil;
+						// occupied area
+						OA ias 0;
+						// fetching kind of unit (car)
+						(GetKindOfUnit.UnitProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+						GetKindOfUnit~ Exe
+						(GetClazzOfUnit.UnitProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+						GetClazzOfUnit~ Exe
+						(OA (Player Owner~)->(Resources)->(Garage)->(P GetKindOfUnit.Kind~ GetClazzOfUnit.Clazz~)~)^
+#if (verbose)
+						((Car GetKindOfUnit.Kind~ of clazz GetClazzOfUnit.Clazz~ occupies garage area OA~) Ew.Output~) Do
+#endif
+					);
+					(Command startcarlooking) ias (
+						(GetCarReservationPlaces.Rq Request~)^
+						GetCarReservationPlaces~ Exe
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ reservegarageplace Owner~ (GetCarReservationPlaces.OA~ Request~ reservegarageresult))) Gate
+
+					);
+					(Command cancelcarlooking) ias (
+						((HiringAgency Id~) Tx (cancel RequestId~ Request~)) Gate
+					);
+					(Command reservegarageresult) ias (
+						(reservation confirmed) ias (
+							(OR (Request~ 1) Get)^
+							(CostInfo ((OR~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
+							((Player Owner~) Tx (ModeInfo.ModeDeal~ payforunit Owner~ (OR~ (CostInfo~ 1) Get (CostInfo~ 2) Get carpaymentresult))) Gate
+						);
+						(reservation declined) ias (
+#if (release)
+							// fetching original request from deal's response
+							(OR (Request~ 1) Get)^
+							// ... fetching evrything what we need
+							(CharacterIdInfo ((OR~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+							(GetKindOfUnit.UnitProps (OR~ CmdFormat.RqCharacterInfoIndex~) Get)^
+							GetKindOfUnit~ Exe
+                                                        (UnitId (CharacterIdInfo~ 1) Get)^
+
+							(((hiring startcarlooking failed noResources garage) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
+#endif
+						);
+						(reservation (Request~ 0) Get)~ Exe
+					);
+					(Command carpaymentresult) ias (
+						(payment confirmed) ias ActuallyStartHiringRequest~ Exe;
+						(payment declined) ias (
+							(GetCarReservationPlaces.Rq (Request~ 1) Get)^
+							GetCarReservationPlaces~ Exe
+							((Player Owner~) Tx (ModeInfo.ModeDeal~ cancelreservationgarageplace Owner~ (GetCarReservationPlaces.OA~))) Gate
+
+#if (verbose)
+							((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
+#endif
+#if (release)
+							// fetching original request from deal's response
+							(OR (Request~ 1) Get)^
+							// ... fetching evrything what we need
+							(CharacterIdInfo ((OR~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+							(GetKindOfUnit.UnitProps (OR~ CmdFormat.RqCharacterInfoIndex~) Get)^
+							GetKindOfUnit~ Exe
+                                                        (UnitId (CharacterIdInfo~ 1) Get)^
+							(((hiring starthiring failed noResources resource) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
+#endif
+						);
+						(payment (Request~ 0) Get)~ Exe
+					);
+					(Command Command~)~ Exe
+				);
+			);
+		);
+	);
+}
