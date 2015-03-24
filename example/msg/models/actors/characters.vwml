@@ -43,6 +43,10 @@ module Characters {
 				BattleFieldId ias nil;
 				/* true in case if unit is involved to some action */
 				InAction ias false;
+				/* container's (to which container unit belongs) id */
+				Container ias nil;
+				/* configuted ids for some purpouses */
+				UnitReadyNotify ias nil;
 				/* Performs initialization steps */
 				Init ias (
 					(CurrentPosition nil)^
@@ -219,10 +223,10 @@ module Characters {
 #endif
 #if (release)
 	#if (business)
-					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~ Class~ Cost~ Contain~) Ew.OutChannel~) Do
+					(((hiring UnitReadyNotify~ done) (Player PlayerId~) (unit Id~) Kind~ CId~ Class~ Cost~ Contain~) Ew.OutChannel~) Do
 
 	#else                   	
-					(((hiring starthiring done) (Player PlayerId~) (unit Id~) Kind~ CId~) Ew.OutChannel~) Do
+					(((hiring UnitReadyNotify~ done) (Player PlayerId~) (unit Id~) Kind~ CId~) Ew.OutChannel~) Do
 	#endif
 #endif
 				);

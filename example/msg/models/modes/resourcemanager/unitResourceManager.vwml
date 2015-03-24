@@ -64,6 +64,13 @@ module PlayerResourceManager {
 #endif
 					);
 					(CorrectUnit true) ias (
+						(NJ true) ias ((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate;
+						(NJ false) ias (
+							(DisjoinUnits.U U~)^
+							(DisjoinUnits.UD exit)^
+							DisjoinUnits~ Exe
+						); 
+						
 						(Resources.Units.Hired (Resources.Units.Hired~ (U~)) Substruct)^
 #if (business)
 						(Kind (Characters)->(Unit U~)->Kind~)^
@@ -84,8 +91,7 @@ module PlayerResourceManager {
 #if (release)
 						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
 #endif
-
-						((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate
+						(NJ ((Characters)->(Unit U~)->JoinedWith~ nil) Ident)~ Exe
 #if (verbose)
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
 #endif
@@ -158,11 +164,20 @@ module PlayerResourceManager {
 
 				DisjoinUnits ias (
 					U ias nil;
-					(U (CommandParams~ 0) Get)^
-					((Characters)->(Unit U~) Tx (Id~ disjoin 0 ((U~ cancel)))) Gate
+					// user data; used when some data should be passed through all processing chain
+					UD ias nil;
+					((Characters)->(Unit U~) Tx (Id~ disjoin 0 ((U~ cancel UD~)))) Gate
 #if (verbose)
 					((Unit U~ initiated disjoin of player Id~) Ew.Output~) Do
 #endif
+				);
+
+				ExitAfterDisjoin ias (
+					U ias nil;
+					E ias nil;
+					(E false) ias doNothing;
+					(E true) ias ((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate;
+					(E (E~ exit) Ident)~ Exe
 				);
 
 				AckDisjoinUnitsCallback ias (
@@ -170,6 +185,9 @@ module PlayerResourceManager {
 #if (release)
 					(((resourcemanager disjoinunits done) (player Id~) (unit (R~ 1) Get) (unit (R~ 2) Get)) Ew.OutChannel~) Do
 #endif
+					(ExitAfterDisjoin.U (R~ 1) Get)^
+					(ExitAfterDisjoin.E (R~ 3) Get)^
+					ExitAfterDisjoin~ Exe
 				);
 
 				RejectDisjoinUnitsCallback ias (
@@ -177,6 +195,9 @@ module PlayerResourceManager {
 #if (release)
 					(((resourcemanager disjoinunits failed (R~ 3) Get) (player Id~) (unit (R~ 1) Get) (unit (R~ 2) Get)) Ew.OutChannel~) Do
 #endif
+					(ExitAfterDisjoin.U (R~ 1) Get)^
+					(ExitAfterDisjoin.E (R~ 3) Get)^
+					ExitAfterDisjoin~ Exe
 				);
 
 				JoinUnits ias (
@@ -290,7 +311,10 @@ module PlayerResourceManager {
 				(Handle ackjoinunits) ias AckJoinUnitsCallback~ Exe;
 				(Handle rejectjoinunits) ias RejectJoinUnitsCallback~ Exe;
 				// disjoins previously joined units
-				(Handle disjoinunits) ias DisjoinUnits~ Exe;
+				(Handle disjoinunits) ias (
+					(DisjoinUnits.U (CommandParams~ 0) Get)^
+					DisjoinUnits~ Exe
+				);
 				(Handle ackdisjoinunits) ias AckDisjoinUnitsCallback~ Exe;
 				(Handle rejectdisjoinunits) ias RejectDisjoinUnitsCallback~ Exe;
 				// unitstopped is sent when command exit is sent to unit and unit finishes its work

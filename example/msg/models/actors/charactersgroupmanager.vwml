@@ -7,17 +7,19 @@ module CharactersGroupManager {
 					Action ias nil;
 					Actions ias nil;
 					U ias nil;
+					// user data
+					UD ias nil;
 					(Cmd cancel) ias (
 						// disjoin not allowed
 						(NAJ true) ias (
 #if (verbose)
 							((Unit U~ not joined of player PlayerId~) Ew.Output~) Do
 #endif
-							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectdisjoinunits PlayerId~ ((PlayerId~ U~ nil notJoined)))) Gate
+							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectdisjoinunits PlayerId~ ((PlayerId~ U~ nil notJoined UD~)))) Gate
 						);
 						// disjoin allowed
 						(NAJ false) ias (
-							((Characters)->(Unit JoinedWith~) Tx (Id~ disjoin 0 ((Id~ remove)))) Gate
+							((Characters)->(Unit JoinedWith~) Tx (Id~ disjoin 0 ((Id~ remove UD~)))) Gate
 #if (verbose)
 							((Unit Id~ disjoined from JoinedWith~ of player PlayerId~) Ew.Output~) Do
 #endif
@@ -30,10 +32,11 @@ module CharactersGroupManager {
 #if (verbose)
 						((Unit Id~ disjoins unit U~ and units are Joined~ of player PlayerId~) Ew.Output~) Do
 #endif
-						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ ackdisjoinunits PlayerId~ ((PlayerId~ U~ Id~)))) Gate
+						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ ackdisjoinunits PlayerId~ ((PlayerId~ U~ Id~ UD~)))) Gate
 					);
 					(Action (Actions~ 0) Get)^
 					(U (Action~ 0) Get)^
+					(UD (Action~ 2) Get)^
 					(Cmd (Action~ 1) Get)~ Exe
 				);
 

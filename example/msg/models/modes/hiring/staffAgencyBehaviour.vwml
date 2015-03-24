@@ -11,10 +11,16 @@ module StaffAgencyHiringBehaviour {
 						((Player Owner~) Tx (ModeInfo.ModeDeal~ payforunit Owner~ (Request~ (CostInfo~ 1) Get (CostInfo~ 2) Get staffpaymentresult))) Gate
 					);
 					(Command cancelhiring) ias (
-						((HiringAgency Id~) Tx (cancel RequestId~ Request~)) Gate
+						(CancelHiringRequest.RqId RequestId~)^
+						(CancelHiringRequest.NCmd cancelhiring)^
+						CancelHiringRequest~ Exe
 					);
 					(Command staffpaymentresult) ias (
-						(payment confirmed) ias ActuallyStartHiringRequest~ Exe;
+						(payment confirmed) ias (
+							(ActuallyStartHiringRequest.NCmd starthiring)^
+							(ActuallyStartHiringRequest.AC staff)^
+							ActuallyStartHiringRequest~ Exe
+						);
 						(payment declined) ias (
 #if (verbose)
 							((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do

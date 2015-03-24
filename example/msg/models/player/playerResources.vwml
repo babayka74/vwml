@@ -32,9 +32,7 @@ module PlayerResources {
 					// max number of cars which can be placed here
 					Capacity ias 0;
 					Free ias 0;
-					Cars ias ();
 					Init ias (
-						(Cars ())^
 						(Update.Conf (Garage Ew.GarageConf.Garage~))^
 						Update~ Exe
 						((Player Id~ initialized garage) Ew.Output~) Do
@@ -106,7 +104,7 @@ module PlayerResources {
 											(Clazz ($~ 0) Get)^
 											// quantity of cars of given class
 											((Q CarType~ Clazz~) 0)^
-											((Q CarType~ Clazz~) Garage true) Context
+											((Q CarType~ Clazz~) Business true) Context
 											// number of places occupied by car in garage
 											((P CarType~ Clazz~) ($~ 1) Get)^
 											((P CarType~ Clazz~) Garage true) Context

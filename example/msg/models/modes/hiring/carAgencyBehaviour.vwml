@@ -17,6 +17,13 @@ module CarAgencyHiringBehaviour {
 						((Car GetKindOfUnit.Kind~ of clazz GetClazzOfUnit.Clazz~ occupies garage area OA~) Ew.Output~) Do
 #endif
 					);
+					CancelCarReservationPlace ias (
+						Rq ias nil;
+						// cancel reservation
+						(GetCarReservationPlaces.Rq Rq~)^
+						GetCarReservationPlaces~ Exe
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ cancelreservationgarageplace Owner~ (GetCarReservationPlaces.OA~))) Gate
+					);
 					(Command startcarlooking) ias (
 						(GetCarReservationPlaces.Rq Request~)^
 						GetCarReservationPlaces~ Exe
@@ -24,7 +31,11 @@ module CarAgencyHiringBehaviour {
 
 					);
 					(Command cancelcarlooking) ias (
-						((HiringAgency Id~) Tx (cancel RequestId~ Request~)) Gate
+						(CancelCarReservationPlace.Rq (Request~ 1) Get)^
+						CancelCarReservationPlace~ Exe
+						(CancelHiringRequest.RqId RequestId~)^
+						(CancelHiringRequest.NCmd cancelcarlooking)^
+						CancelHiringRequest~ Exe
 					);
 					(Command reservegarageresult) ias (
 						(reservation confirmed) ias (
@@ -48,11 +59,15 @@ module CarAgencyHiringBehaviour {
 						(reservation (Request~ 0) Get)~ Exe
 					);
 					(Command carpaymentresult) ias (
-						(payment confirmed) ias ActuallyStartHiringRequest~ Exe;
+						(payment confirmed) ias (
+							(ActuallyStartHiringRequest.NCmd startcarlooking)^
+							(ActuallyStartHiringRequest.AC garage)^
+							ActuallyStartHiringRequest~ Exe
+						);
 						(payment declined) ias (
-							(GetCarReservationPlaces.Rq (Request~ 1) Get)^
-							GetCarReservationPlaces~ Exe
-							((Player Owner~) Tx (ModeInfo.ModeDeal~ cancelreservationgarageplace Owner~ (GetCarReservationPlaces.OA~))) Gate
+							// cancel reservation
+							(CancelCarReservationPlace.Rq (Request~ 1) Get)^
+							CancelCarReservationPlace~ Exe
 
 #if (verbose)
 							((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
@@ -65,7 +80,7 @@ module CarAgencyHiringBehaviour {
 							(GetKindOfUnit.UnitProps (OR~ CmdFormat.RqCharacterInfoIndex~) Get)^
 							GetKindOfUnit~ Exe
                                                         (UnitId (CharacterIdInfo~ 1) Get)^
-							(((hiring starthiring failed noResources resource) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
+							(((hiring startcarlooking failed noResources resource) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
 #endif
 						);
 						(payment (Request~ 0) Get)~ Exe
