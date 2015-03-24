@@ -262,7 +262,6 @@ public class VWMLObjectsRepository extends VWMLRepository {
 						if (onModelEntity == null) {
 							onModelEntity = prototype;
 						}
-						
 						return onModelEntity;
 					}
 					else {

@@ -124,26 +124,17 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				else {
 					VWMLEntity p = e;
 					cloneDetected = (p.getClonedFrom() != null);
-					// entity belongs to code flow
-/*					VWMLEntity parent = null;
-					parent = (VWMLEntity)e.getLink().getFirstOnContextParentRelation();
-					VWMLEntity p1 = null;
-					VWMLEntity p = parent;
-					while(p != null) {
-						if (p.getClonedFrom() != null) {
-							cloneDetected = true;
-							break;
-						}
-						p1 = ((VWMLEntity)p.getLink().getFirstOnContextParentRelation());
-						if (p1 == p) {
-							break;
-						}
-						p = p1;
-					} 
-					if (p == null) {
-						p = parent;
-					}*/
 					ctx = p.getContext();
+					// if entity belongs to cloned context, but not cloned, since it belongs to entity which doesn't belong to cloned context
+					// then this case must be checked
+					if (!cloneDetected && operationalContext.getClonedFrom() != null) {
+						ContextIdPair firstClonedCtxPair = VWMLContextsRepository.instance().wellFormedContext(operationalContext.getContext());
+						// whether prototype belongs to 'current operational' context or no - searching for model's context
+						if (VWMLContext.isContextChildOf(firstClonedCtxPair, p.getContext().getContext())) {
+							ctx = operationalContext;
+							cloneDetected = true;
+						}
+					}
 				}
 				if (cloneDetected) {
 					try {
