@@ -3,6 +3,14 @@ module CharactersGroupManager {
 		Characters ias (
 			/* general game unit */
 			Unit ias (
+				// called when Joined became '()'
+				DisjoinCbk ias nil;
+				InitDisjoinAllUnitsInterceptor ias (
+					(Joined () DisjoinCbk~) StartInterception
+				);
+				DoneDisjoinAllUnitsInterceptor ias (
+					(Joined () DisjoinCbk~) FinishInterception
+				);
 				DisjoinUnit ias (
 					Action ias nil;
 					Actions ias nil;

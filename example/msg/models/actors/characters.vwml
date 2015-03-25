@@ -60,8 +60,9 @@ module Characters {
 				);
 				StopActivity ias (
 					(StopUnit true)^
-#if (verbose)
 					((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ unitstopped Id~ (Id~))) Gate
+#if (verbose)
+					((The unit Id~ is going to be stopped StopUnit~) Ew.Output~) Do
 #endif
 				);
 				/* each unit has following properties: power of attack and defence */
@@ -271,7 +272,10 @@ module Characters {
 							(UnitCommandParams~ PropertySetOperation~) ForEach
 							UnitLifeStep~ Exe
 						);
-						(Handle exit) ias StopActivity~ Exe;
+						(Handle exit) ias (
+							StopActivity~ Exe
+							UnitLifeStep~ Exe
+						);
                                                 (Handle kill),(Handle go),(Handle movetopos),(Handle startpos),(Handle getpos),(Handle select) ias doNothing;
 						(Handle UnitCommandId~)~ Exe
 					);
@@ -336,7 +340,10 @@ module Characters {
 							(UnitCommandId LastUnitCommandId~)^
 							UnitLifeStep~ Exe
 						);
-						(Handle exit) ias StopActivity~ Exe;
+						(Handle exit) ias (
+							StopActivity~ Exe
+							UnitLifeStep~ Exe
+						);
 						(Handle UnitCommandId~)~ Exe
 					);
 					(NothingToDispatch true) ias doNothing;
@@ -365,7 +372,9 @@ module Characters {
 						CommandDispatcher~ Exe
 					);
 					(Stop true) ias (
+#if (verbose)
 						((The unit Id~ stopped) Ew.Output~) Do
+#endif
 					);
 					(Stop StopUnit~)~ Exe
 				);
@@ -378,6 +387,9 @@ module Characters {
 					Init~ Exe
 					UnitLifeStep~ Exe
 					((Unit Id~) Unregister) Gate
+#if (verbose)
+					((The unit Id~ exited) Ew.Output~) Do
+#endif
 				) Exe
 			);
 		);

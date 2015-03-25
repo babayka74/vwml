@@ -35,7 +35,13 @@ module PlayerResources {
 					Init ias (
 						(Update.Conf (Garage Ew.GarageConf.Garage~))^
 						Update~ Exe
+#if (verbose)
 						((Player Id~ initialized garage) Ew.Output~) Do
+#endif
+					);
+					Done ias (
+						(Capacity 0)^
+						(Free 0)^
 					);
 					Reserve ias (
 						Place ias 0;
@@ -596,12 +602,14 @@ module PlayerResources {
 #if (business)
 					Cashier.Stop~ Exe
 #endif
+					Garage.Done~ Exe
 				);
 				Reset ias (
 					BattleFieldReset~ Exe
 #if (business)
 					Cashier.Stop~ Exe
 #endif
+					Garage.Done~ Exe
 				);
 			);
 		);

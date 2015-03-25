@@ -12,16 +12,17 @@ module PlayerResourceManager {
 				Cost ias nil;
 				Contain ias nil;
 				RT ias nil;
+				// real-time removed units
+				RTUnits ias ();
 
 				Init ias (
 					(StopRM false)^
 				);
 				// recalculates partial GDev and Contain(Hospitality) factors
 				RecalcFactors ias (
-					// calculating partial GDevelop factor for specific unit's kind and class and resource
-					(Resources.Business.(Gdf RT~) ((Resources.Business.(Q Kind~ Class~)~ (Cost~ 2) Get) Ew.Mul~) Do)^
-					// contain (hospitality) per resource
-					(Resources.Business.(Ctf RT~) ((Resources.Business.(Q Kind~ Class~)~ (Contain~ 1) Get) Ew.Mul~) Do)^
+					Op ias nil;
+					(Resources.Business.(Gdf RT~) ((Resources.Business.(Gdf RT~)~ (Cost~ 2) Get) Op~) Do)^
+					(Resources.Business.(Ctf RT~) ((Resources.Business.(Ctf RT~)~ (Contain~ 1) Get) Op~) Do)^
 					// assembles integrated GDevelop
 					Resources.Business.AssembleGDevelop~ Exe
 				);
@@ -58,17 +59,47 @@ module PlayerResourceManager {
 
 				DismissUnit ias (
 					U ias nil;
+					NotifyWhenDJFinished ias (
+						FE ias (
+							(Characters)->(Unit $~)->DoneDisjoinAllUnitsInterceptor~ Exe
+							((Characters)->(Unit $~) Tx (nil exit $~ ())) Gate
+						);
+						(RTUnits~ FE~) ForEach
+						(RTUnits ())^
+					);
 					(CorrectUnit false) ias (
 #if (verbose)
 						((Unit U~ is unavailable hired units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 					);
 					(CorrectUnit true) ias (
-						(NJ true) ias ((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate;
+						(NJ true) ias (
+							(NDJ true) ias ((Characters)->(Unit U~) Tx (nil exit U~ ())) Gate;
+							// unit joined with another units
+							(NDJ false) ias (
+								DJU ias (
+									(DisjoinUnits.U $~)^
+									(DisjoinUnits.UD none)^
+									DisjoinUnits~ Exe
+								);
+								// taking into consideration that units are disjoined in async way,
+								// so we have to store unit id and send 'exit' when all units joined with it have been disjoined
+								(RTUnits (RTUnits~ (U~)) Join)^
+								((Characters)->(Unit U~)->DisjoinCbk NotifyWhenDJFinished~)^
+								(Characters)->(Unit U~)->InitDisjoinAllUnitsInterceptor~ Exe
+								((Characters)->(Unit U~)->Joined~ DJU~) ForEach
+							);
+							(NDJ ((Characters)->(Unit U~)->Joined~ ()) Ident)~ Exe
+						);
 						(NJ false) ias (
 							(DisjoinUnits.U U~)^
 							(DisjoinUnits.UD exit)^
 							DisjoinUnits~ Exe
+						);
+						(IsGarageUnit false) ias doNothing;
+						(IsGarageUnit true) ias (
+							(Resources.Garage.CancelReserve.Place Resources.Garage.(P Kind~ Class~)~)^
+							Resources.Garage.CancelReserve~ Exe
 						); 
 						
 						(Resources.Units.Hired (Resources.Units.Hired~ (U~)) Substruct)^
@@ -82,6 +113,7 @@ module PlayerResourceManager {
 
 						// decrements number of units of specific kind
 						(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.DecValue~) Do)^
+						(RecalcFactors.Op Ew.SubF~)^
 						RecalcFactors~ Exe
 #if (verbose)
 						((clazz ($$)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf ($$)->(Resources)->(Business)->(Ctf RT~)~ part dev ($$)->(Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
@@ -92,6 +124,8 @@ module PlayerResourceManager {
 						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
 #endif
 						(NJ ((Characters)->(Unit U~)->JoinedWith~ nil) Ident)~ Exe
+						// free place to garage in case if unit is car
+						(IsGarageUnit ((Characters)->(Unit U~)->Container~ garage) Ident)~ Exe
 #if (verbose)
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
 #endif
@@ -136,6 +170,7 @@ module PlayerResourceManager {
 #endif
 					// increments number of units of specific kind
 					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
+					(RecalcFactors.Op Ew.SumF~)^
 					RecalcFactors~ Exe
 #if (verbose)
 					((clazz ($$)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf ($$)->(Resources)->(Business)->(Ctf RT~)~ part dev ($$)->(Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
@@ -176,7 +211,7 @@ module PlayerResourceManager {
 					U ias nil;
 					E ias nil;
 					(E false) ias doNothing;
-					(E true) ias ((Characters)->(Unit U~) Tx (nil exit $~ ())) Gate;
+					(E true) ias ((Characters)->(Unit U~) Tx (nil exit U~ ())) Gate;
 					(E (E~ exit) Ident)~ Exe
 				);
 
@@ -278,15 +313,19 @@ module PlayerResourceManager {
 #endif
 					);
 					(CorrectUnit true) ias (
-						((Characters)->(Unit HiredUnitId~)->InAction false)^
-						(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
-						(UnitsInAction ((UnitsInAction~) Ew.DecValue~) Do)^
+						(IA false) ias doNothing;
+						(IA true) ias (
+							((Characters)->(Unit HiredUnitId~)->InAction false)^
+							(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
+							(UnitsInAction ((UnitsInAction~) Ew.DecValue~) Do)^
 #if (verbose)
-						((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
+							((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-						(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
+							(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
+						);
+						(IA (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
