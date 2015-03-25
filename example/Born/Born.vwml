@@ -192,6 +192,8 @@ module BornSimulation {
 				);
 				(Result false) ias 0;
 				T ias (
+					1025 Bp
+					((on T kofe account Update2.Account.(Rt Kofe~)~) Ew.out~) Do
 					((Id is Id~ and param is $~) Ew.out~) Do
 				);
 				X ias (M.a M.b M.c M.d M.e);
@@ -214,13 +216,11 @@ module BornSimulation {
 				LXX~ Exe
 				(Result Sherif.Resources.Result~)~ Exe
 				Update2~ Exe
-				1025 Bp
 				(Kofe kofe)^
 				((on kofe account Update2.Account.(Rt Kofe~)~) Ew.out~) Do
 				Update~ Exe
 				((on test characters (Characters)->(Unit N~)->Mode~) Ew.out~) Do
 				((on test account (Account)->(Test N~)->R~) Ew.out~) Do
-				1025 Bp
 				(Cola kola~)^
 				((on account Account.(Rt vodka)~ Account.(Rt Cola~)~ (Account)->(Rt vodka)~ ($$)->(Account)->(Rt vodka)~ Update2.Account.(Rt kofe)~) Ew.out~) Do
 				Account~ Exe

@@ -80,6 +80,7 @@ public class VWMLContext extends VWMLObject {
 		c.setContext(proto.getContext());
 		c.setContextName(proto.getContextName());
 		c.setContextPath(proto.getContextPath());
+		c.setClonedFrom(proto);
 		return c;
 	}
 	

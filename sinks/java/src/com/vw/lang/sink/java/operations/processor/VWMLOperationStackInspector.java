@@ -118,22 +118,16 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 				boolean cloneDetected = false;
 				VWMLContext ctx = null;
 				// entity created in runtime
-				if (e.getLink().getParent() == null) {
-					ctx = e.getContext();
-				}
-				else {
-					VWMLEntity p = e;
-					cloneDetected = (p.getClonedFrom() != null);
-					ctx = p.getContext();
-					// if entity belongs to cloned context, but not cloned, since it belongs to entity which doesn't belong to cloned context
-					// then this case must be checked
-					if (!cloneDetected && operationalContext.getClonedFrom() != null) {
-						ContextIdPair firstClonedCtxPair = VWMLContextsRepository.instance().wellFormedContext(operationalContext.getContext());
-						// whether prototype belongs to 'current operational' context or no - searching for model's context
-						if (VWMLContext.isContextChildOf(firstClonedCtxPair, p.getContext().getContext())) {
-							ctx = operationalContext;
-							cloneDetected = true;
-						}
+				cloneDetected = (e.getClonedFrom() != null);
+				ctx = e.getContext();
+				// if entity belongs to cloned context, but not cloned, since it belongs to entity which doesn't belong to cloned context
+				// then this case must be checked
+				if (!cloneDetected && operationalContext.getClonedFrom() != null) {
+					ContextIdPair firstClonedCtxPair = VWMLContextsRepository.instance().wellFormedContext(operationalContext.getContext());
+					// whether prototype belongs to 'current operational' context or no - searching for model's context
+					if (VWMLContext.isContextChildOf(firstClonedCtxPair, e.getContext().getContext())) {
+						ctx = operationalContext;
+						cloneDetected = true;
 					}
 				}
 				if (cloneDetected) {
