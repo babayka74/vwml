@@ -29,9 +29,13 @@ module PlayerResources {
 				);
 				/* cars' container */
 				Garage ias (
-					// max number of cars which can be placed here
+					// current garage's class
+					Class ias 1;
+					// capacity is calculated according to garage's class
 					Capacity ias 0;
 					Free ias 0;
+					// available investment values
+					InvestV ias ();
 					Init ias (
 						(Update.Conf (Garage Ew.GarageConf.Garage~))^
 						Update~ Exe
@@ -40,6 +44,7 @@ module PlayerResources {
 #endif
 					);
 					Done ias (
+						(Class 1)^
 						(Capacity 0)^
 						(Free 0)^
 					);
@@ -82,6 +87,15 @@ module PlayerResources {
 						(RP ((Free~ Place~) Ew.Sum~) Do)^
 						(Allow ((RP~ Capacity~) Ew.Compare~) Do)~ Exe
 					);
+					SetClass ias (
+						C ias nil;
+						(Class C~)^
+						(Capacity (G Class~)~)^
+						(Free ((Free~ ((Capacity~ Free~) Ew.Sub~) Do) Ew.Sum~) Do)^
+#if (verbose)                           	
+						((Garage of player Id~ has clazz Class~ and capacity Capacity~ where free places are Free~) Ew.Output~) Do
+#endif                                  	
+					);
 					Update ias (
 						Conf ias nil;
 						(NotReady true) ias doNothing;
@@ -89,13 +103,45 @@ module PlayerResources {
 							F ias nil;
 							SetProps ias (
 								P ias nil;
-								(P capacity) ias (
+								(P clazz) ias (
 									// general garage's capacity
-									(Capacity ($~ 1) Get)^
-									(Free Capacity~)^
+									(Class ($~ 1) Get)^
 #if (verbose)                           	
-									((Garage capacity of player Id~ initialized to Capacity~) Ew.Output~) Do
+									((Garage of player Id~ has clazz Class~) Ew.Output~) Do
 #endif                                  	
+								);
+								(P capacity) ias (
+									SetCPC ias (
+										// garage class
+										(GC ($~ 0) Get)^
+										// capacity
+										(CP ($~ 1) Get)^
+										((G GC~) CP~)^
+										((G GC~) Garage true) Context
+#if (verbose)                           	
+										((Garage of player Id~ has clazz (G GC~) and capacity (G GC~)~) Ew.Output~) Do
+#endif                                  	
+									);
+									(CPC ($~ 1) Get)^
+									(CPC~ SetCPC~) ForEach
+								);
+								(P invest) ias (
+									SetIC ias (
+										// invest value
+										(IV ($~ 0) Get)^
+										// to class
+										(IC ($~ 1) Get)^
+										((G IV~) IC~)^
+										((G IV~) Garage true) Context
+										(InvestV (InvestV~ (IV~)) Join)^ 
+#if (verbose)                           	
+										((Player Id~ may invest (G IV~) for clazz (G IV~)~) Ew.Output~) Do
+#endif                                  	
+									);
+									// invest to class
+									(InvestV ())^
+									(IC ($~ 1) Get)^
+									(IC~ SetIC~) ForEach
 								);
 								(P cars) ias (
 									// cars types and classes
@@ -134,6 +180,9 @@ module PlayerResources {
 							(F~ SetProps~) ForEach
 						);
 						(NotReady (Conf~ nil) Ident)~ Exe
+						// setup capacity according to defined class
+						(SetClass.C Class~)^
+						SetClass~ Exe
 					);
 				);
 				/* controlled/own/visible quartals */
@@ -513,6 +562,17 @@ module PlayerResources {
 #endif
 						);
 						(Ew.PlayerAccountConf.ResourceTypes~ AccountReport~) ForEach
+					);
+					Set ias (
+						(ByRtType (Rt (Value~ 1) Get))^
+						(ByRtType~ (Value~ 2) Get)^
+						(Result true)^
+#if (verbose)
+						((Player Id~ set account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
+#endif
+#if (release)
+						(((banking set done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+#endif
 					);
 					Recharge ias (
 						(ByRtType (Rt (Value~ 1) Get))^

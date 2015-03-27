@@ -22,12 +22,12 @@ module CarAgencyHiringBehaviour {
 						// cancel reservation
 						(GetCarReservationPlaces.Rq Rq~)^
 						GetCarReservationPlaces~ Exe
-						((Player Owner~) Tx (ModeInfo.ModeDeal~ cancelreservationgarageplace Owner~ (GetCarReservationPlaces.OA~))) Gate
+						((Player Owner~) Tx (ModeInfo.ModeGarage~ cancelreservationgarageplace Owner~ (GetCarReservationPlaces.OA~))) Gate
 					);
 					(Command startcarlooking) ias (
 						(GetCarReservationPlaces.Rq Request~)^
 						GetCarReservationPlaces~ Exe
-						((Player Owner~) Tx (ModeInfo.ModeDeal~ reservegarageplace Owner~ (GetCarReservationPlaces.OA~ Request~ reservegarageresult))) Gate
+						((Player Owner~) Tx (ModeInfo.ModeGarage~ reservegarageplace Owner~ (GetCarReservationPlaces.OA~ Request~ reservegarageresult))) Gate
 
 					);
 					(Command cancelcarlooking) ias (

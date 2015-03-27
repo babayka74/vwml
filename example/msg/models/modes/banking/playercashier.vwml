@@ -43,7 +43,7 @@ module PlayerCashier {
 						((Player Id~ PAccount~ PContain~ PCE~ PCC~) Ew.Output~) Do
 						(H ((PAccount~ PContain~ PCE~ PCC~) Ew.RecalcCompensation~) Do)^
 						(Resources.Account.Value (cost $~ H~))^
-						Resources.Account.Withdraw~ Exe
+						Resources.Account.Set~ Exe
 						(TR Resources.Account.Result~)~ Exe
 					);
 					(Ew.BusinessConf.AvailableResources~ ByRt~) ForEach

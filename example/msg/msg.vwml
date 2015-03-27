@@ -49,6 +49,8 @@ include "models/modes/battle/attackmanager.vwml"
 include "models/modes/battle/battlefield.vwml"
 include "models/modes/battle/battlemanager.vwml"
 
+include "models/modes/garage/garageDeal.vwml"
+
 include "models/modes/deal/playerdeal.vwml"
 include "models/modes/deal/quartal.vwml"
 
@@ -236,19 +238,7 @@ module msg {
 
 				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (2500))
-				(player 0 hiring startcarlooking 0 (((cost vodka 200) (hiringtime 2000) (id (0 1))) ((kind taxi) (clazz 1) (capacity 1))))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 2000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 0) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (3500))
-				// (0 2) => (0 1)
-				(player 0 resourcemanager joinunits 0 ((0 2) (0 1)))
-				(manager 0 nil delay 0 (2500))
-				(player 0 resourcemanager releaseunit 0 ((0 2)))
-				(manager 0 nil delay 0 (2500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 2000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 0) (attack (yes yes yes)) (defence (no no yes)))))
-				(manager 0 nil delay 0 (3500))
-				(player 0 resourcemanager joinunits 0 ((0 2) (0 1)))
-				(manager 0 nil delay 0 (2500))
-				(player 0 resourcemanager releaseunit 0 ((0 2)))
+				(player 0 garage invest 0 ((cost vodka 150) 3000))
 
 
 /*				(manager 0 nil delay 0 (2500))

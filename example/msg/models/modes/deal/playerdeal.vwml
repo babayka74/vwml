@@ -117,22 +117,6 @@ module PlayerDeal {
 					// sends quantum to quartal for updaiting contribution value
 					((Quartal QuartalId~) Tx (QuartalId~ rspcalcquantum (Resources.Business.RQ~))) Gate
 				);
-				(Handle reservegarageplace) ias (
-					RespCmd ias nil;
-					OrigRequest ias nil;
-					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (confirmed OrigRequest~))) Gate;
-					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (declined OrigRequest~))) Gate;
-					(OrigRequest (CommandParams~ 1) Get)^
-					(RespCmd (CommandParams~ 2) Get)^
-					// reserv places
-					(Resources.Garage.Reserve.Place (CommandParams~ 0) Get)^
-					Resources.Garage.Reserve~ Exe
-					(Result Resources.Garage.Reserve.Result~)~ Exe
-				);
-				(Handle cancelreservationgarageplace) ias (
-					(Resources.Garage.CancelReserve.Place (CommandParams~ 0) Get)^
-					Resources.Garage.CancelReserve~ Exe
-				);
 				(Handle back) ias (
 					(Player.Mode main)^
 #if (verbose)

@@ -18,18 +18,20 @@ module Player {
 		);
 		ModeInfo ias (
 			ModeDeal ias deal;
+			ModeGarage ias garage;
 			ModeBattle ias battle;
 			ModeMain ias main;
 			ModeResourceMgr ias resourcemanager;
 			ModeHiring ias hiring;
 			ModeAttack ias attack;
 			ModeBanking ias banking;
-			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking cancelcarlooking carpaymentresult starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf updategarageconf);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf);
 			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
+			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest updategarageconf back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			(AvailableModes AvailableModes~ Exe)^
@@ -70,6 +72,12 @@ module Player {
 				(Deal.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 				(Deal.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				Deal~ Exe
+				PlayerLifeStep~ Exe
+			);
+			HandlePlayerCommandOnModeGarageDeal ias (
+				(GarageDeal.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(GarageDeal.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				GarageDeal~ Exe
 				PlayerLifeStep~ Exe
 			);
 			HandlePlayerCommandOnModeBanking ias (
@@ -125,6 +133,10 @@ module Player {
 				(mode deal) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeDeal~)^
 					(Handler HandlePlayerCommandOnModeDeal~)^
+				);
+				(mode garage) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeGarageDeal~)^
+					(Handler HandlePlayerCommandOnModeGarageDeal~)^
 				);
 				(mode banking) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeBanking~)^

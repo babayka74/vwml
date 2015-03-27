@@ -75,8 +75,11 @@ public class Economic implements IVWMLGate {
 			if (z == 0.0) {
 				z = (float)0.00001;
 			}
-			Float compensation = ((accountVal - cefactorVal) * containVal) / z;
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(compensation), null);
+			float newValue = accountVal;
+			if (containVal != 0.0) {
+				newValue = ((accountVal - cefactorVal) * containVal) / z;
+			}
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(newValue), null);
 		}
 	}
 	

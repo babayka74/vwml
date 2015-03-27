@@ -1,0 +1,153 @@
+module PlayerGarage {
+	MagicWorld ias (
+		Player ias (
+			GarageDeal ias (
+				// current upgrade transaction
+				CT ias nil;
+				CommandId ias nil;
+				CommandParams ias nil;
+
+				PayForUpgrade ias (
+					C ias nil;
+					V ias nil;
+					T ias nil;
+					(Result false) ias (
+#if (release)
+						(((garage invest failed noResources) (player Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					(Result true) ias (
+						// save current transaction; need to save in order to rollback in case of 'cancelinvest' command is received
+						(CT (C~ V~))^
+#if (verbose)
+						((Player Id~ started garage upgrade to CT~ in T~ ms) Ew.Output~) Do
+#endif
+						(T~ (GInv Id~) SetGarageClass~ nil CT~) Recall
+					);
+					(Resources.Account.Value V~)^
+					Resources.Account.Withdraw~ Exe
+					(Result Resources.Account.Result~)~ Exe
+				);
+
+				SetGarageClass ias (
+					(Resources.Garage.SetClass.C ($~ 0) Get)^
+					Resources.Garage.SetClass~ Exe
+					(CT nil)^
+#if (release)
+					(((garage invest done) (player Id~)) Ew.OutChannel~) Do
+#endif
+				);
+
+				ProcessInvest ias (
+					// investment value
+					IV ias nil;
+					// investment duration
+					IT ias nil;
+					// right value - trying to invest
+					(IA true) ias (
+						WC ias nil;
+						(C 1) ias (
+							// value to pay
+							(PayForUpgrade.V IV~)^
+							// duration
+							(PayForUpgrade.T IT~)^
+							// desired class
+							(PayForUpgrade.C WC~)^
+							PayForUpgrade~ Exe
+						);
+						(C 0),(C -1) ias (
+#if (verbose)
+							((Can not invest to garage of player Id~ since capacity clazz WC~ lower than current Resources.Garage.Class~) Ew.Output~) Do
+#endif
+#if (release)
+							(((garage invest failed invalidInvestValue) (player Id~)) Ew.OutChannel~) Do
+#endif
+						);
+						// get wished capacity class
+						(WC Resources.Garage.(G IV~)~)^
+						(C ((WC~ Resources.Garage.Class~) Ew.Compare~) Do)~ Exe
+					);
+					// invalid value - investment is not allowed
+					(IA false) ias (
+#if (verbose)
+						((Can not invest to garage of player Id~ since IV~ does not belong to Resources.Garage.InvestV~) Ew.Output~) Do
+#endif
+#if (release)
+						(((garage invest failed invalidInvestValue) (player Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					(IV (CommandParams~ 0) Get)^
+					(IT (CommandParams~ 1) Get)^
+					// check if passed right value from defined range
+					(IA (Resources.Garage.InvestV~ IV~) In)~ Exe
+				);
+				ProcessCancelInvest ias (
+					(-1 (GInv Id~) SetGarageClass~) Recall
+					(Resources.Account.Value (CT~ 1) Get)^
+					Resources.Account.Recharge~ Exe
+					(CT nil)^
+#if (release)
+					(((garage cancelinvest done) (player Id~)) Ew.OutChannel~) Do
+#endif
+				);
+				(Handle reservegarageplace) ias (
+					RespCmd ias nil;
+					OrigRequest ias nil;
+					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (confirmed OrigRequest~))) Gate;
+					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (declined OrigRequest~))) Gate;
+					(OrigRequest (CommandParams~ 1) Get)^
+					(RespCmd (CommandParams~ 2) Get)^
+					// reserv places
+					(Resources.Garage.Reserve.Place (CommandParams~ 0) Get)^
+					Resources.Garage.Reserve~ Exe
+					(Result Resources.Garage.Reserve.Result~)~ Exe
+				);
+				(Handle cancelreservationgarageplace) ias (
+					(Resources.Garage.CancelReserve.Place (CommandParams~ 0) Get)^
+					Resources.Garage.CancelReserve~ Exe
+				);
+				(Handle invest) ias (
+					(PI false) ias (
+#if (verbose)
+						((The garage of player Id~ is in under upgrade CT~) Ew.Output~) Do
+#endif
+#if (release)
+						(((garage invest failed underUpgrade) (player Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					(PI true) ias ProcessInvest~ Exe;
+					(PI (CT~ nil) Ident)~ Exe
+				);
+				(Handle cancelinvest) ias (
+					(PI true) ias (
+#if (verbose)
+						((The garage of player Id~ is not under upgrade) Ew.Output~) Do
+#endif
+#if (release)
+						(((garage cancelinvest failed notUnderUpgrade) (player Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					(PI false) ias ProcessCancelInvest~ Exe;
+					(PI (CT~ nil) Ident)~ Exe
+				);
+				(Handle updategarageconf) ias (
+					(Resources.Garage.Update.Conf CommandParams~)^
+					Resources.Garage.Update~ Exe
+#if (verbose)
+					((Player Id~ updated garage configuration) Ew.Output~) Do
+#endif
+#if (release)
+					(((garage updategarageconf ok) (player PlayerId~)) Ew.OutChannel~) Do
+#endif
+				);
+				(Handle back) ias (
+					(Player.Mode main)^
+#if (verbose)
+					((The player Id~ returned to main mode) Ew.Output~) Do
+#endif
+				);
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}
