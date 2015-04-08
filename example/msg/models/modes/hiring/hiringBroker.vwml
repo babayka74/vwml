@@ -6,7 +6,7 @@ module HiringBroker {
 				RequestId ias nil;
 				CommandParams ias nil;
 
-				(Handle startcarlooking),(Handle cancelcarlooking),(Handle carpaymentresult),(Handle starthiring),(Handle cancelhiring),(Handle staffpaymentresult),(Handle reservegarageresult),(Handle cancel),(Handle exit),(Handle reset),(Handle check),(Handle report) ias ((HiringAgency Id~) Tx (CommandId~ RequestId~ CommandParams~)) Gate;
+				(Handle startcarlooking),(Handle cancelcarlooking),(Handle carpaymentresult),(Handle starthiring),(Handle cancelhiring),(Handle staffpaymentresult),(Handle reservegarageresult),(Handle cancel),(Handle exit),(Handle reset),(Handle check),(Handle report),(Handle collectstate) ias ((HiringAgency Id~) Tx (CommandId~ RequestId~ CommandParams~)) Gate;
 				(Handle CommandId~)~ Exe
 			);
 		);

@@ -58,6 +58,7 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.rest.VWMLO
 import com.vw.lang.sink.java.operations.processor.operations.handlers.size.VWMLOperationSizeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.squeeze.VWMLOperationSqueezeHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.substruct.VWMLOperationSubstructHandler;
+import com.vw.lang.sink.java.operations.processor.operations.handlers.tstate.VWMLOperationTStateHandler;
 import com.vw.lang.sink.java.operations.processor.operations.handlers.unknown.VWMLOperationUnknownOperationHandler;
 
 /**
@@ -119,6 +120,7 @@ public class VWMLOperationProcessor {
 			put(new VWMLOperation(VWMLOperationsCode.OPEXISTSI),   				new VWMLOperationExistsIHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPEXISTSI_S),   			new VWMLOperationExistsIHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPLTT),   					new VWMLOperationLTTHandler());
+			put(new VWMLOperation(VWMLOperationsCode.OPTSTATE),   				new VWMLOperationTStateHandler());
 			// service commands
 			put(new VWMLOperation(VWMLOperationsCode.OPBREAKPOINT),       		new VWMLOperationBreakPointHandler());
 			put(new VWMLOperation(VWMLOperationsCode.OPCONFLICTSITUATIONSTART), new VWMLOperationConflictSituationStartHandler());

@@ -15,6 +15,8 @@ module Quartal {
 			QInfo ias nil;
 			/* last invested resource quantum */
 			LInvestQuantum ias 0;
+			/* last stored quartal state */
+			LSQState ias nil;
 			/* quartal's resource type (configured) */
 			Resource ias (
 				Type ias nil;
@@ -53,6 +55,7 @@ module Quartal {
 			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
 			Sherif ias (
+				FormerIntention ias nil;
 				Intention ias nil;
 				IntentionParams ias nil;
 				DesiredBribe ias nil;
@@ -326,6 +329,16 @@ module Quartal {
 						((The sherif of quartal Id~ which belongs to player Owner~ got self test message) Ew.Output~) Do
 #endif
 					);
+					(collectstate op),(collectstate cnp),(collectstate onp),(collectstate wtp),(collectstate cp) ias (
+						// quartal resource info
+						(QRState (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+						// sherif's state
+						(QSherifState (FormerIntention~ State~ IntentionParams~))^
+						// last stored quartal state
+						(LSQState (Id~ QRState~ QSherifState~))^
+						// delegate to player
+						((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rspquartalstate Id~ LSQState~)) Gate
+					);
 					(updateconf op),(updateconf cnp),(updateconf onp),(updateconf wtp),(updateconf cp) ias (
 						(Resource.Update.QConf (IntentionParams~ 0) Get)^
 						(Resource.Update.BribeR (IntentionParams~ 1) Get)^
@@ -394,6 +407,7 @@ module Quartal {
 				Dispatch ias nil;
 				// (Id~ Intention~ IntentionParams~)
 				(Source (Dispatch~ 0) Get)^
+				(FormerIntention Sherif.Intention~)^
 				(Sherif.Intention (Dispatch~ 1) Get)^
 				(Sherif.IntentionParams (Dispatch~ 2) Get)^
 				Sherif.Behavior~ Exe

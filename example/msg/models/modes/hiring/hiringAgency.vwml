@@ -34,7 +34,7 @@ module HiringAgency {
 #endif
 			);
 			Agent ias (
-				AgentCommands ias (cancel check reset exit report);
+				AgentCommands ias (cancel check reset exit report collectstate);
 				StaffHiringCommands ias (starthiring cancelhiring staffpaymentresult);
 				CarsLookingCommands ias (startcarlooking cancelcarlooking carpaymentresult reservegarageresult);
 				Command ias nil;
@@ -207,13 +207,17 @@ module HiringAgency {
 					((Characters)->(Unit UnitId~)->UnitReadyNotify (AI~ 1) Get)^
 					// unit's associated container
 					((Characters)->(Unit UnitId~)->Container (AI~ 0) Get)^
-
 					// concrete mechanism of properties setting
 					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
+#if (unitalive)
 					((Characters)->(Unit UnitId~)) Activate
+#else
+					(Characters)->(Unit UnitId~)->NotifyOwner~ Exe
+#endif
 				);
 				PrepareReport ias (
 					Report ias (
+						TimerState ias nil;
 						(ConfRq $~~)^
 #if (verbose)
 						((The hiring agent Id~ has hiring request ConfRq~ for player Owner~) Ew.Output~) Do
@@ -223,10 +227,27 @@ module HiringAgency {
 						GetKindOfUnit~ Exe
 						(CharacterIdInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
                                         	(UnitId (CharacterIdInfo~ 1) Get)^
-						(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ $~) Ew.OutChannel~) Do								
+						// get timer state
+						(TimerState ((Hiring Id~ $~)) TState)^
+						(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ $~ TimerState~) Ew.OutChannel~) Do								
 #endif
 					);
 					(RequestsInProgress~ Report~) ForEach
+				);
+				CollectState ias (
+					State ias ();
+					CState ias (
+						TimerState ias nil;
+						(ConfRq $~~)^
+#if (verbose)
+						((The hiring agent Id~ has hiring request ConfRq~ for player Owner~) Ew.Output~) Do
+#endif
+						// get timer state
+						(TimerState ((Hiring Id~ $~)) TState)^
+						(State (State~ ((ConfRq~ TimerState~))) Join)^
+					);
+					(RequestsInProgress~ CState~) ForEach
+					((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rspcsha Id~ State~)) Gate
 				);
 				Behavior ias (
 					(AgentCommands true) ias (
@@ -240,6 +261,7 @@ module HiringAgency {
 							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
 						);
 						(Command report) ias PrepareReport~ Exe;
+						(Command collectstate) ias CollectState~ Exe;
 						(Command check) ias (
 #if (verbose)
 							((Hiring agency Id~ received self test ok) Ew.Output~) Do

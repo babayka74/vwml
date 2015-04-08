@@ -1,0 +1,86 @@
+module StateStore {
+	MagicWorld ias (
+		Command ias (
+			Format ias (
+				SSManager ias (
+					ParamsIndex ias 3;
+				);
+			);
+		);
+		// state store manager is responsible for storing/retrieving states of 
+		// world's entities
+		StateStoreManager ias (
+			// single at this time
+			Id ias 0;
+			// centralized command dispatcher
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				CommandSet ias nil;
+				Handler ias nil;
+				Cmd ias nil;
+				Params ias nil;
+			
+				CheckAndHandleCommand ias (
+					// active commands
+					CommandSet ias (collect restore store load);
+
+					(RightCommand true) ias (
+						// restores state of the world based on previosly loaded
+						(Cmd restore) ias (
+						);
+						// asks all active entities to send their states
+						(Cmd collect) ias (
+							PId ias nil;
+							(PId (Params~ 0) Get)^
+							((Player PId~) Tx (ModeInfo.ModeStateManagerBroker~ collectstate PId~ ())) Gate
+						);
+						// store world state
+						(Cmd store) ias (
+						);
+						// loads and restores world state
+						(Cmd load) ias (
+						);
+						(Cmd Cmd~)~ Exe
+					);
+					(RightCommand false) ias StateStoreManagerLifeStep~ Exe;
+#if (verbose)
+					((The state store manager Id~ received command Cmd~ with params Params~ available commands are CommandSet~) Ew.Output~) Do
+#endif
+					(RightCommand (CommandSet~ Cmd~) In)~ Exe
+				);
+				(Stop false) ias (
+					CheckAndHandleCommand~ Exe
+					StateStoreManagerLifeStep~ Exe
+				);
+				(Stop true) ias (
+#if (verbose)
+					((The store manager Id~ stopped) Ew.Output~) Do
+#endif
+				);
+				(Cmd (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Params (Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+                                (Stop (Cmd~ exit) Ident)~ Exe
+			);
+			StateStoreManagerLifeStep ias (
+				(ready false) ias (
+					(CommandDispatcher.Dispatch nil)^
+					StateStoreManagerLifeStep~ Exe
+				);
+				(ready true) ias (
+					(CommandDispatcher.Dispatch ((StateStoreManager Id~) Rx) Gate)^
+					CommandDispatcher~ Exe
+				);
+				(ready (((StateStoreManager Id~) Ready) Gate true) Ident)~ Exe
+			);
+#if (verbose)
+			((The state store manager Id~ added and active) Ew.Output~) Do
+#endif
+			((StateStoreManager Id~) Register blocked) Gate
+			StateStoreManagerLifeStep~ Exe
+			((StateStoreManager Id~) Unregister) Gate
+#if (verbose)
+			((The state store manager Id~ stopped and deactivated) Ew.Output~) Do
+#endif
+		);
+	);
+}

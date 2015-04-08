@@ -1,0 +1,12 @@
+module StateStoreBroker {
+	MagicWorld ias (
+		// state store manager is responsible for storing/retrieving states of 
+		// world's entities
+		StateStoreBroker ias (
+			CommandId ias nil;
+			CommandParams ias nil;
+
+			((StateStoreManager 0) Tx (nil CommandId~ nil CommandParams~)) Gate
+		);
+	);
+}

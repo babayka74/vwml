@@ -7,7 +7,7 @@ module PlayersManager {
 			Destination ias nil;
 			Params ias nil;
 			Players ias ();
-			ExportedCommands ias (playeradd playerleave playerstop playerreset gaccountconf gquartalconf);
+			ExportedCommands ias (playeradd playerleave playerstop playerreset gaccountconf gquartalconf collectstate);
 
 			Init ias (
 				Pool ias (
@@ -130,6 +130,17 @@ module PlayersManager {
 #if (release)                   
                               		(((playermanagment gquartalconf ok)) Ew.OutChannel~) Do
 #endif
+				);
+				// initiates process of collecting states of world's entities
+				(Command collectstate) ias (
+					PCS ias (
+						((Player $~) Tx (ModeInfo.ModeStateManagerBroker~ collectstate $~ ())) Gate
+#if (verbose)
+						((Sent request to collect state to player $~) Ew.Output~) Do						
+#endif
+					);
+					// iterates over collection of players and sends message to each player to collect its state
+					(Players~ PCS~) ForEach
 				);
 				(Command CommandId~)~ Exe
 			);

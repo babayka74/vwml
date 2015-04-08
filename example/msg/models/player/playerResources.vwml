@@ -36,6 +36,12 @@ module PlayerResources {
 					Free ias 0;
 					// available investment values
 					InvestV ias ();
+					// available garage's classes
+					GCS ias ();
+					// available garage's car types
+					GCT ias ();
+					// garage's collected state
+					GCState ias nil;
 					Init ias (
 						(Update.Conf (Garage Ew.GarageConf.Garage~))^
 						Update~ Exe
@@ -47,6 +53,27 @@ module PlayerResources {
 						(Class 1)^
 						(Capacity 0)^
 						(Free 0)^
+						(GCT ())^
+						(GCS ())^
+						(InvestV ())^
+					);
+					CollectState ias (
+						GCarsStore ias ();
+						// collecting quantity and occupation garage's places per car type
+						OverCarType ias (
+							// car type
+							CT ias nil;
+							GCarsStoreCreate ias (
+								C ias nil;
+								(C ($~ 0) Get)^
+								// quantity of cars of specified type and class
+							 	(GCarsStore (GCarsStore~ (((Q CT~ C~) (Player Id~)->(Resources)->(Business)->(Q CT~ C~)~))) Join)^
+							);
+							(CT $~)^
+							((Player Id~)->(Resources)->(Business)->(C CT~)~ GCarsStoreCreate~) ForEach
+						);
+						(GCarsStore ())^
+						(GCT~ OverCarType~) ForEach
 					);
 					Reserve ias (
 						Place ias 0;
@@ -118,6 +145,7 @@ module PlayerResources {
 										(CP ($~ 1) Get)^
 										((G GC~) CP~)^
 										((G GC~) Garage true) Context
+										(GCS (GCS~ (GC~)) Join)^
 #if (verbose)                           	
 										((Garage of player Id~ has clazz (G GC~) and capacity (G GC~)~) Ew.Output~) Do
 #endif                                  	
@@ -133,7 +161,7 @@ module PlayerResources {
 										(IC ($~ 1) Get)^
 										((G IV~) IC~)^
 										((G IV~) Garage true) Context
-										(InvestV (InvestV~ (IV~)) Join)^ 
+										(InvestV (InvestV~ (IV~)) Join)^
 #if (verbose)                           	
 										((Player Id~ may invest (G IV~) for clazz (G IV~)~) Ew.Output~) Do
 #endif                                  	
@@ -166,7 +194,10 @@ module PlayerResources {
 										);
 										// getting car type
 										(CarType ($~ 0) Get)^
+										(GCT (GCT~ (CarType~)) Join)^
 										(CarClasses ($~ 1) Get)^
+										((C CarType~) CarClasses~)^
+										((C CarType~) Business true) Context
 										// iterate over classes
 										(CarClasses~ SetClasses~) ForEach
 									);
@@ -297,9 +328,13 @@ module PlayerResources {
 					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
 					LH ias 0; 		// see Battle result document
 #endif
+					UnitClasses ias nil;
+					UnitKinds ias nil;
 					Value ias nil;
 					Result ias false;
 					Init ias (
+						(UnitClasses ())^
+						(UnitKinds ())^
 						/* by resource type */
 #if (business)
 						(GDevelop 0)^
@@ -431,12 +466,16 @@ module PlayerResources {
 									(PP clazz) ias (
 										// setups Q counter (Q kind class); see TakeOnBoardUnit
 										SQC ias (
+											C ias nil;
+											(C ($~ 0) Get)^
+											((U C K~) ((U C K~)~ (C~)) Join)^
+											((U C K~) Business true) Context
 											// quantity
-											((Q K~ ($~ 0) Get) ($~ 1) Get)^
+											((Q K~ C~) ($~ 1) Get)^
 											// make it addressable -> Resources.Business
-											((Q K~ ($~ 0) Get) Business true) Context
+											((Q K~ C~) Business true) Context
 #if (verbose)                                           	
-											((Player Id~ initialized (Q K~ ($~ 0) Get) to (Q K~ ($~ 0) Get)~) Ew.Output~) Do
+											((Player Id~ initialized (Q K~ C~) to (Q K~ C~)~) Ew.Output~) Do
 #endif                                                  	
 										);
 										// available classes
@@ -444,6 +483,8 @@ module PlayerResources {
 									);
 									// kind of unit
 									(K ($~ 0) Get)^
+									(UnitKinds (UnitKinds~ (K~)) Join)^
+									((U C K~) ())^
 									// properties
 									(P ($~ 1) Get)^
 									(PP (P~ 0) Get)~ Exe
@@ -466,27 +507,46 @@ module PlayerResources {
 						(UpdateFactors.F  (From~ 0) Get)^
 						UpdateFactors~ Exe
 					);
-					Report ias (
-#if (release)
-						Fs ias ();
-#endif
-						Report ias (
-							(T ($~ 0) Get)^
-#if (verbose)
-							((Player Id~ has business conf for resource (Bdf T~) (Bdf T~)~ and (Kdf T~) (Kdf T~)~) Ew.Output~) Do
-#endif
-#if (release)
-							(Fs (Fs~ ((T~ (Bdf T~)~ (Kdf T~)~))) Join)^
-#endif
+
+					CollectState ias (
+						BusinessState ias ();
+						UnitsStore ias ();
+						// gangster's dev factor
+						GDevFStore ias ();
+						// business dev factor
+						BDevFStore ias ();
+						// contain (aka hospitality) dev factor
+						CtDevFStore ias ();
+						// account's state
+						RAccountsStore ias ();	
+						// collecting quantity
+						OverUnitKind ias (
+							// car type
+							UK ias nil;
+							UnitsStoreCreate ias (
+								// quantity of units of specified kind and class
+							 	(UnitsStore (UnitsStore~ (((Q UK~ $~) (Player Id~)->(Resources)->(Business)->(Q UK~ $~)~))) Join)^
+							);
+							(UK $~)^
+							((Player Id~)->(Resources)->(Business)->(U C UK~)~ UnitsStoreCreate~) ForEach
 						);
-						(Ew.BusinessConf.Factors~ Report~) ForEach
-#if (verbose)
-						((Player Id~ compiled business factors Fs~) Ew.Output~) Do
-#endif
-#if (release)
-						(((business factor done) (player Id~) Fs~) Ew.OutChannel~) Do
-#endif
+						FactorsOverRt ias (
+							(RAccountsStore (RAccountsStore~ (((Rt $~) (Player Id~)->(Resources)->(Account)->(Rt $~)~))) Join)^
+							(GDevFStore (GDevFStore~ (((Gdf $~) (Player Id~)->(Resources)->(Business)->(Gdf $~)~))) Join)^
+							(BDevFStore (BDevFStore~ (((Bdf $~) (Player Id~)->(Resources)->(Business)->(Bdf $~)~))) Join)^
+							(CtDevFStore (CtDevFStore~ (((Ctf $~) (Player Id~)->(Resources)->(Business)->(Ctf $~)~))) Join)^
+						);
+						(UnitsStore ())^
+						(GDevFStore ())^
+						(BDevFStore ())^
+						(CtDevFStore ())^
+						(RAccountsStore ())^
+						(BusinessState ())^
+						(UnitKinds~ OverUnitKind~) ForEach
+						(Ew.BusinessConf.AvailableResources~ FactorsOverRt~) ForEach
+						(BusinessState (UnitsStore~ GDevFStore~ BDevFStore~ CtDevFStore~ RAccountsStore~))^
 					);
+
 					IncreaseBF ias (
 						(ByBdfType (Bdf (Value~ 1) Get))^
 						(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.SumF~) Do)^
@@ -498,6 +558,7 @@ module PlayerResources {
 						(((business factor done)(player Id~)((ByBdfType~ 1) Get (Value~ 2) Get ByBdfType~~)) Ew.OutChannel~) Do
 #endif
 					);
+
 					DecreaseBF ias (
 						(Allow -1) ias (
 							(Result false)^

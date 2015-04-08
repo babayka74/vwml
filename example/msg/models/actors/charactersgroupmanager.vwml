@@ -27,11 +27,21 @@ module CharactersGroupManager {
 						);
 						// disjoin allowed
 						(NAJ false) ias (
+#if (unitalive)
 							((Characters)->(Unit JoinedWith~) Tx (Id~ disjoin 0 ((Id~ remove UD~)))) Gate
 #if (verbose)
 							((Unit Id~ disjoined from JoinedWith~ of player PlayerId~) Ew.Output~) Do
 #endif
 							(JoinedWith nil)^
+#else // unitalive
+							((Characters)->(Unit JoinedWith~)->Joined ((Characters)->(Unit JoinedWith~)->Joined~ (Id~)) Substruct)^
+#if (verbose)
+							((Unit Id~ disjoined from JoinedWith~ of player PlayerId~) Ew.Output~) Do
+#endif							
+							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ ackdisjoinunits PlayerId~ ((PlayerId~ Id~ JoinedWith~ UD~)))) Gate
+							(JoinedWith nil)^
+							
+#endif // unitalive
 						);
 						(NAJ (JoinedWith~ nil) Ident)~ Exe
 					);
@@ -51,31 +61,12 @@ module CharactersGroupManager {
 				JoinUnit ias (
 					Action ias nil;
 					Actions ias nil;
-					U ias nil;
-					(Cmd cancel) ias (
-						// disjoin not allowed
-						(NAJ true) ias (
-#if (verbose)
-							((Unit U~ not joined with Id~ of player PlayerId~) Ew.Output~) Do
-#endif
-							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ rejectdisjoinunits PlayerId~ ((U~ Id~ notJoined)))) Gate
-						);
-						// disjoin allowed
-						(NAJ false) ias (
-							(Joined (Joined~ (U~)) Substruct)^
-							(Actions (Actions~ (Action~)) Substruct)^
-							// next action in chain
-							(Action (Actions~ 0) Get)^
-							// next unit
-							(U (Action~ 0) Get)^
-							((Characters)->(Unit U~) Tx (Id~ disjoin 0 Actions~)) Gate
-
-#if (verbose)
-							((Unit Id~ disjoined with U~ and units are Joined~ of player PlayerId~ and actions Actions~ sent to unit U~) Ew.Output~) Do
-#endif
-						);
-						(NAJ (JoinedWith~ nil) Ident)~ Exe
+					GetLastAction ias (
+						(Actions (Actions~ (Action~)) Substruct)^
+						// next action in chain
+						(Action (Actions~ 0) Get)^
 					);
+					U ias nil;
 					(Cmd invite) ias (
 						// join not allowed
 						(NAJ true) ias (
@@ -94,6 +85,7 @@ module CharactersGroupManager {
 							);
 							(NoPlace false) ias (
 								(Joined (Joined~ (U~)) Join)^
+#if (unitalive)
 								(Actions (Actions~ (Action~)) Substruct)^
 								// next action in chain
 								(Action (Actions~ 0) Get)^
@@ -104,25 +96,26 @@ module CharactersGroupManager {
 #if (verbose)
 								((Unit Id~ joined with U~ and units are Joined~ of player PlayerId~ and actions Actions~ sent to unit U~) Ew.Output~) Do
 #endif
+#else // unitalive
+								((Characters)->(Unit U~)->JoinedWith Id~)^
+								GetLastAction~ Exe
+								GetLastAction~ Exe
+								((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ (Action~ 3) Get (Action~ 0) Get Actions~)) Gate
+#endif // unitalive
 							);
 							(NoPlace ((Joined~) Size Capacity~) Ident)~ Exe
 						);
 						(NAJ (Joined~ U~) In)~ Exe
 					);
 					(Cmd ack) ias (
-						PId ias nil;
 						(JoinedWith (Action~ 2) Get)^
 #if (verbose)
-						((Unit Id~ acks join or disjoin with JoinedWith~ of player PlayerId~) Ew.Output~) Do
+						((Unit Id~ acks join with JoinedWith~ of player PlayerId~) Ew.Output~) Do
 #endif
-						(Actions (Actions~ (Action~)) Substruct)^
-						// next action in chain
-						(Action (Actions~ 0) Get)^
-						// notify player about successful join
-						(PId (Action~ 0) Get)^
-						((Player PId~) Tx (ModeInfo.ModeResourceMgr~ (Action~ 3) Get PId~ Actions~)) Gate
+						GetLastAction~ Exe
+						((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ (Action~ 3) Get (Action~ 0) Get Actions~)) Gate
 #if (verbose)
-						((Unit Id~ sends successful ack Actions~ to player PId~) Ew.Output~) Do
+						((Unit Id~ sends successful ack Actions~ to player PlayerId~) Ew.Output~) Do
 #endif
 					);
 					(Action (Actions~ 0) Get)^

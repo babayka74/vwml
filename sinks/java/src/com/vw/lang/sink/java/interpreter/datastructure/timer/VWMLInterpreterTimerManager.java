@@ -10,6 +10,32 @@ import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLReso
  *
  */
 public class VWMLInterpreterTimerManager {
+	
+	public static class TimerState {
+		private int time;
+		private int origTime;
+		private long timeStamp;
+		
+		public TimerState(int time, int origTime, long timeStamp) {
+			super();
+			this.time = time;
+			this.origTime = origTime;
+			this.timeStamp = timeStamp;
+		}
+
+		public int getTime() {
+			return time;
+		}
+
+		public int getOrigTime() {
+			return origTime;
+		}
+
+		public long getTimeStamp() {
+			return timeStamp;
+		}
+	}
+	
 	private List<VWMLInterpreterTimer> timers = VWMLResourceHostManagerFactory.hostManagerInstance().requestTimerManagerContainer();
 	
 	public VWMLInterpreterTimerManager() {
@@ -88,6 +114,23 @@ public class VWMLInterpreterTimerManager {
 		}
 	}
 
+	/**
+	 * Returns timer state identified by id
+	 * @param id
+	 * @return
+	 */
+	public TimerState getTimerState(Object id) {
+		TimerState ts = null;
+		for(int i = 0; i < timers.size(); i++) {
+			VWMLInterpreterTimer t = timers.get(i);
+			if (t.getId().equals(id)) {
+				ts = new TimerState(t.getTime(), t.getOrigTime(), t.getTimeStamp());
+				break;
+			}
+		}
+		return ts;
+	}
+	
 	/**
 	 * Runs timer manager in reactive manner
 	 * @param currentTimeStamp

@@ -51,7 +51,7 @@ public class VWMLOperationReleaseHandler extends VWMLOperationHandler {
 	}
 
 	protected void handleReleaseOnComplexEntity(VWMLEntity entity, VWMLContext context) throws Exception {
-		if (entity.getInterpreting() != null && (entity.getInterpreting().getContext().findSourceLifeTerm() != null || entity.getInterpreting().getContext().findLifeTerm() != null)) {
+		if (entity.getInterpreting() != null && (entity.getInterpreting().getContext().findSourceLifeTerm() != null)) {
 			return;
 		}
 		if (entity.getInterpreting() != null) {

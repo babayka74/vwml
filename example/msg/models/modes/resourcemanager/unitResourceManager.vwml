@@ -18,6 +18,19 @@ module PlayerResourceManager {
 				Init ias (
 					(StopRM false)^
 				);
+				// send exit signal to unit to stop its activity
+				ExitUnit ias (
+					U ias nil;
+#if (unitalive)
+					((Characters)->(Unit U~) Tx (nil exit U~ ())) Gate
+#else
+					((Characters)->(Unit U~)) Release
+					((Player Id~) Tx (ModeInfo.ModeResourceMgr~ unitstopped U~ (U~))) Gate
+#if (verbose)
+					((Unit U~ released) Ew.Output~) Do
+#endif
+#endif // unitalive
+				);
 				// recalculates partial GDev and Contain(Hospitality) factors
 				RecalcFactors ias (
 					Op ias nil;
@@ -57,12 +70,66 @@ module PlayerResourceManager {
 					(NoHired (Resources.Units.Hired~ ()) Ident)~ Exe
 				);
 
+				ComplexDisjoin ias (
+					U ias nil;
+					ActionOnDisjoin ias none;
+					 
+					(NJ true) ias (
+						(NDJ true) ias (
+							(ADJ none) ias doNothing;
+							(ADJ exit) ias (					
+								(ExitUnit.U U~)^
+								ExitUnit~ Exe
+							);
+							(ADJ ActionOnDisjoin~)~ Exe
+						);
+						// unit joined with another units
+						(NDJ false) ias (
+							DJU ias (
+								(DisjoinUnits.U $~)^
+								(DisjoinUnits.UD none)^
+								DisjoinUnits~ Exe
+							);
+							(ADJ none) ias doNothing;
+							(ADJ exit) ias (
+								// taking into consideration that units are disjoined in async way,
+								// so we have to store unit id and send 'exit' when all units joined with it have been disjoined
+								(RTUnits (RTUnits~ (U~)) Join)^
+								((Characters)->(Unit U~)->DisjoinCbk NotifyWhenDJFinished~)^
+								(Characters)->(Unit U~)->InitDisjoinAllUnitsInterceptor~ Exe
+							);
+							(ADJ ActionOnDisjoin~)~ Exe
+							((Characters)->(Unit U~)->Joined~ DJU~) ForEach
+						);
+						(NDJ ((Characters)->(Unit U~)->Joined~ ()) Ident)~ Exe
+					);
+					(NJ false) ias (
+						(ADJ none) ias doNothing;
+						(ADJ exit) ias (
+							(DisjoinUnits.U U~)^
+							(DisjoinUnits.UD exit)^
+							DisjoinUnits~ Exe
+						);
+						(ADJ ActionOnDisjoin~)~ Exe
+					);
+					(IsGarageUnit false) ias doNothing;
+					(IsGarageUnit true) ias (
+						(Resources.Garage.CancelReserve.Place ($$)->(Resources)->(Garage)->(P Kind~ Class~)~)^
+						Resources.Garage.CancelReserve~ Exe
+					); 
+					// free place to garage in case if unit is car
+					(IsGarageUnit ((Characters)->(Unit U~)->Container~ garage) Ident)~ Exe
+					// dismiss unit, taking into consideration that unit may be joined with others
+					(NJ ((Characters)->(Unit U~)->JoinedWith~ nil) Ident)~ Exe
+				);
+
 				DismissUnit ias (
 					U ias nil;
 					NotifyWhenDJFinished ias (
 						FE ias (
 							(Characters)->(Unit $~)->DoneDisjoinAllUnitsInterceptor~ Exe
-							((Characters)->(Unit $~) Tx (nil exit $~ ())) Gate
+							(ExitUnit.U $~)^
+							ExitUnit~ Exe
 						);
 						(RTUnits~ FE~) ForEach
 						(RTUnits ())^
@@ -73,34 +140,9 @@ module PlayerResourceManager {
 #endif
 					);
 					(CorrectUnit true) ias (
-						(NJ true) ias (
-							(NDJ true) ias ((Characters)->(Unit U~) Tx (nil exit U~ ())) Gate;
-							// unit joined with another units
-							(NDJ false) ias (
-								DJU ias (
-									(DisjoinUnits.U $~)^
-									(DisjoinUnits.UD none)^
-									DisjoinUnits~ Exe
-								);
-								// taking into consideration that units are disjoined in async way,
-								// so we have to store unit id and send 'exit' when all units joined with it have been disjoined
-								(RTUnits (RTUnits~ (U~)) Join)^
-								((Characters)->(Unit U~)->DisjoinCbk NotifyWhenDJFinished~)^
-								(Characters)->(Unit U~)->InitDisjoinAllUnitsInterceptor~ Exe
-								((Characters)->(Unit U~)->Joined~ DJU~) ForEach
-							);
-							(NDJ ((Characters)->(Unit U~)->Joined~ ()) Ident)~ Exe
-						);
-						(NJ false) ias (
-							(DisjoinUnits.U U~)^
-							(DisjoinUnits.UD exit)^
-							DisjoinUnits~ Exe
-						);
-						(IsGarageUnit false) ias doNothing;
-						(IsGarageUnit true) ias (
-							(Resources.Garage.CancelReserve.Place Resources.Garage.(P Kind~ Class~)~)^
-							Resources.Garage.CancelReserve~ Exe
-						); 
+						(ComplexDisjoin.U U~)^
+						(ComplexDisjoin.ActionOnDisjoin exit)^
+						ComplexDisjoin~ Exe
 						
 						(Resources.Units.Hired (Resources.Units.Hired~ (U~)) Substruct)^
 #if (business)
@@ -123,9 +165,6 @@ module PlayerResourceManager {
 #if (release)
 						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
 #endif
-						(NJ ((Characters)->(Unit U~)->JoinedWith~ nil) Ident)~ Exe
-						// free place to garage in case if unit is car
-						(IsGarageUnit ((Characters)->(Unit U~)->Container~ garage) Ident)~ Exe
 #if (verbose)
 						((Player Id~ dismissed unit U~) Ew.Output~) Do
 #endif
@@ -201,17 +240,25 @@ module PlayerResourceManager {
 					U ias nil;
 					// user data; used when some data should be passed through all processing chain
 					UD ias nil;
+#if (unitalive)
 					((Characters)->(Unit U~) Tx (Id~ disjoin 0 ((U~ cancel UD~)))) Gate
 #if (verbose)
 					((Unit U~ initiated disjoin of player Id~) Ew.Output~) Do
 #endif
+#else // unitalive
+					((Characters)->(Unit U~)->(DisjoinUnit)->Actions ((U~ cancel UD~)))^
+					(Characters)->(Unit U~)->DisjoinUnit~ Exe
+#endif // unitalive
 				);
 
 				ExitAfterDisjoin ias (
 					U ias nil;
 					E ias nil;
 					(E false) ias doNothing;
-					(E true) ias ((Characters)->(Unit U~) Tx (nil exit U~ ())) Gate;
+					(E true) ias (
+						(ExitUnit.U U~)^
+						ExitUnit~ Exe
+					);
 					(E (E~ exit) Ident)~ Exe
 				);
 
@@ -250,6 +297,7 @@ module PlayerResourceManager {
 					);
 					// join allowed
 					(NJ false) ias (
+#if (unitalive)
 						// 1. U1~ receives 'join'
 						// 2. fetches 0 element and processes 'invite'
 						// 3. Sends remained to U2~
@@ -259,6 +307,13 @@ module PlayerResourceManager {
 #if (verbose)
 						((Unit U1~ initiated join with U2~ of player Id~) Ew.Output~) Do
 #endif
+#else // unitalive
+						((Characters)->(Unit U2~)->(JoinUnit)->Actions ((U1~ invite)(U1~ ack U2~)(Id~ U1~ U2~ ackjoinunits)))^
+						(Characters)->(Unit U2~)->JoinUnit~ Exe
+#if (verbose)
+						((Unit U1~ joined to U2~ of player Id~) Ew.Output~) Do
+#endif
+#endif // unitalive
 					);
 					(U1 (CommandParams~ 0) Get)^
 					(U2 (CommandParams~ 1) Get)^
@@ -351,8 +406,9 @@ module PlayerResourceManager {
 				(Handle rejectjoinunits) ias RejectJoinUnitsCallback~ Exe;
 				// disjoins previously joined units
 				(Handle disjoinunits) ias (
-					(DisjoinUnits.U (CommandParams~ 0) Get)^
-					DisjoinUnits~ Exe
+					(ComplexDisjoin.U (CommandParams~ 0) Get)^
+					(ComplexDisjoin.ActionOnDisjoin none)^
+					ComplexDisjoin~ Exe
 				);
 				(Handle ackdisjoinunits) ias AckDisjoinUnitsCallback~ Exe;
 				(Handle rejectdisjoinunits) ias RejectDisjoinUnitsCallback~ Exe;

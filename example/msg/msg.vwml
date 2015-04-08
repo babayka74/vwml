@@ -44,6 +44,10 @@ include "models/algorithm/pathFinder.vwml"
 
 include "models/ew/ew.vwml"
 
+include "models/statestore/stateStore.vwml"
+include "models/statestore/stateStoreBroker.vwml"
+include "models/modes/statemanagerbroker/stateManagerBroker.vwml"
+
 include "models/modes/battle/attackbroker.vwml"
 include "models/modes/battle/attackmanager.vwml"
 include "models/modes/battle/battlefield.vwml"
@@ -122,7 +126,7 @@ module msg {
 				(StopTheWorld StopTheWorld~)~ Exe
 			);
 
-			AddressedCharacters ias (manager pm player gbanker);
+			AddressedCharacters ias (manager pm player gbanker ssm);
 			StopAll ias (AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 exit))) Join)^;
 			// dispatches incoming request
 			AddressedTo ias (
@@ -173,6 +177,12 @@ module msg {
 						(GlobalBankerBroker.CommandId CommandId~)^
 						(GlobalBankerBroker.Params Params~)^
 						GlobalBankerBroker~ Exe
+					);
+					// for state store manager
+					(To ssm) ias (
+						(StateStoreBroker.CommandId CommandId~)^
+						(StateStoreBroker.CommandParams Params~)^
+						StateStoreBroker~ Exe
 					);
 					(To Character~)~ Exe
 				);
@@ -226,6 +236,10 @@ module msg {
 				((The game manager starts command listener as Ltt task) Ew.Output~) Do
 #endif
 				(ExWCommandListener) LTT
+#if (verbose)
+				((The game manager starts state store manager) Ew.Output~) Do
+#endif
+				(StateStoreManager) LTT
 				MainLoop~ Exe
 				3000 Relax
 				(Manager Unregister) Gate
@@ -238,15 +252,29 @@ module msg {
 
 				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (2500))
-				(player 0 garage invest 0 ((cost vodka 150) 3000))
-
-
-/*				(manager 0 nil delay 0 (2500))
-				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 2000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 5) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring startcarlooking 0 (((cost vodka 200) (hiringtime 2000) (id (0 1))) ((kind taxi) (clazz 1) (capacity 1))))
+				(player 0 hiring startcarlooking 0 (((cost vodka 200) (hiringtime 3500) (id (0 2))) ((kind taxi) (clazz 1) (capacity 1))))
 				(manager 0 nil delay 0 (2500))
-				(player 0 resourcemanager joinunits 0 ((0 1) (0 2)))
+				(ssm 0 nil collect 0 (0))
+
+/*
+				(player 0 hiring startcarlooking 0 (((cost vodka 200) (hiringtime 2000) (id (0 1))) ((kind taxi) (clazz 1) (capacity 1))))
+
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 2000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 0) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (3500))
+				// (0 2) => (0 1)
+				(player 0 resourcemanager joinunits 0 ((0 2) (0 1)))
 				(manager 0 nil delay 0 (2500))
 				(player 0 resourcemanager disjoinunits 0 ((0 1)))
+*/				
+/*				(manager 0 nil delay 0 (2500))
+				(player 0 resourcemanager releaseunit 0 ((0 2)))
+				(manager 0 nil delay 0 (2500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 2000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 0) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (3500))
+				(player 0 resourcemanager joinunits 0 ((0 2) (0 1)))
+				(manager 0 nil delay 0 (2500))
+				(player 0 resourcemanager releaseunit 0 ((0 1)))
 */
 				//(pm 0 playermanagment playeradd 1 nil)
 				//(manager 0 nil delay 0 (2500))

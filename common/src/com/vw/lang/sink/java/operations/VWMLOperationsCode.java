@@ -54,6 +54,7 @@ public enum VWMLOperationsCode {
     OPEXISTSI("ExistsI"),
     OPEXISTSI_S("EI"),
     OPLTT("LTT"),
+    OPTSTATE("TState"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

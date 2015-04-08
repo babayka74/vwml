@@ -69,7 +69,7 @@ module PlayerDeal {
 						((The player Id~ in mode deal and linked quartal $~) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal quartalreport done) (player Id~) (quartal $~)) Ew.OutChannel~) Do
+						(((deal quartalreport notSupported) (player Id~) (quartal $~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Resources.Quartals.Own~ Report~) ForEach
