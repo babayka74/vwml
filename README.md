@@ -101,4 +101,3 @@ The system translates the world described by VWML in high-level
 languages, such as: java, java-script, c++; thus we are able to implement VWML 
 
 projects on any platform (to keep the cross-platform factor).
-====
