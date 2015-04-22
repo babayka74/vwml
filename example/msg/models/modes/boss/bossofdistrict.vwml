@@ -1,0 +1,125 @@
+module BossOfDistrict {
+	MagicWorld ias (
+		BossOfDistrict ias (
+			// player id
+			Owner ias nil;
+			// boss's quartals started from this id
+			QNIdS ias 0;
+			// bosse's id (BossD <player id> <boss id>)
+			Id ias nil;
+			// list of quartals (sherifs)
+			CQs ias ();
+			// incoming command id and its params
+			CommandId ias nil;
+			CommandParams ias nil;
+			// desired bribe
+			DesiredBribe ias nil;
+			Negotiated ias false;
+			Initialized ias false;
+			// initialization steps
+			Init ias (
+				// called when all boss's quartals are initialized
+				Finished ias (
+#if (verbose)
+					((Boss Id~ of player Owner~ initialized with DesiredBribe and CQs~) Ew.Output~) Do
+#endif
+					(Initialized true)^
+#if (release)
+					(((bossofdistrict init done) (player Owner~) (boss Id~)) Ew.OutChannel~) Do
+#endif
+				);
+				(Negotiated false)^
+				(Initialized false)^
+				(DesiredBribe (Ew.BossOfDistrictConf.BossOfDBribeRanges~) Random)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct)->R (Boss Id~))^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct)->F QNIdS~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct)->N Ew.BossOfDistrictConf.ControlledQuartals~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct)->CB Finished~)^
+				(Player Owner~)->(Resources)->(Quartals)->Construct~ Exe
+			);
+			Done ias (
+			);
+			// add quartal under boss's supervision
+			AddQuartal ias (
+				Q ias nil;
+				(CQs (CQs~ (Q~)) Join)^
+#if (verbose)
+				((Player Owner~ added quartal Q~ under boss Id~ supervision and quartals are CQs~) Ew.Output~) Do
+#endif
+			);
+			// pay bribe and send back list of quartals to player 
+			PayBribe ias (
+				B ias nil;
+				BribeRT ias nil;
+				BribeV ias nil;
+				// performs actula payment
+				Pay ias (
+					(Result true) ias (
+						(Negotiated true)^
+#if (release)
+						(((bossofdistrict paybribe done) (player Owner~) (boss Id~) (bribe done B~)) Ew.OutChannel~) Do
+#endif
+						((Player Owner~) Tx (ModeInfo.ModeBossOfDestrict~ bribepaymentconfirmed nil (Id~ CQs~))) Gate
+					);
+					(Result false) ias (
+#if (release)
+						(((bossofdistrict paybribe failed) (player Owner~) (boss Id~) (noResources B~)) Ew.OutChannel~) Do
+#endif
+						((Player Owner~) Tx (ModeInfo.ModeBossOfDestrict~ bribepaymentdeclined nil (Id~))) Gate
+					);
+					((Player Owner~)->(Resources)->(Account)->Value B~)^
+					(Player Owner~)->(Resources)->Withdraw~ Exe
+					(Result (Player Owner~)->(Resources)->Result~)~ Exe
+				);
+				// different resources
+				(CRT false) ias (
+#if (verbose)
+					((Invalid resource type BribeRT~ requested (DesiredBribe~ 0) Get) Ew.Output~) Do				
+#endif
+#if (release)
+					(((bossofdistrict paybribe failed) (player Owner~) (boss Id~) (invaildResource BribeRT~ (DesiredBribe~ 0) Get)) Ew.OutChannel~) Do
+#endif
+				);
+				// same resources
+				(CRT true) ias (
+					// boss doesn't take bribe - too small
+					(BB -1) ias (
+#if (verbose)
+						((The boss Id~ of player Owner~ did not take bribe B~ desired bribe is DesiredBribe~) Ew.Output~) Do
+#endif
+#if (release)
+						(((bossofdistrict paybribe failed) (player Owner~) (boss Id~) (bribe tooSmall B~ DesiredBribe~)) Ew.OutChannel~) Do
+#endif
+					);
+					(BB 0),(BB 1) ias Pay~ Exe;
+					// boss's bribe
+					(BB ((BribeV~ (DesiredBribe~ 1) Get) Ew.Compare~) Do)~ Exe
+				);
+				(BribeRT (B 0) Get)^
+				(BribeV  (B 1) Get)^
+				// check resource type
+				(CRT (BribeRT~ (DesiredBribe~ 0) Get) Ident)~ Exe
+			);
+			PublishQInfo ias (
+				I ias ();
+				P ias (I (I~ (($~ (Quartal $~)->QInfo~))) Join)^;
+				(I ())^
+				(CQs~ P~) ForEach
+#if (release)
+				(((bossofdistrict openinfo done) (player Owner~) (boss Id~) I~) Ew.OutChannel~) Do
+#endif
+			);
+			// commands
+			(Handle addquartal),(Handle linkquartal) ias (
+				(AddQuartal.Q (CommandParams~ 0) Get)^
+				AddQuartal~ Exe
+			);
+			(Handle paybribe) ias (
+				(PayBribe.B (CommandParams~ 0) Get)^
+				PayBribe~ Exe
+			);
+			(Handle quartalsinfo) ias PublishQInfo~ Exe;
+			(Handle CommandId~)~ Exe
+		);
+	);
+}

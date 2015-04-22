@@ -104,19 +104,17 @@ module PlayerResourceManager {
 						(NDJ ((Characters)->(Unit U~)->Joined~ ()) Ident)~ Exe
 					);
 					(NJ false) ias (
-						(ADJ none) ias doNothing;
-						(ADJ exit) ias (
-							(DisjoinUnits.U U~)^
-							(DisjoinUnits.UD exit)^
-							DisjoinUnits~ Exe
-						);
-						(ADJ ActionOnDisjoin~)~ Exe
+						(DisjoinUnits.U U~)^
+						(DisjoinUnits.UD ActionOnDisjoin~)^
+						DisjoinUnits~ Exe
 					);
 					(IsGarageUnit false) ias doNothing;
 					(IsGarageUnit true) ias (
 						(Resources.Garage.CancelReserve.Place ($$)->(Resources)->(Garage)->(P Kind~ Class~)~)^
 						Resources.Garage.CancelReserve~ Exe
 					); 
+					(Kind (Characters)->(Unit U~)->Kind~)^
+					(Class (Characters)->(Unit U~)->Class~)^
 					// free place to garage in case if unit is car
 					(IsGarageUnit ((Characters)->(Unit U~)->Container~ garage) Ident)~ Exe
 					// dismiss unit, taking into consideration that unit may be joined with others
@@ -140,16 +138,18 @@ module PlayerResourceManager {
 #endif
 					);
 					(CorrectUnit true) ias (
+#if (business)
+						(Kind (Characters)->(Unit U~)->Kind~)^
+						(Class (Characters)->(Unit U~)->Class~)^
+						(Cost (Characters)->(Unit U~)->Cost~)^
+						(Contain (Characters)->(Unit U~)->Contain~)^
+#endif
 						(ComplexDisjoin.U U~)^
 						(ComplexDisjoin.ActionOnDisjoin exit)^
 						ComplexDisjoin~ Exe
 						
 						(Resources.Units.Hired (Resources.Units.Hired~ (U~)) Substruct)^
 #if (business)
-						(Kind (Characters)->(Unit U~)->Kind~)^
-						(Class (Characters)->(Unit U~)->Class~)^
-						(Cost (Characters)->(Unit U~)->Cost~)^
-						(Contain (Characters)->(Unit U~)->Contain~)^
 						// resource type
 						(RT (Cost~ 1) Get)^
 
@@ -163,7 +163,7 @@ module PlayerResourceManager {
 #endif // business
 
 #if (release)
-						(((resourcemanager releaseunit done) (player Id~) (unit U~) (Characters)->(Unit U~)->Kind~) Ew.OutChannel~) Do
+						(((resourcemanager releaseunit done) (player Id~) (unit U~) Kind~) Ew.OutChannel~) Do
 #endif
 #if (verbose)
 						((Player Id~ dismissed unit U~) Ew.Output~) Do

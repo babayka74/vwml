@@ -22,17 +22,32 @@ module StateStore {
 			
 				CheckAndHandleCommand ias (
 					// active commands
-					CommandSet ias (collect restore store load);
+					CommandSet ias (collect restore store load staterestored statecollected);
 
 					(RightCommand true) ias (
 						// restores state of the world based on previosly loaded
 						(Cmd restore) ias (
+							PId ias nil;
+							(PId (Params~ 0) Get)^
+							((Player PId~) Tx (ModeInfo.ModeStateManagerBroker~ restorestate PId~ ())) Gate
 						);
 						// asks all active entities to send their states
 						(Cmd collect) ias (
 							PId ias nil;
 							(PId (Params~ 0) Get)^
 							((Player PId~) Tx (ModeInfo.ModeStateManagerBroker~ collectstate PId~ ())) Gate
+						);
+						// response on restore request
+						(Cmd staterestored) ias (
+#if (verbose)
+							((Restored state of player Params~) Ew.Output~) Do						
+#endif
+						);
+						// response on collect request
+						(Cmd statecollected) ias (
+#if (verbose)
+							((Collected state of player (Params~ 0) Get is (Params~ 1) Get) Ew.Output~) Do						
+#endif
 						);
 						// store world state
 						(Cmd store) ias (

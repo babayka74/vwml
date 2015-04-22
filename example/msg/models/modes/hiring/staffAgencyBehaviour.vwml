@@ -19,6 +19,8 @@ module StaffAgencyHiringBehaviour {
 						(payment confirmed) ias (
 							(ActuallyStartHiringRequest.NCmd starthiring)^
 							(ActuallyStartHiringRequest.AC staff)^
+							(ActuallyStartHiringRequest.ConfRq (Request~ 1) Get)^
+							(ActuallyStartHiringRequest.TimeToHireInfo nil)^
 							ActuallyStartHiringRequest~ Exe
 						);
 						(payment declined) ias (

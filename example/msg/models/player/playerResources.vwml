@@ -58,6 +58,7 @@ module PlayerResources {
 						(InvestV ())^
 					);
 					CollectState ias (
+						GarageState ias nil;
 						GCarsStore ias ();
 						// collecting quantity and occupation garage's places per car type
 						OverCarType ias (
@@ -72,8 +73,39 @@ module PlayerResources {
 							(CT $~)^
 							((Player Id~)->(Resources)->(Business)->(C CT~)~ GCarsStoreCreate~) ForEach
 						);
+						(InvestState ())^
 						(GCarsStore ())^
 						(GCT~ OverCarType~) ForEach
+						(Player Id~)->(GarageDeal)->GetInvestTimerState~ Exe
+						(GarageState (Id~ Class~ Capacity~ Free~ (Player Id~)->(GarageDeal)->(GetInvestTimerState)->State~ GCarsStore~))^
+					);
+					RestoreState ias (
+						S ias nil;
+						// garage invest timer
+						RestoreTimer ias (
+							GIT ias nil;
+							(A true) ias doNothing;
+							(A false) ias ((GIT~ 0) Get (Pay Id~) Banker.Pay~) Recall;
+							(GIT (S~ 0) Get)^
+							(A (GIT~ nil) Ident)~ Exe
+						);
+						// restore cars' store
+						RestoreCarStore ias (
+							CST ias nil;
+							R ias (
+								(N ($~ 0) Get)^
+								(V ($~ 1) Get)^
+								(N~ V~)^
+								(N~ Business true) Context
+							);
+							(CST~ R~) ForEach
+						);
+						(Class (S~ 1) Get)^
+						(Capacity (S~ 2) Get)^
+						(Free (S~ 3) Get)^
+						(RestoreTimer.GIT (S~ 4) Get)^
+						(RestoreCarStore.CST (S~ 5) Get)^
+						RestoreCarStore~ Exe
 					);
 					Reserve ias (
 						Place ias 0;
@@ -224,37 +256,60 @@ module PlayerResources {
 					Controlled ias ();
 					/* player knows about these quartals but doesn't have control upon them */
 					Visible ias ();
-					Init ias (
-						// This entity is monitored by interceptor
-						ExpectedQuartals ias 0;
-						NotifyAboutAllInitializedQuartals ias (
-							(ExpectedQuartals 0 NotifyAboutActivitiesStopped~) FinishInterception
-							(InitSteps (InitSteps~ (quartals)) Substruct)^
-#if (verbose)
-							((Player Id~ left init steps InitSteps~) Ew.Output~) Do							
-#endif
+					/* constructs set of quartals */
+					Construct ias (
+						// requester
+						R ias nil;
+						// start from
+						F ias 0;
+						// qurtals to construct
+						N ias 0;
+						// external completition callback
+						CB ias nil;
+						// internal completition callback
+						ICB ias (
+							(EQ 0 ICB~) FinishInterception
+							CB~ Exe
 						);
+						// This entity is monitored by interceptor
+						EQ ias 0;
 						ActivateQuartal ias (
+							V ias nil;
 							(QReady false) ias (
-								(Quartal (Quartal (Id~ $~)) defer) Born
+								(Quartal (Quartal (Id~ V~)) defer) Born
 #if (verbose)
-								((Player Id~ created quartal (Quartal (Id~ $~)) by request) Ew.Output~) Do
+								((R~ Id~ created quartal (Quartal (Id~ V~)) by request) Ew.Output~) Do
 #endif
 								(QReady true)~ Exe
 							);
 							// quartal's activation
 							(QReady true) ias (
-								((Quartal (Id~ $~))->Id (Id~ $~))^
-								((Quartal (Id~ $~))->Owner Id~)^
-								((Quartal (Id~ $~))) Activate
+								((Quartal (Id~ V~))->Id (Id~ V~))^
+								((Quartal (Id~ V~))->Owner Id~)^
+								((Quartal (Id~ V~))->(Resource)->Requester R~)^
+								((Quartal (Id~ V~))) Activate
 							);
+							(V ($~ F~) Ew.Sum)^
 							// checks if quartal has already been created
-							(QReady (Quartal (Id~ $~)) EI)~ Exe
+							(QReady (Quartal (Id~ V~)) EI)~ Exe
 						);
-						(ExpectedQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^
+						(EQ N~)^
 						// waits untill all quartals have been initialized
-						(ExpectedQuartals 0 NotifyAboutAllInitializedQuartals~) StartInterception
-						(Ew.PlayerAccountConf.QuartalsPerPlayer~ ActivateQuartal~) Repeat
+						(EQ 0 ICB~) StartInterception
+						(N~ ActivateQuartal~) Repeat
+					);
+					Init ias (
+						NotifyAboutAllInitializedQuartals ias (
+							(InitSteps (InitSteps~ (quartals)) Substruct)^
+#if (verbose)
+							((Player Id~ left init steps InitSteps~) Ew.Output~) Do							
+#endif
+						);
+						(Construct.R (Player Id~))^
+						(Construct.F 0)^
+						(Construct.N Ew.PlayerAccountConf.QuartalsPerPlayer~)^
+						(Construct.CB NotifyAboutAllInitializedQuartals~)^
+						Construct~ Exe
 						// create battlefield and associate it with quartal
 						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
 						(Controlled ())^
@@ -544,7 +599,26 @@ module PlayerResources {
 						(BusinessState ())^
 						(UnitKinds~ OverUnitKind~) ForEach
 						(Ew.BusinessConf.AvailableResources~ FactorsOverRt~) ForEach
-						(BusinessState (UnitsStore~ GDevFStore~ BDevFStore~ CtDevFStore~ RAccountsStore~))^
+						(BusinessState ((UnitsStore~ GDevFStore~ BDevFStore~ CtDevFStore~)(RAccountsStore~)))^
+					);
+					RestoreState ias (
+						S ias nil;
+						I ias 0;
+						Ctx ias (Business Account);
+						K ias (
+							R ias (
+								C ias nil;
+								(N ($~ 0) Get)^
+								(V ($~ 1) Get)^
+								(N~ V~)^
+								(N~ C~ true) Context
+							);
+							(R.C (Ctx I~) Get)^
+							($~ R~) ForEach
+							(I ((I~) Ew.IncValue~) Do)^
+						);
+						(I 0)^
+						(S~ K~) ForEach
 					);
 
 					IncreaseBF ias (

@@ -196,6 +196,31 @@ module ExternalWorld {
 #endif
 		);
 
+		BossOfDistrictConf ias (
+			ConfFields ias (ControlledQuartals GlobalStartQNum BossOfDBribeRanges);
+			// dynamic load configuration
+			Load ias (
+				Conf ias nil;
+				ConfIndex ias 0;
+				ApplyConf ias (
+					SetConfField ias (
+						($~ ((Conf~ ConfIndex~) Get 1) Get)^
+						($~ BossOfDstrictConf true) Context
+						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
+					);
+					(ConfIndex 0)^
+					(ConfFields~ SetConfField~) ForEach 
+				);
+				(NotReady true) ias doNothing;
+				(NotReady false) ias ApplyConf~ Exe;
+				(NotReady (Conf~ nil) Ident)~ Exe
+			);
+			Load~ Exe
+#if (verbose)
+			((Boss of district has configuration of quartals ControlledQuartals~ global statrt num GlobalStartQNum~ and bribe BossOfDBribeRanges~) Ew.Output~) Do
+#endif
+		);
+
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
@@ -239,6 +264,8 @@ module ExternalWorld {
 			BusinessConf~ Exe
 			(GarageConf.Load.Conf ((garageconf) Ew.LoadConf~) Do)^
 			GarageConf~ Exe
+			(BossOfDistrictConf.Load.Conf ((bossofdistrictconf) Ew.LoadConf~) Do)^
+			BossOfDistrictConf~ Exe
 		);
 	);
 }

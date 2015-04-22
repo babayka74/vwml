@@ -62,6 +62,8 @@ module CarAgencyHiringBehaviour {
 						(payment confirmed) ias (
 							(ActuallyStartHiringRequest.NCmd startcarlooking)^
 							(ActuallyStartHiringRequest.AC garage)^
+							(ActuallyStartHiringRequest.ConfRq (Request~ 1) Get)^
+							(ActuallyStartHiringRequest.TimeToHireInfo nil)^
 							ActuallyStartHiringRequest~ Exe
 						);
 						(payment declined) ias (

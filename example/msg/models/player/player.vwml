@@ -26,16 +26,18 @@ module Player {
 			ModeAttack ias attack;
 			ModeBanking ias banking;
 			ModeStateManagerBroker ias smbroker;
-			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~ ModeStateManagerBroker~);
+			ModeBossOfDistrict ias dboss;
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~ ModeStateManagerBroker~ ModeBossOfDistrict~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking cancelcarlooking carpaymentresult starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report collectstate);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf);
-			AvailablePlayerCommandsOnModeStateManagerBroker ias (collectstate rqcsquartals rqcsunits rspquartalstate rspunitstate rspcsha rqgarage rqbusiness rqha);
+			AvailablePlayerCommandsOnModeStateManagerBroker ias (collectstate restorestate rqcsquartals rqcsunits rspquartalstate rspunitstate rspcsha rqgarage rqbusiness rqha rqrsquartals rqrsunits rqrgarage rqrbusiness rqrha rsprquartalstate rsprunitstate rsprsha);
 			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
 			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest updategarageconf back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
+			AvailablePlayerCommandsOnModeBossOfDistrict ias ();
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
 			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ BattleField.ExportedCommands~) Join)^

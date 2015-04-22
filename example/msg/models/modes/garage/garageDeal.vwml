@@ -7,6 +7,31 @@ module PlayerGarage {
 				CommandId ias nil;
 				CommandParams ias nil;
 
+				GetInvestTimerState ias (
+					State ias ();
+					(IIP true) ias doNothing;
+					(IIP false) ias (State ((GInv Id~)) TState)^;
+					// IIP => Investment In Progress
+					(State ())^
+					(IIP (CT~ nil) Ident)~ Exe
+				);
+
+				StartInvestTimer ias (
+					// transaction value
+					TID ias nil;
+					// timer value
+					TV ias nil;
+					// save current transaction; need to save in order to rollback in case of 'cancelinvest' command is received
+					(CT TID~)^
+#if (verbose)
+					((Player Id~ started garage upgrade to CT~ in TV~ ms) Ew.Output~) Do
+#endif
+					(TV~ (GInv Id~) SetGarageClass~ nil CT~) Recall
+#if (release)
+					(((garage invest inProgress) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+#endif
+				);
+
 				PayForUpgrade ias (
 					C ias nil;
 					V ias nil;
@@ -18,11 +43,9 @@ module PlayerGarage {
 					);
 					(Result true) ias (
 						// save current transaction; need to save in order to rollback in case of 'cancelinvest' command is received
-						(CT (C~ V~))^
-#if (verbose)
-						((Player Id~ started garage upgrade to CT~ in T~ ms) Ew.Output~) Do
-#endif
-						(T~ (GInv Id~) SetGarageClass~ nil CT~) Recall
+						(StartInvestTimer.TID (C~ V~))^
+						(StartInvestTimer.TV T~)^
+						StartInvestTimer~ Exe
 					);
 					(Resources.Account.Value V~)^
 					Resources.Account.Withdraw~ Exe
@@ -32,10 +55,11 @@ module PlayerGarage {
 				SetGarageClass ias (
 					(Resources.Garage.SetClass.C ($~ 0) Get)^
 					Resources.Garage.SetClass~ Exe
-					(CT nil)^
 #if (release)
-					(((garage invest done) (player Id~)) Ew.OutChannel~) Do
+					(((garage invest done) (player Id~) garage ((CT~ 0) Get)) Ew.OutChannel~) Do
 #endif
+					(CT nil)^
+
 				);
 
 				ProcessInvest ias (
@@ -60,7 +84,7 @@ module PlayerGarage {
 							((Can not invest to garage of player Id~ since capacity clazz WC~ lower than current Resources.Garage.Class~) Ew.Output~) Do
 #endif
 #if (release)
-							(((garage invest failed invalidInvestValue) (player Id~)) Ew.OutChannel~) Do
+							(((garage invest failed invalidInvestValue) (player Id~) garage) Ew.OutChannel~) Do
 #endif
 						);
 						// get wished capacity class
@@ -73,7 +97,7 @@ module PlayerGarage {
 						((Can not invest to garage of player Id~ since IV~ does not belong to Resources.Garage.InvestV~) Ew.Output~) Do
 #endif
 #if (release)
-						(((garage invest failed invalidInvestValue) (player Id~)) Ew.OutChannel~) Do
+						(((garage invest failed invalidInvestValue) (player Id~) garage) Ew.OutChannel~) Do
 #endif
 					);
 					(IV (CommandParams~ 0) Get)^
@@ -85,10 +109,10 @@ module PlayerGarage {
 					(-1 (GInv Id~) SetGarageClass~) Recall
 					(Resources.Account.Value (CT~ 1) Get)^
 					Resources.Account.Recharge~ Exe
-					(CT nil)^
 #if (release)
-					(((garage cancelinvest done) (player Id~)) Ew.OutChannel~) Do
+					(((garage cancelinvest done) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
 #endif
+					(CT nil)^
 				);
 				(Handle reservegarageplace) ias (
 					RespCmd ias nil;

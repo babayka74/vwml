@@ -107,13 +107,17 @@ module HiringAgency {
 				);
 				// starts hiring process when user's payment operation approved
 				ActuallyStartHiringRequest ias (
+					(T false) ias doNothing;
+					(T true) ias (TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^;
 					// associated container
 					AC ias staff;
 					NCmd ias starthiring;
 					// confirmed primary request
-					(ConfRq (Request~ 1) Get)^
+					ConfRq ias nil;
+					// hiring timer
+					TimeToHireInfo ias nil;
 					// getting hiring info (time to hire unit)
-					(TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^
+					(T (TimeToHireInfo~ nil) Ident)~ Exe
 					(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
 					// generate new request id
 					(NewRequestId (Id~ GlobalHiringRequestId~))^
@@ -249,6 +253,22 @@ module HiringAgency {
 					(RequestsInProgress~ CState~) ForEach
 					((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rspcsha Id~ State~)) Gate
 				);
+				RestoreState ias (
+					State ias nil;
+					R ias (
+						(Rq ($~ 0) Get)^
+						(Ts ($~ 1) Get)^
+						// hiring request additional info
+						(HrAI ($~ 1) Get)^
+						(ActuallyStartHiringRequest.NCmd (HrAI~ 1) Get)^
+						(ActuallyStartHiringRequest.AC (HrAI~ 0) Get)^
+						(ActuallyStartHiringRequest.ConfRq (Rq~ 0) Get)^
+						(ActuallyStartHiringRequest.TimeToHireInfo (nil (Ts~ 0) Get))^
+						ActuallyStartHiringRequest~ Exe
+					);
+					(State~ R~) ForEach
+					((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ rsprsha Id~ ())) Gate
+				);
 				Behavior ias (
 					(AgentCommands true) ias (
 						(Command cancel) ias (
@@ -262,6 +282,7 @@ module HiringAgency {
 						);
 						(Command report) ias PrepareReport~ Exe;
 						(Command collectstate) ias CollectState~ Exe;
+						(Command restorestate) ias RestoreState~ Exe;
 						(Command check) ias (
 #if (verbose)
 							((Hiring agency Id~ received self test ok) Ew.Output~) Do

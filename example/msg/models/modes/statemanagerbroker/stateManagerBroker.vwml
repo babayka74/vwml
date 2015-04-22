@@ -13,139 +13,295 @@ module StateManagerBroker {
 				ACUState ias nil;
 				// hiring agency state
 				HAState ias nil;
-				// player's state has been collected
-				PlayerStateCollected ias (
-					State ias nil;
-					(CollectFor () PlayerStateCollected~) FinishInterception
-					(State (ACQState~ ACUState~ Resources.Garage.CollectState.GCarsStore~ Resources.Business.CollectState.BusinessState~ HAState~))^
+
+				RestoreStateHandlers ias (
+					RestoreFor ias nil;
+					// restoring from
+					RConf ias nil;
+					// player's state completely restored
+					PlayerStateRestored ias (
+						((StateStoreManager 0) Tx (nil staterestored nil Id~)) Gate
 #if (verbose)
-					((State of player Id~ is State~ and was collected successfully) Ew.Output~) Do						
-#endif
-				);
-				// states of quartals have been collected
-				QStateCollected ias (
-					(Quartals 0 QStateCollected~) FinishInterception
-					(CollectFor (CollectFor~ (rqcsquartals)) Substruct)^
-					// initates another
-					((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
-				);
-				// states of units have been collected
-				UStateCollected ias (
-					(Units 0 UStateCollected~) FinishInterception
-					(CollectFor (CollectFor~ (rqcsunits)) Substruct)^
-					((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
-				);
-				// state of garage collected
-				GarageStateCollected ias (
-					(CollectFor (CollectFor~ (rqgarage)) Substruct)^
-					((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
+						((State of player Id~ restored successfully) Ew.Output~) Do						
+#endif                          	
+					);
+					// called upon restoring all quartals
+					QStateRestored ias (
+						(Quartals 0 QStateRestored~) FinishInterception
+						(RestoreFor (RestoreFor~ (rqrsquartals)) Substruct)^
+						// initates another (units)
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 1) Get)) Gate
+					);
+					// called upon restoring all units
+					UStateRestored ias (
+						(Units 0 UStateRestored~) FinishInterception
+						(RestoreFor (RestoreFor~ (rqrsunits)) Substruct)^
+						// initates another (garage)
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 2) Get)) Gate
+					);
+					// called upon garage's restored state
+					GRestoredState ias (
+						(RestoreFor (RestoreFor~ (rqrgarage)) Substruct)^
+						// initates another (business)
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 3) Get)) Gate
+					);
+					// called upon player's business restored state
+					BRestoredState ias (
+						(RestoreFor (RestoreFor~ (rqrbusiness)) Substruct)^
+						// initates another (hiring agency)
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 4) Get)) Gate
+					);
+					// on quartal's restored state
+					OnQRestoredState ias (
+						(Quartals ((Quartals~) Ew.DecValue~) Do)^
 #if (verbose)
-					((Collected states of garage Resources.Garage.CollectState.GCarsStore~ of player Id~) Ew.Output~) Do						
+						((Remained Quartals~ quartals to restore) Ew.Output~) Do						
 #endif
-				);
-				// state of business collected
-				BusinessStateCollected ias (
+					);
+					// on unit's restored state
+					OnURestoredState ias (
+						(Units ((Units~) Ew.DecValue~) Do)^
 #if (verbose)
-					((Collected states of business Resources.Business.CollectState.BusinessState~ of player Id~) Ew.Output~) Do						
+						((Remained Units~ units to restore) Ew.Output~) Do						
 #endif
-					(CollectFor (CollectFor~ (rqbusiness)) Substruct)^
-					((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
+					);
+					// on hiring agency restored state
+					OnHARestoredState ias (
+						(RestoreFor (RestoreFor~ (rqrha)) Substruct)^
+					);
+					// starting restore process
+					StartRestore ias (
+						(SRP true) ias PlayerStateRestored~ Exe;
+						(SRP false) ias (
+							(RestoreFor (rqrsquartals rqrsunits rqrgarage rqrbusiness rqrha))^
+							(RestoreFor () PlayerStateRestored~) StartInterception
+#if (verbose)
+							((Starting restore state of player Id~ left are RestoreFor~) Ew.Output~) Do						
+#endif
+							((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 0) Get)) Gate
+						);
+						(RConf ((Id~) Ew.RestorePlayerConf~) Do)^
+#if (verbose)
+						((Stored configuration of player Id~ is RConf~) Ew.Output~) Do
+#endif
+						(SRP (RConf~ nil) Ident)~ Exe
+					);
+					QRestoreState ias (
+						QRS ias (
+							(QId ($~ 0) Get)^
+#if (verbose)
+							((Restoring state of quartal QId~ of player Id~) Ew.Output~) Do						
+#endif
+							((Quartal QId~) Tx (Id~ restorestate $~)) Gate;
+						);
+						(Quartals 0 QStateRestored~) StartInterception
+						(Quartals (CommandParams~) Size)^
+						(CommandParams~ QRS~) ForEach
+					);
+					URestoreState ias (
+						URS ias (
+							(UId ($~ 0) Get)^
+#if (verbose)
+							((Restoring state of unit UId~ of player Id~) Ew.Output~) Do						
+#endif
+							(Characters.Unit (Unit UId~) defer) Born
+#if (unitalive)
+							((Characters)->(Unit UId~)) Activate
+							((Unit UId~) Tx (Id~ restorestate $~)) Gate
+#else
+							((Characters)->(Unit UId~)->(RestoreState)->UnitCommandParams $~)^
+							(Characters)->(Unit UId~)->RestoreState~ Exe
+							(Characters)->(Unit UId~)->NotifyOwner~ Exe
+#endif // unitalive
+						);
+						(Units 0 UStateRestored~) StartInterception
+						(Units (CommandParams~) Size)^
+						(CommandParams~ URS~) ForEach
+					);
+					// garage restore state
+					GRestoreState ias (
+						((Player Id~)->(Resources)->(Garage)->(RestoreState)->S CommandParams~)^
+						(Player Id~)->(Resources)->(Garage)->RestoreState~ Exe
+						GRestoredState~ Exe
+#if (verbose)
+						((State of garage restored of player Id~) Ew.Output~) Do						
+#endif
+					);
+					// player's business restore state
+					BRestoreState ias (
+						((Player Id~)->(Resources)->(RestoreState)->S CommandParams~)^
+						(Player Id~)->(Resources)->RestoreState~ Exe
+						BRestoredState~ Exe
+#if (verbose)
+						((State of business restored for player PId~) Ew.Output~) Do						
+#endif
+					);
+					// player's hiring agency restore state
+					HARestoreState ias (
+#if (verbose)
+						((Restoring state of hiring agency of player Id~) Ew.Output~) Do						
+#endif
+						((Player Id~) Tx (ModeInfo.ModeHiring~ restorestate nil CommandParams~)) Gate
+					);
 				);
-				Start ias (
-					(CollectFor (rqcsquartals rqcsunits rqgarage rqbusiness rqha))^
-					(CollectFor () PlayerStateCollected~) StartInterception
+				CollectStateHandlers ias (
+					// player's state has been collected
+					PlayerStateCollected ias (
+						State ias nil;
+						(CollectFor () PlayerStateCollected~) FinishInterception
+						(State (ACQState~ ACUState~ Resources.Garage.CollectState.GarageState~ Resources.Business.CollectState.BusinessState~ HAState~))^
+						((StateStoreManager 0) Tx (nil statecollected nil (Id~ State~))) Gate
+#if (verbose)
+						((State of player Id~ is State~ and was collected successfully) Ew.Output~) Do						
+#endif                          	
+					);
+					// states of quartals have been collected
+					QStateCollected ias (
+						(Quartals 0 QStateCollected~) FinishInterception
+						(CollectFor (CollectFor~ (rqcsquartals)) Substruct)^
+						// initates another
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
+					);
+					// states of units have been collected
+					UStateCollected ias (
+						(Units 0 UStateCollected~) FinishInterception
+						(CollectFor (CollectFor~ (rqcsunits)) Substruct)^
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
+					);
+					// state of garage collected
+					GarageStateCollected ias (
+						(CollectFor (CollectFor~ (rqgarage)) Substruct)^
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
+#if (verbose)
+						((Collected states of garage Resources.Garage.CollectState.GCarsStore~ of player Id~) Ew.Output~) Do						
+#endif                  	
+					);
+					// state of business collected
+					BusinessStateCollected ias (
+#if (verbose)
+						((Collected states of business Resources.Business.CollectState.BusinessState~ of player Id~) Ew.Output~) Do						
+#endif
+						(CollectFor (CollectFor~ (rqbusiness)) Substruct)^
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
+					);
+					// state of hiring agency collected
+					HiringAgencyStateCollected ias (
+						(HAState CommandParams~)^
+#if (verbose)
+						((Hiring agency state HAState~ of player Id~) Ew.Output~) Do						
+#endif
+					);
+					// state of one quartal collected
+					OnQuartalState ias (
+						(ACQState (ACQState~ (CommandParams~)) Join)^
+						(Quartals ((Quartals~) Ew.DecValue~) Do)^
+#if (verbose)
+						((Quartal state CommandParams~ of player Id~ and remained Quartals~) Ew.Output~) Do						
+#endif
+					);
+					// state of one unit collected
+					OnUnitState ias (
+						(ACUState (ACUState~ (CommandParams~)) Join)^
+						(Units ((Units~) Ew.DecValue~) Do)^
+#if (verbose)
+						((Unit state CommandParams~ of player Id~ and remained Units~) Ew.Output~) Do						
+#endif
+					);
+					StartCollect ias (
+						(CollectFor (rqcsquartals rqcsunits rqgarage rqbusiness rqha))^
+						(CollectFor () PlayerStateCollected~) StartInterception
 
 #if (verbose)
-					((Starting collect state of player Id~ passes are CollectFor~) Ew.Output~) Do						
+						((Starting collect state of player Id~ passes are CollectFor~) Ew.Output~) Do						
 #endif
-					((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
-				);
-				// quartal state collector
-				QStateCollector ias (
-					// sends signal to quartal to collect state
-					QCS ias ((Quartal $~) Tx (Id~ collectstate ())) Gate;
-					// iterate over all available quartals and requests their states
-					(ACQState ())^
-					(Quartals 0 QStateCollected~) StartInterception
-					(Quartals (Resources.Quartals.Own~) Size)^
-#if (verbose)
-					((Collecting states of Quartals~ quartals of player Id~) Ew.Output~) Do						
-#endif
-					(Resources.Quartals.Own~ QCS~) ForEach
-				);
-				// unit state collector
-				UStateCollector ias (
-					// sends signal to unit to collect state
-					UCS ias (
-#if (unitalive)
-						((Unit $~) Tx (Id~ collectstate ())) Gate
-#else
-						(Characters)->(Unit $~)->CollectState~ Exe
-#endif // unitalive
+						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
 					);
-					(ACUState ())^
-					// iterate over all available units and requests their states
-					(Units 0 UStateCollected~) StartInterception
-					(Units (Resources.Units.Hired~) Size)^
+					// quartal state collector
+					QStateCollector ias (
+						// sends signal to quartal to collect state
+						QCS ias ((Quartal $~) Tx (Id~ collectstate ())) Gate;
+						// iterate over all available quartals and requests their states
+						(ACQState ())^
+						(Quartals 0 QStateCollected~) StartInterception
+						(Quartals (Resources.Quartals.Own~) Size)^
 #if (verbose)
-					((Collecting states of Units~ units of player Id~) Ew.Output~) Do						
+						((Collecting states of Quartals~ quartals of player Id~) Ew.Output~) Do						
 #endif
-					(Resources.Units.Hired~ UCS~) ForEach
-				);
-				// garage state collector
-				GarageStateCollector ias (
+						(Resources.Quartals.Own~ QCS~) ForEach
+					);
+					// unit state collector
+					UStateCollector ias (
+						// sends signal to unit to collect state
+						UCS ias (
+#if (unitalive)                                 	
+							((Unit $~) Tx (Id~ collectstate ())) Gate
+#else
+							(Characters)->(Unit $~)->CollectState~ Exe
+#endif // unitalive
+						);
+						(ACUState ())^
+						// iterate over all available units and requests their states
+						(Units 0 UStateCollected~) StartInterception
+						(Units (Resources.Units.Hired~) Size)^
 #if (verbose)
-					((Collecting states of garage of player Id~) Ew.Output~) Do						
+						((Collecting states of Units~ units of player Id~) Ew.Output~) Do						
 #endif
-					Resources.Garage.CollectState~ Exe
-					GarageStateCollected~ Exe
-				);
-				// business state collector
-				BusinessStateCollector ias (
+						(Resources.Units.Hired~ UCS~) ForEach
+					);
+					// garage state collector
+					GarageStateCollector ias (
 #if (verbose)
-					((Collecting states of business of player Id~) Ew.Output~) Do						
+						((Collecting states of garage of player Id~) Ew.Output~) Do						
 #endif
-					Resources.Business.CollectState~ Exe
-					BusinessStateCollected~ Exe
-				);
-				HiringAgencyStateCollector ias (
+						Resources.Garage.CollectState~ Exe
+						GarageStateCollected~ Exe
+					);
+					// business state collector
+					BusinessStateCollector ias (
 #if (verbose)
-					((Collecting states of hiring agency of player Id~) Ew.Output~) Do						
+						((Collecting states of business of player Id~) Ew.Output~) Do						
 #endif
-					((Player Id~) Tx (ModeInfo.ModeHiring~ collectstate nil ())) Gate
+						Resources.Business.CollectState~ Exe
+						BusinessStateCollected~ Exe
+					);
+					HiringAgencyStateCollector ias (
+#if (verbose)
+						((Collecting states of hiring agency of player Id~) Ew.Output~) Do						
+#endif
+						((Player Id~) Tx (ModeInfo.ModeHiring~ collectstate nil ())) Gate
+					);
 				);
+				// ------------------ COLLECT STATE -----------------------
 				// request to collect states of player's entities
-				(Handle collectstate) ias Start~ Exe;
+				(Handle collectstate) ias CollectStateHandlers.StartCollect~ Exe;
+				// request to restore player's state
+				(Handle restorestate) ias RestoreStateHandlers.StartRestore~ Exe;
 				// request to collect quartals' state
-				(Handle rqcsquartals) ias QStateCollector~ Exe;
+				(Handle rqcsquartals) ias CollectStateHandlers.QStateCollector~ Exe;
 				// request to collect units' state
-				(Handle rqcsunits) ias UStateCollector~ Exe;
+				(Handle rqcsunits) ias CollectStateHandlers.UStateCollector~ Exe;
 				// request to collect garage's state
-				(Handle rqgarage) ias GarageStateCollector~ Exe;
+				(Handle rqgarage) ias CollectStateHandlers.GarageStateCollector~ Exe;
 				// request to collect business's state
-				(Handle rqbusiness) ias BusinessStateCollector~ Exe;
+				(Handle rqbusiness) ias CollectStateHandlers.BusinessStateCollector~ Exe;
 				// request to collect hiring agency state
-				(Handle rqha) ias HiringAgencyStateCollector~ Exe;
+				(Handle rqha) ias CollectStateHandlers.HiringAgencyStateCollector~ Exe;
 				// quartal's response on intention about its state (response on collectstate, see above)
-				(Handle rspquartalstate) ias (
-					(ACQState (ACQState~ (CommandParams~)) Join)^
-					(Quartals ((Quartals~) Ew.DecValue~) Do)^
-				);
+				(Handle rspquartalstate) ias CollectStateHandlers.OnQuartalState~ Exe;
 				// unit's state, response on collectstate
-				(Handle rspunitstate) ias (
-					(ACUState (ACUState~ (CommandParams~)) Join)^
-					(Units ((Units~) Ew.DecValue~) Do)^
-#if (verbose)
-					((Unit state CommandParams~ of player Id~ and remained Units~) Ew.Output~) Do						
-#endif
-				);
+				(Handle rspunitstate) ias CollectStateHandlers.OnUnitState~ Exe;
 				// hiring agency responded with its state
-				(Handle rspcsha) ias (
-					(HAState CommandParams~)^
-#if (verbose)
-					((Hiring agency state HAState~ of player Id~) Ew.Output~) Do						
-#endif
-				);
+				(Handle rspcsha) ias HiringAgencyStateCollected~ Exe;
+				// --------------------------------------------------------------
+				// -------------------- RESTORE STATE ---------------------------
+				(Handle rqrsquartals) ias RestoreStateHandlers.QRestoreState~ Exe;
+				(Handle rqrsunits) ias RestoreStateHandlers.URestoreState~ Exe;
+				(Handle rqrgarage) ias RestoreStateHandlers.GRestoreState~ Exe;
+				(Handle rqrbusiness) ias RestoreStateHandlers.BRestoreState~ Exe;
+				(Handle rqrha) ias RestoreStateHandlers.HARestoreState~ Exe;
+				(Handle rsprquartalstate) ias RestoreStateHandlers.OnQRestoredState~ Exe;
+				(Handle rsprunitstate) ias RestoreStateHandlers.OnURestoredState~ Exe;
+				(Handle rsprsha) ias RestoreStateHandlers.OnHARestoredState~ Exe;
 				(Handle CommandId~)~ Exe
 			);
 		);

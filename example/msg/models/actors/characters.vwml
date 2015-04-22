@@ -48,8 +48,8 @@ module Characters {
 				Container ias nil;
 				/* configuted ids for some purpouses */
 				UnitReadyNotify ias nil;
-				/* unit's collected state */
-				UCState ias nil;
+				/* template */
+				TUCState ias (Id Type Kind Capacity Joined JoinedWith Class Cost Contain CId PlayerId MarkedAsKilled InAction Container UnitReadyNotify);
 				/* Performs initialization steps */
 				Init ias (
 					(CurrentPosition nil)^
@@ -59,11 +59,36 @@ module Characters {
 					(InAction false)^
 					(Joined ())^
 					(JoinedWith nil)^
+					(Container nil)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
+				BuildUCState ias (
+					S ias ();
+					B ias (S (S~ ($~~)) Join)^;
+					(S ())^
+					(TUCState~ B~) ForEach
+				);
+				RestoreUCState ias (
+					S ias nil;
+					I ias 0;
+					R ias (
+						((TUCState~ I~) Get $~)^
+						(I ((I~) Ew.IncValue~) Do)^
+					);
+					(I 0)^
+					(S~ R~) ForEach
+				);
+				RestoreState ias (
+					(RestoreUCState.S UnitCommandParams~)^
+					RestoreUCState~ Exe
+#if (verbose)
+					((The unit Id~ restored state) Ew.Output~) Do
+#endif
+					((Player PlayerId~) Tx (ModeInfo.ModeStateManagerBroker~ rsprunitstate Id~ ())) Gate
+				);
 				CollectState ias (
-					(UCState (Id~ Type~ Kind~ Capacity~ Joined~ JoinedWith~ Class~ Cost~ Contain~ CId~ PlayerId~ MarkedAsKilled~ InAction~ Container~ UnitReadyNotify~))^
-					((Player PlayerId~) Tx (ModeInfo.ModeStateManagerBroker~ rspunitstate Id~ UCState~)) Gate
+					BuildUCState~ Exe
+					((Player PlayerId~) Tx (ModeInfo.ModeStateManagerBroker~ rspunitstate Id~ BuildUCState.S~)) Gate
 				);
 				StopActivity ias (
 					(StopUnit true)^
@@ -249,120 +274,75 @@ module Characters {
 					UnitCommandParams ias nil;
 					// concrete unit's type not specialized
 					(ns true) ias (
-						(Handle collectstate) ias (
-							CollectState~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
+						(Handle collectstate) ias CollectState~ Exe;
+						(Handle restorestate) ias (
+							(RestoreUCState.S UnitCommandParams~)^
+							RestoreUCState~ Exe
 						);
 						(Handle join) ias (
 							(JoinUnit.Actions UnitCommandParams~)^
 							JoinUnit~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
 						);
 						(Handle disjoin) ias (
 							(DisjoinUnit.Actions UnitCommandParams~)^
 							DisjoinUnit~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
 						);
 						(Handle check) ias (
 							NotifyOwner~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
-						);
-						(Handle stay) ias (
-							UnitLifeStep~ Exe
 						);
 						(Handle stop) ias (
 #if (verbose)
 							((The unit Id~ received command stop) Ew.Output~) Do
 #endif
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
 						);
-						(Handle setprops) ias (
-							(UnitCommandParams~ PropertySetOperation~) ForEach
-							UnitLifeStep~ Exe
-						);
-						(Handle exit) ias (
-							StopActivity~ Exe
-							UnitLifeStep~ Exe
-						);
-                                                (Handle kill),(Handle go),(Handle movetopos),(Handle startpos),(Handle getpos),(Handle select) ias doNothing;
+						(Handle setprops) ias (UnitCommandParams~ PropertySetOperation~) ForEach;
+						(Handle exit) ias StopActivity~ Exe;
+                                                (Handle stay),(Handle kill),(Handle go),(Handle movetopos),(Handle startpos),(Handle getpos),(Handle select) ias doNothing;
 						(Handle UnitCommandId~)~ Exe
+						(UnitCommandId stay)^
+						UnitLifeStep~ Exe
 					);
 					// concrete unit's type specialized
 					(ns false) ias (
-						(Handle collectstate) ias (
-							CollectState~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
+						(Handle collectstate) ias CollectState~ Exe;
+						(Handle restorestate) ias (
+							(RestoreUCState.S UnitCommandParams~)^
+							RestoreUCState~ Exe
 						);
 						(Handle join) ias (
 							(JoinUnit.Actions UnitCommandParams~)^
 							JoinUnit~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
 						);
 						(Handle disjoin) ias (
 							(DisjoinUnit.Actions UnitCommandParams~)^
 							DisjoinUnit~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
 						);
-						(Handle check) ias (
-							NotifyOwner~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
-						);
-						(Handle stay) ias (
-							UnitLifeStep~ Exe
-						);
+						(Handle check) ias NotifyOwner~ Exe;
+						(Handle stay) ias doNothing;
 						(Handle stop) ias (
 #if (verbose)
 							((The unit Id~ received command stop) Ew.Output~) Do
 #endif
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
 						);
-						(Handle setprops) ias (
-							(UnitCommandParams~ PropertySetOperation~) ForEach
-							UnitLifeStep~ Exe
-						);
-						(Handle kill) ias (
-							(ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe
-							(UnitCommandId stay)^
-							UnitLifeStep~ Exe
-						);
+						(Handle setprops) ias (UnitCommandParams~ PropertySetOperation~) ForEach;
+						(Handle kill) ias (ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe;
 						(Handle go) ias (
 							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->CheckAndStart~ Exe
 							UnitLifeStep~ Exe
 						);
-						(Handle movetopos) ias (
-							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe
-							UnitLifeStep~ Exe
-						);
-						(Handle startpos) ias (
-							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe
-							UnitLifeStep~ Exe
-						);
+						(Handle movetopos) ias (ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe;
+						(Handle startpos) ias (ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe;
 						(Handle getpos) ias (
 							UpdateCurrentPosition~ Exe
 #if (verbose)
 							((The unit Id~ has position CurrentPosition~) Ew.Output~) Do
 #endif
-							UnitLifeStep~ Exe
 						);
-						(Handle select) ias (
-							(UnitCommandId LastUnitCommandId~)^
-							UnitLifeStep~ Exe
-						);
-						(Handle exit) ias (
-							StopActivity~ Exe
-							UnitLifeStep~ Exe
-						);
+						(Handle select) ias (UnitCommandId LastUnitCommandId~)^;
+						(Handle exit) ias StopActivity~ Exe;
 						(Handle UnitCommandId~)~ Exe
+						(UnitCommandId stay)^
+						UnitLifeStep~ Exe
 					);
 					(NothingToDispatch true) ias doNothing;
 					(NothingToDispatch false) ias (

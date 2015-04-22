@@ -15,8 +15,10 @@ module Quartal {
 			QInfo ias nil;
 			/* last invested resource quantum */
 			LInvestQuantum ias 0;
-			/* last stored quartal state */
+			/* last stored quartal state (not stored) */
 			LSQState ias nil;
+			/* last restored state (not stored) */
+			RSState ias nil;
 			/* quartal's resource type (configured) */
 			Resource ias (
 				Type ias nil;
@@ -28,6 +30,8 @@ module Quartal {
 				Quantums ias 0;
 				/* transition cnp -> op; permitted time */
 				OpenTime ias 1000; // ms
+				/* requester - who initiated creation of quartal */
+				Requester ias nil;
 				/* desired price set by sherif to open information about quartal */
 				DesiredOpenInfoPrice ias 100;
 				Update ias (
@@ -51,6 +55,12 @@ module Quartal {
 #if (verbose)
 					((The quartal Id~ initialized with configuration (Type~ Quantum~ Period~ Quantums~ OpenTime~ DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
 #endif
+				);
+				Link ias (
+					(R Player),(R nil) ias ((Player Owner~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ (Id~))) Gate;
+					(R Boss) ias ((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ linkquartal (Requester~ 1) Get (Id~))) Gate;
+					(R (Requester~ 0) Get)~ Exe
+					((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
 				);
 			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
@@ -118,7 +128,45 @@ module Quartal {
 					((Player Owner~) Tx (ModeInfo.ModeDeal~ bdfchange Owner~ (Id~ Resource.Type~ Resource.Quantum~ Op~))) Gate
 				);
 				Behavior ias (
-					State ias cnp;
+					// initial state
+					State ias onp;
+					// template of sherif's and quartal's states
+					(TQRState (Resource.Type Resource.Requester Resource.Quantum Resource.Period Resource.Quantums Resource.OpenTime Resource.DesiredOpenInfoPrice))^
+					// build and restore state
+					BuildQRState ias (
+						S ias ();
+						B ias (S (S~ ($~~)) Join)^;
+						(S ())^
+						(TQRState~ B~) ForEach
+					);
+					RestoreQRState ias (
+						I ias 0;
+						S ias nil;
+						R ias (
+							(V (TQRState~ I~) Get)^
+							(V~ $~)^
+							(V~ Resource true) Context
+							(I ((I~) Ew.IncValue~) Do)^
+						);
+						(I 0)^
+						(S~ K~) ForEach
+					);
+					// activate contribution timer
+					ACTimer ias (
+						// timer state
+						S ias nil;
+						(A true) ias doNothing;
+						(A false) ias ((S~ 0) Get (Pay Id~) Banker.Pay~) Recall;
+						(A (S~ nil) Ident)~ Exe
+					);
+					// activates open info timer
+					OITimer ias (
+						// timer state
+						S ias nil;
+						(A true) ias doNothing;
+						(A false) ias ((S~ 0) Get (Cnp Id~) OnCnpTimer~) Recall;
+						(A (S~ nil) Ident)~ Exe
+					);
 					// called when (Cnp Id~) timer expired
 					OnCnpTimer ias ((Quartal Id~) Tx (Owner~ close ())) Gate;
 					// restores state after investment's payment
@@ -228,21 +276,14 @@ module Quartal {
 						// sherif's bribe
 						(OpenQInfo ((ProposedPrice~ Resource.DesiredOpenInfoPrice~) Ew.Compare~) Do)~ Exe
 					);
-					(open cp) ias (
-						(State op)^
-#if (verbose)
-						((The sherif of quartal Id~ provides information to player Owner~ and no sherif account updated) Ew.Output~) Do
-#endif
-					);
-					(open onp),(open op) ias (
+					(open onp),(open op),(open cp) ias (
 #if (verbose)
 						((The sherif of quartal Id~ has already opened information about quartal) Ew.Output~) Do
 #endif
 						OpenInfo~ Exe
 					);
 					(close onp) ias (
-						Resource.Init~ Exe
-						(State cnp)^
+						(State onp)^
 #if (verbose)
 						((The sherif of quartal Id~ closed information no bribe got) Ew.Output~) Do
 #endif
@@ -291,13 +332,8 @@ module Quartal {
 						((The sherif of quartal Id~ has already got bribe or qaurtal is closed and payment is impossible) Ew.Output~) Do
 #endif
 					);
-					(requestdone op) ias (
-						Resource.Init~ Exe
+					(requestdone cp),(requestdone op) ias (
 						(State onp)^
-					);
-					(requestdone cp) ias (
-						Resource.Init~ Exe
-						(State cnp)^
 					);
 					(requestdone cnp),(requestdone onp) ias (
 #if (verbose)
@@ -331,13 +367,38 @@ module Quartal {
 					);
 					(collectstate op),(collectstate cnp),(collectstate onp),(collectstate wtp),(collectstate cp) ias (
 						// quartal resource info
-						(QRState (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+						BuildQRState~ Exe
 						// sherif's state
-						(QSherifState (FormerIntention~ State~ IntentionParams~))^
+						(QSherifState (FormerIntention~ State~ IntentionParams~ DesiredBribe~))^
+						// state of contribution timer
+						(CTimerState ((Pay Id~)) TState)^
+						// open info timer state
+						(OITimerState ((Cnp Id~)) TState)^
 						// last stored quartal state
-						(LSQState (Id~ QRState~ QSherifState~))^
+						(LSQState (Id~ CTimerState~ OITimerState~ BuildQRState.S~ QSherifState~))^
 						// delegate to player
 						((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rspquartalstate Id~ LSQState~)) Gate
+					);
+					(restorestate op),(restorestate cnp),(restorestate onp),(restorestate wtp),(restorestate cp) ias (
+						(RSState IntentionParams~)^
+						// restore quartal's state
+						(RestoreQRState.S (RSState~ 3) Get)^
+						RestoreQRState~ Exe
+						// restore sherif's state
+						(QSherifState (RSState~ 4) Get)^
+						(FormerIntention (QSherifState~ 0) Get)^
+						(Intention FormerIntention~)^
+						(State (QSherifState~ 1) Get)^
+						(IntentionParams (QSherifState~ 2) Get)^
+						(DesiredBribe (QSherifState~ 3) Get)^
+						// re-activate contribution timer, if needed
+						(ACTimer.S (RSState~ 1) Get)^
+						ACTimer~ Exe
+						// re-activates open info timer, if needed
+						(OITimer.S (RSState~ 2) Get)^
+						OITimer~ Exe
+						// delegate to player
+						((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rsprquartalstate Id~ ())) Gate
 					);
 					(updateconf op),(updateconf cnp),(updateconf onp),(updateconf wtp),(updateconf cp) ias (
 						(Resource.Update.QConf (IntentionParams~ 0) Get)^
@@ -392,7 +453,7 @@ module Quartal {
 					// reset
 					// resource quantum has already been changed by last investment
 					(reset op),(reset cnp),(reset onp),(reset cp) ias (
-						(State cnp)^
+						(State onp)^
 						Banker.CancelContribution~ Exe
 						((Player Owner~) Tx (ModeInfo.ModeDeal~ resettedquartal Id~ (Id~))) Gate
 					);
@@ -439,8 +500,7 @@ module Quartal {
 				((Quartal Id~) Register blocked) Gate
 				Resource.Init~ Exe
 				// links quartal to given player
-				((Player Owner~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ (Id~))) Gate
-				((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
+				Resource.Link~ Exe
 				QuartalLifeStep~ Exe
 				((Quartal Id~) Unregister) Gate
 				((Player Owner~) Tx (ModeInfo.ModeDeal~ releasedquartal Id~ (Id~))) Gate

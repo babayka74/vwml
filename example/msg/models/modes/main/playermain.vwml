@@ -62,9 +62,9 @@ module PlayerModeMain {
 					Resources.Reset~ Exe
 				);
 				(Handle qinitialized) ias (
-					(Resources.Quartals.Init.ExpectedQuartals ((Resources.Quartals.Init.ExpectedQuartals~) Ew.DecValue~) Do)^
+					(Resources.Quartals.Init.Construct.EQ ((Resources.Quartals.Init.Construct.EQ~) Ew.DecValue~) Do)^
 #if (verbose)
-					((Resources.Quartals.Init.ExpectedQuartals~ left quartals to initialize player Id~) Ew.Output~) Do
+					((Resources.Quartals.Init.Construct.EQ~ left quartals to initialize player Id~) Ew.Output~) Do
 #endif
 				);
 				(Handle hainitialized) ias (
