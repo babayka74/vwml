@@ -2,10 +2,12 @@ vwml
 ====
 
 Active development branch is: https://github.com/babayka74/vwml/tree/proactive-parallelism
-Experemental with improved perfomance: https://github.com/babayka74/vwml/tree/clone_born_optimization 
+
+Experemental with improved perfomance: https://github.com/babayka74/vwml/tree/clone/born_optimization 
 
 Authors:
 {Michael David} Groozman
+
 Oleg Gibayev
 
 ====
