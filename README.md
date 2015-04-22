@@ -1,4 +1,4 @@
-VWML
+Development branches
 ====
 
 Active development branch is: https://github.com/babayka74/vwml/tree/proactive-parallelism
