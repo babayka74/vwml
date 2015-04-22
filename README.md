@@ -1,11 +1,16 @@
 Development branches
 ====
 
-Active development branch is: https://github.com/babayka74/vwml/tree/proactive-parallelism
+Active development branch is:
 
-Experemental with improved perfomance: https://github.com/babayka74/vwml/tree/clone/born_optimization 
+https://github.com/babayka74/vwml/tree/proactive-parallelism
+
+Experemental with highly improved perfomance:
+
+https://github.com/babayka74/vwml/tree/clone/born_optimization 
 
 Authors:
+
 {Michael David} Groozman
 
 Oleg Gibayev
