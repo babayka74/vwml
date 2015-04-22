@@ -54,39 +54,39 @@ fillings and interface variations we are able to create “game families”.
 
 Let’s define the conceptual provisions of VWM technology. 
 
-
+====
 Paradigm 1
-
+====
 The virtual world is a set of entities or individuals which are in 
 
 relationships with each other.
 
-
+====
 Paradigm 2
-
+====
 The virtual world is a model of a formal theory.
 
 The axioms of this theory are the laws of the virtual world.
 
-
+====
 Paradigm 3 (evolutionary paradigm)
-
+====
 Any change in the virtual world is a change of the complex of 
 
 individuals (entities) that “inhabit” this world or a change of the 
 
 relationship between the entities.
 
-
+====
 Paradigm 4 (paradigm of the permanent laws)
-
+====
 World evolution does not change its laws. 
 
 The virtual world is a “variable” model of a specified formal theory.
 
- 
+====
 Paradigm 5 (paradigm of occurring events)
-
+====
 By modifying interpretation of the formal theory we are talking about 
 
 the events taking place in the virtual world.
@@ -95,10 +95,10 @@ The events taking place in the virtual world are initiated by intelligent
 
 beings that are “inhabiting this world”.
 
-
+====
 The system translates the world described by VWML in high-level 
 
 languages, such as: java, java-script, c++; thus we are able to implement VWML 
 
 projects on any platform (to keep the cross-platform factor).
-
+====
