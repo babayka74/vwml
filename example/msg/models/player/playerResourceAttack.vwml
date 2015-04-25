@@ -1,0 +1,15 @@
+module PlayerResourceAttack {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				Attacking ias (
+					Init ias (
+						((AttackManager Id~)->Id Id~)^
+						((AttackManager Id~)->PlayerId Id~)^
+						(AttackManager Id~)->Init~ Exe
+					);
+				);
+			);
+		);
+	);
+}

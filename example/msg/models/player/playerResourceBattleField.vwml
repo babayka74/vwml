@@ -1,0 +1,26 @@
+module PlayerResourceBattleField {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				BattleFieldDone ias (
+					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
+					(NotSelectedBF false) ias (
+						((Player Id~) Tx (ModeInfo.ModeBattle~ destroybf Id~ ((Id~ 0)))) Gate
+					);
+					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe 
+				);
+				BattleFieldReset ias (
+					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
+					(NotSelectedBF false) ias (
+						((Player Id~) Tx (ModeInfo.ModeBattle~ resetbf Id~ ((Id~ 0)))) Gate
+					);
+					(NotSelectedBF (Resources.SelectedBattle~ nil) Ident)~ Exe 
+				);
+				/* set of player's battles */
+				Battles ias ();
+				/* Selected battle */
+				SelectedBattle ias nil;
+			);
+		);
+	);
+}

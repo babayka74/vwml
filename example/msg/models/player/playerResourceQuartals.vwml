@@ -1,0 +1,140 @@
+module PlayerResourceQuartals {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				ActiveQuartals ias 0;
+				/* controlled/own/visible quartals */
+				Quartals ias (
+					/* player is owner, at least, of one quartal */
+					Own ias ();
+					/* set of quartals controlled by player */
+					Controlled ias ();
+					/* player knows about these quartals but doesn't have control upon them */
+					Visible ias ();
+					/* number of active quartals, including quartals of bosses */
+					NumOfActiveQuartals ias 0;
+					/* constructs set of quartals */
+					Construct ias (
+						// player's id
+						PId ias nil;
+						// mode (regular or boss)
+						M ias nil;
+						// requester
+						R ias nil;
+						// start from
+						F ias 0;
+						// qurtals to construct
+						N ias 0;
+						// external completition callback
+						CB ias nil;
+						// This entity is monitored by interceptor for regular mode
+						RQN ias 0;
+						// This entity is monitored by interceptor for boss's mode
+						BQN ias 0;
+						// internal completition callback
+						ICB ias (
+							(EQ 0 ICB~) FinishInterception
+							CB~ Exe
+						);
+						(M nil),(M regular) ias (
+							(RQN N~)^
+#if (verbose)
+							((Initialized regular RQN~ quartals for player PId~) Ew.Output~) Do
+#endif
+							// waits untill all regular quartals are initialized
+							(RQN 0 ICB~) StartInterception
+						);
+						(M boss) ias (
+							(BQN N~)^
+#if (verbose)
+							((Initialized boss BQN~ quartals for player PId~) Ew.Output~) Do
+#endif
+							// waits untill all boss's quartals are initialized
+							(BQN 0 ICB~) StartInterception
+						);
+						ActivateQuartal ias (
+							V ias nil;
+							(QReady false) ias (
+								(Quartal (Quartal (PId~ V~)) defer) Born
+#if (verbose)
+								((R~ PId~ created quartal (Quartal (PId~ V~)) by request) Ew.Output~) Do
+#endif
+								(QReady true)~ Exe
+							);
+							// quartal's activation
+							(QReady true) ias (
+								((Quartal (PId~ V~))->Id (PId~ V~))^
+								((Quartal (PId~ V~))->Owner PId~)^
+								((Quartal (PId~ V~))->(Resource)->Requester R~)^
+								((Quartal (PId~ V~))) Activate
+							);
+							(V (($~ F~) Ew.Sum~) Do)^
+							// checks if quartal has already been created
+							(QReady (Quartal (PId~ V~)) EI)~ Exe
+						);
+						(M M~)~ Exe
+						(N~ ActivateQuartal~) Repeat
+					);
+					Init ias (
+						NotifyAboutAllInitializedQuartals ias (
+							(InitSteps (InitSteps~ (quartals)) Substruct)^
+#if (verbose)
+							((Player Id~ left init steps InitSteps~) Ew.Output~) Do							
+#endif
+						);
+						(NumOfActiveQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^
+						(Construct.M regular)^
+						(Construct.PId Id~)^
+						(Construct.R (Player Id~))^
+						(Construct.F 0)^
+						(Construct.N NumOfActiveQuartals~)^
+						(Construct.CB NotifyAboutAllInitializedQuartals~)^
+						Construct~ Exe
+						// create battlefield and associate it with quartal
+						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
+						(Controlled ())^
+						(Visible ())^
+						(Own ())^
+						LInit~ Exe
+					);
+					LInit ias (
+						(ActiveQuartals NumOfActiveQuartals~)^
+#if (verbose)
+						((Player Id~ created and initialized own quartals) Ew.Output~) Do
+#endif
+					);
+					Deactivate ias (
+						A ias nil;
+						AllOwnQurtalsDeactivated ias (
+							(ActiveQuartals 0 AllOwnQurtalsDeactivated~) FinishInterception
+							// send message to player about closing all own quartals
+							((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (quartals))) Gate
+						);
+						(NoQuartals true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (quartals))) Gate;
+						(NoQuartals false) ias (
+							ResetQuartal ias ((Player Id~) Tx (ModeInfo.ModeDeal~ A~ Id~ ($~))) Gate;
+							(ActiveQuartals 0 AllOwnQurtalsDeactivated~) StartInterception
+							(Own~ ResetQuartal~) ForEach
+						);
+						(NoQuartals (Own~ ()) Ident)~ Exe
+					);
+					RestoreActiveQ ias (
+						(RQ false) ias doNothing;
+						(RQ true) ias (ActiveQuartals NumOfActiveQuartals~)^;
+						(RQ (ActiveQuartals~ 0) Ident)~ Exe
+					);
+					Done ias (
+						RestoreActiveQ~ Exe
+						(Deactivate.A releasequartal)^
+						Deactivate~ Exe
+					);
+					Reset ias (
+						RestoreActiveQ~ Exe
+						(Deactivate.A resetquartal)^
+						Deactivate~ Exe
+					);
+				);
+			);
+		);
+	);
+}

@@ -1,0 +1,87 @@
+module PlayerResourceAccount {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				/* Account's information */
+				Account ias (
+					ByRtType ias nil;
+					Value ias nil;
+					Result ias false;
+					Init ias (
+						/* by resource type */
+						(Update.From Ew.PlayerAccountConf.ResourceTypes~)^
+						Update~ Exe
+#if (verbose)
+						((Player Id~ initialized account resources) Ew.Output~) Do
+#endif
+					);
+					Update ias (
+						From ias nil;
+						AssociateByRt ias (
+							(Type ($~ 0) Get)^
+							((Rt Type~) ($~ 1) Get)^
+							((Rt Type~) Account true) Context
+#if (verbose)
+							((Player Id~ has resource (Rt Type~) (Rt Type~)~) Ew.Output~) Do 
+#endif
+						);
+						(From~ AssociateByRt~) ForEach
+					);
+					Report ias (
+						AccountReport ias (
+#if (verbose)
+							((Player Id~ has resource (($~ 0) Get (Rt ($~ 0) Get)~)) Ew.Output~) Do
+#endif
+#if (release)
+							(((banking balance done)(player Id~)(($~ 0) Get (Rt ($~ 0) Get)~)) Ew.OutChannel~) Do
+#endif
+						);
+						(Ew.PlayerAccountConf.ResourceTypes~ AccountReport~) ForEach
+					);
+					Set ias (
+						(ByRtType (Rt (Value~ 1) Get))^
+						(ByRtType~ (Value~ 2) Get)^
+						(Result true)^
+#if (verbose)
+						((Player Id~ set account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
+#endif
+#if (release)
+						(((banking set done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+#endif
+					);
+					Recharge ias (
+						(ByRtType (Rt (Value~ 1) Get))^
+						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.SumF~) Do)^
+						(Result true)^
+#if (verbose)
+						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
+#endif
+#if (release)
+						(((banking recharge done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+#endif
+					);
+					Withdraw ias (
+						(Allow -1) ias (
+							(Result false)^
+#if (verbose)
+							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (Value~ 2) Get) Ew.Output~) Do
+#endif
+						);
+						(Allow 0),(Allow 1) ias (
+							(Result true)^
+							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.SubF~) Do)^
+#if (verbose)
+							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do
+#endif
+#if (release)
+							(((banking withdraw done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+#endif
+						);
+						(ByRtType (Rt (Value~ 1) Get))^
+						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.CompareF~) Do)~ Exe
+					);
+				);
+			);
+		);
+	);
+}

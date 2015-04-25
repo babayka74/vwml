@@ -1,0 +1,42 @@
+module BossOfDistrictBroker {
+	MagicWorld ias (
+		BossOfDistrictBrokerCommands ias (
+			ExportedCommands ias ();
+
+			BossCommands ias (addquartal linkquartal releasedquartal paybribe quartalsinfo qinitialized exit reset);
+			BrokerCommands ias (bossinitialized bossuninitialized);
+
+			ExportCommands ias (
+				(ExportedCommands ())^
+				(ExportedCommands (ExportedCommands~ BossCommands~) Join)^
+				(ExportedCommands (ExportedCommands~ BrokerCommands~) Join)^
+			);
+		);
+		Player ias (
+			BossOfDistrictBroker ias (
+				// incoming command id and its params
+				CommandId ias nil;
+				To ias nil;
+				CommandParams ias nil;
+				(Handle addquartal),(Handle linkquartal),(Handle releasedquartal),(Handle paybribe),(Handle quartalsinfo),(Handle qinitialized),(Handle exit) ias (
+					((BossOfDistrict To~)->CommandId CommandId~)^
+					((BossOfDistrict To~)->CommandParams CommandParams~)^
+					(BossOfDistrict To~)~ Exe
+				);
+				(Handle bossinitialized) ias (
+					(I runtime) ias doNothing;
+					(I oninit) ias (
+						(Player Id~)->(Resources)->(Bosses)->(AddInitialSet)->BossInitialized~ Exe
+					);
+					(I (BossOfDistrict To~)->InitAs~)~ Exe
+				);
+				(Handle bossuninitialized) ias (
+					((Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->B To~)^
+					(Player Id~)->(Resources)->(Bosses)->BossUnInitialized~ Exe
+					((BossOfDistrict To~)) Release
+				);
+				(Handle CommandId~)~ Exe
+			);
+		);
+	);
+}

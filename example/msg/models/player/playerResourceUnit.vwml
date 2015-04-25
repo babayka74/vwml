@@ -1,0 +1,21 @@
+module PlayerResourceUnit {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				/* available units */
+				Units ias (
+					Hired ias ();
+					/* shared entity which stores units' current state (position) */
+					UnitsStateSet ias ();
+					UnitsStateSetLocker ias nil;
+					Init ias (
+						(Hired ())^
+#if (verbose)
+						((Player Id~ initialized hired units storage) Ew.Output~) Do
+#endif
+					);
+				);
+			);
+		);
+	);
+}

@@ -62,9 +62,9 @@ module PlayerModeMain {
 					Resources.Reset~ Exe
 				);
 				(Handle qinitialized) ias (
-					(Resources.Quartals.Init.Construct.EQ ((Resources.Quartals.Init.Construct.EQ~) Ew.DecValue~) Do)^
+					(Resources.Quartals.Construct.RQN ((Resources.Quartals.Construct.RQN~) Ew.DecValue~) Do)^
 #if (verbose)
-					((Resources.Quartals.Init.Construct.EQ~ left quartals to initialize player Id~) Ew.Output~) Do
+					((Resources.Quartals.Construct.RQN~ left quartals to initialize player Id~) Ew.Output~) Do
 #endif
 				);
 				(Handle hainitialized) ias (
@@ -79,14 +79,16 @@ module PlayerModeMain {
 					(ResetMode true) ias (
 						(CA battlefield) ias Resources.Hiring.Reset~ Exe;
 						(CA hiringagency) ias Resources.Quartals.Reset~ Exe;
-						(CA quartals) ias Resources.ResourceManagerDone~ Exe;
+						(CA quartals) ias Resources.Bosses.Reset~ Exe;
+						(CA bosses) ias Resources.ResourceManagerDone~ Exe;
                                         	(CA resourcemanager) ias doNothing;
 						(CA CA~)~ Exe
 					);
 					(ResetMode false) ias (
 						(CA battlefield) ias Resources.Hiring.Done~ Exe;
 						(CA hiringagency) ias Resources.Quartals.Done~ Exe;
-						(CA quartals) ias Resources.ResourceManagerDone~ Exe;
+						(CA quartals) ias Resources.Bosses.Done~ Exe;
+						(CA bosses) ias Resources.ResourceManagerDone~ Exe;
                                         	(CA resourcemanager) ias doNothing;
 						(CA CA~)~ Exe
 					);

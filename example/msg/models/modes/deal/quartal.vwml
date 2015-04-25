@@ -57,10 +57,20 @@ module Quartal {
 #endif
 				);
 				Link ias (
-					(R Player),(R nil) ias ((Player Owner~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ (Id~))) Gate;
-					(R Boss) ias ((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ linkquartal (Requester~ 1) Get (Id~))) Gate;
+					(R Player),(R nil) ias (
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ linkquartal Id~ (Id~))) Gate
+						((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
+					);
+					(R Boss) ias (
+						((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ linkquartal (Requester~ 1) Get (Id~))) Gate
+						((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ qinitialized (Requester~ 1) Get (Id~))) Gate
+					);
 					(R (Requester~ 0) Get)~ Exe
-					((Player Owner~) Tx (ModeInfo.ModeMain~ qinitialized Id~ (Id~))) Gate
+				);
+				Unlink ias (
+					(R Player),(R nil) ias ((Player Owner~) Tx (ModeInfo.ModeDeal~ releasedquartal Id~ (Id~))) Gate;
+					(R Boss) ias ((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ releasedquartal (Requester~ 1) Get (Id~))) Gate;
+					(R (Requester~ 0) Get)~ Exe
 				);
 			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
@@ -503,7 +513,8 @@ module Quartal {
 				Resource.Link~ Exe
 				QuartalLifeStep~ Exe
 				((Quartal Id~) Unregister) Gate
-				((Player Owner~) Tx (ModeInfo.ModeDeal~ releasedquartal Id~ (Id~))) Gate
+				// unlinks quartal from given player
+				Resource.Unlink~ Exe
 			) Exe
 		);
 	);

@@ -1,0 +1,9 @@
+module PlayerResourceResourceManager {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				ResourceManagerDone ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ exit Id~ ())) Gate;
+			);
+		);
+	);
+}

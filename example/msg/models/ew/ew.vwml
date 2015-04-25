@@ -49,15 +49,18 @@ module ExternalWorld {
 		PlayerAccountConf ias (
 			/* initial quartals (closed) per player */
 			QuartalsPerPlayer ias 1;
+			/* initial number of bosses */
+			BossesOfDistrictPerPlayer ias 5;
 			/* available resource types and their initial value */
-			ResourceTypes ias ((QuartalsPerPlayer 1)((vodka 10000) (gold 20000) (food 300000)));
+			ResourceTypes ias ((QuartalsPerPlayer 1) (BossesOfDistrictPerPlayer 5) ((vodka 10000) (gold 20000) (food 300000)));
 			// dynamic load configuration
 			Load ias (
 				Conf ias nil;
 				(NotReady true) ias doNothing;
 				(NotReady false) ias (
 					(QuartalsPerPlayer ((Conf~ 0) Get 1) Get)^
-					(ResourceTypes (Conf~ 1) Get)^
+					(BossesOfDistrictPerPlayer ((Conf~ 1) Get 1) Get)^
+					(ResourceTypes (Conf~ 2) Get)^
 				);
 				(NotReady (Conf~ nil) Ident)~ Exe
 #if (verbose)
@@ -197,6 +200,9 @@ module ExternalWorld {
 		);
 
 		BossOfDistrictConf ias (
+			ControlledQuartals ias 0;
+			GlobalStartQNum ias 0;
+			BossOfDBribeRanges ias ();
 			ConfFields ias (ControlledQuartals GlobalStartQNum BossOfDBribeRanges);
 			// dynamic load configuration
 			Load ias (
@@ -205,7 +211,7 @@ module ExternalWorld {
 				ApplyConf ias (
 					SetConfField ias (
 						($~ ((Conf~ ConfIndex~) Get 1) Get)^
-						($~ BossOfDstrictConf true) Context
+						($~ BossOfDistrictConf true) Context
 						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
 					);
 					(ConfIndex 0)^

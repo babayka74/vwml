@@ -1,0 +1,296 @@
+module PlayerResourceBusiness {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				/* Business development factor */
+				Business ias (
+					RQ ias 0; // quantum
+#if (business)
+					InitialGDevelop ias 0;
+					InitialGContain ias 0;
+					GDevelop ias 0;		// see StrategyGame_Hiring&Dismiss
+					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
+					LH ias 0; 		// see Battle result document
+#endif
+					UnitClasses ias nil;
+					UnitKinds ias nil;
+					Value ias nil;
+					Result ias false;
+					Init ias (
+						(UnitClasses ())^
+						(UnitKinds ())^
+						/* by resource type */
+#if (business)
+						(GDevelop 0)^
+						(GContain 0)^
+						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~) (LH Ew.BusinessConf.LH~)))^
+#else
+						(Update.From (Factors Ew.BusinessConf.Factors~))^
+#endif
+						Update~ Exe
+#if (verbose)
+						((Player Id~ initialized business factor resources) Ew.Output~) Do
+#endif
+					);
+					
+#if (business)
+					AssembleGDevelop ias (
+						AssembleByRt ias (GDevelop ((GDevelop~ (Gdf $~)~) Ew.Sum~) Do)^;
+						(GDevelop 0)^
+						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
+						(GDevelop ((GDevelop~ InitialGDevelop~) Ew.Sum~) Do)^
+#if (verbose)                           	
+						((Player Id~ has assembled gdevelop factor GDevelop~) Ew.Output~) Do 
+#endif
+					);
+
+					AssembleGContain ias (
+						AssembleByRt ias (GContain ((GContain~ (Ctf $~)~) Ew.Sum~) Do)^;
+						(GContain 0)^
+						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
+						(GContain ((GContain~ InitialGContain~) Ew.Sum~) Do)^
+#if (verbose)                           	
+						((Player Id~ has assembled gcontain factor GContain~) Ew.Output~) Do 
+#endif
+					);
+#endif // business
+					Update ias (
+						// ((<factors>)(<gdevelop>))
+						From ias nil;
+						UpdateFactors ias (
+							// factors' indexes inside Factors entity
+							FType ias 0;
+							// Business development
+							BDFactor ias 1;
+							KFactor ias 2;
+							// Containment (aka Hospitality)
+							CFactor ias 3;
+							// GDevelop 
+							GFactor ias 4;
+							// cashier
+							CEFactor ias 5;
+							CCFactor ias 6;
+							// example: ((vodka 0 1) (food 0 1) (gold 0 1) (viski 0 1))
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (
+								AssociateByRt ias (
+									(Type ($~ FType~) Get)^
+									// business dev factor
+									((Bdf Type~) ($~ BDFactor~) Get)^
+									((Bdf Type~) Business true) Context
+									// k-factor
+									((Kdf Type~) ($~ KFactor~) Get)^
+									((Kdf Type~) Business true) Context
+#if (business)
+									// initial value of containment (aka hospitality per resource)
+									((Ctf Type~) ($~ CFactor~) Get)^
+									((Ctf Type~) Business true) Context
+									// initial value of gangster development (per resource)
+									((Gdf Type~) ($~ GFactor~) Get)^
+									((Gdf Type~) Business true) Context
+									// cashier (C & E) factors
+									((CEf Type~) ($~ CEFactor~) Get)^
+									((CEf Type~) Business true) Context
+									((CCf Type~) ($~ CCFactor~) Get)^
+									((CCf Type~) Business true) Context
+#endif
+#if (verbose)                                           	
+									((Player Id~ has factors for (Bdf Type~) (Bdf Type~)~ and (Kdf Type~) (Kdf Type~)~ and (Ctf Type~) (Ctf Type~)~ and (Gdf Type~) (Gdf Type~)~ and (CEf Type~) (CEf Type~)~ and (CCf Type~) (CCf Type~)~) Ew.Output~) Do 
+#endif
+								);
+								(F (F~ 1) Get)^
+								(F~ AssociateByRt~) ForEach
+							);
+							(Ignore (F~ nil) Ident)~ Exe
+						);
+#if (business)
+						UpdateGDevelop ias (
+							// (<number>)
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (InitialGDevelop (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has initial gdevelop factor InitialGDevelop~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdateGContain ias (
+							// (<number>)
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (InitialGContain (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has gcontain factor InitialGContain~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdateLH ias (
+							F ias nil;
+							// (<number>)
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (LH (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has LH factor LH~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdateUnitsInfo ias (
+							F ias nil;
+							K ias nil;
+							P ias nil;
+							PP ias nil;
+							(Ignore false) ias (
+								ParseInfo ias (
+									// parses property
+									(PP clazz) ias (
+										// setups Q counter (Q kind class); see TakeOnBoardUnit
+										SQC ias (
+											C ias nil;
+											(C ($~ 0) Get)^
+											((U C K~) ((U C K~)~ (C~)) Join)^
+											((U C K~) Business true) Context
+											// quantity
+											((Q K~ C~) ($~ 1) Get)^
+											// make it addressable -> Resources.Business
+											((Q K~ C~) Business true) Context
+#if (verbose)                                           	
+											((Player Id~ initialized (Q K~ C~) to (Q K~ C~)~) Ew.Output~) Do
+#endif                                                  	
+										);
+										// available classes
+										((P~ 1) Get SQC~) ForEach
+									);
+									// kind of unit
+									(K ($~ 0) Get)^
+									(UnitKinds (UnitKinds~ (K~)) Join)^
+									((U C K~) ())^
+									// properties
+									(P ($~ 1) Get)^
+									(PP (P~ 0) Get)~ Exe
+								);
+								(F (F~ 1) Get)^
+								(F~ ParseInfo~) ForEach
+							);
+							(Ignore true) ias doNothing;
+							(Ignore (F~ nil) Ident)~ Exe
+						);
+						(UpdateGDevelop.F (From~ 1) Get)^
+						UpdateGDevelop~ Exe
+						(UpdateGContain.F (From~ 2) Get)^
+						UpdateGContain~ Exe
+						(UpdateUnitsInfo.F (From~ 3) Get)^
+						UpdateUnitsInfo~ Exe
+						(UpdateLH.F (From~ 4) Get)^
+						UpdateLH~ Exe
+#endif // business
+						(UpdateFactors.F  (From~ 0) Get)^
+						UpdateFactors~ Exe
+					);
+
+					CollectState ias (
+						BusinessState ias ();
+						UnitsStore ias ();
+						// gangster's dev factor
+						GDevFStore ias ();
+						// business dev factor
+						BDevFStore ias ();
+						// contain (aka hospitality) dev factor
+						CtDevFStore ias ();
+						// account's state
+						RAccountsStore ias ();	
+						// collecting quantity
+						OverUnitKind ias (
+							// car type
+							UK ias nil;
+							UnitsStoreCreate ias (
+								// quantity of units of specified kind and class
+							 	(UnitsStore (UnitsStore~ (((Q UK~ $~) (Player Id~)->(Resources)->(Business)->(Q UK~ $~)~))) Join)^
+							);
+							(UK $~)^
+							((Player Id~)->(Resources)->(Business)->(U C UK~)~ UnitsStoreCreate~) ForEach
+						);
+						FactorsOverRt ias (
+							(RAccountsStore (RAccountsStore~ (((Rt $~) (Player Id~)->(Resources)->(Account)->(Rt $~)~))) Join)^
+							(GDevFStore (GDevFStore~ (((Gdf $~) (Player Id~)->(Resources)->(Business)->(Gdf $~)~))) Join)^
+							(BDevFStore (BDevFStore~ (((Bdf $~) (Player Id~)->(Resources)->(Business)->(Bdf $~)~))) Join)^
+							(CtDevFStore (CtDevFStore~ (((Ctf $~) (Player Id~)->(Resources)->(Business)->(Ctf $~)~))) Join)^
+						);
+						(UnitsStore ())^
+						(GDevFStore ())^
+						(BDevFStore ())^
+						(CtDevFStore ())^
+						(RAccountsStore ())^
+						(BusinessState ())^
+						(UnitKinds~ OverUnitKind~) ForEach
+						(Ew.BusinessConf.AvailableResources~ FactorsOverRt~) ForEach
+						(BusinessState ((UnitsStore~ GDevFStore~ BDevFStore~ CtDevFStore~)(RAccountsStore~)))^
+					);
+					RestoreState ias (
+						S ias nil;
+						I ias 0;
+						Ctx ias (Business Account);
+						K ias (
+							R ias (
+								C ias nil;
+								(N ($~ 0) Get)^
+								(V ($~ 1) Get)^
+								(N~ V~)^
+								(N~ C~ true) Context
+							);
+							(R.C (Ctx I~) Get)^
+							($~ R~) ForEach
+							(I ((I~) Ew.IncValue~) Do)^
+						);
+						(I 0)^
+						(S~ K~) ForEach
+					);
+
+					IncreaseBF ias (
+						(ByBdfType (Bdf (Value~ 1) Get))^
+						(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.SumF~) Do)^
+						(Result true)^
+#if (verbose)
+						((Player Id~ increased business dev factor ByBdfType~ on (Value~ 2) Get balance is ByBdfType~~) Ew.Output~) Do
+#endif
+#if (release)
+						(((business factor done)(player Id~)((ByBdfType~ 1) Get (Value~ 2) Get ByBdfType~~)) Ew.OutChannel~) Do
+#endif
+					);
+
+					DecreaseBF ias (
+						(Allow -1) ias (
+							(Result false)^
+#if (verbose)
+							((Player Id~ does not have enougth resources ByBdfType~~ on ByBdfType~ required (Value~ 2) Get) Ew.Output~) Do
+#endif
+						);
+						(Allow 0),(Allow 1) ias (
+							(Result true)^
+							(ByBdfType~ ((ByBdfType~~ (Value~ 2) Get) Ew.SubF~) Do)^
+#if (verbose)
+							((Player Id~ decreased business dev factor (Value~ 2) Get balance is ByBdfType~~ for ByBdfType~) Ew.Output~) Do
+#endif
+#if (release)
+							(((business factor done)(player Id~)((ByBdfType~ 1) Get (Value~ 2) Get ByBdfType~~)) Ew.OutChannel~) Do
+#endif
+						);
+						(ByBdfType (Bdf (Value~ 1) Get))^
+						(Allow ((ByBdfType~~ (Value~ 2) Get) Ew.CompareF~) Do)~ Exe
+					);
+					RecalcRQuantum ias (
+						// (Id~ Resource.Type~ Resource.Quantum~ LInvestQuantum~)
+						(RQ (( (Value~ 2) Get (Value~ 3) Get (Kdf (Value~ 1) Get)~) Ew.RecalcQuantum~) Do)^
+#if (verbose)
+						((Player Id~ new contribution quantum for (Value~ 1) Get is RQ~) Ew.Output~) Do
+#endif
+					);
+				);
+			);
+		);
+	);
+}

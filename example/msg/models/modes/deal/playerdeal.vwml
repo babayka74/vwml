@@ -35,6 +35,7 @@ module PlayerDeal {
 					(QuartalId (CommandParams~ 0) Get)^
 					((Quartal QuartalId~)->Linked true)^
 					((Quartal QuartalId~)->Owner Id~)^
+					((Quartal QuartalId~)->Requester (Player Id~))^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
 					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
 #if (verbose)

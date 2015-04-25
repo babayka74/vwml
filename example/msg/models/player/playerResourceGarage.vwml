@@ -1,0 +1,239 @@
+module PlayerResourceGarage {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				/* cars' container */
+				Garage ias (
+					// current garage's class
+					Class ias 1;
+					// capacity is calculated according to garage's class
+					Capacity ias 0;
+					Free ias 0;
+					// available investment values
+					InvestV ias ();
+					// available garage's classes
+					GCS ias ();
+					// available garage's car types
+					GCT ias ();
+					// garage's collected state
+					GCState ias nil;
+					Init ias (
+						(Update.Conf (Garage Ew.GarageConf.Garage~))^
+						Update~ Exe
+#if (verbose)
+						((Player Id~ initialized garage) Ew.Output~) Do
+#endif
+					);
+					Done ias (
+						(Class 1)^
+						(Capacity 0)^
+						(Free 0)^
+						(GCT ())^
+						(GCS ())^
+						(InvestV ())^
+					);
+					CollectState ias (
+						GarageState ias nil;
+						GCarsStore ias ();
+						// collecting quantity and occupation garage's places per car type
+						OverCarType ias (
+							// car type
+							CT ias nil;
+							GCarsStoreCreate ias (
+								C ias nil;
+								(C ($~ 0) Get)^
+								// quantity of cars of specified type and class
+							 	(GCarsStore (GCarsStore~ (((Q CT~ C~) (Player Id~)->(Resources)->(Business)->(Q CT~ C~)~))) Join)^
+							);
+							(CT $~)^
+							((Player Id~)->(Resources)->(Business)->(C CT~)~ GCarsStoreCreate~) ForEach
+						);
+						(InvestState ())^
+						(GCarsStore ())^
+						(GCT~ OverCarType~) ForEach
+						(Player Id~)->(GarageDeal)->GetInvestTimerState~ Exe
+						(GarageState (Id~ Class~ Capacity~ Free~ (Player Id~)->(GarageDeal)->(GetInvestTimerState)->State~ GCarsStore~))^
+					);
+					RestoreState ias (
+						S ias nil;
+						// garage invest timer
+						RestoreTimer ias (
+							// garage timer state
+							GTS ias nil;
+							// stored timer transaction id
+							STID ias nil;
+							// timer state
+							TS ias nil;
+							(A true) ias doNothing;
+							(A false) ias (
+								(Garage.StartInvestTimer.TID STID~)^
+								(Garage.StartInvestTimer.TV (TS~ 0) Get)^
+								Garage.StartInvestTimer~ Exe
+							);
+							(STID (GTS~ 0) Get)^
+							(TS (GTS~ 1) Get)^
+							(A (GTS~ nil) Ident)~ Exe
+						);
+						// restore cars' store
+						RestoreCarStore ias (
+							CST ias nil;
+							R ias (
+								(N ($~ 0) Get)^
+								(V ($~ 1) Get)^
+								(N~ V~)^
+								(N~ Business true) Context
+							);
+							(CST~ R~) ForEach
+						);
+						(Class (S~ 1) Get)^
+						(Capacity (S~ 2) Get)^
+						(Free (S~ 3) Get)^
+						(RestoreTimer.GIT (S~ 4) Get)^
+						(RestoreCarStore.CST (S~ 5) Get)^
+						RestoreCarStore~ Exe
+					);
+					Reserve ias (
+						Place ias 0;
+						Result ias false;
+						RP ias 0;
+						// reserving
+						(Allow 1) ias (
+							(Result true)^
+							(Free ((Free~ Place~) Ew.Sub~) Do)^
+#if (verbose)
+							((Garage of Player Id~ reserved Place~ and free places are Free~) Ew.Output~) Do
+#endif
+						);
+						// no places
+						(Allow 0),(Allow -1) ias (
+#if (verbose)
+							((Garage of Player Id~ does not have free places) Ew.Output~) Do
+#endif
+						);
+						(Result false)^
+						(RP ((Free~ Place~) Ew.Sub~) Do)^
+						(Allow ((RP~ 0) Ew.Compare~) Do)~ Exe
+					);
+					CancelReserve ias (
+						Place ias 0;
+						RP ias 0;
+						(Allow -1),(Allow 0) ias (
+							(Free ((Free~ Place~) Ew.Sum~) Do)^
+#if (verbose)
+							((Garage of Player Id~ canceled Place~ and free places are Free~) Ew.Output~) Do
+#endif
+						);
+						(Allow 1) ias (
+#if (verbose)
+							((Garage of Player Id~ exceeds number of free places Free~ and capacity Capacity~) Ew.Output~) Do
+#endif
+						);
+						(RP ((Free~ Place~) Ew.Sum~) Do)^
+						(Allow ((RP~ Capacity~) Ew.Compare~) Do)~ Exe
+					);
+					SetClass ias (
+						C ias nil;
+						(Class C~)^
+						(Capacity (G Class~)~)^
+						(Free ((Free~ ((Capacity~ Free~) Ew.Sub~) Do) Ew.Sum~) Do)^
+#if (verbose)                           	
+						((Garage of player Id~ has clazz Class~ and capacity Capacity~ where free places are Free~) Ew.Output~) Do
+#endif                                  	
+					);
+					Update ias (
+						Conf ias nil;
+						(NotReady true) ias doNothing;
+						(NotReady false) ias (
+							F ias nil;
+							SetProps ias (
+								P ias nil;
+								(P clazz) ias (
+									// general garage's capacity
+									(Class ($~ 1) Get)^
+#if (verbose)                           	
+									((Garage of player Id~ has clazz Class~) Ew.Output~) Do
+#endif                                  	
+								);
+								(P capacity) ias (
+									SetCPC ias (
+										// garage class
+										(GC ($~ 0) Get)^
+										// capacity
+										(CP ($~ 1) Get)^
+										((G GC~) CP~)^
+										((G GC~) Garage true) Context
+										(GCS (GCS~ (GC~)) Join)^
+#if (verbose)                           	
+										((Garage of player Id~ has clazz (G GC~) and capacity (G GC~)~) Ew.Output~) Do
+#endif                                  	
+									);
+									(CPC ($~ 1) Get)^
+									(CPC~ SetCPC~) ForEach
+								);
+								(P invest) ias (
+									SetIC ias (
+										// invest value
+										(IV ($~ 0) Get)^
+										// to class
+										(IC ($~ 1) Get)^
+										((G IV~) IC~)^
+										((G IV~) Garage true) Context
+										(InvestV (InvestV~ (IV~)) Join)^
+#if (verbose)                           	
+										((Player Id~ may invest (G IV~) for clazz (G IV~)~) Ew.Output~) Do
+#endif                                  	
+									);
+									// invest to class
+									(InvestV ())^
+									(IC ($~ 1) Get)^
+									(IC~ SetIC~) ForEach
+								);
+								(P cars) ias (
+									// cars types and classes
+									CTC ias nil;
+									SetCTC ias (
+										CarType ias nil;
+										CarClasses ias nil;
+										SetClasses ias (
+											// car's class
+											Clazz ias nil;
+											// occupied places in garage
+											(Clazz ($~ 0) Get)^
+											// quantity of cars of given class
+											((Q CarType~ Clazz~) 0)^
+											((Q CarType~ Clazz~) Business true) Context
+											// number of places occupied by car in garage
+											((P CarType~ Clazz~) ($~ 1) Get)^
+											((P CarType~ Clazz~) Garage true) Context
+#if (verbose)                           	
+											((Inside garage quantity of (Q CarType~ Clazz~) (Q CarType~ Clazz~)~ and places (P CarType~ Clazz~) (P CarType~ Clazz~)~) Ew.Output~) Do
+#endif                                  	
+										);
+										// getting car type
+										(CarType ($~ 0) Get)^
+										(GCT (GCT~ (CarType~)) Join)^
+										(CarClasses ($~ 1) Get)^
+										((C CarType~) CarClasses~)^
+										((C CarType~) Business true) Context
+										// iterate over classes
+										(CarClasses~ SetClasses~) ForEach
+									);
+									(CTC ($~ 1) Get)^
+									// iterate over all types and create necessary data
+									(CTC~ SetCTC~) ForEach
+								);
+								(P ($~ 0) Get)~ Exe
+							);
+							(F (Conf~ 1) Get)^
+							(F~ SetProps~) ForEach
+						);
+						(NotReady (Conf~ nil) Ident)~ Exe
+						// setup capacity according to defined class
+						(SetClass.C Class~)^
+						SetClass~ Exe
+					);
+				);
+			);
+		);
+	);
+}

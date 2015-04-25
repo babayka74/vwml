@@ -8,11 +8,11 @@ module PlayerGarage {
 				CommandParams ias nil;
 
 				GetInvestTimerState ias (
-					State ias ();
+					State ias nil;
 					(IIP true) ias doNothing;
-					(IIP false) ias (State ((GInv Id~)) TState)^;
+					(IIP false) ias (State (CT~ ((GInv Id~)) TState))^;
 					// IIP => Investment In Progress
-					(State ())^
+					(State nil)^
 					(IIP (CT~ nil) Ident)~ Exe
 				);
 

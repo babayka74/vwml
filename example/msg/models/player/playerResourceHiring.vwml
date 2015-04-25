@@ -1,0 +1,28 @@
+module PlayerResourceHiring {
+	MagicWorld ias (
+		Player ias (
+			Resources ias (
+				Hiring ias (
+					Init ias (
+						((HiringAgency Id~)->Id Id~)^
+						((HiringAgency Id~)->Owner Id~)^
+						(HiringAgency Id~)->Init~ Exe
+						((HiringAgency Id~)) Activate
+					);
+					Done ias (
+						(HiringBroker.CommandId exit)^
+						(HiringBroker.RequestId nil)^
+						(HiringBroker.CommandParams ())^
+						HiringBroker~ Exe
+					);
+					Reset ias (
+						(HiringBroker.CommandId reset)^
+						(HiringBroker.RequestId nil)^
+						(HiringBroker.CommandParams ())^
+						HiringBroker~ Exe
+					);
+				);
+			);
+		);
+	);
+}

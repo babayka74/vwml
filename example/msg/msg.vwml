@@ -55,6 +55,9 @@ include "models/modes/battle/battlemanager.vwml"
 
 include "models/modes/garage/garageDeal.vwml"
 
+include "models/modes/boss/bossofdistrict.vwml"
+include "models/modes/boss/bossofdistrictbroker.vwml"
+
 include "models/modes/deal/playerdeal.vwml"
 include "models/modes/deal/quartal.vwml"
 
@@ -69,6 +72,17 @@ include "models/modes/resourcemanager/unitResourceManager.vwml"
 
 include "models/modes/banking/playercashier.vwml"
 include "models/modes/banking/playerbanking.vwml"
+
+include "models/player/playerResourceAccount.vwml"
+include "models/player/playerResourceAttack.vwml"
+include "models/player/playerResourceBattleField.vwml"
+include "models/player/playerResourceBosses.vwml"
+include "models/player/playerResourceBusiness.vwml"
+include "models/player/playerResourceGarage.vwml"
+include "models/player/playerResourceHiring.vwml"
+include "models/player/playerResourceQuartals.vwml"
+include "models/player/playerResourceResouceManager.vwml"
+include "models/player/playerResourceUnit.vwml"
 
 include "models/player/playerResources.vwml"
 include "models/player/player.vwml"
@@ -250,11 +264,13 @@ module msg {
 			Injection ias (
 #if (unittest)
  				(pm 0 playermanagment playeradd 0 nil)
-				(manager 0 nil delay 0 (2500))
+				(manager 0 nil delay 0 (3500))
+				(pm 0 playermanagment playerstop 0 ())
+/*
 				(player 0 garage invest 0 ((cost vodka 150) 3000))
 				(manager 0 nil delay 0 (2000))
 				(player 0 garage cancelinvest 0 ())
-
+*/
 /*
 				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (2500))

@@ -14,6 +14,9 @@ module Player {
 				Attack ias (
 					UnitIdIndex ias 2;
 				);
+				Boss ias (
+					BossIdIndex ias 2;
+				);
 			);
 		);
 		ModeInfo ias (
@@ -37,9 +40,10 @@ module Player {
 			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest updategarageconf back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeBossOfDistrict ias ();
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
+			BossOfDistrictBrokerCommands.ExportCommands~ Exe
+			(AvailablePlayerCommandsOnModeBossOfDistrict BossOfDistrictBrokerCommands.ExportedCommands~)^
 			(AvailablePlayerCommandsOnModeBattle (AvailablePlayerCommandsOnModeBattle~ BattleField.ExportedCommands~) Join)^
 			(AvailablePlayerCommandsOnModeAttack (AvailablePlayerCommandsOnModeAttack~ AttackManager.ExportedCommands~) Join)^
 		);
@@ -116,6 +120,13 @@ module Player {
 				StateManagerBroker~ Exe
 				PlayerLifeStep~ Exe
 			);
+			HandlePlayerCommandsOnBossOfDistrict ias (
+				(BossOfDistrictBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(BossOfDistrictBroker.To (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.Boss.BossIdIndex~) Get)^
+				(BossOfDistrictBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				BossOfDistrictBroker~ Exe
+				PlayerLifeStep~ Exe
+			);
 			CommandDispatcher ias (
 				NonForcedMode ias nil;
 				Dispatch ias nil;
@@ -171,6 +182,10 @@ module Player {
 				(mode smbroker) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeStateManagerBroker~)^
 					(Handler HandlePlayerCommandsOnStateManagerBroker~)^
+				);
+				(mode dboss) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeBossOfDistrict~)^
+					(Handler HandlePlayerCommandsOnBossOfDistrict~)^
 				);
 
 				(mode global) ias HandlePlayerGlobalCommand~ Exe;
