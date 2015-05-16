@@ -110,7 +110,7 @@ module PlayerResourceManager {
 					);
 					(IsGarageUnit false) ias doNothing;
 					(IsGarageUnit true) ias (
-						(Resources.Garage.CancelReserve.Place ($$)->(Resources)->(Garage)->(P Kind~ Class~)~)^
+						(Resources.Garage.CancelReserve.Place (Resources)->(Garage)->(P Kind~ Class~)~)^
 						Resources.Garage.CancelReserve~ Exe
 					); 
 					(Kind (Characters)->(Unit U~)->Kind~)^
@@ -158,7 +158,7 @@ module PlayerResourceManager {
 						(RecalcFactors.Op Ew.SubF~)^
 						RecalcFactors~ Exe
 #if (verbose)
-						((clazz ($$)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf ($$)->(Resources)->(Business)->(Ctf RT~)~ part dev ($$)->(Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
+						((clazz (Resources)->(Business)->(Q Kind~ Class~)~ ctf (Resources)->(Business)->(Ctf RT~)~ part dev (Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
 #endif
 #endif // business
 

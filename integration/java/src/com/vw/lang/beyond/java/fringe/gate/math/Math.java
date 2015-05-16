@@ -56,7 +56,7 @@ public class Math implements IVWMLGate {
 
 		@Override
 		public EWEntity handler(EWEntity commandArgs) {
-			int i = 0;
+			float i = 0;
 			for(EWObject o : commandArgs.getLink().getLinkedObjects()) {
 				EWEntity e = (EWEntity)o;
 				i += Math.convertString2Float((String)e.getId());
@@ -100,6 +100,20 @@ public class Math implements IVWMLGate {
 		
 	}
 
+	private static class MultFHandler extends GateCommandHandler {
+
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			float i = 1;
+			for(EWObject o : commandArgs.getLink().getLinkedObjects()) {
+				EWEntity e = (EWEntity)o;
+				i *= Math.convertString2Float((String)e.getId());
+			}
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+		}
+		
+	}
+	
 	private static class DivHandler extends GateCommandHandler {
 
 		@Override
@@ -121,6 +135,28 @@ public class Math implements IVWMLGate {
 			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
 		}
 		
+	}
+	
+	private static class DivFHandler extends GateCommandHandler {
+
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			float i = 0;
+			boolean ft = true;
+			for(EWObject o : commandArgs.getLink().getLinkedObjects()) {
+				EWEntity e = (EWEntity)o;
+				if (ft) {
+					i = Math.convertString2Float((String)e.getId());
+					ft = false;
+					continue;
+				}
+				float d = Math.convertString2Float((String)e.getId());
+				if (d != 0) {
+					i /= d;
+				}
+			}
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+		}
 	}
 
 	private static class IncHandler extends GateCommandHandler {
@@ -330,7 +366,9 @@ public class Math implements IVWMLGate {
 			put("sumf", new SumFHandler());
 			put("substrf", new SubstrFHandler());
 			put("mult", new MultHandler());
+			put("multf", new MultFHandler());
 			put("div", new DivHandler());
+			put("divf", new DivFHandler());
 			put("inc", new IncHandler());
 			put("dec", new DecHandler());
 			put("compare", new CompareHandler());

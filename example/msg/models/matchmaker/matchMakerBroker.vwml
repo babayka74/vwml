@@ -1,0 +1,10 @@
+module MatchMakerBroker {
+	MagicWorld ias (
+		MatchMakerManagerBroker ias (
+			CommandId ias nil;
+			CommandParams ias nil;
+
+			((MatchMakerManager 0) Tx (nil CommandId~ nil CommandParams~)) Gate
+		);
+	);
+}

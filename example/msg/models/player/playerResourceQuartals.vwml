@@ -31,6 +31,8 @@ module PlayerResourceQuartals {
 						RQN ias 0;
 						// This entity is monitored by interceptor for boss's mode
 						BQN ias 0;
+						// predefined quartals' configuration
+						PQConf ias nil;
 						// internal completition callback
 						ICB ias (
 							(EQ 0 ICB~) FinishInterception
@@ -47,34 +49,76 @@ module PlayerResourceQuartals {
 						(M boss) ias (
 							(BQN N~)^
 #if (verbose)
-							((Initialized boss BQN~ quartals for player PId~) Ew.Output~) Do
+							((Initialized BQN~ quartals for boss for player PId~) Ew.Output~) Do
 #endif
 							// waits untill all boss's quartals are initialized
 							(BQN 0 ICB~) StartInterception
 						);
 						ActivateQuartal ias (
-							V ias nil;
+							QId ias nil;
+							QConf ias nil;
+							// sets predefined quartal's conf
+							SetQConf ias (
+								(QConf true) ias doNothing;
+								(QConf false) ias (
+									((Quartal QId~)->(Resource)->(Update)->QConf (QConf~ 0) Get)^
+									((Quartal QId~)->(Resource)->(Update)->BribeR (QConf~ 1) Get)^
+								);
+								(QConf (QConf~ nil) Ident)~ Exe
+							);
 							(QReady false) ias (
-								(Quartal (Quartal (PId~ V~)) defer) Born
+								(Quartal (Quartal QId~) defer) Born
 #if (verbose)
-								((R~ PId~ created quartal (Quartal (PId~ V~)) by request) Ew.Output~) Do
+								((R~ PId~ created quartal (Quartal QId~) by request) Ew.Output~) Do
 #endif
 								(QReady true)~ Exe
 							);
 							// quartal's activation
 							(QReady true) ias (
-								((Quartal (PId~ V~))->Id (PId~ V~))^
-								((Quartal (PId~ V~))->Owner PId~)^
-								((Quartal (PId~ V~))->(Resource)->Requester R~)^
-								((Quartal (PId~ V~))) Activate
+								((Quartal QId~)->Id QId~)^
+								((Quartal QId~)->Owner PId~)^
+								((Quartal QId~)->(Resource)->Requester R~)^
+								SetQConf~ Exe
+								((Quartal QId~)) Activate
 							);
-							(V (($~ F~) Ew.Sum~) Do)^
 							// checks if quartal has already been created
-							(QReady (Quartal (PId~ V~)) EI)~ Exe
+							(QReady (Quartal QId~) EI)~ Exe
+						);
+						(N true) ias (
+							SQ ias (
+								(ActivateQuartal.QId ($~ 0) Get)^
+								(ActivateQuartal.QConf ($~ 1) Get)^
+								ActivateQuartal~ Exe 
+							);
+							(S true) ias (
+								(RQN 0)^
+								(BQN 0)^
+#if (verbose)                                           
+								((No any quartals initialized on init phase for player PId~) Ew.Output~) Do
+#endif
+							);
+							(S false) ias (
+								(N (PQConf~) Size)^
+#if (verbose)                                           
+								((Initialized predefined quartals for boss for player PId~) Ew.Output~) Do
+#endif
+								(M M~)~ Exe
+								(PQConf~ SQ~) ForEach
+							);
+							(S (PQConf~ nil) Ident)~ Exe
+						);
+						(N false) ias (
+							// iterated quartals
+							IQ ias (
+								(ActivateQuartal.QId (PId~ (($~ F~) Ew.Sum~) Do))^
+								ActivateQuartal~ Exe 
+							);
+							(N~ IQ~) Repeat
 						);
 						(M M~)~ Exe
-						(N~ ActivateQuartal~) Repeat
+						(N (N~ 0) Ident)~ Exe
 					);
+					
 					Init ias (
 						NotifyAboutAllInitializedQuartals ias (
 							(InitSteps (InitSteps~ (quartals)) Substruct)^
@@ -118,21 +162,13 @@ module PlayerResourceQuartals {
 						);
 						(NoQuartals (Own~ ()) Ident)~ Exe
 					);
-					RestoreActiveQ ias (
-						(RQ false) ias doNothing;
-						(RQ true) ias (ActiveQuartals NumOfActiveQuartals~)^;
-						(RQ (ActiveQuartals~ 0) Ident)~ Exe
-					);
+					RestoreActiveQ ias (ActiveQuartals NumOfActiveQuartals~)^;
 					Done ias (
 						RestoreActiveQ~ Exe
 						(Deactivate.A releasequartal)^
 						Deactivate~ Exe
 					);
-					Reset ias (
-						RestoreActiveQ~ Exe
-						(Deactivate.A resetquartal)^
-						Deactivate~ Exe
-					);
+					Reset ias Done~ Exe;
 				);
 			);
 		);

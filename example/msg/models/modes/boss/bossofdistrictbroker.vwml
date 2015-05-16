@@ -3,8 +3,8 @@ module BossOfDistrictBroker {
 		BossOfDistrictBrokerCommands ias (
 			ExportedCommands ias ();
 
-			BossCommands ias (addquartal linkquartal releasedquartal paybribe quartalsinfo qinitialized exit reset);
-			BrokerCommands ias (bossinitialized bossuninitialized);
+			BossCommands ias (activatequartal addquartal linkquartal releasedquartal paybribe quartalsinfo changebbr qinitialized exit reset);
+			BrokerCommands ias (bossinitialized bossuninitialized bossresettted addboss);
 
 			ExportCommands ias (
 				(ExportedCommands ())^
@@ -18,7 +18,18 @@ module BossOfDistrictBroker {
 				CommandId ias nil;
 				To ias nil;
 				CommandParams ias nil;
-				(Handle addquartal),(Handle linkquartal),(Handle releasedquartal),(Handle paybribe),(Handle quartalsinfo),(Handle qinitialized),(Handle exit) ias (
+
+				AddBossInRT ias (
+					(Resources.Bosses.AddBoss.BId (CommandParams~ 0) Get)^
+					(Resources.Bosses.AddBoss.Quartals (CommandParams~ 1) Get)^
+					(Resources.Bosses.AddBoss.QNIds (CommandParams~ 2) Get)^
+					(Resources.Bosses.AddBoss.BBR (CommandParams~ 3) Get)^
+					// predefined quratals' configuration
+					(Resources.Bosses.AddBoss.PQConf (CommandParams~ 4) Get)^
+					(Resources.Bosses.AddBoss.InitAs runtime)^
+					Resources.Bosses.AddBoss~ Exe
+				);
+				(Handle activatequartal),(Handle addquartal),(Handle linkquartal),(Handle changebbr),(Handle releasedquartal),(Handle resettedquartal),(Handle paybribe),(Handle quartalsinfo),(Handle qinitialized),(Handle exit),(Handle reset) ias (
 					((BossOfDistrict To~)->CommandId CommandId~)^
 					((BossOfDistrict To~)->CommandParams CommandParams~)^
 					(BossOfDistrict To~)~ Exe
@@ -31,10 +42,21 @@ module BossOfDistrictBroker {
 					(I (BossOfDistrict To~)->InitAs~)~ Exe
 				);
 				(Handle bossuninitialized) ias (
+					// negotiated
+					(R true) ias (
+						(Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->RemoveBoss~ Exe
+					);
+					// simple closed
+					(R false),(R nil) ias (
+						(Player Id~)->(Resources)->(Bosses)->BossUnInitialized~ Exe
+					);
 					((Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->B To~)^
-					(Player Id~)->(Resources)->(Bosses)->BossUnInitialized~ Exe
+					(R (CommandParams~ 0) Get)~ Exe
 					((BossOfDistrict To~)) Release
 				);
+				(Handle bossresettted) ias (
+				);
+				(Handle addboss) ias AddBossInRT~ Exe;
 				(Handle CommandId~)~ Exe
 			);
 		);

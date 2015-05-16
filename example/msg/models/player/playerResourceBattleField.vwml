@@ -2,8 +2,36 @@ module PlayerResourceBattleField {
 	MagicWorld ias (
 		Player ias (
 			Resources ias (
+				BattleZones ias (
+					Zones ias ();
+					AttachZones ias (
+						// Z is complex entity => (qid1, qid2, ..., qidN)
+						Z ias nil;
+#if (verbose)
+						((The player Id~ attaches battlezones Z~ to Zones~) Ew.Output~) Do
+#endif
+
+						(Zones (Zones~ Z~) Join)^
+#if (verbose)
+						((The player Id~ has following battlezones Zones~) Ew.Output~) Do
+#endif
+					);
+					DetachZones ias (
+						// Z is complex entity => (qid1, qid2, ..., qidN)
+						Z ias nil;
+						(Zones (Zones~ Z~) Substruct)^
+#if (verbose)
+						((The player Id~ has following battlezones Zones~) Ew.Output~) Do
+#endif
+					);
+				);
 				BattleFieldDone ias (
-					(NotSelectedBF true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate;
+					(NotSelectedBF true) ias (
+						// battle zones (see BossOfDistrict document, last section)
+						(BZones ())^
+						((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate
+					);
+					// not used for now
 					(NotSelectedBF false) ias (
 						((Player Id~) Tx (ModeInfo.ModeBattle~ destroybf Id~ ((Id~ 0)))) Gate
 					);

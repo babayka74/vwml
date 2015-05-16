@@ -152,6 +152,15 @@ module PlayerModeMain {
 					(((main updatecashierconf ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
+				(Handle rqrating) ias (
+					Resources.Business.CalcDevGangFactor~ Exe
+#if (verbose)
+					((Player Id~ has gang development factor Resources.Business.CalcDevGangFactor.D~) Ew.Output~) Do
+#endif
+#if (release)
+					(((main rqrating done) (player Id~) (dev Resources.Business.CalcDevGangFactor.D~ (Resources.Business.DevGang~ 2) Get)) Ew.OutChannel~) Do
+#endif					
+				);
 				(Handle CommandId~)~ Exe
 			);
 		);

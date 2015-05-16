@@ -6,7 +6,11 @@ module PlayerDeal {
 				CommandParams ias nil;
 				QuartalId ias nil;
 				UnlinkQ ias (
-					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^;
+					(MyEconomicQ true) ias (
+						(Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^
+						(Resources.BattleZones.DetachZones.Z (Quartal QuartalId~)->(Sherif)->BattleZones~)^
+						Resources.BattleZones.DetachZones~ Exe
+					);
 					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;
 					((Quartal QuartalId~)->Linked false)^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
@@ -16,6 +20,26 @@ module PlayerDeal {
 #endif
 #if (release)
 					(((deal unlinkquartal done) (player Id~) (quartal QuartalId~)) Ew.OutChannel~) Do
+#endif
+				);
+				LinkQ ias (
+					(MyEconomicQ true) ias (
+						(Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Join)^
+						(Resources.Quartals.NumOfActiveQuartals (Resources.Quartals.Own~) Size)^
+						(Resources.BattleZones.AttachZones.Z (Quartal QuartalId~)->(Sherif)->BattleZones~)^
+						Resources.BattleZones.AttachZones~ Exe
+					);
+					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^;
+					((Quartal QuartalId~)->Linked true)^
+					((Quartal QuartalId~)->Owner Id~)^
+					((Quartal QuartalId~)->(Resource)->Requester (Player Id~))^
+					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
+					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
+#if (verbose)
+					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
+#endif
+#if (release)
+					(((deal linkquartal done) (player Id~) (quartal QuartalId~)) Ew.OutChannel~) Do
 #endif
 				);
 				// (player 0 setintention (quartalId intention (...)))
@@ -30,20 +54,8 @@ module PlayerDeal {
 					((Quartal QuartalId~) Tx (Id~ Intention~ IntentionParams~)) Gate
 				);
 				(Handle linkquartal) ias (
-					(MyEconomicQ true) ias (Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Join)^;
-					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^;
 					(QuartalId (CommandParams~ 0) Get)^
-					((Quartal QuartalId~)->Linked true)^
-					((Quartal QuartalId~)->Owner Id~)^
-					((Quartal QuartalId~)->Requester (Player Id~))^
-					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
-					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
-#if (verbose)
-					((The player Id~ in mode deal and linked quartals are Resources.Quartals.Visible~ and Resources.Quartals.Own~) Ew.Output~) Do
-#endif
-#if (release)
-					(((deal linkquartal done) (player Id~) (quartal QuartalId~)) Ew.OutChannel~) Do
-#endif
+					LinkQ~ Exe
 				);
 				(Handle unlinkquartal) ias (
 					(QuartalId (CommandParams~ 0) Get)^
@@ -117,6 +129,12 @@ module PlayerDeal {
 					Resources.Business.IncreaseBF~ Exe
 					// sends quantum to quartal for updaiting contribution value
 					((Quartal QuartalId~) Tx (QuartalId~ rspcalcquantum (Resources.Business.RQ~))) Gate
+				);
+				(Handle updatebzones) ias (
+					(Resources.BattleZones.DetachZones.Z (CommandParams~ 0) Get)^
+					Resources.BattleZones.DetachZones~ Exe
+					(Resources.BattleZones.AttachZones.Z (CommandParams~ 1) Get)^
+					Resources.BattleZones.AttachZones~ Exe
 				);
 				(Handle back) ias (
 					(Player.Mode main)^

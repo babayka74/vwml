@@ -10,7 +10,12 @@ module PlayerResourceBusiness {
 					InitialGContain ias 0;
 					GDevelop ias 0;		// see StrategyGame_Hiring&Dismiss
 					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
+					BDevelop ias 0;         // global player's business development factor
 					LH ias 0; 		// see Battle result document
+					InternalCurrency ias nil; // internal currency which is used for calculating integral values of GDev and BDev
+					InternalCurrencyV ias 0;   // value
+					CurrencyRates ias nil;  // matrix of coefficients for converting resources into inrernal currency
+					DevGang ias nil; 	// set of dev gang coefficients
 #endif
 					UnitClasses ias nil;
 					UnitKinds ias nil;
@@ -23,7 +28,7 @@ module PlayerResourceBusiness {
 #if (business)
 						(GDevelop 0)^
 						(GContain 0)^
-						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~) (LH Ew.BusinessConf.LH~)))^
+						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~) (LH Ew.BusinessConf.LH~) (InternalCurrency Ew.BusinessConf.InternalCurrency~) (CurrencyRates Ew.BusinessConf.CurrencyRates~) (DevGang Ew.BusinessConf.DevGang~)))^
 #else
 						(Update.From (Factors Ew.BusinessConf.Factors~))^
 #endif
@@ -35,22 +40,49 @@ module PlayerResourceBusiness {
 					
 #if (business)
 					AssembleGDevelop ias (
-						AssembleByRt ias (GDevelop ((GDevelop~ (Gdf $~)~) Ew.Sum~) Do)^;
+						V ias 0;
+						AssembleByRt ias (
+							(IC true) ias (V (Gdf $~)~)^;
+							(IC false) ias (V (((Gdf $~)~ (CR $~ InternalCurrency~)~) Ew.MulF~) Do)^;
+							(IC (InternalCurrency~ nil) Ident)~ Exe 
+							(GDevelop ((GDevelop~ V~) Ew.SumF~) Do)^
+						);
 						(GDevelop 0)^
 						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
-						(GDevelop ((GDevelop~ InitialGDevelop~) Ew.Sum~) Do)^
+						(GDevelop ((GDevelop~ InitialGDevelop~) Ew.SumF~) Do)^
 #if (verbose)                           	
 						((Player Id~ has assembled gdevelop factor GDevelop~) Ew.Output~) Do 
 #endif
 					);
 
 					AssembleGContain ias (
-						AssembleByRt ias (GContain ((GContain~ (Ctf $~)~) Ew.Sum~) Do)^;
+						V ias 0;
+						AssembleByRt ias (
+							(IC true) ias (V (Ctf $~)~)^;
+							(IC false) ias (V (((Ctf $~)~ (CR $~ InternalCurrency~)~) Ew.MulF~) Do)^;
+							(IC (InternalCurrency~ nil) Ident)~ Exe 
+							(GContain ((GContain~ V~) Ew.SumF~) Do)^
+						);
 						(GContain 0)^
 						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
-						(GContain ((GContain~ InitialGContain~) Ew.Sum~) Do)^
+						(GContain ((GContain~ InitialGContain~) Ew.SumF~) Do)^
 #if (verbose)                           	
 						((Player Id~ has assembled gcontain factor GContain~) Ew.Output~) Do 
+#endif
+					);
+
+					AssembleBF ias (
+						V ias 0;
+						AssembleByRt ias (
+							(IC true) ias (V (Bdf $~)~)^;
+							(IC false) ias (V (((Bdf $~)~ (CR $~ InternalCurrency~)~) Ew.MulF~) Do)^;
+							(IC (InternalCurrency~ nil) Ident)~ Exe 
+							(BDevelop ((BDevelop~ V~) Ew.SumF~) Do)^
+						);
+						(BDevelop 0)^
+						(Ew.BusinessConf.AvailableResources~ AssembleByRt~) ForEach
+#if (verbose)                           	
+						((Player Id~ has assembled bdevelop factor BDevelop~) Ew.Output~) Do 
 #endif
 					);
 #endif // business
@@ -138,6 +170,59 @@ module PlayerResourceBusiness {
 							((Player Id~ has LH factor LH~) Ew.Output~) Do 
 #endif
 						);
+						
+						UpdateIC ias (
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (
+								(InternalCurrency ((F~ 1) Get 0) Get)^
+								(InternalCurrencyV ((F~ 1) Get 1) Get)^
+							);
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has internal currency InternalCurrency~ and value is InternalCurrencyV~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdateCR ias (
+							F ias nil;
+							// builds converting matrix
+							BM ias (
+								(C ($~ 0) Get)^
+								// direct row
+								((CR C~ InternalCurrency~) ($~ 1) Get)^
+								// reverse row
+								((CR InternalCurrency~ C~) ($~ 1) Get)^
+								((CR C~ InternalCurrency~) Business true) Context
+								((CR InternalCurrency~ C~) Business true) Context
+#if (verbose)                           	
+								((Player Id~ direct currency rate row (CR C~ InternalCurrency~)~) Ew.Output~) Do
+								((Player Id~ reverse currency rate row (CR InternalCurrency~ C~)~) Ew.Output~) Do 
+#endif
+							);
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (
+								(CRNSet true) ias doNothing;
+								// iterate through rates and build matrix
+								(CRNSet false) ias (CurrencyRates~ BM~) ForEach;
+								(CurrencyRates (F~ 1) Get)^
+								(CRNSet (CurrencyRates~ nil) Ident)~ Exe
+							);
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ currency rates CurrencyRates~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdateDevGang ias (
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (DevGang (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has dev gang coefficients DevGang~) Ew.Output~) Do 
+#endif
+						);
 
 						UpdateUnitsInfo ias (
 							F ias nil;
@@ -187,6 +272,12 @@ module PlayerResourceBusiness {
 						UpdateUnitsInfo~ Exe
 						(UpdateLH.F (From~ 4) Get)^
 						UpdateLH~ Exe
+						(UpdateIC.F (From~ 5) Get)^
+						UpdateIC~ Exe
+						(UpdateCR.F (From~ 6) Get)^
+						UpdateCR~ Exe
+						(UpdateDevGang.F (From~ 7) Get)^
+						UpdateDevGang~ Exe
 #endif // business
 						(UpdateFactors.F  (From~ 0) Get)^
 						UpdateFactors~ Exe
@@ -288,6 +379,17 @@ module PlayerResourceBusiness {
 #if (verbose)
 						((Player Id~ new contribution quantum for (Value~ 1) Get is RQ~) Ew.Output~) Do
 #endif
+					);
+					// Calculates rating of the gang
+					CalcDevGangFactor ias (
+						D ias 0;
+						GDev ias 0;
+						BDev ias 0;
+						AssembleGDevelop~ Exe
+						AssembleBF~ Exe
+						(GDev (((DevGang~ 0) Get GDevelop~) Ew.MulF~) Do)^
+						(BDev (((DevGang~ 1) Get BDevelop~) Ew.MulF~) Do)^
+						(D ((GDev~ BDev~) Ew.SumF~) Do)^
 					);
 				);
 			);

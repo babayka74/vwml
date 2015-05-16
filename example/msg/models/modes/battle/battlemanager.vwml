@@ -57,6 +57,75 @@ module BattleManager {
 					// sent to requested with player's identifier and current battle status
 					((Player RPId~) Tx (RPIdMode~ responsebattlestatusbf RPId~ (Id~ (BattleField Resources.SelectedBattle~)->BattleStatus~))) Gate
 				);
+				PrepareAttackZones ias (
+					AttackZones ias nil;
+					// in case if battle wasn't started in 'StartIn' time we have to return all players to deflist
+					ClearBZones ias (
+						Clear ias (
+							AZN ias nil;
+							(NAZN true) ias doNothing;
+							(NAZN false) ias (
+#if (verbose)                                   	
+								((Player Id~ returns AZN~~ to deflist) Ew.Output~) Do
+#endif
+								((MatchMakerManager 0) Tx (nil addtodeflist nil AZN~~)) Gate
+								(AZN~ nil)^
+
+							);
+							(AZN (Resources.BattleZones.Zones~ ($~ 0) Get) Find)^
+							(NAZN (AZN~ nil) Ident)~ Exe
+						);
+						(AttackZones~ Clear~) ForEach
+					);
+					// associates attack zones
+					AssociateBZones ias (
+						Associate ias (
+							AZN ias nil;
+							(NAZN true) ias doNothing;
+							(NAZN false) ias (
+								(AZN~ ($~ 1) Get)^
+#if (verbose)                                   	
+								((Player Id~ has attack zone AZN~ and associated attacked player AZN~~) Ew.Output~) Do
+#endif
+							);
+							(AZN (Resources.BattleZones.Zones~ ($~ 0) Get) Find)^
+							(NAZN (AZN~ nil) Ident)~ Exe
+						);
+						(AttackZones~ Associate~) ForEach
+						// start timer which waits for 'StartIn~' time for attack message
+#if (verbose)                                   	
+						((Player Id~ zones will be cleared in Ew.MatchMakerConf.Attack.StartIn~ ms) Ew.Output~) Do
+#endif
+						(Ew.MatchMakerConf.Attack.StartIn~ (ClearBZones Id~) ClearBZones~) Recall
+					);
+					(NAZ true) ias doNothing;
+					(NAZ false) ias AssociateBZones~ Exe;
+
+#if (verbose)
+					((Player Id~ is being prepared for attack with attack cost (CommandParams~ 0) Get) Ew.Output~) Do						
+#endif
+#if (release)
+	#if (zonebinderfringe)
+					// (CommandParams~ 1) Get => AttackCost
+					(AttackZones (((Id~ (CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do)^
+	#else
+					// (<zone_id> (<associated player id> <player's defcost>))
+					(AttackZones (((BZ (0 888) 0) (1 1000)) ((BZ (0 888) 1) (2 2000)) ((BZ (0 888) 2) (3 3000))))^
+	#endif
+#endif
+#if (verbose)
+					((Player Id~ prepared attacking zones AttackZones~) Ew.Output~) Do						
+#endif
+					(NAZ (AttackZones~ nil) Ident)~ Exe
+				);
+
+				AttackZonesStarted ias (
+					(-1 (ClearBZones Id~) PrepareAttackZones.ClearBZones~) Recall
+#if (verbose)
+					((Player Id~ cancelled battle timer) Ew.Output~) Do						
+#endif
+				);
+
 				(DelegateToBF false) ias (
 					(Handle createbf) ias CreateBattleField~ Exe;
 					(Handle destroybf) ias DestroyBattleField~ Exe;
@@ -64,6 +133,8 @@ module BattleManager {
 					// selects battlefield for defence building
 					(Handle selectbf) ias SelectBattleField~ Exe;
 					(Handle requestbattlestatusbf) ias GetBattleStatus~ Exe;
+					(Handle prepareattackzonesbf) ias PrepareAttackZones~ Exe;
+					(Handle attackzonesbf) ias AttackZonesStarted~ Exe;
 					(Handle CommandId~)~ Exe
 				);
 				(DelegateToBF true) ias (

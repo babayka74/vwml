@@ -11,10 +11,14 @@ module BossOfDistrict {
 			Id ias nil;
 			// list of quartals (sherifs)
 			CQs ias ();
+			// number of quartals 
+			CQsNum ias 0;			
 			// boss bribes ranges
 			BBR ias ();
 			// initialized during phase (oninit | runtime)
 			InitAs ias oninit;
+			// predefined quartals' configuration
+			PQConf ias nil;
 			// incoming command id and its params
 			CommandId ias nil;
 			CommandParams ias nil;
@@ -31,7 +35,7 @@ module BossOfDistrict {
 #endif
 					(Initialized true)^
 #if (release)
-					(((bossofdistrict init done) (player Owner~) (boss Id~)) Ew.OutChannel~) Do
+					(((bossofdistrict init done) (player Owner~) (boss Id~) (bribe (DesiredBribe~))) Ew.OutChannel~) Do
 #endif
 					((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ bossinitialized Id~ ())) Gate
 				);
@@ -45,6 +49,7 @@ module BossOfDistrict {
 				((Player)->(Resources)->(Quartals)->(Construct Id~)->F QNIds~)^
 				((Player)->(Resources)->(Quartals)->(Construct Id~)->N Quartals~)^
 				((Player)->(Resources)->(Quartals)->(Construct Id~)->CB Finished~)^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
 				(Player)->(Resources)->(Quartals)->(Construct Id~)~ Exe
 			);
 			Done ias (
@@ -54,7 +59,7 @@ module BossOfDistrict {
 #if (release)
 					(((bossofdistrict exit done) (player Owner~) (boss Id~)) Ew.OutChannel~) Do
 #endif
-					((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ bossuninitialized Id~ ())) Gate
+					((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ bossuninitialized Id~ (Negotiated~))) Gate
 				);
 				(CQs () Finished~) StartInterception
 				Deactivate~ Exe
@@ -65,7 +70,9 @@ module BossOfDistrict {
 					D ias ((Player Owner~) Tx (ModeInfo.ModeDeal~ releasequartal Owner~ ($~))) Gate;
 					(CQs~ D~) ForEach
 				);
-				(N true) ias Finished~ Exe;
+				(N true) ias (
+					Done.Finished~ Exe
+				);
 				(N (CQs~ ()) Ident)~ Exe
 			);
 			// add quartal under boss's supervision
@@ -75,6 +82,26 @@ module BossOfDistrict {
 #if (verbose)
 				((Player Owner~ added quartal Q~ under boss Id~ supervision and quartals are CQs~) Ew.Output~) Do
 #endif
+#if (release)
+				(((bossofdistrict addquartal done) (player Owner~) (boss Id~) (Q~)) Ew.OutChannel~) Do
+#endif
+			);
+			// create and activate boss's quartal which is added in runtime
+			ActivateQuartal ias (
+				CB ias (
+#if (release)
+					(((bossofdistrict activatequartal done) (player Owner~) (boss Id~) (PQConf~)) Ew.OutChannel~) Do
+#endif
+				);
+				PQConf ias nil;
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->F nil)^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->N 0)^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->CB CB~)^
+				((Player)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
+				(Player)->(Resources)->(Quartals)->(Construct Id~)~ Exe
 			);
 			PublishQuartals ias (
 				PQ ias (
@@ -92,7 +119,7 @@ module BossOfDistrict {
 					(Result true) ias (
 						(Negotiated true)^
 #if (release)
-						(((bossofdistrict paybribe done) (player Owner~) (boss Id~) (bribe done B~)) Ew.OutChannel~) Do
+						(((bossofdistrict paybribe done) (player Owner~) (boss Id~)) Ew.OutChannel~) Do
 #endif
 						// all quartals are controlled by player from now
 						PublishQuartals~ Exe
@@ -101,12 +128,12 @@ module BossOfDistrict {
 					);
 					(Result false) ias (
 #if (release)
-						(((bossofdistrict paybribe failed) (player Owner~) (boss Id~) (noResources B~)) Ew.OutChannel~) Do
+						(((bossofdistrict paybribe failed noResources) (player Owner~) (boss Id~) (B~)) Ew.OutChannel~) Do
 #endif
 					);
 					((Player Owner~)->(Resources)->(Account)->Value B~)^
-					(Player Owner~)->(Resources)->Withdraw~ Exe
-					(Result (Player Owner~)->(Resources)->Result~)~ Exe
+					(Player Owner~)->(Resources)->(Account)->Withdraw~ Exe
+					(Result (Player Owner~)->(Resources)->(Account)->Result~)~ Exe
 				);
 				// different resources
 				(CRT false) ias (
@@ -114,7 +141,7 @@ module BossOfDistrict {
 					((Invalid resource type BribeRT~ requested (DesiredBribe~ 0) Get) Ew.Output~) Do				
 #endif
 #if (release)
-					(((bossofdistrict paybribe failed) (player Owner~) (boss Id~) (invaildResource BribeRT~ (DesiredBribe~ 0) Get)) Ew.OutChannel~) Do
+					(((bossofdistrict paybribe failed invaildResource) (player Owner~) (boss Id~) (BribeRT~ (DesiredBribe~ 0) Get)) Ew.OutChannel~) Do
 #endif
 				);
 				// same resources
@@ -125,15 +152,15 @@ module BossOfDistrict {
 						((The boss Id~ of player Owner~ did not take bribe B~ desired bribe is DesiredBribe~) Ew.Output~) Do
 #endif
 #if (release)
-						(((bossofdistrict paybribe failed) (player Owner~) (boss Id~) (bribe tooSmall B~ DesiredBribe~)) Ew.OutChannel~) Do
+						(((bossofdistrict paybribe failed tooSmall) (player Owner~) (boss Id~) (bribe B~ DesiredBribe~)) Ew.OutChannel~) Do
 #endif
 					);
 					(BB 0),(BB 1) ias Pay~ Exe;
 					// boss's bribe
 					(BB ((BribeV~ (DesiredBribe~ 1) Get) Ew.Compare~) Do)~ Exe
 				);
-				(BribeRT (B 0) Get)^
-				(BribeV  (B 1) Get)^
+				(BribeRT (B~ 1) Get)^
+				(BribeV  (B~ 2) Get)^
 				// check resource type
 				(CRT (BribeRT~ (DesiredBribe~ 0) Get) Ident)~ Exe
 			);
@@ -143,7 +170,14 @@ module BossOfDistrict {
 				(I ())^
 				(CQs~ P~) ForEach
 #if (release)
-				(((bossofdistrict openinfo done) (player Owner~) (boss Id~) I~) Ew.OutChannel~) Do
+				(((bossofdistrict quartalsinfo done) (player Owner~) (boss Id~) I~) Ew.OutChannel~) Do
+#endif
+			);
+			ChangeBBR ias (
+				BBR ias nil;
+				(DesiredBribe BBR~)^
+#if (release)
+				(((bossofdistrict changebbr done) (player Owner~) (boss Id~) BBR~) Ew.OutChannel~) Do
 #endif
 			);
 			// commands
@@ -151,11 +185,19 @@ module BossOfDistrict {
 				(AddQuartal.Q (CommandParams~ 0) Get)^
 				AddQuartal~ Exe
 			);
+			(Handle activatequartal) ias (
+				(ActivateQuartal.PQConf (CommandParams~ 0) Get)^
+				ActivateQuartal~ Exe
+			);
 			(Handle paybribe) ias (
 				(PayBribe.B (CommandParams~ 0) Get)^
 				PayBribe~ Exe
 			);
 			(Handle quartalsinfo) ias PublishQInfo~ Exe;
+			(Handle changebbr) ias (
+				(ChangeBBR.BBR (CommandParams~ 0) Get)^
+				ChangeBBR~ Exe
+			);
 			(Handle qinitialized) ias (
 				((Player)->(Resources)->(Quartals)->(Construct Id~)->BQN (((Player)->(Resources)->(Quartals)->(Construct Id~)->BQN~) Ew.DecValue~) Do)^
 #if (verbose)
@@ -169,7 +211,7 @@ module BossOfDistrict {
 #endif
 				(CQs (CQs~ (Q~)) Substruct)^
 			);
-			(Handle exit),(Handle reset) ias Done~ Exe;
+			(Handle exit),(Handle reset) ias Done~ Exe; 
 			(Handle CommandId~)~ Exe
 		);
 	);

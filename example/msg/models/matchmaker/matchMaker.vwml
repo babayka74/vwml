@@ -1,0 +1,127 @@
+module MatchMaker {
+	MagicWorld ias (
+		Command ias (
+			Format ias (
+				MMManager ias (
+					ParamsIndex ias 3;
+				);
+			);
+		);
+		MatchMakerManager ias (
+			// single at this time
+			Id ias 0;
+			// centralized command dispatcher
+			CommandDispatcher ias (
+				Dispatch ias nil;
+				CommandSet ias nil;
+				Handler ias nil;
+				Cmd ias nil;
+				Params ias nil;
+			
+				CheckAndHandleCommand ias (
+					PId ias nil;
+					DefCost ias nil;
+					AttCost ias nil;
+					// active commands
+					CommandSet ias (addtodeflist removefromdeflist cleardeflist preparetoattack attackstarted updateconf);
+
+					AddToDefList ias (
+						(PId (Params~ 0) Get)^
+						(DefCost (Params~ 1) Get)^
+#if (release)
+	#if (zonebinderfringe)
+						((PId~ DefCost~) Ew.AddToDefList~) Do						
+	#endif
+#endif
+#if (verbose)
+						((Adding player PId~ with defence cost DefCost~ to defence list) Ew.Output~) Do						
+#endif
+					);
+
+					RemoveFromDefList ias (
+						(PId (Params~ 0) Get)^
+						(DefCost (Params~ 1) Get)^
+#if (release)
+	#if (zonebinderfringe)
+						((PId~ DefCost~) Ew.RemoveFromDefList~) Do						
+	#endif
+#endif
+#if (verbose)
+						((Removing player PId~ with defence cost DefCost~ from defence list) Ew.Output~) Do						
+#endif
+					);
+
+					ClearDefList ias (
+					);
+
+					PrepareToAttack ias (
+						(PId (Params~ 0) Get)^
+						((Player PId~) Tx (ModeInfo.ModeBattle~ prepareattackzonesbf PId~ ((Params~ 1) Get))) Gate
+					);
+
+					AttackStarted ias (
+						(PId (Params~ 0) Get)^
+						((Player PId~) Tx (ModeInfo.ModeBattle~ attackzonesbf PId~ ((Params~ 1) Get))) Gate
+					);
+
+					UpdateConf ias (
+						(Ew.MatchMakerConf.Conf Params~)^
+						Ew.MatchMakerConf~ Exe
+					);
+
+					(RightCommand true) ias (
+						// adds player to defence list
+						(Cmd addtodeflist) ias AddToDefList~ Exe;
+						// reAmove player from defence list
+						(Cmd removefromdeflist) ias RemoveFromDefList~ Exe;
+						(Cmd cleardeflist) ias ClearDefList~ Exe;
+						// prepares player for attack
+						(Cmd preparetoattack) ias PrepareToAttack~ Exe;
+						// attack of one of zones was started
+						(Cmd attackstarted) ias AttackStarted~ Exe;
+						// updates configuration
+						(Cmd updateconf) ias UpdateConf~ Exe;
+						(Cmd Cmd~)~ Exe
+					);
+					(RightCommand false) ias MatchMakerManagerLifeStep~ Exe;
+#if (verbose)
+					((The match maker manager Id~ received command Cmd~ with params Params~ available commands are CommandSet~) Ew.Output~) Do
+#endif
+					(RightCommand (CommandSet~ Cmd~) In)~ Exe
+				);
+				(Stop false) ias (
+					CheckAndHandleCommand~ Exe
+					MatchMakerManagerLifeStep~ Exe
+				);
+				(Stop true) ias (
+#if (verbose)
+					((The match maker manager Id~ stopped) Ew.Output~) Do
+#endif
+				);
+				(Cmd (Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(Params (Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+                                (Stop (Cmd~ exit) Ident)~ Exe
+			);
+			MatchMakerManagerLifeStep ias (
+				(ready false) ias (
+					(CommandDispatcher.Dispatch nil)^
+					MatchMakerManagerLifeStep~ Exe
+				);
+				(ready true) ias (
+					(CommandDispatcher.Dispatch ((MatchMakerManager Id~) Rx) Gate)^
+					CommandDispatcher~ Exe
+				);
+				(ready (((MatchMakerManager Id~) Ready) Gate true) Ident)~ Exe
+			);
+#if (verbose)
+			((The match maker manager Id~ added and active) Ew.Output~) Do
+#endif
+			((MatchMakerManager Id~) Register blocked) Gate
+			MatchMakerManagerLifeStep~ Exe
+			((MatchMakerManager Id~) Unregister) Gate
+#if (verbose)
+			((The match maker manager Id~ stopped and deactivated) Ew.Output~) Do
+#endif
+		);
+	);
+}

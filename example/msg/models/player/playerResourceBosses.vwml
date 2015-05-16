@@ -17,6 +17,8 @@ module PlayerResourceBosses {
 						QNIds ias 0;
 						// bosses bribes range
 						BBR ias ();
+						// predefined quartals configuration
+						PQConf ias nil;
 
 						(BossOfDistrict (BossOfDistrict BId~) defer) Born
 						((BossOfDistrict BId~)->Owner Id~)^
@@ -25,6 +27,7 @@ module PlayerResourceBosses {
 						((BossOfDistrict BId~)->BBR BBR~)^
 						((BossOfDistrict BId~)->InitAs InitAs~)^
 						((BossOfDistrict BId~)->Id BId~)^
+						((BossOfDistrict BId~)->PQConf PQConf~)^
 #if (verbose)
 						((Creating boss (BossOfDistrict BId~)) Ew.Output~) Do
 #endif
@@ -32,6 +35,12 @@ module PlayerResourceBosses {
 						(BossesList (BossesList~ (BId~)) Join)^
 					);
 					BossUnInitialized ias (
+						RemoveBoss ias (
+							(BossesList (BossesList~ (B~)) Substruct)^
+#if (verbose)
+							((Uninitialized boss (BossOfDistrict B~) removed and remained bosses are BossesList~) Ew.Output~) Do
+#endif
+						);
 						BLR ias (
 							(BossesList () BLR~) FinishInterception
 #if (verbose)
@@ -40,10 +49,7 @@ module PlayerResourceBosses {
 							((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (bosses))) Gate
 						);
 						B ias nil;
-						(BossesList (BossesList~ (B~)) Substruct)^
-#if (verbose)
-						((Uninitialized boss (BossOfDistrict B~) left bosses BossesList~) Ew.Output~) Do
-#endif
+						RemoveBoss~ Exe
 					);
 					PostBossesCommand ias (
 						Cmd ias exit;
@@ -55,15 +61,24 @@ module PlayerResourceBosses {
 						);
 						(BossesList~ BS~) ForEach
 					);
+					// initiate finish command
+					IFCmd ias (
+						Cmd ias nil;
+						(NI true) ias BossUnInitialized.BLR~ Exe;
+						(NI false) ias (
+							(BossesList () BossUnInitialized.BLR~) StartInterception
+							(PostBossesCommand.Cmd Cmd~)^
+							PostBossesCommand~ Exe
+						);
+						(NI (BossesList~ ()) Ident)~ Exe
+					);
 					Done ias (
-						(BossesList () BossUnInitialized.BLR~) StartInterception
-						(PostBossesCommand.Cmd exit)^
-						PostBossesCommand~ Exe
+						(IFCmd.Cmd exit)^
+						IFCmd~ Exe
 					);
 					Reset ias (
-						(BossesList () BossUnInitialized.BLR~) StartInterception
-						(PostBossesCommand.Cmd reset)^
-						PostBossesCommand~ Exe
+						(IFCmd.Cmd reset)^
+						IFCmd~ Exe
 					);
 					// adds initial bosses' set
 					AddInitialSet ias (
@@ -92,12 +107,16 @@ module PlayerResourceBosses {
 							(AddBoss.BBR Ew.BossOfDistrictConf.BossOfDBribeRanges~)^
 							AddBoss~ Exe
 						);
-						(InitBossesNum Ew.PlayerAccountConf.BossesOfDistrictPerPlayer~)^
+						(NIBS true) ias BossesInitFinished~ Exe;
+						(NIBS false) ias (
 #if (verbose)
-						((Creating InitBossesNum~ bosses) Ew.Output~) Do
+							((Creating InitBossesNum~ bosses) Ew.Output~) Do
 #endif
-						(InitBossesNum 0 BossesInitFinished~) StartInterception
-						(InitBossesNum~ CIBL~) Repeat
+							(InitBossesNum 0 BossesInitFinished~) StartInterception
+							(InitBossesNum~ CIBL~) Repeat
+						);
+						(InitBossesNum Ew.PlayerAccountConf.BossesOfDistrictPerPlayer~)^
+						(NIBS (InitBossesNum~ 0) Ident)~ Exe
 					);
 				);
 			);

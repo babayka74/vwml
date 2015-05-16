@@ -85,7 +85,7 @@ module HiringAgency {
 						);
 						(RequestsInProgress~ StopHiringRequest~) ForEach
 						(RequestsInProgress ())^
-						UnblockAndStop~ Exe
+						F~ Exe
 					);
 					(NoRequestsInProgress (RequestsInProgress~ ()) Ident)~ Exe
 				);

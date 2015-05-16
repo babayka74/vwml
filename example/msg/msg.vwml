@@ -48,6 +48,9 @@ include "models/statestore/stateStore.vwml"
 include "models/statestore/stateStoreBroker.vwml"
 include "models/modes/statemanagerbroker/stateManagerBroker.vwml"
 
+include "models/matchmaker/matchMaker.vwml"
+include "models/matchmaker/matchMakerBroker.vwml"
+
 include "models/modes/battle/attackbroker.vwml"
 include "models/modes/battle/attackmanager.vwml"
 include "models/modes/battle/battlefield.vwml"
@@ -140,7 +143,7 @@ module msg {
 				(StopTheWorld StopTheWorld~)~ Exe
 			);
 
-			AddressedCharacters ias (manager pm player gbanker ssm);
+			AddressedCharacters ias (manager pm player gbanker ssm mmm);
 			StopAll ias (AutoCommands.Injection (AutoCommands.Injection~ ((manager 0 exit))) Join)^;
 			// dispatches incoming request
 			AddressedTo ias (
@@ -198,6 +201,12 @@ module msg {
 						(StateStoreBroker.CommandParams Params~)^
 						StateStoreBroker~ Exe
 					);
+					// for match maker manager
+					(To mmm) ias (
+						(MatchMakerManagerBroker.CommandId CommandId~)^
+						(MatchMakerManagerBroker.CommandParams Params~)^
+						MatchMakerManagerBroker~ Exe
+					);
 					(To Character~)~ Exe
 				);
 				(RightCharacter (AddressedCharacters~ Character~) In)~ Exe
@@ -254,6 +263,11 @@ module msg {
 				((The game manager starts state store manager) Ew.Output~) Do
 #endif
 				(StateStoreManager) LTT
+#if (verbose)
+				((The game manager starts match maker manager) Ew.Output~) Do
+#endif
+				(MatchMakerManager) LTT
+
 				MainLoop~ Exe
 				3000 Relax
 				(Manager Unregister) Gate
@@ -263,9 +277,21 @@ module msg {
 		AutoCommands ias (
 			Injection ias (
 #if (unittest)
- 				(pm 0 playermanagment playeradd 0 nil)
-				(manager 0 nil delay 0 (3500))
-				(pm 0 playermanagment playerstop 0 ())
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+
+				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500))  ))
+				(manager 0 nil delay 0 (2500))
+				(player 0 bossofdistrict activatequartal (0 1) ((((0 888) ((vodka 200 360000 60 3600000 150 3) 300))) ))
+				(manager 0 nil delay 0 (2500))
+				(player 0 bossofdistrict changebbr (0 1) ((vodka 500)) )
+				(manager 0 nil delay 0 (2500))
+				(player 0 bossofdistrict paybribe (0 1) ((cost vodka 1000)))
+				(manager 0 nil delay 0 (2500))
+				(player 0 battle prepareattackzonesbf 0 (5000))
+
+//				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500)) (((0 888) ((vodka 200 360000 60 3600000 150) 300)))  ))
+				
 /*
 				(player 0 garage invest 0 ((cost vodka 150) 3000))
 				(manager 0 nil delay 0 (2000))

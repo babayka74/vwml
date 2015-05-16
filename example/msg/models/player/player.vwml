@@ -29,17 +29,19 @@ module Player {
 			ModeAttack ias attack;
 			ModeBanking ias banking;
 			ModeStateManagerBroker ias smbroker;
-			ModeBossOfDistrict ias dboss;
-			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~ ModeStateManagerBroker~ ModeBossOfDistrict~);
+			ModeBossOfDistrict ias bossofdistrict;
+			ModeMatchMakermanagerBroker ias mmbroker;
+			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~ ModeStateManagerBroker~ ModeBossOfDistrict~ ModeMatchMakermanagerBroker~);
 			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking cancelcarlooking carpaymentresult starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report collectstate);
-			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf);
+			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf prepareattackzonesbf attackzonesbf requestbattlestatusbf responsebattlestatusbf);
+			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf rqrating);
 			AvailablePlayerCommandsOnModeStateManagerBroker ias (collectstate restorestate rqcsquartals rqcsunits rspquartalstate rspunitstate rspcsha rqgarage rqbusiness rqha rqrsquartals rqrsunits rqrgarage rqrbusiness rqrha rsprquartalstate rsprunitstate rsprsha);
-			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal updatebzones releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
 			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest updategarageconf back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
+			AvailablePlayerCommandsOnModeMatchMakerManagerBroker ias (addtodeflist removefromdeflist cleardeflist preparetoattack attackstarted updateconf);
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
 			BossOfDistrictBrokerCommands.ExportCommands~ Exe
@@ -56,6 +58,7 @@ module Player {
 			Id ias nil;
 			Stop ias false;
 			State ias nonactive;
+			Status ias none;
 
 			HandlePlayerCommandOnModeBattle ias (
 				(BattleManager.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
@@ -118,6 +121,12 @@ module Player {
 				(StateManagerBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
 				(StateManagerBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
 				StateManagerBroker~ Exe
+				PlayerLifeStep~ Exe
+			);
+			HandlePlayerCommandsOnMatchMakerManagerBroker ias (
+				(MatchMakerManagerBroker.CommandId (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.CommandIndex~) Get)^
+				(MatchMakerManagerBroker.CommandParams (CommandDispatcher.Dispatch~ MagicWorld.Command.Format.ParamsIndex~) Get)^
+				MatchMakerManagerBroker~ Exe
 				PlayerLifeStep~ Exe
 			);
 			HandlePlayerCommandsOnBossOfDistrict ias (
@@ -183,9 +192,13 @@ module Player {
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeStateManagerBroker~)^
 					(Handler HandlePlayerCommandsOnStateManagerBroker~)^
 				);
-				(mode dboss) ias (
+				(mode bossofdistrict) ias (
 					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeBossOfDistrict~)^
 					(Handler HandlePlayerCommandsOnBossOfDistrict~)^
+				);
+				(mode mmbroker) ias (
+					(CommandSet ModeInfo.AvailablePlayerCommandsOnModeMatchMakerManagerBroker~)^
+					(Handler HandlePlayerCommandsOnMatchMakerManagerBroker~)^
 				);
 
 				(mode global) ias HandlePlayerGlobalCommand~ Exe;
@@ -210,6 +223,7 @@ module Player {
 				(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
+				(Status none)^
 				(ResetMode false)^
 				(Stop false)^
 				(State active)^

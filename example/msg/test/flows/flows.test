@@ -1,3 +1,99 @@
+/* 
+	===== HIRE UNITS AND RESET PLAYER =====
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+				(player 0 hiring startcarlooking 0 (((cost vodka 200) (hiringtime 2000) (id (0 1))) ((kind taxi) (clazz 1) (capacity 1))))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 2000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 0) (attack (yes yes yes)) (defence (no no yes)))))
+				(manager 0 nil delay 0 (3500))
+				// (0 2) => (0 1)
+				(player 0 resourcemanager joinunits 0 ((0 2) (0 1)))
+				(manager 0 nil delay 0 (2500))
+                                (pm 0 nil playerreset 0 ())
+
+
+*/
+
+/*
+  ======= MATCH MAKER PREPARES PLAYER FOR ATTACK =====
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+
+				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500))  ))
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict activatequartal (0 1) ((((0 888) ((vodka 200 360000 60 3600000 150 3) 300))) ))
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict changebbr (0 1) ((vodka 500)) )
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict paybribe (0 1) ((cost vodka 1000)))
+				(manager 0 nil delay 0 (3500))
+				(mmm 0 nil preparetoattack 0 (0 5000))
+*/
+
+/*
+ ======== ADD BOSS WITH PREDEFINED QUARTALS ============
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500)) (((0 888) ((vodka 200 360000 60 3600000 150) 300)))  ))
+*/
+
+/*
+ ======== ADD BOSS AND CHANGE ITS BBR ============
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500)) (((0 888) ((vodka 200 360000 60 3600000 150) 300)))  ))
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict changebbr (0 1) ((viski 500)) )
+*/
+
+
+/*
+ ======== ADD BOSS AND QUARTALS ============
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500))))
+				(manager 0 nil delay 0 (2500))
+				(player 0 bossofdistrict activatequartal (0 1) ((((0 888) ((vodka 200 360000 60 3600000 150) 300))) ))
+*/
+
+/*
+ ======== MATCH MAKER MANAGER ======
+
+				(mmm 0 nil addtodeflist 0 (0 3000))
+
+*/
+/*
+  ======= REQUEST PLAYER'S RATING =====
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+				(player 0 main rqrating 0 ())
+*/
+
+/* 
+  ======= DELAYED SHERIF'S BRIBE =====
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+				(player 0 deal setintention 0 ((0 0) pay (950 2000)))
+
+*/
+/*
+  ====== BOSSES ====
+
+ 				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (3500))
+				(player 0 bossofdistrct quartalsinfo (0 0) ())
+				(manager 0 nil delay 0 (1500))
+				(player 0 bossofdistrct paybribe (0 0) ((cost vodka 1000)))
+				(manager 0 nil delay 0 (2500))
+				(player 0 bossofdistrct addboss nil ((0 1) 5 300 ((viski 500))))
+*/
+
+
 /*
 
    ===== INVEST TO GARAGE AND CANCEL IT ======
@@ -573,7 +669,14 @@
    ===== DEAL   =====
 				(pm 0 playermanager playeradd 0)
 				(player 0 deal setintention 0 (1 open (100)))
-				(player 0 deal setintention 0 (1 pay (950)))
+				(player 0 deal setintention 0 (1 pay (950 2000)))
+*/
+
+/*
+   ===== DEAL TIMED  =====
+				(pm 0 playermanager playeradd 0)
+				(player 0 deal setintention 0 (1 open (100)))
+				(player 0 deal setintention 0 (1 pay (950 3000)))
 */
 
 /*

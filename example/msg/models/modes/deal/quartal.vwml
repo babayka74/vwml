@@ -34,9 +34,15 @@ module Quartal {
 				Requester ias nil;
 				/* desired price set by sherif to open information about quartal */
 				DesiredOpenInfoPrice ias 100;
+				/* number of zones (see MatchMaking documents) */
+				Znumber ias 0;
+
+				CreateQInfo ias (QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~ Sherif.BattleZones~))^;
 				Update ias (
 					QConf ias nil;
 					BribeR ias nil;
+					(NZnumber false) ias Sherif.SetupBattleZones~ Exe;
+					(NZnumber true) ias (Znumber 0)^;
 
 					(Type (QConf~ 0) Get)^
 					(Quantum (QConf~ 1) Get)^
@@ -44,17 +50,32 @@ module Quartal {
 					(Quantums (QConf~ 3) Get)^
 					(OpenTime (QConf~ 4) Get)^
 					(DesiredOpenInfoPrice (QConf~ 5) Get)^
+					(Znumber (QConf~ 6) Get)^
 					(Sherif.DesiredBribe BribeR~)^
+					(NZnumber (Znumber~ nil) Ident)~ Exe
 				);
 				/* resource initialization point */
 				Init ias (
 					(Update.QConf Ew.QuartalsConf.Resources~ Random)^
 					(Update.BribeR Ew.QuartalsConf.SherifBribeRanges~ Random)^
 					Update~ Exe
-					((Quartal Id~) Tx (Id~ check ())) Gate
+					CreateQInfo~ Exe
 #if (verbose)
 					((The quartal Id~ initialized with configuration (Type~ Quantum~ Period~ Quantums~ OpenTime~ DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
 #endif
+				);
+				/* sets quartal's resources by initial data */
+				Setup ias (
+					(NU true) ias Init~ Exe;
+					(NU false) ias (
+						Update~ Exe
+						CreateQInfo~ Exe
+#if (verbose)
+						((The quartal Id~ initialized with configuration (Type~ Quantum~ Period~ Quantums~ OpenTime~ DesiredOpenInfoPrice~ Sherif.DesiredBribe~)) Ew.Output~) Do					
+#endif
+					);
+					(NU (Update.QConf~ nil) Ident)~ Exe
+					((Quartal Id~) Tx (Id~ check ())) Gate
 				);
 				Link ias (
 					(R Player),(R nil) ias (
@@ -72,6 +93,13 @@ module Quartal {
 					(R Boss) ias ((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ releasedquartal (Requester~ 1) Get (Id~))) Gate;
 					(R (Requester~ 0) Get)~ Exe
 				);
+				Reset ias (
+					(R Player),(R nil) ias ((Player Owner~) Tx (ModeInfo.ModeDeal~ resettedquartal Id~ (Id~))) Gate;
+					(R Boss) ias ((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ resettedquartal (Requester~ 1) Get (Id~))) Gate;
+					(State onp)^
+					Sherif.Banker.CancelContribution~ Exe
+					(R (Requester~ 0) Get)~ Exe
+				);
 			);
 			/* one sherif is associated with one quartal; the banker is aux. entity */
 			Sherif ias (
@@ -80,6 +108,22 @@ module Quartal {
 				IntentionParams ias nil;
 				DesiredBribe ias nil;
 				ProposedBribe ias nil;
+				PostpondBribe ias 0;
+				PayInvestValue ias nil;
+				PostpondInvest ias 0;
+				BattleZones ias ();
+				SetupBattleZones ias (
+					S ias (
+						((BZ Id~ $~) nil)^
+						((BZ Id~ $~) Sherif true) Context
+						(BattleZones (BattleZones~ ((BZ Id~ $~))) Join)^
+#if (verbose)
+						((The sherif of quartal Id~ of player Owner~ generated battle zone (BZ Id~ $~) to (BZ Id~ $~)~ BattleZones~) Ew.Output~) Do
+#endif
+					);
+					(BattleZones ())^
+					(Resource.Znumber~ S~) Repeat
+				);
 				Banker ias (
 					OnSuccessPayment ias nil;
 					OnFailedPayment ias nil;
@@ -124,7 +168,7 @@ module Quartal {
 					);
 				);
 				OpenInfo ias (
-					(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+					CreateQInfo~ Exe
 #if (verbose)
 					((The sherif of quartal Id~ opens information about quartal QInfo~) Ew.Output~) Do
 #endif
@@ -142,6 +186,53 @@ module Quartal {
 					State ias onp;
 					// template of sherif's and quartal's states
 					(TQRState (Resource.Type Resource.Requester Resource.Quantum Resource.Period Resource.Quantums Resource.OpenTime Resource.DesiredOpenInfoPrice))^
+					// conditional request for bribe
+					PayBribeRequest ias (
+						// postpond for PostpondBribe~ ms
+						(P false) ias (
+#if (verbose)
+							((The quartal Id~ belongs to Owner~ postponds payment of bribe for PostpondBribe~ ms) Ew.Output~) Do					
+#endif
+							(PostpondBribe~ (PPB Id~) PayBribeRequest~) Recall
+							(PostpondBribe 0)^
+						);
+						// pay immidiately...
+						(P true) ias (
+							(Banker.Value ProposedBribe~)^
+							(Banker.OnSuccessPayment SuccessPaymentForBribeRequest~)^
+							(Banker.OnFailedPayment FailedPaymentForBribeRequest~)^
+							Banker.AskPayment~ Exe
+							(State wtp)^
+						);
+						(P (PostpondBribe~ 0) Ident)~ Exe
+					);
+					// cancells bribe request timer
+					CancelPayBribeRequest ias (-1 (PPB Id~) PayBribeRequest~) Recall;
+					// conditional request for investment
+					PayInvestRequest ias (
+						// postpond for PostpondBribe~ ms
+						(P false) ias (
+#if (verbose)
+							((The quartal Id~ belongs to Owner~ postponds investment for PostpondInvest~ ms) Ew.Output~) Do					
+#endif
+							(PostpondInvest~ (PPI Id~) PayInvestRequest~) Recall
+							(PostpondInvest 0)^
+						);
+						(P true) ias (
+#if (verbose)
+							((The quartal Id~ belongs to Owner~ is in state State~ and investment allowed) Ew.Output~) Do					
+#endif
+							(LInvestQuantum PayInvestValue~)^
+							(Banker.Value LInvestQuantum~)^
+							(Banker.OnSuccessPayment SuccessPaymentForInvestment~)^
+							(Banker.OnFailedPayment FailedPaymentForInvestment~)^
+							Banker.AskPayment~ Exe
+							(State wtp)^
+						);
+						(P (PostpondInvest~ 0) Ident)~ Exe
+					);
+					// cancells bribe request timer
+					CancelPayInvestRequest ias (-1 (PPI Id~) PayBribeRequest~) Recall;
 					// build and restore state
 					BuildQRState ias (
 						S ias ();
@@ -318,13 +409,7 @@ module Quartal {
 					);
 					// player payes bribe and started getting resources and back payements from quartal
 					(pay onp) ias (
-						(TakeBribe 0),(TakeBribe 1) ias (
-							(Banker.Value ProposedBribe~)^
-							(Banker.OnSuccessPayment SuccessPaymentForBribeRequest~)^
-							(Banker.OnFailedPayment FailedPaymentForBribeRequest~)^
-							Banker.AskPayment~ Exe
-							(State wtp)^
-						);
+						(TakeBribe 0),(TakeBribe 1) ias PayBribeRequest~ Exe;
 						(TakeBribe -1) ias (
 #if (verbose)
 							((The sherif of quartal Id~ did not take bribe ProposedBribe~ desired bribe is DesiredBribe~) Ew.Output~) Do
@@ -333,7 +418,12 @@ module Quartal {
 							(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay toSmall ProposedBribe~ DesiredBribe~)) Ew.OutChannel~) Do
 #endif
 						);
+						(CPB false) ias doNothing;
+						(CPB true) ias (PostpondBribe 0)^;
 						(ProposedBribe (Sherif.IntentionParams~ 0) Get)^
+						(PostpondBribe (Sherif.IntentionParams~ 1) Get)^
+						// correct postpond bribe value
+						(CPB (PostpondBribe~ nil) Ident)~ Exe
 						// sherif's bribe
 						(TakeBribe ((ProposedBribe~ DesiredBribe~) Ew.Compare~) Do)~ Exe
 					);
@@ -375,6 +465,15 @@ module Quartal {
 						((The sherif of quartal Id~ which belongs to player Owner~ got self test message) Ew.Output~) Do
 #endif
 					);
+					(cppb op),(cppb cnp),(cppb onp),(cppb wtp),(cppb cp) ias (
+						CancelPayBribeRequest~ Exe
+#if (verbose)
+						((The sherif of quartal Id~ which belongs to player Owner~ cancelled paybribe request) Ew.Output~) Do
+#endif
+#if (release)
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (cppb)) Ew.OutChannel~) Do
+#endif
+					);
 					(collectstate op),(collectstate cnp),(collectstate onp),(collectstate wtp),(collectstate cp) ias (
 						// quartal resource info
 						BuildQRState~ Exe
@@ -411,10 +510,14 @@ module Quartal {
 						((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rsprquartalstate Id~ ())) Gate
 					);
 					(updateconf op),(updateconf cnp),(updateconf onp),(updateconf wtp),(updateconf cp) ias (
+						(OldBZones BattleZones~)^
 						(Resource.Update.QConf (IntentionParams~ 0) Get)^
 						(Resource.Update.BribeR (IntentionParams~ 1) Get)^
 						Resource.Update~ Exe
-						(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+						CreateQInfo~ Exe
+						// delegate to player
+						((Player Owner~) Tx (ModeInfo.ModeDeal~ updatebzones Owner~ (OldBZones~ BattleZones~))) Gate
+
 #if (verbose)
 						((The quartal Id~ updated with configuration QInfo~) Ew.Output~) Do					
 #endif						
@@ -433,7 +536,7 @@ module Quartal {
 					// resource quantum has already been changed by last investment
 					(rspcalcquantum op),(rspcalcquantum cnp),(rspcalcquantum onp),(rspcalcquantum wtp),(rspcalcquantum cp) ias (
 						(Resource.Quantum (Sherif.IntentionParams~ 0) Get)^
-						(QInfo (Resource.Type~ Resource.Quantum~ Resource.Period~ Resource.Quantums~ Resource.OpenTime~ Resource.DesiredOpenInfoPrice~ Sherif.DesiredBribe~))^
+						CreateQInfo~ Exe
 #if (verbose)
 						((The quartal Id~ updated with recalculated quantum QInfo~) Ew.Output~) Do					
 #endif
@@ -443,15 +546,22 @@ module Quartal {
 					);
 					// investement allowed during contribution active phase only
 					(invest op) ias (
+						(CPI false) ias doNothing;
+						(CPI true) ias (PostpondInvest 0)^;
+						(PayInvestValue (Sherif.IntentionParams~ 0) Get)^
+						(PostpondInvest (Sherif.IntentionParams~ 1) Get)^
+						(CPI (PostpondInvest~ nil) Ident)~ Exe
+						PayInvestRequest~ Exe
+					);
+					// cancels investement request
+					(cpi op) ias (
+						CancelPayInvestRequest~ Exe
 #if (verbose)
-						((The quartal Id~ belongs to Owner~ is in state State~ and investment allowed) Ew.Output~) Do					
+						((The sherif of quartal Id~ which belongs to player Owner~ cancelled investment request) Ew.Output~) Do
 #endif
-						(LInvestQuantum (Sherif.IntentionParams~ 0) Get)^
-						(Banker.Value LInvestQuantum~)^
-						(Banker.OnSuccessPayment SuccessPaymentForInvestment~)^
-						(Banker.OnFailedPayment FailedPaymentForInvestment~)^
-						Banker.AskPayment~ Exe
-						(State wtp)^
+#if (release)
+						(((deal setintention done) (player Owner~) (quartal Id~) State~ (cpi)) Ew.OutChannel~) Do
+#endif
 					);
 					// invest isn't allowed
 				        (invest cnp),(invest onp),(invest wtp),(invest cp) ias (
@@ -461,12 +571,7 @@ module Quartal {
 						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (invest QInfo~)) Ew.OutChannel~) Do
 					);
 					// reset
-					// resource quantum has already been changed by last investment
-					(reset op),(reset cnp),(reset onp),(reset cp) ias (
-						(State onp)^
-						Banker.CancelContribution~ Exe
-						((Player Owner~) Tx (ModeInfo.ModeDeal~ resettedquartal Id~ (Id~))) Gate
-					);
+					(reset op),(reset cnp),(reset onp),(reset cp) ias Resource.Reset~ Exe;
 					(reset wtp) ias (
 						// remember messages which were received during payment operation
 				        	((Quartal Id~) Tx (Source~ Sherif.Intention~ Sherif.IntentionParams~)) Gate
@@ -508,7 +613,8 @@ module Quartal {
 				((The quartal Id~ added and active for owner Owner~) Ew.Output~) Do
 #endif
 				((Quartal Id~) Register blocked) Gate
-				Resource.Init~ Exe
+				// initial resource setup
+				Resource.Setup~ Exe
 				// links quartal to given player
 				Resource.Link~ Exe
 				QuartalLifeStep~ Exe

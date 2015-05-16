@@ -77,7 +77,8 @@ module ExternalWorld {
 			)
 		*/
 		QuartalsConf ias (
-			ConfFields ias (SherifBribeRanges Resources);
+			// BNZ -> balancig value, see match maker (min(Znumb, BNZ))
+			ConfFields ias (SherifBribeRanges Resources BNZ);
 			// dynamic load configuration
 			Load ias (
 				Conf ias nil;
@@ -140,7 +141,12 @@ module ExternalWorld {
 			UnitsInfo ias ();
 			LH ias nil;
 			Cashier ias nil;
-			ConfFields ias (AvailableResources Factors GDevelop GContain UnitsInfo LH Cashier);
+			InternalCurrency ias nil;
+			CurrencyRates ias nil;
+			// coefficients which are used during calculating development of the gang
+			// alfa
+			DevGang ias nil;
+			ConfFields ias (AvailableResources Factors GDevelop GContain UnitsInfo LH Cashier InternalCurrency CurrencyRates DevGang);
 #else
 			ConfFields ias (Factors);
 #endif
@@ -165,6 +171,8 @@ module ExternalWorld {
 #if (verbose)
 	#if (business)
 			((The business configuration is AvailableResources~ and Factors~ and GDevelop~ and GContain~ and UnitsInfo~ and LH~ and Cashier~) Ew.Output~) Do
+			((The internal currency InternalCurrency~ and rates are CurrencyRates~) Ew.Output~) Do
+			((The coefficients of development of gang are DevGang~) Ew.Output~) Do
 	#else
 			((The business configuration is Factors~) Ew.Output~) Do
 	#endif
@@ -227,6 +235,69 @@ module ExternalWorld {
 #endif
 		);
 
+		MatchMakerConf ias (
+			Conf ias nil;
+			Defence ias (
+				ConfIndex ias 0;
+				MinCost ias 0;
+				MaxCost ias 0;
+				H ias 0;
+				ListSize ias 0;
+				ConfFields ias (MinCost MaxCost H ListSize);
+				Load ias (
+					Conf ias nil;
+					SetFields ias (
+						($~ ((Conf~ ConfIndex~) Get 1) Get)^
+						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
+					);
+					(ConfIndex 0)^
+					(ConfFields~ SetFields~) ForEach
+#if (verbose)
+					PrintConfFields ias ((Match makers defence field $~ has value $~~) Ew.Output~) Do;
+					(ConfFields~ PrintConfFields~) ForEach
+#endif					
+				);
+			);
+			Attack ias (
+				ConfIndex ias 0;
+				StartIn ias 1000;
+				ConfFields ias (StartIn);
+				Load ias (
+					Conf ias nil;
+					SetFields ias (
+						($~ ((Conf~ ConfIndex~) Get 1) Get)^
+						(ConfIndex ((ConfIndex~) Ew.IncValue~) Do)^
+					);
+					(ConfIndex 0)^
+					(ConfFields~ SetFields~) ForEach
+#if (verbose)
+					PrintConfFields ias ((Match makers attack field $~ has value $~~) Ew.Output~) Do;
+					(ConfFields~ PrintConfFields~) ForEach
+#endif					
+				);
+			);
+			Setup ias (
+				(S Defence) ias (
+					(Defence.Load.Conf ($~ 1) Get)^
+#if (verbose)
+					((Match makers defence conf is Defence.Load.Conf~) Ew.Output~) Do
+#endif
+					Defence.Load~ Exe
+				);
+				(S Attack) ias (
+					(Attack.Load.Conf ($~ 1) Get)^
+#if (verbose)
+					((Match makers attack conf is Attack.Load.Conf~) Ew.Output~) Do
+#endif
+					Attack.Load~ Exe
+				);
+				(S ($~ 0) Get)~ Exe
+			);
+			(C true) ias doNothing;
+			(C false) ias (Conf~ Setup~) ForEach;
+			(C (Conf~ nil) Ident)~ Exe
+		);
+
 		TargetsToBeDestroyed ias ((17 10));
 		ConfiguredNumOfRequestedSteps ias 4;
 		Input ias communication.in.read;
@@ -238,11 +309,17 @@ module ExternalWorld {
 		OutChannel ias communication.in.write;
 		InChannelBlockInput ias communication.in.block;
 		InChannelUnblockInput ias communication.in.unblock;
+		PrepareToAttack ias communication.in.write;
+		AddToDefList ias communication.in.write;
+		RemoveFromDefList ias communication.in.write;
 #else
 		InChannel ias communication.strategyfringe.read;
 		OutChannel ias communication.strategyfringe.write;
 		InChannelBlockInput ias communication.strategyfringe.block;
 		InChannelUnblockInput ias communication.strategyfringe.unblock;
+		PrepareToAttack ias communication.strategyfringe.preparetoattack;
+		AddToDefList ias communication.strategyfringe.addtodeflist;
+		RemoveFromDefList ias communication.strategyfringe.removefromdeflist;
 #endif
 		IncValue ias services.math.inc;
 		DecValue ias services.math.dec;
@@ -251,6 +328,7 @@ module ExternalWorld {
 		SumF ias services.math.sumf;
 		SubF ias services.math.substrf;
 		Mul ias services.math.mult;
+		MulF ias services.math.multf;
 		Compare ias services.math.compare;
 		CompareF ias services.math.comparef;
 		RecalcQuantum ias services.economic.recalcquantum;
@@ -272,6 +350,8 @@ module ExternalWorld {
 			GarageConf~ Exe
 			(BossOfDistrictConf.Load.Conf ((bossofdistrictconf) Ew.LoadConf~) Do)^
 			BossOfDistrictConf~ Exe
+			(MatchMakerConf.Conf ((matchmakerconf) Ew.LoadConf~) Do)^
+			MatchMakerConf~ Exe
 		);
 	);
 }

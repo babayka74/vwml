@@ -9,8 +9,9 @@ module PlayerResources {
 					((Player Id~ initialized) Ew.Output~) Do
 #endif
 #if (release)                   
-                              		(((playermanagment playeradd ok new) (Player Id~)) Ew.OutChannel~) Do
+                              		(((playermanagment playeradd ok Status~) (Player Id~)) Ew.OutChannel~) Do
 #endif
+					(Status none)^
 
 				);
 				PreInit ias (
@@ -20,6 +21,7 @@ module PlayerResources {
 					Account.Init~ Exe
 					Business.Init~ Exe
 					Attacking.Init~ Exe
+					Quartals.Init~ Exe
 					Bosses.AddInitialSet~ Exe
 #if (business)
 					(Cashier.Setup.Conf Ew.BusinessConf.Cashier~)^
@@ -29,14 +31,16 @@ module PlayerResources {
 				Init ias (
 					(InitSteps (hiringagency quartals bosses))^
 					(InitSteps () InitDone~) StartInterception
+					(Status new)^
 					PreInit~ Exe
-					Quartals.Init~ Exe
 					Hiring.Init~ Exe
 				);
 				// light init, after reset
 				LInit ias (
+					(Status reset)^
+					(InitSteps (quartals bosses))^
+					(InitSteps () InitDone~) StartInterception
 					PreInit~ Exe
-					Quartals.LInit~ Exe
 				);
 				Done ias (
 					BattleFieldDone~ Exe
@@ -45,13 +49,7 @@ module PlayerResources {
 #endif
 					Garage.Done~ Exe
 				);
-				Reset ias (
-					BattleFieldReset~ Exe
-#if (business)
-					Cashier.Stop~ Exe
-#endif
-					Garage.Done~ Exe
-				);
+				Reset ias Done~ Exe;
 			);
 		);
 	);
