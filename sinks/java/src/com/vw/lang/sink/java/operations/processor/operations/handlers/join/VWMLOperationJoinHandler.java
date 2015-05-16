@@ -104,10 +104,12 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 			return nilEntity;
 		}
 		it = e.getLink().acquireLinkedObjectsIterator();
-		for(; it.isCorrect(); it.next()) {
-			VWMLEntity joined = (VWMLEntity)((VWMLComplexEntity)e).getLink().getConcreteLinkedEntity(it.getIt());
-			if (join(result, joined) == nilEntity) {
-				break;
+		if (it != null) {
+			for(; it.isCorrect(); it.next()) {
+				VWMLEntity joined = (VWMLEntity)((VWMLComplexEntity)e).getLink().getConcreteLinkedEntity(it.getIt());
+				if (join(result, joined) == nilEntity) {
+					break;
+				}
 			}
 		}
 		return result;
