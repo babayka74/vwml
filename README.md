@@ -5,7 +5,7 @@ Active development branch is:
 
 https://github.com/babayka74/vwml/tree/proactive-parallelism
 
-Experemental with highly improved perfomance:
+Experemental with highly improved performance:
 
 https://github.com/babayka74/vwml/tree/clone/born_optimization 
 
