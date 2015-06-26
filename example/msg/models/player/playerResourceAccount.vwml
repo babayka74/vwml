@@ -60,25 +60,83 @@ module PlayerResourceAccount {
 						(((banking recharge done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
 #endif
 					);
-					Withdraw ias (
+					WithdrawUnconditional ias (
+						ByR ias nil;
+						V ias nil;
+
+						(ByR~ ((ByR~~ V~) Ew.SubF~) Do)^
+#if (verbose)
+						((Player Id~ withdrawed V~ balance is ByR~~ for account ByR~) Ew.Output~) Do
+#endif
+#if (release)
+						(((banking withdraw done)(player Id~)((ByR~ 1) Get V~ ByR~~)) Ew.OutChannel~) Do
+#endif
+					);
+					WithdrawResource ias (
+						R ias nil;
 						(Allow -1) ias (
 							(Result false)^
 #if (verbose)
-							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (Value~ 2) Get) Ew.Output~) Do
+							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (R~ 2) Get) Ew.Output~) Do
 #endif
 						);
 						(Allow 0),(Allow 1) ias (
 							(Result true)^
-							(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.SubF~) Do)^
-#if (verbose)
-							((Player Id~ withdrawed (Value~ 2) Get balance is ByRtType~~ for account ByRtType~) Ew.Output~) Do
-#endif
-#if (release)
-							(((banking withdraw done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
-#endif
+							(WithdrawUnconditional.ByR ByRtType~)^
+							(WithdrawUnconditional.V (R~ 2) Get)^
+							WithdrawUnconditional~ Exe
 						);
-						(ByRtType (Rt (Value~ 1) Get))^
-						(Allow ((ByRtType~~ (Value~ 2) Get) Ew.CompareF~) Do)~ Exe
+						(ByRtType (Rt (R~ 1) Get))^
+						(Allow ((ByRtType~~ (R~ 2) Get) Ew.CompareF~) Do)~ Exe
+					);
+					Withdraw ias (
+						PRC ias 0;
+						// resource needed to buy
+						RNB ias nil;
+						ByRtType ias nil;
+						(WithdrawResource true) ias doNothing;
+						// activating premium resource
+						(WithdrawResource false) ias (
+							(NR true) ias (
+#if (verbose)
+								((Player Id~ does not support premium currency) Ew.Output~) Do
+#endif
+							);
+							(NR false) ias (
+								(WP false) ias (
+									(PRC ((PRC~ (Rt Resources.Business.PremiumCurrency~)~) Ew.SubF~) Do)^
+#if (verbose)
+									((Player Id~ need to buy premium PRC~ Resources.Business.PremiumCurrency~) Ew.Output~) Do
+#endif
+								);
+								(WP true) ias (
+									(WithdrawResource.R (cost (Value~ 1) Get ByRtType~~))^
+									WithdrawResource~ Exe
+								);
+								(CRNB -1) ias (RNB (Value~ 2) Get)^;
+								(CRNB 0),(CRNB 1) ias (RNB (((Value~ 2) Get ByRtType~~) Ew.SubF~) Do)^;
+								// check if we are in credit
+								(CRNB ((ByRtType~~ 0) Ew.CompareF~) Do)~ Exe
+#if (verbose)
+								((Player Id~ resource need to buy RNB~) Ew.Output~) Do
+#endif
+								// convert it to premium resource
+								(PRC ((RNB~ (Resources)->(Business)->(CR (Value~ 1) Get Resources.Business.PremiumCurrency~)~) Ew.DivF~) Do)^
+								// round it up to integer value
+								(PRC ((PRC~) Ew.RoundF~) Do)^
+								(WithdrawResource.R (cost Resources.Business.PremiumCurrency~ PRC~))^
+								WithdrawResource~ Exe
+								// check premium
+								(WP Result~)~ Exe
+							);
+							(ByRtType (Rt (Value~ 1) Get))^
+							// check if we have premium resource
+							(NR (Resources.Business.PremiumCurrency~ nil) Ident)~ Exe
+						);
+						(PRC 0)^
+						(WithdrawResource.R Value~)^
+						WithdrawResource~ Exe
+						(WithdrawResource Result~)~ Exe
 					);
 				);
 			);

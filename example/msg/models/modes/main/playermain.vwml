@@ -22,11 +22,11 @@ module PlayerModeMain {
 #endif // business
 				);
 				NotifyAboutActivitiesStopped ias (
-					(Activities () NotifyAboutActivitiesStopped~) FinishInterception
+					(Activities ()) FinishInterception
 					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldstopped Id~ ())) Gate
 				);
 				NotifyAboutActivitiesResetted ias (
-					(Activities () NotifyAboutActivitiesResetted~) FinishInterception
+					(Activities ()) FinishInterception
 					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldresetted Id~ ())) Gate
 				);
 				(Handle setmode) ias (

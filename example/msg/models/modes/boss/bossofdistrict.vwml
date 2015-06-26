@@ -54,7 +54,7 @@ module BossOfDistrict {
 			);
 			Done ias (
 				Finished ias (
-					(CQs () Finished~) FinishInterception
+					(CQs ()) FinishInterception
 					(Initialized false)^
 #if (release)
 					(((bossofdistrict exit done) (player Owner~) (boss Id~)) Ew.OutChannel~) Do
@@ -128,7 +128,7 @@ module BossOfDistrict {
 					);
 					(Result false) ias (
 #if (release)
-						(((bossofdistrict paybribe failed noResources) (player Owner~) (boss Id~) (B~)) Ew.OutChannel~) Do
+						(((bossofdistrict paybribe failed noResources) (player Owner~) (boss Id~) (B~) (prc (Player Owner~)->(Resources)->(Account)->(Withdraw)->PRC~)) Ew.OutChannel~) Do
 #endif
 					);
 					((Player Owner~)->(Resources)->(Account)->Value B~)^

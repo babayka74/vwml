@@ -46,6 +46,9 @@ public class VWMLConflictRingNodeAutomata {
 	 * @param activityState
 	 */
 	public void runAction(VWMLInterpreterImpl interpreter, VWMLConflictRingNode node, VWMLConflictRingNodeAutomataInputs input, VWMLConflictRingNodeAutomataStates activityState) throws Exception {
+		if (cells[input.ordinal()][activityState.ordinal()].getAction() == null) {
+			throw new Exception("Impossible state on input '" + input + "' and activityState '" + activityState + "'");
+		}
 		cells[input.ordinal()][activityState.ordinal()].getAction().action(interpreter, node);
 	}
 	

@@ -20,6 +20,21 @@ public class VWMLOperations extends VWMLObject {
 	}
 	
 	/**
+	 * Copies from
+	 * @param ops
+	 */
+	public void copyFrom(VWMLOperations ops) {
+		if (ops != null && ops.operations() != 0) {
+			VWMLLinkIncrementalIterator it = ops.acquireLinkedObjectsIterator();
+			VWMLOperation o = ops.peekOperation(it);
+			while(o != null) {
+				addOperation(o);
+				o = ops.peekOperation(it);
+			}
+		}
+	}
+	
+	/**
 	 * Associates VWML's operation with current entity; so entity is considered as term
 	 * @param op
 	 */

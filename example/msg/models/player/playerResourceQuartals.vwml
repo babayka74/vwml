@@ -13,6 +13,28 @@ module PlayerResourceQuartals {
 					Visible ias ();
 					/* number of active quartals, including quartals of bosses */
 					NumOfActiveQuartals ias 0;
+					// prepares entities which are used by quartal during exit operation
+					OnExitC ias (
+						PoolRQ ias ();
+						PoolBQ ias ();
+						QId ias nil;
+						Requester ias nil;
+						
+						(PoolRQ false) ias (
+							// release regular quartal
+							((ReleaseRQ QId~) (ModeInfo.ModeDeal~ releasedquartal QId~ (QId~)))^
+							((ReleaseRQ QId~) OnExitC true) Context
+						);
+						(PoolRQ true) ias doNothing;
+						(PoolBQ false) ias (
+							// release boss quartal
+							((ReleaseBQ QId~) (ModeInfo.ModeBossOfDistrict~ releasedquartal (Requester~ 1) Get (QId~)))^
+							((ReleaseBQ QId~) OnExitC true) Context
+						);
+						(PoolBQ true) ias doNothing;
+						(PoolRQ (PoolRQ~ ((ReleaseRQ QId~))) In)~ Exe
+						(PoolBQ (PoolBQ~ ((ReleaseBQ QId~))) In)~ Exe
+					);
 					/* constructs set of quartals */
 					Construct ias (
 						// player's id
@@ -33,12 +55,15 @@ module PlayerResourceQuartals {
 						BQN ias 0;
 						// predefined quartals' configuration
 						PQConf ias nil;
+
+						EQN ias nil;
 						// internal completition callback
 						ICB ias (
-							(EQ 0 ICB~) FinishInterception
+							(EQN~ 0) FinishInterception
 							CB~ Exe
 						);
 						(M nil),(M regular) ias (
+							(EQN RQN)^
 							(RQN N~)^
 #if (verbose)
 							((Initialized regular RQN~ quartals for player PId~) Ew.Output~) Do
@@ -47,6 +72,7 @@ module PlayerResourceQuartals {
 							(RQN 0 ICB~) StartInterception
 						);
 						(M boss) ias (
+							(EQN BQN)^
 							(BQN N~)^
 #if (verbose)
 							((Initialized BQN~ quartals for boss for player PId~) Ew.Output~) Do
@@ -75,6 +101,9 @@ module PlayerResourceQuartals {
 							);
 							// quartal's activation
 							(QReady true) ias (
+								(OnExitC.QId QId~)^
+								(OnExitC.Requester Requester~)^
+								OnExitC~ Exe								
 								((Quartal QId~)->Id QId~)^
 								((Quartal QId~)->Owner PId~)^
 								((Quartal QId~)->(Resource)->Requester R~)^
@@ -115,6 +144,9 @@ module PlayerResourceQuartals {
 							);
 							(N~ IQ~) Repeat
 						);
+						(RQN 0)^
+						(BQN 0)^
+						(EQN nil)^
 						(M M~)~ Exe
 						(N (N~ 0) Ident)~ Exe
 					);
@@ -123,9 +155,14 @@ module PlayerResourceQuartals {
 						NotifyAboutAllInitializedQuartals ias (
 							(InitSteps (InitSteps~ (quartals)) Substruct)^
 #if (verbose)
-							((Player Id~ left init steps InitSteps~) Ew.Output~) Do							
+							((Player Id~ quartals initialized left init steps InitSteps~) Ew.Output~) Do							
 #endif
 						);
+						// create battlefield and associate it with quartal
+						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
+						(Controlled ())^
+						(Visible ())^
+						(Own ())^
 						(NumOfActiveQuartals Ew.PlayerAccountConf.QuartalsPerPlayer~)^
 						(Construct.M regular)^
 						(Construct.PId Id~)^
@@ -134,23 +171,15 @@ module PlayerResourceQuartals {
 						(Construct.N NumOfActiveQuartals~)^
 						(Construct.CB NotifyAboutAllInitializedQuartals~)^
 						Construct~ Exe
-						// create battlefield and associate it with quartal
-						((Player Id~) Tx (ModeInfo.ModeBattle~ createbf Id~ ((Id~ 0)))) Gate
-						(Controlled ())^
-						(Visible ())^
-						(Own ())^
 						LInit~ Exe
 					);
 					LInit ias (
 						(ActiveQuartals NumOfActiveQuartals~)^
-#if (verbose)
-						((Player Id~ created and initialized own quartals) Ew.Output~) Do
-#endif
 					);
 					Deactivate ias (
 						A ias nil;
 						AllOwnQurtalsDeactivated ias (
-							(ActiveQuartals 0 AllOwnQurtalsDeactivated~) FinishInterception
+							(ActiveQuartals 0) FinishInterception
 							// send message to player about closing all own quartals
 							((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (quartals))) Gate
 						);
@@ -160,6 +189,9 @@ module PlayerResourceQuartals {
 							(ActiveQuartals 0 AllOwnQurtalsDeactivated~) StartInterception
 							(Own~ ResetQuartal~) ForEach
 						);
+#if (verbose)
+						((Player Id~ deactivates quartals ActiveQuartals~ Own~) Ew.Output~) Do
+#endif
 						(NoQuartals (Own~ ()) Ident)~ Exe
 					);
 					RestoreActiveQ ias (ActiveQuartals NumOfActiveQuartals~)^;

@@ -42,7 +42,7 @@ module PlayerResourceBosses {
 #endif
 						);
 						BLR ias (
-							(BossesList () BLR~) FinishInterception
+							(BossesList ()) FinishInterception
 #if (verbose)
 							((All bosses uninitialized) Ew.Output~) Do
 #endif
@@ -84,7 +84,7 @@ module PlayerResourceBosses {
 					AddInitialSet ias (
 						InitBossesNum ias 0;
 						BossesInitFinished ias (
-							(InitBossesNum 0 BossesInitFinished~) FinishInterception
+							(InitBossesNum 0) FinishInterception
 #if (verbose)
 							((Player Id~ initialized all bosses) Ew.Output~) Do							
 #endif

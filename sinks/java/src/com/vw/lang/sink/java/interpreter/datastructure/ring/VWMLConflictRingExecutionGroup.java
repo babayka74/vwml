@@ -289,6 +289,7 @@ public class VWMLConflictRingExecutionGroup extends VWMLObject {
 				VWMLConflictRingNode n = VWMLConflictRingNode.build(getId(), getReadableId());
 				add(n);
 				master = n;
+				n.setMasterNode(n);
 			}
 		}
 		return master;

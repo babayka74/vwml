@@ -120,4 +120,8 @@ public class VWMLEntityInterpretationHistory {
 	public void flush() throws Exception {
 		throw new Exception("unimplemented yet");
 	}
+	
+	public void clear() {
+		history.clear();
+	}
 }

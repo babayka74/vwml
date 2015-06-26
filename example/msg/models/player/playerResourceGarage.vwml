@@ -97,7 +97,7 @@ module PlayerResourceGarage {
 						Result ias false;
 						RP ias 0;
 						// reserving
-						(Allow 1) ias (
+						(Allow 0),(Allow 1) ias (
 							(Result true)^
 							(Free ((Free~ Place~) Ew.Sub~) Do)^
 #if (verbose)
@@ -105,7 +105,7 @@ module PlayerResourceGarage {
 #endif
 						);
 						// no places
-						(Allow 0),(Allow -1) ias (
+						(Allow -1) ias (
 #if (verbose)
 							((Garage of Player Id~ does not have free places) Ew.Output~) Do
 #endif

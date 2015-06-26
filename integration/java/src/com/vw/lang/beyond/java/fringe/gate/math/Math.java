@@ -249,6 +249,20 @@ public class Math implements IVWMLGate {
 			return e;
 		}		
 	}
+
+	public static class RoundFHandler extends GateCommandHandler {
+		
+		@Override
+		public EWEntity handler(EWEntity commandArgs) {
+			EWEntity e = EWEntityBuilder.buildSimpleEntity("error", null);
+			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == 1) {
+				EWEntity e1 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
+				float ie1 = Math.convertString2Float((String)e1.getId());
+				e = EWEntityBuilder.buildSimpleEntity(String.valueOf(java.lang.Math.ceil(ie1)), null);
+			}
+			return e;
+		}		
+	}
 	
 	public static class VSumHandler extends GateCommandHandler {
 
@@ -373,6 +387,7 @@ public class Math implements IVWMLGate {
 			put("dec", new DecHandler());
 			put("compare", new CompareHandler());
 			put("comparef", new CompareFHandler());
+			put("roundf", new RoundFHandler());
 			put("vsum", new VSumHandler());
 		}
 	};

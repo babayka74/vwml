@@ -26,6 +26,9 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 	private static final int s_numOfArgs = 3;
 	private static final int s_numOfExArgs = 4;
 	
+	private static final int REMOVE_TIMER = -1;
+	private static final int INSTANT_FINISH_TIMER = -2;
+	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
 		VWMLStack stack = context.getStack();
@@ -98,11 +101,17 @@ public class VWMLOperationRecallHandler extends VWMLOperationHandler {
 			if (interpreter.getTimerManager() != null) {
 				callback.setArgComponent(argComponent);
 				recallEntityId.setReadableId(null);
-				if (time != -1) {
-					interpreter.getTimerManager().addTimer(recallEntityId.buildReadableId(), time, Long.valueOf((String)e.getId()), interpreter, callback);
+				if (time >= 0) {
+					interpreter.getTimerManager().updateTimer(recallEntityId.buildReadableId(), time, Long.valueOf((String)e.getId()), interpreter, callback);
 				}
 				else {
-					interpreter.getTimerManager().removeTimer(recallEntityId.buildReadableId());
+					if (time == REMOVE_TIMER) {
+						interpreter.getTimerManager().removeTimer(recallEntityId.buildReadableId());
+					}
+					else
+					if (time == INSTANT_FINISH_TIMER) {
+						interpreter.getTimerManager().instantFinishTimer(recallEntityId.buildReadableId());
+					}
 				}
 			}
 		}

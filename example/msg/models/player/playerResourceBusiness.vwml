@@ -12,10 +12,13 @@ module PlayerResourceBusiness {
 					GContain ias 0; 	// see StrategyGame_Hiring&Dismiss (mentioned as hospitality)
 					BDevelop ias 0;         // global player's business development factor
 					LH ias 0; 		// see Battle result document
+					CashierConf ias nil;        // player's cashier configuration
 					InternalCurrency ias nil; // internal currency which is used for calculating integral values of GDev and BDev
 					InternalCurrencyV ias 0;   // value
 					CurrencyRates ias nil;  // matrix of coefficients for converting resources into inrernal currency
 					DevGang ias nil; 	// set of dev gang coefficients
+					PremiumCurrency ias nil;     // premium resource and its exchange rates
+					Premium2CurrencyRate ias nil;
 #endif
 					UnitClasses ias nil;
 					UnitKinds ias nil;
@@ -27,8 +30,8 @@ module PlayerResourceBusiness {
 						/* by resource type */
 #if (business)
 						(GDevelop 0)^
-						(GContain 0)^
-						(Update.From ((Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~) (LH Ew.BusinessConf.LH~) (InternalCurrency Ew.BusinessConf.InternalCurrency~) (CurrencyRates Ew.BusinessConf.CurrencyRates~) (DevGang Ew.BusinessConf.DevGang~)))^
+						(GContain 0)^  
+						(Update.From (() (Factors Ew.BusinessConf.Factors~) (GDevelop Ew.BusinessConf.GDevelop~) (GContain Ew.BusinessConf.GContain~) (UnitsInfo Ew.BusinessConf.UnitsInfo~) (LH Ew.BusinessConf.LH~) (CashierConf Ew.BusinessConf.Cashier~) (InternalCurrency Ew.BusinessConf.InternalCurrency~) (CurrencyRates Ew.BusinessConf.CurrencyRates~) (DevGang Ew.BusinessConf.DevGang~) (PremiumCurrency Ew.BusinessConf.PremiumCurrency~) (Premium2CurrencyRate Ew.BusinessConf.Premium2CurrencyRate~) ))^
 #else
 						(Update.From (Factors Ew.BusinessConf.Factors~))^
 #endif
@@ -161,13 +164,24 @@ module PlayerResourceBusiness {
 
 						UpdateLH ias (
 							F ias nil;
-							// (<number>)
-							F ias nil;
 							(Ignore true) ias doNothing;
 							(Ignore false) ias (LH (F~ 1) Get)^;
 							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
 							((Player Id~ has LH factor LH~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdateCashier ias (
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (
+								(Cashier.Setup.Conf (F~ 1) Get)^
+								Cashier.Setup~ Exe
+							);
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ has cashier conf (F~ 1) Get) Ew.Output~) Do 
 #endif
 						);
 						
@@ -185,32 +199,37 @@ module PlayerResourceBusiness {
 						);
 
 						UpdateCR ias (
+							// from (conf value)
 							F ias nil;
+							// currency
+							Currency ias nil;
+							// rates
+							Rates ias nil;
 							// builds converting matrix
 							BM ias (
 								(C ($~ 0) Get)^
 								// direct row
-								((CR C~ InternalCurrency~) ($~ 1) Get)^
+								((CR C~ Currency~) ($~ 1) Get)^
 								// reverse row
-								((CR InternalCurrency~ C~) ($~ 1) Get)^
-								((CR C~ InternalCurrency~) Business true) Context
-								((CR InternalCurrency~ C~) Business true) Context
+								((CR Currency~ C~) ($~ 1) Get)^
+								((CR C~ Currency~) Business true) Context
+								((CR Currency~ C~) Business true) Context
 #if (verbose)                           	
-								((Player Id~ direct currency rate row (CR C~ InternalCurrency~)~) Ew.Output~) Do
-								((Player Id~ reverse currency rate row (CR InternalCurrency~ C~)~) Ew.Output~) Do 
+								((Player Id~ direct currency rate (CR C~ Currency~) is (CR C~ Currency~)~) Ew.Output~) Do
+								((Player Id~ reverse currency rate (CR Currency~ C~) is (CR Currency~ C~)~) Ew.Output~) Do 
 #endif
 							);
 							(Ignore true) ias doNothing;
 							(Ignore false) ias (
 								(CRNSet true) ias doNothing;
 								// iterate through rates and build matrix
-								(CRNSet false) ias (CurrencyRates~ BM~) ForEach;
-								(CurrencyRates (F~ 1) Get)^
-								(CRNSet (CurrencyRates~ nil) Ident)~ Exe
+								(CRNSet false) ias (Rates~ BM~) ForEach;
+								(Rates (F~ 1) Get)^
+								(CRNSet (Rates~ nil) Ident)~ Exe
 							);
 							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
-							((Player Id~ currency rates CurrencyRates~) Ew.Output~) Do 
+							((Player Id~ currency rates Rates~ from F~) Ew.Output~) Do 
 #endif
 						);
 
@@ -221,6 +240,16 @@ module PlayerResourceBusiness {
 							(Ignore (F~ nil) Ident)~ Exe
 #if (verbose)                           	
 							((Player Id~ has dev gang coefficients DevGang~) Ew.Output~) Do 
+#endif
+						);
+
+						UpdatePremiumCurrency ias (
+							F ias nil;
+							(Ignore true) ias doNothing;
+							(Ignore false) ias (PremiumCurrency (F~ 1) Get)^;
+							(Ignore (F~ nil) Ident)~ Exe
+#if (verbose)                           	
+							((Player Id~ updated premium currency PremiumCurrency~) Ew.Output~) Do 
 #endif
 						);
 
@@ -264,23 +293,32 @@ module PlayerResourceBusiness {
 							(Ignore true) ias doNothing;
 							(Ignore (F~ nil) Ident)~ Exe
 						);
-						(UpdateGDevelop.F (From~ 1) Get)^
-						UpdateGDevelop~ Exe
-						(UpdateGContain.F (From~ 2) Get)^
-						UpdateGContain~ Exe
-						(UpdateUnitsInfo.F (From~ 3) Get)^
-						UpdateUnitsInfo~ Exe
-						(UpdateLH.F (From~ 4) Get)^
-						UpdateLH~ Exe
-						(UpdateIC.F (From~ 5) Get)^
-						UpdateIC~ Exe
-						(UpdateCR.F (From~ 6) Get)^
-						UpdateCR~ Exe
-						(UpdateDevGang.F (From~ 7) Get)^
-						UpdateDevGang~ Exe
-#endif // business
-						(UpdateFactors.F  (From~ 0) Get)^
+						// factors
+						(UpdateFactors.F (From~ 1) Get)^
 						UpdateFactors~ Exe
+						(UpdateGDevelop.F (From~ 2) Get)^
+						UpdateGDevelop~ Exe
+						(UpdateGContain.F (From~ 3) Get)^
+						UpdateGContain~ Exe
+						(UpdateUnitsInfo.F (From~ 4) Get)^
+						UpdateUnitsInfo~ Exe
+						(UpdateLH.F (From~ 5) Get)^
+						UpdateLH~ Exe
+						(UpdateCashier.F (From~ 6) Get)^
+						UpdateCashier~ Exe
+						(UpdateIC.F (From~ 7) Get)^
+						UpdateIC~ Exe
+						(UpdateCR.F (From~ 8) Get)^
+						(UpdateCR.Currency InternalCurrency~)^
+						UpdateCR~ Exe
+						(UpdateDevGang.F (From~ 9) Get)^
+						UpdateDevGang~ Exe
+						(UpdatePremiumCurrency.F (From~ 10) Get)^
+						UpdatePremiumCurrency~ Exe
+						(UpdateCR.F (From~ 11) Get)^
+						(UpdateCR.Currency PremiumCurrency~)^
+						UpdateCR~ Exe
+#endif // business
 					);
 
 					CollectState ias (

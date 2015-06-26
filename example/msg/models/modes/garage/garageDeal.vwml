@@ -32,13 +32,29 @@ module PlayerGarage {
 #endif
 				);
 
+				InstantInvestTimer ias (
+
+					(T true) ias (
+#if (release)
+						(((garage instantinvest failed) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+#endif
+					);
+					(T false) ias (
+						(-2 (GInv Id~) SetGarageClass~ nil CT~) Recall
+#if (release)
+						(((garage instantinvest done) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+#endif
+					);
+					(T (((GInv Id~)) TState nil) Ident)~ Exe
+				);
+
 				PayForUpgrade ias (
 					C ias nil;
 					V ias nil;
 					T ias nil;
 					(Result false) ias (
 #if (release)
-						(((garage invest failed noResources) (player Id~)) Ew.OutChannel~) Do
+						(((garage invest failed noResources) (player Id~) (prc Resources.Account.Withdraw.PRC~)) Ew.OutChannel~) Do
 #endif
 					);
 					(Result true) ias (
@@ -154,6 +170,18 @@ module PlayerGarage {
 					(PI false) ias ProcessCancelInvest~ Exe;
 					(PI (CT~ nil) Ident)~ Exe
 				);
+				(Handle instantinvest) ias (
+					(PI true) ias (
+#if (verbose)
+						((The garage of player Id~ is not under upgrade) Ew.Output~) Do
+#endif
+#if (release)
+						(((garage instantinvest failed notUnderUpgrade) (player Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					(PI false) ias InstantInvestTimer~ Exe;
+					(PI (CT~ nil) Ident)~ Exe
+				);
 				(Handle updategarageconf) ias (
 					(Resources.Garage.Update.Conf CommandParams~)^
 					Resources.Garage.Update~ Exe
@@ -164,6 +192,8 @@ module PlayerGarage {
 					(((garage updategarageconf ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
+				// redirecting processing to resource manager
+				(Handle upgradecar) ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ upgradeunit Id~ CommandParams~)) Gate;
 				(Handle back) ias (
 					(Player.Mode main)^
 #if (verbose)

@@ -19,6 +19,9 @@ module PlayerCashier {
 						(Conf~ SC~) ForEach
 					); 
 					(NS true) ias doNothing;
+#if (verbose)
+					((Player Id~ configures cashier by conf Conf~) Ew.Output~) Do
+#endif
 					(NS (Conf~ nil) Ident)~ Exe
 				);
 				// taking 'contain', re-calculate using factors and withdraw from bank account

@@ -16,6 +16,11 @@ public class VWMLSimpleEntity extends VWMLEntity {
 	}
 	
 	@Override
+	public void restore(Object hashId, Object id) {
+		super.restore(hashId, id);
+	}
+	
+	@Override
 	public String buildReadableId() {
 		if (getReadableId() == null) {
 			setReadableId((String)getId());

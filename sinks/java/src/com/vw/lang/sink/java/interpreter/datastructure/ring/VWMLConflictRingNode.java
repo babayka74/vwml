@@ -380,6 +380,11 @@ public class VWMLConflictRingNode extends VWMLObject {
 		// looking for model (each node has reference to conflict model)
 		VWMLConflictRingNode masterModelNode = getMasterNode();
 		operationalNode = masterModelNode;
+		if (operationalNode == null) {
+			operationalNode = this;
+			System.out.println("!!! Master node is 'null' for '" + operationalNode.getId() + "'");
+			setMasterNode(this);
+		}
 		String activeConflictContext = i.getObserver().getActiveConflictContext();
 		if (activeConflictContext != null) {
 			// looking for a node inside the group

@@ -38,12 +38,14 @@ module PlayerResourceManager {
 					(Resources.Business.(Ctf RT~) ((Resources.Business.(Ctf RT~)~ (Contain~ 1) Get) Op~) Do)^
 					// assembles integrated GDevelop
 					Resources.Business.AssembleGDevelop~ Exe
+					// update rating based on new factors
+					((Player Id~) Tx (ModeInfo.ModeMain~ rqrating 0 ())) Gate
 				);
 				// notifies battlefield about returning all remained units to base
 				NotifyAboutFBComplete ias (
 					(StopRM false) ias doNothing;
 					(StopRM true) ias (
-						(UnitsInAction 0 NotifyAboutFBComplete~) FinishInterception
+						(UnitsInAction 0) FinishInterception
 						((Player Id~) Tx (ModeInfo.ModeMain~ partclosed 0 (battlefield))) Gate
 					);
 					(StopRM StopRM~)~ Exe
@@ -55,7 +57,7 @@ module PlayerResourceManager {
 				// The unit sends 'unitstopped' command to resource manager in order to notify about stopping activity
 				StopAllUnits ias (
 					NotifyAboutExiting ias (
-						(Resources.Units.Hired () NotifyAboutExiting~) FinishInterception
+						(Resources.Units.Hired ()) FinishInterception
 						((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (resourcemanager))) Gate
 					);
 					(NoHired true) ias ((Player Id~) Tx (ModeInfo.ModeMain~ partclosed Id~ (resourcemanager))) Gate;
@@ -195,26 +197,37 @@ module PlayerResourceManager {
 #endif
 				);
 
-				TakeOnBoardUnit ias (
-					(HiredUnitId (CommandParams~ 0) Get)^
-#if (business)
-					(Kind (CommandParams~ 1) Get)^
-					(Class (CommandParams~ 2) Get)^
-					(Cost (CommandParams~ 3) Get)^
-					(Contain (CommandParams~ 4) Get)^
+				UpdateFactorsFromParams ias (
+					Params ias nil;
+					Op ias nil;
+					// increments/decrements number of units of specific kind
+					(Op plus) ias (
+						(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
+						(RecalcFactors.Op Ew.SumF~)^
+						RecalcFactors~ Exe
+					);
+					(Op minus) ias (
+						(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.DecValue~) Do)^
+						(RecalcFactors.Op Ew.SubF~)^
+						RecalcFactors~ Exe
+					);
+					(HiredUnitId (Params~ 0) Get)^
+					(Kind (Params~ 1) Get)^
+					(Class (Params~ 2) Get)^
+					(Cost (Params~ 3) Get)^
+					(Contain (Params~ 4) Get)^
 					// resource type
 					(RT (Cost~ 1) Get)^
-#if (verbose)
-					((Unit HiredUnitId~ cost Cost~ contain Contain~ clazz Class~ for player Id~) Ew.Output~) Do
-#endif
-					// increments number of units of specific kind
-					(Resources.Business.(Q Kind~ Class~) ((Resources.Business.(Q Kind~ Class~)~) Ew.IncValue~) Do)^
-					(RecalcFactors.Op Ew.SumF~)^
-					RecalcFactors~ Exe
+					(Op Op~)~ Exe
+				);
+
+				TakeOnBoardUnit ias (
+					(UpdateFactorsFromParams.Params CommandParams~)^
+					(UpdateFactorsFromParams.Op plus)^
+					UpdateFactorsFromParams~ Exe
 #if (verbose)
 					((clazz ($$)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf ($$)->(Resources)->(Business)->(Ctf RT~)~ part dev ($$)->(Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
 #endif
-#endif /* business */
 					(Resources.Units.Hired (Resources.Units.Hired~ (HiredUnitId~)) Join)^
 #if (verbose)
 					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
@@ -385,6 +398,90 @@ module PlayerResourceManager {
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
 				);
+				// upgrades unit's properties
+				UpgradeUnit ias (
+					Credentials ias nil;
+					Props ias nil;
+					Params ias nil;
+					UId ias nil;
+					// time value
+					TV ias nil;
+					// the interpretation of entity can be deferred in time
+					UpgradeRequest ias (
+						F ias nil;
+						C ias nil;
+						P ias nil;
+						(C (F~ 0) Get)^
+						(P (F~ 1) Get)^
+						// upgrade unit props
+						(U ((C~ 2) Get 1) Get)^
+						// (UnitId kind class cost contain)
+						(UpdateFactorsFromParams.Params (U~
+										   (Characters)->(Unit U~)->Kind~
+										   (Characters)->(Unit U~)->Class~
+										   (Characters)->(Unit U~)->Cost~
+										   (Characters)->(Unit U~)->Contain~)
+										)^
+						(UpdateFactorsFromParams.Op minus)^
+						UpdateFactorsFromParams~ Exe
+#if (unitalive)                                 	
+						((Unit U~) Tx (Id~ setprops 0 (P~))) Gate
+#else
+						(P~ (Characters)->(Unit U~)->PropertySetOperation~) ForEach
+#endif // unitalive
+						// sends command to itself to reclaculate factors
+						// (UnitId kind class cost contain)
+						(UpdateFactorsFromParams.Params (U~ ((P~ 0) Get 1) Get ((P~ 1) Get 1) Get (C~ 0) Get (P~ 3) Get))^
+						(UpdateFactorsFromParams.Op plus)^
+						UpdateFactorsFromParams~ Exe
+#if (release)
+						(((resourcemanager upgradeunit done)
+							(player Id~)
+							(unit U~)
+							(Characters)->(Unit U~)->Kind~
+							(clazz (Characters)->(Unit U~)->Class~)
+							(capacity (Characters)->(Unit U~)->Capacity~)
+							)
+						Ew.OutChannel~) Do
+#endif
+					);
+					DefUpgradeRequest ias (
+						(UpgradeRequest.F $~)^
+						UpgradeRequest~ Exe
+					);
+					// payment succeeded
+					(R true) ias (
+						(NUT false) ias (
+#if (release)
+							(((resourcemanager upgradeunit inProgress) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+#endif
+ 							(TV~ (U Id~ UId~) DefUpgradeRequest~ nil Params~) Recall
+						);
+						(NUT true) ias (
+							(UpgradeRequest.F Params~)^
+							UpgradeRequest~ Exe
+						);
+						// checks updatetime (NUT - No Update Time)
+						(NUT (TV~ 0) Ident)~ Exe
+					);
+					// payment failed
+					(R false) ias (
+						// fail - no resources
+#if (release)
+						(((resourcemanager upgradeunit failed noResources) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+#endif
+					);
+
+					(Credentials (Params~ 0) Get)^
+					(Props (Params~ 1) Get)^
+					// unit id
+					(UId ((Credentials~ 2) Get 1) Get)^
+					// time value
+					(TV ((Credentials~ 1) Get 1) Get)^
+					(Resources.Account.Value (Credentials~ 0) Get)^
+					Resources.Account.Withdraw~ Exe
+					(R Resources.Account.Result~)~ Exe
+				);
 
 				// unit has been hired and must be associated with player
 				(Handle hireunit) ias (
@@ -418,6 +515,11 @@ module PlayerResourceManager {
 				(Handle takeunit) ias MarkUnitAsIsInAction~ Exe;
 				// unit is returned from action, if wasn't killed
 				(Handle returnunit) ias MarkUnitAsFree~ Exe;
+				// upgrade unit's properties
+				(Handle upgradeunit) ias (
+					(UpgradeUnit.Params CommandParams~)^
+					UpgradeUnit~ Exe
+				);
 				// get list of hired units
 				(Handle getunits) ias (
 					Report ias (

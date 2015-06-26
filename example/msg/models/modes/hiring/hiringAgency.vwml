@@ -34,13 +34,12 @@ module HiringAgency {
 #endif
 			);
 			Agent ias (
-				AgentCommands ias (cancel check reset exit report collectstate);
-				StaffHiringCommands ias (starthiring cancelhiring staffpaymentresult);
-				CarsLookingCommands ias (startcarlooking cancelcarlooking carpaymentresult reservegarageresult);
+				AgentCommands ias (cancel check reset exit report collectstate schedulehiringrq);
+				StaffHiringCommands ias (instanthiring instanthiringall starthiring cancelhiring staffpaymentresult);
+				CarsLookingCommands ias (instantcarlooking startcarlooking cancelcarlooking carpaymentresult reservegarageresult);
 				Command ias nil;
 				Request ias nil;
 				RequestId ias 0;
-				RequestsInProgress ias ();
 				NewRequestId ias nil;
 
 				CharacterIdInfo ias nil;
@@ -77,17 +76,22 @@ module HiringAgency {
 
 				CancelHiringRequests ias (
 					F ias nil;
-					(NoRequestsInProgress true) ias F~ Exe;
-					(NoRequestsInProgress false) ias (
+					Q ias nil;
+					(NRq true) ias F~ Exe;
+					(NRq false) ias (
 						StopHiringRequest ias (
 							(CancelHiringRequest.RqId $~)^
+							(CancelHiringRequest.Q Q~)^
 							CancelHiringRequest~ Exe
 						);
-						(RequestsInProgress~ StopHiringRequest~) ForEach
-						(RequestsInProgress ())^
+						(Q~~ StopHiringRequest~) ForEach
+						(Q~ ())^
 						F~ Exe
 					);
-					(NoRequestsInProgress (RequestsInProgress~ ()) Ident)~ Exe
+					(Q Agent.CarRequestsQ)^
+					(NRq (Q~~ ()) Ident)~ Exe
+					(Q Agent.StaffRequestsQ)^
+					(NRq (Q~~ ()) Ident)~ Exe
 				);
 				ResetAgencyProcess ias (
 					(CancelHiringRequests.F doNothing)^
@@ -105,10 +109,64 @@ module HiringAgency {
 					(CancelHiringRequests.F UnblockAndStop~)^
 					CancelHiringRequests~ Exe
 				);
+				RequestConfirmation ias (
+					RqId ias nil;
+					Rq ias nil;
+					NCmd ias nil;
+					Status ias nil;
+#if (release)
+					(CharacterIdInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
+					(GetKindOfUnit.UnitProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
+					GetKindOfUnit~ Exe
+                                        (UnitId (CharacterIdInfo~ 1) Get)^
+					(((hiring NCmd~ Status~) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ RqId~) Ew.OutChannel~) Do								
+#endif
+
+				);
+				ScheduleRequest ias (
+					// confirmed primary request
+					NCmd ias starthiring;
+					TimeToHireInfo ias nil;
+					NewRequestId ias nil;
+					Q ias nil;
+					(P true) ias ((ProcessingRq Q~) false)^;
+					(P false) ias (
+						(TimeToHireInfo ((NewRequestId~~ 1) Get 2) Get)^
+						// NewRequestId~ => (ConfRq~ (AC~ NCmd~ TimeToHireInfo~))
+						// (HiringInfo~ 1) Get => time needed to hire specified unit
+						((TimeToHireInfo~ 1) Get (Hiring Id~ NewRequestId~) ProcessRequest~ nil (NewRequestId~ (NewRequestId~~ 0) Get Q~ true)) Recall
+						// player may use GlobalHiringRequestId~ in order to cancel hiring operation
+#if (verbose)
+						((The hiring agent Id~ started hiring request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
+#endif
+#if (release)
+						(RequestConfirmation.NCmd ((NewRequestId~~ 1) Get 1) Get)^
+						(RequestConfirmation.Rq (NewRequestId~~ 0) Get)^
+						(RequestConfirmation.RqId NewRequestId~)^
+						(RequestConfirmation.Status inProgress)^
+						RequestConfirmation~ Exe
+#endif
+					);
+					(Q (Agent.Request~ 0) Get)^
+					(NewRequestId (Q~~) First)^
+#if (verbose)
+					((The hiring agent Id~ schedules NewRequestId~) Ew.Output~) Do
+#endif
+					(P (NewRequestId~ nil) Ident)~ Exe
+				);
 				// starts hiring process when user's payment operation approved
 				ActuallyStartHiringRequest ias (
 					(T false) ias doNothing;
 					(T true) ias (TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^;
+					(ProcessingRq true) ias (
+#if (verbose)
+						((The hiring agent Id~ postponed request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
+#endif
+					);
+					(ProcessingRq false) ias (
+						((ProcessingRq Q~) true)^
+						((HiringAgency Id~) Tx (schedulehiringrq nil (Q~))) Gate
+					);
 					// associated container
 					AC ias staff;
 					NCmd ias starthiring;
@@ -116,76 +174,114 @@ module HiringAgency {
 					ConfRq ias nil;
 					// hiring timer
 					TimeToHireInfo ias nil;
+					// operational queue (requests)
+					Q ias nil;
 					// getting hiring info (time to hire unit)
 					(T (TimeToHireInfo~ nil) Ident)~ Exe
 					(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
 					// generate new request id
 					(NewRequestId (Id~ GlobalHiringRequestId~))^
 					// save request for processing time (need in case if cancel operation is received)
-					(NewRequestId~ (ConfRq~ (AC~ NCmd~)))^
-					(RequestsInProgress (RequestsInProgress~ (NewRequestId~)) Join)^
-					// (HiringInfo~ 1) Get => time needed to hire specified unit
-					((TimeToHireInfo~ 1) Get (Hiring Id~ NewRequestId~) ProcessRequest~ nil (NewRequestId~ ConfRq~)) Recall
-					// player may use GlobalHiringRequestId~ in order to cancel hiring operation
-#if (verbose)
-					((The hiring agent Id~ started hiring request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
-#endif
-#if (release)
-					(CharacterIdInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
-					(GetKindOfUnit.UnitProps (ConfRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
-					GetKindOfUnit~ Exe
-                                        (UnitId (CharacterIdInfo~ 1) Get)^
-					(((hiring NCmd~ inProgress) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ NewRequestId~) Ew.OutChannel~) Do								
-#endif
+					(NewRequestId~ (ConfRq~ (AC~ NCmd~ TimeToHireInfo~)))^
+					(NewRequestId~ Agent true) Context
+					(Q~ (Q~~ (NewRequestId~)) Join)^
+					// checks wether any request is processed now
+					(ProcessingRq ((ProcessingRq Q~)~ true) Ident)~ Exe
+					// notification about scheduling task
+					(RequestConfirmation.NCmd NCmd~)^
+					(RequestConfirmation.Rq ConfRq~)^
+					(RequestConfirmation.RqId NewRequestId~)^
+					(RequestConfirmation.Status scheduled)^
+					RequestConfirmation~ Exe
 				);
 				CancelHiringRequest ias (
 					RqId ias nil;
 					NCmd ias nil;
 					Rq ias nil;
+					Q ias nil;
+					RqS ias nil;
+					(S true) ias (Q~ (Q~~ (RqId~)) Substruct)^;
+					(S false) ias doNothing;
+					(RqS false) ias ((HiringAgency Id~) Tx (schedulehiringrq nil (Q~))) Gate;
+					(RqS true) ias doNothing;
+
+					(RqS ((Hiring Id~ RqId~)) TState)^
 					(-1 (Hiring Id~ RqId~) nil) Recall
+					(S (Q~~ RqId~) In)~ Exe
 #if (verbose)
-					((The hiring agent cancelled request RqId~ for player Owner~) Ew.Output~) Do
+					((The hiring agent cancelled request RqId~ for player Owner~ on queue Q~ left Q~~) Ew.Output~) Do
 #endif
+					(RqId~ Agent true) Context
 					(Rq (RqId~~ 0) Get)^
 					// player's account must be recharged
 					(CostInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqCostPropIndex~) Get)^
 					((Player Owner~) Tx (ModeInfo.ModeDeal~ returnpayment Owner~ (Id~ (CostInfo~ 1) Get (CostInfo~ 2) Get))) Gate
 #if (release)
-					(CharacterIdInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
-					(GetKindOfUnit.UnitProps (RqId~~ CmdFormat.RqCharacterInfoIndex~) Get)^
-					GetKindOfUnit~ Exe
-                                        (UnitId (CharacterIdInfo~ 1) Get)^
-					(((hiring NCmd~ done) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ RqId~) Ew.OutChannel~) Do								
+					(RequestConfirmation.NCmd NCmd~)^
+					(RequestConfirmation.Rq Rq~)^
+					(RequestConfirmation.RqId RqId~)^
+					(RequestConfirmation.Status done)^
+					RequestConfirmation~ Exe
 #endif
+					(RqS (RqS~ nil) Ident)~ Exe
 				);
- 				// cancels existing hiring request which was activated by 'ActuallyStartHiringRequest'
-				ActuallyCancelHiringRequest ias (
-					(RR true) ias (
+				InstantAllRequests ias (
+					NCmd ias nil;
+					Q ias nil;
+					Instant ias (
+						(-1 (Hiring Id~ $~) nil) Recall
 #if (verbose)
-						((The hiring agent can not cancel request RqId~ for player Owner~ as invalid) Ew.Output~) Do
+						((The hiring agent cancelled request $~ for player Owner~ on queue Q~) Ew.Output~) Do
+#endif
+						(100 (Hiring Id~ $~) ProcessRequest~ nil ($~ ($~~ 0) Get Q~ false)) Recall
+					);
+					(Q~~ Instant~) ForEach
+					(Q~ ())^
+				);
+				InstantHiringRequest ias (
+					RqId ias nil;
+					Rq ias nil;
+					NCmd ias nil;
+					(T false) ias (
+						(-2 (Hiring Id~ RqId~) nil) Recall
+#if (verbose)
+						((The hiring agent immidiately handles request RqId~ for player Owner~) Ew.Output~) Do
 #endif
 #if (release)
-						(((hiring cancelhiring failed invalidRequestId) (Player Owner~) (unit UnitId~) RqId~) Ew.OutChannel~) Do								
+						(RequestConfirmation.Status done)^
 #endif
 					);
-					(RR false) ias (
-						(CancelHiringRequest.RqId RequestId~)^
-						CancelHiringRequest~ Exe
-						// remove request from waiting list
-						(RequestsInProgress (RequestsInProgress~ (RequestId~)) Substruct)^
+					(T true) ias (
+#if (release)
+						(RequestConfirmation.Status failed)^
+#endif
 					);
-					// here RequestId must coincide with one of processed GlobalHiringRequestId~
-					(RequestId (RequestsInProgress~ RequestId~) Find)^
-					(RR (RequestId~ nil) Ident)~ Exe
+					(RqId~ Agent true) Context
+					(Rq (RqId~~ 0) Get)^
+					(RequestConfirmation.Rq Rq~)^
+					(RequestConfirmation.RqId RqId~)^
+					(RequestConfirmation.NCmd NCmd~)^
+					(T (((Hiring Id~ RqId~)) TState nil) Ident)~ Exe
+					RequestConfirmation~ Exe
 				);
 				// called when unit's request is ready (aka agent found and hired unit)
 				ProcessRequest ias (
 					// additional info
 					AI ias nil;
+					Q ias nil;
+					RqId ias nil;
+					Rq ias nil;
+
+					(QR true) ias (Q~ (Q~~ (RqId~)) Substruct)^;
+					(QR false) ias doNothing;
 					// see StartActualHiring (Recall)
 					(RqId ($~ 0) Get)^
 					(Rq ($~ 1) Get)^
-					(RequestsInProgress (RequestsInProgress~ (RqId~)) Substruct)^
+					(Q ($~ 2) Get)^
+					(QR ($~ 3) Get)~ Exe
+#if (verbose)
+					((The hiring agent player Owner~ remained units in Q~ are Q~~) Ew.Output~) Do
+#endif
 					(CharacterIdInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
 					(CharacterProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 #if (business)
@@ -218,8 +314,10 @@ module HiringAgency {
 #else
 					(Characters)->(Unit UnitId~)->NotifyOwner~ Exe
 #endif
+					((HiringAgency Id~) Tx (schedulehiringrq nil (Q~))) Gate
 				);
 				PrepareReport ias (
+					Q ias nil;
 					Report ias (
 						TimerState ias nil;
 						(ConfRq $~~)^
@@ -236,10 +334,14 @@ module HiringAgency {
 						(((hiring starthiring inProgress) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ $~ TimerState~) Ew.OutChannel~) Do								
 #endif
 					);
-					(RequestsInProgress~ Report~) ForEach
+					(Q Agent.CarRequestsQ)^
+					(Q~~ Report~) ForEach
+					(Q Agent.StaffRequestsQ)^
+					(Q~~ Report~) ForEach
 				);
 				CollectState ias (
 					State ias ();
+					Q ias nil;
 					CState ias (
 						TimerState ias nil;
 						(ConfRq $~~)^
@@ -250,7 +352,10 @@ module HiringAgency {
 						(TimerState ((Hiring Id~ $~)) TState)^
 						(State (State~ ((ConfRq~ TimerState~))) Join)^
 					);
-					(RequestsInProgress~ CState~) ForEach
+					(Q Agent.CarRequestsQ)^
+					(Q~~ CState~) ForEach
+					(Q Agent.StaffRequestsQ)^
+					(Q~~ CState~) ForEach
 					((Player Owner~) Tx (ModeInfo.ModeStateManagerBroker~ rspcsha Id~ State~)) Gate
 				);
 				RestoreState ias (
@@ -271,15 +376,7 @@ module HiringAgency {
 				);
 				Behavior ias (
 					(AgentCommands true) ias (
-						(Command cancel) ias (
-							(InProgress false) ias (
-#if (verbose)
-								((Invalid request id RequestId~) Ew.Output~) Do
-#endif
-							);
-							(InProgress true) ias ActuallyCancelHiringRequest~ Exe;
-							(InProgress (RequestsInProgress~ RequestId~) In)~ Exe
-						);
+						(Command cancel) ias doNothing;
 						(Command report) ias PrepareReport~ Exe;
 						(Command collectstate) ias CollectState~ Exe;
 						(Command restorestate) ias RestoreState~ Exe;
@@ -290,6 +387,7 @@ module HiringAgency {
 						);
 						(Command exit) ias StopAgencyProcess~ Exe;
 						(Command reset) ias ResetAgencyProcess~ Exe;
+						(Command schedulehiringrq) ias ScheduleRequest~ Exe;
 						(Command Command~)~ Exe
 					);
 					(AgentCommands false) ias (
@@ -342,6 +440,8 @@ module HiringAgency {
 #if (verbose)
 				((The hiring agency Id~ activated for owner Owner~) Ew.Output~) Do
 #endif
+				(Agent.(ProcessingRq CarRequestsQ) false)^
+				(Agent.(ProcessingRq StaffRequestsQ) false)^
 				((HiringAgency Id~) Register blocked) Gate
 				((HiringAgency Id~) Tx (check 0 ())) Gate
 				((Player Owner~) Tx (ModeInfo.ModeMain~ hainitialized Id~ ())) Gate

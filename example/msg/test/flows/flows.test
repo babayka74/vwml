@@ -1,3 +1,58 @@
+/*
+      ===== MIXED HIRING AND CANCEL ONE ====
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+				(player 0 hiring startcarlooking 0 (((cost vodka 100) (hiringtime 5000) (id (0 1))) ((kind taxi) (clazz 1) (capacity 1))))
+				(manager 0 nil delay 0 (500))
+				(player 0 hiring starthiring 0 (((cost vodka 200) (hiringtime 5000) (id (0 2))) ((kind skeleton) (clazz 1) (contain (vodka 20)) (capacity 0) (attack (yes yes yes)) (defence (no no yes)))))
+				(player 0 hiring cancelcarlooking (0 1) ())
+
+*/
+/*
+      ===== LOOKING FOR CAR AND CANCEL ONE ====
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+				(player 0 hiring startcarlooking 0 (((cost vodka 100) (hiringtime 5000) (id (0 1))) ((kind taxi) (clazz 1) (capacity 1))))
+				(player 0 hiring startcarlooking 0 (((cost vodka 100) (hiringtime 5000) (id (0 2))) ((kind taxi) (clazz 1) (capacity 1))))
+				(manager 0 nil delay 0 (2500))
+				(player 0 hiring cancelcarlooking (0 1) ())
+
+*/
+
+/*
+      ===== CREDIT AND REGULAR WITHDRAW ====
+
+ 				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+				(player 0 banking creditwithdraw 0 (player nil nil nil (cost vodka 15000)))
+				(player 0 banking withdraw 0 (player nil nil nil (cost vodka 1000)))
+*/
+
+/*
+      ===== UPDATE TEST CONF ====
+
+				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+				(player 0 main updatebusinessconf 0 (
+									(AvailableResources (vodka food gold viski))
+									(Factors ((vodka 0 1 0 0 0 0) (food 0 1 0 0 0 0) (gold 0 1 0 0 0 0) (viski 0 1 0 0 0 0)) )
+									(GDevelop 100)
+									(GContain 10)
+									(UnitsInfo ((zombak1 (clazz ((1 1) (2 0) (3 0)))) (skeleton (clazz ((1 0) (2 1) (3 0)))) (vampire (clazz ((1 0) (2 0) (3 1))))))
+									(LH 9)
+									(Cashier ((period 15000)))
+									(InternalCurrency (coins 1000))
+									(CurrencyRates ((vodka 20) (food 30) (gold 40) (viski 50)))
+									(DevGang (105 5 2000))
+									(PremiumCurrency gold)
+									(Premium2CurrencyRate ((vodka 60) (food 70) (viski 80)))
+								)
+ 				)
+*/
+
+
 /* 
 	===== HIRE UNITS AND RESET PLAYER =====
 
@@ -18,17 +73,17 @@
   ======= MATCH MAKER PREPARES PLAYER FOR ATTACK =====
 
 				(pm 0 playermanagment playeradd 0 nil)
-				(manager 0 nil delay 0 (3500))
+				(manager 0 nil delay 0 (2500))
 
 				(player 0 bossofdistrict addboss nil ((0 1) 0 300 ((viski 500))  ))
-				(manager 0 nil delay 0 (3500))
+				(manager 0 nil delay 0 (2500))
 				(player 0 bossofdistrict activatequartal (0 1) ((((0 888) ((vodka 200 360000 60 3600000 150 3) 300))) ))
-				(manager 0 nil delay 0 (3500))
+				(manager 0 nil delay 0 (2500))
 				(player 0 bossofdistrict changebbr (0 1) ((vodka 500)) )
-				(manager 0 nil delay 0 (3500))
+				(manager 0 nil delay 0 (2500))
 				(player 0 bossofdistrict paybribe (0 1) ((cost vodka 1000)))
-				(manager 0 nil delay 0 (3500))
-				(mmm 0 nil preparetoattack 0 (0 5000))
+				(manager 0 nil delay 0 (2500))
+				(player 0 battle prepareattackzonesbf 0 (5000))
 */
 
 /*
@@ -63,7 +118,7 @@
 /*
  ======== MATCH MAKER MANAGER ======
 
-				(mmm 0 nil addtodeflist 0 (0 3000))
+				(mmm 0 nil addinfo 0 (0 3000))
 
 */
 /*
@@ -78,7 +133,7 @@
 
 				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (3500))
-				(player 0 deal setintention 0 ((0 0) pay (950 2000)))
+				(player 0 deal setintention 0 ((0 0) pay ((cost vodka 150) 2000)))
 
 */
 /*

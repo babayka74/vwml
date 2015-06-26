@@ -1,6 +1,8 @@
 package com.vw.lang.sink.java.interpreter.datastructure.timer;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.vw.lang.sink.java.interpreter.datastructure.resource.manager.VWMLResourceHostManagerFactory;
 
@@ -37,6 +39,7 @@ public class VWMLInterpreterTimerManager {
 	}
 	
 	private List<VWMLInterpreterTimer> timers = VWMLResourceHostManagerFactory.hostManagerInstance().requestTimerManagerContainer();
+	private Set<Object> timersMap = new HashSet<Object>();
 	
 	public VWMLInterpreterTimerManager() {
 		
@@ -96,9 +99,10 @@ public class VWMLInterpreterTimerManager {
 	 * Removes timer and activates its termination handler
 	 * @param id
 	 */
-	public void removeTimer(Object id) {
+	public VWMLInterpreterTimer removeTimer(Object id) {
+		VWMLInterpreterTimer t = null;
 		for(int i = 0; i < timers.size(); i++) {
-			VWMLInterpreterTimer t = timers.get(i);
+			t = timers.get(i);
 			if (t.getId().equals(id)) {
 				// start removing procedure
 				if (i != timers.size() - 1) {
@@ -111,9 +115,45 @@ public class VWMLInterpreterTimerManager {
 				}
 				break;
 			}
+			t = null;
 		}
+		return t;
 	}
 
+	/**
+	 * Removes timer from scheduler and runs callback associated with one
+	 * @param id
+	 */
+	public void instantFinishTimer(Object id) {
+		VWMLInterpreterTimer t = removeTimer(id);
+		if (t != null) {
+			t.getCallback().timerCbk(t);
+		}
+	}
+	
+	/**
+	 * Returns 'true' in case if timer has already been scheduled
+	 * @param id
+	 * @return
+	 */
+	public boolean checkTimer(Object id) {
+		return timersMap.contains(id);
+	}
+	
+	/**
+	 * Adding timer to timer manager
+	 * @param id
+	 * @param time
+	 * @param timeStamp
+	 * @param callback
+	 */
+	public void updateTimer(Object id, int time, long timeStamp, Object userData, VWMLInterpreterTimerCallback callback) {
+		if (checkTimer(id)) {
+			removeTimer(id);
+		}
+		addTimer(id, time, timeStamp, userData, callback);
+	}
+	
 	/**
 	 * Returns timer state identified by id
 	 * @param id
@@ -171,5 +211,6 @@ public class VWMLInterpreterTimerManager {
 	
 	public void done() {
 		timers.clear();
+		timersMap.clear();
 	}
 }

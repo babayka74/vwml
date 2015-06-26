@@ -27,14 +27,14 @@ module StateManagerBroker {
 					);
 					// called upon restoring all quartals
 					QStateRestored ias (
-						(Quartals 0 QStateRestored~) FinishInterception
+						(Quartals 0) FinishInterception
 						(RestoreFor (RestoreFor~ (rqrsquartals)) Substruct)^
 						// initates another (units)
 						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 1) Get)) Gate
 					);
 					// called upon restoring all units
 					UStateRestored ias (
-						(Units 0 UStateRestored~) FinishInterception
+						(Units 0) FinishInterception
 						(RestoreFor (RestoreFor~ (rqrsunits)) Substruct)^
 						// initates another (garage)
 						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (RestoreFor~ 0) Get Id~ (RConf~ 2) Get)) Gate
@@ -148,7 +148,7 @@ module StateManagerBroker {
 					// player's state has been collected
 					PlayerStateCollected ias (
 						State ias nil;
-						(CollectFor () PlayerStateCollected~) FinishInterception
+						(CollectFor ()) FinishInterception
 						(State (ACQState~ ACUState~ Resources.Garage.CollectState.GarageState~ Resources.Business.CollectState.BusinessState~ HAState~))^
 						((StateStoreManager 0) Tx (nil statecollected nil (Id~ State~))) Gate
 #if (verbose)
@@ -157,14 +157,14 @@ module StateManagerBroker {
 					);
 					// states of quartals have been collected
 					QStateCollected ias (
-						(Quartals 0 QStateCollected~) FinishInterception
+						(Quartals 0) FinishInterception
 						(CollectFor (CollectFor~ (rqcsquartals)) Substruct)^
 						// initates another
 						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
 					);
 					// states of units have been collected
 					UStateCollected ias (
-						(Units 0 UStateCollected~) FinishInterception
+						(Units 0) FinishInterception
 						(CollectFor (CollectFor~ (rqcsunits)) Substruct)^
 						((Player Id~) Tx (ModeInfo.ModeStateManagerBroker~ (CollectFor~ 0) Get Id~ ())) Gate
 					);

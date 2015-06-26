@@ -32,16 +32,16 @@ module Player {
 			ModeBossOfDistrict ias bossofdistrict;
 			ModeMatchMakermanagerBroker ias mmbroker;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~ ModeStateManagerBroker~ ModeBossOfDistrict~ ModeMatchMakermanagerBroker~);
-			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
-			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking cancelcarlooking carpaymentresult starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report collectstate);
+			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit upgradeunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
+			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking instantcarlooking cancelcarlooking carpaymentresult instanthiring instanthiringall starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report collectstate);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf prepareattackzonesbf attackzonesbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf rqrating);
 			AvailablePlayerCommandsOnModeStateManagerBroker ias (collectstate restorestate rqcsquartals rqcsunits rspquartalstate rspunitstate rspcsha rqgarage rqbusiness rqha rqrsquartals rqrsunits rqrgarage rqrbusiness rqrha rsprquartalstate rsprunitstate rsprsha);
 			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal updatebzones releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
-			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest updategarageconf back);
-			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge back);
+			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest instantinvest updategarageconf upgradecar back);
+			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge creditwithdraw back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
-			AvailablePlayerCommandsOnModeMatchMakerManagerBroker ias (addtodeflist removefromdeflist cleardeflist preparetoattack attackstarted updateconf);
+			AvailablePlayerCommandsOnModeMatchMakerManagerBroker ias (addinfo removeinfo cleardeflist preparetoattack attackstarted updateconf);
 			(AvailableModes AvailableModes~ Exe)^
 			BattleField.ExportCommands~ Exe
 			BossOfDistrictBrokerCommands.ExportCommands~ Exe

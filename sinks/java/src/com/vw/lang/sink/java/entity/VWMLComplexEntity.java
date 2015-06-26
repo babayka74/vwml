@@ -20,6 +20,12 @@ public class VWMLComplexEntity extends VWMLEntity {
 	}
 
 	@Override
+	public void restore(Object hashId, Object id) {
+		super.restore(hashId, id);
+		setMarkedAsComplexEntity(true);
+	}
+	
+	@Override
 	public boolean isMarkedAsComplexEntity() {
 		return true;
 	}

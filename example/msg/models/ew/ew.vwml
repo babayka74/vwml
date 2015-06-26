@@ -146,7 +146,9 @@ module ExternalWorld {
 			// coefficients which are used during calculating development of the gang
 			// alfa
 			DevGang ias nil;
-			ConfFields ias (AvailableResources Factors GDevelop GContain UnitsInfo LH Cashier InternalCurrency CurrencyRates DevGang);
+			PremiumCurrency ias nil;
+			Premium2CurrencyRate ias nil;
+			ConfFields ias (AvailableResources Factors GDevelop GContain UnitsInfo LH Cashier InternalCurrency CurrencyRates DevGang PremiumCurrency Premium2CurrencyRate);
 #else
 			ConfFields ias (Factors);
 #endif
@@ -173,6 +175,7 @@ module ExternalWorld {
 			((The business configuration is AvailableResources~ and Factors~ and GDevelop~ and GContain~ and UnitsInfo~ and LH~ and Cashier~) Ew.Output~) Do
 			((The internal currency InternalCurrency~ and rates are CurrencyRates~) Ew.Output~) Do
 			((The coefficients of development of gang are DevGang~) Ew.Output~) Do
+			((The premium currency is PremiumCurrency~ and rates are Premium2CurrencyRate~) Ew.Output~) Do
 	#else
 			((The business configuration is Factors~) Ew.Output~) Do
 	#endif
@@ -312,14 +315,16 @@ module ExternalWorld {
 		PrepareToAttack ias communication.in.write;
 		AddToDefList ias communication.in.write;
 		RemoveFromDefList ias communication.in.write;
+		ResetPrepareToAttack ias communication.in.write;
 #else
 		InChannel ias communication.strategyfringe.read;
 		OutChannel ias communication.strategyfringe.write;
 		InChannelBlockInput ias communication.strategyfringe.block;
 		InChannelUnblockInput ias communication.strategyfringe.unblock;
-		PrepareToAttack ias communication.strategyfringe.preparetoattack;
+		PrepareToAttack ias communication.strategyfringe.write;
 		AddToDefList ias communication.strategyfringe.addtodeflist;
 		RemoveFromDefList ias communication.strategyfringe.removefromdeflist;
+		ResetPrepareToAttack ias communication.strategyfringe.write;
 #endif
 		IncValue ias services.math.inc;
 		DecValue ias services.math.dec;
@@ -329,8 +334,10 @@ module ExternalWorld {
 		SubF ias services.math.substrf;
 		Mul ias services.math.mult;
 		MulF ias services.math.multf;
+		DivF ias services.math.divf;
 		Compare ias services.math.compare;
 		CompareF ias services.math.comparef;
+		RoundF ias services.math.roundf;
 		RecalcQuantum ias services.economic.recalcquantum;
 #if (business)
 		RecalcBattleResult ias services.economic.recalcbattleresult;

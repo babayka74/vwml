@@ -78,7 +78,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * Releases all contexts
 	 */
 	public synchronized void removeAll() {
-		VWMLContextsRepository.instance().release(VWMLContextsRepository.instance().getRootContext());
+		VWMLContextsRepository.instance().release(VWMLContextsRepository.instance().getRootContext(), VWMLContextsRepository.instance().getRootContext());
 		contextsMap.clear();
 		lookup.clear();
 		markAsInvalid();
@@ -297,27 +297,27 @@ public class VWMLContextsRepository extends VWMLRepository {
 	}
 
 	protected void releaseClonedImpl(VWMLContext context) {
-		release(context);
+		release(context, context);
 		if (context.getLink().getParent() != null) {
 			context.getLink().getParent().getLink().getLinkedObjects().remove(context);
 			context.getLink().setParent(null);
 		}
 	}
 	
-	protected void release(VWMLContext context) {
+	protected void release(VWMLContext initialContext, VWMLContext context) {
 		//System.out.println("release context '" + context.getContext() + "'");
 		VWMLLinkIncrementalIterator it = context.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
 				VWMLContext c = (VWMLContext)context.getLink().getConcreteLinkedEntity(it.getIt());
 				if (c != null) {
-					release(c);
+					release(initialContext, c);
 				}
 			}
 		}
 		context.getLink().clear();
 		for(VWMLEntity e : context.getAssociatedEntities()) {
-			e.release();
+			e.release(initialContext);
 		}
 		context.removeAllAssociatedEntities();
 	}

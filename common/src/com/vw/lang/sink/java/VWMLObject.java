@@ -37,6 +37,18 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		setReadableId(readableId);
 	}
 
+	public void restore(Object hashId, Object id) {
+		setHashId(hashId);
+		setId(id);
+		readableId = null;
+		simpleName = null;
+		parsedName = null;
+		compoundName = false;
+		superviser = null;
+		link.clear();
+		refCounter = 0;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

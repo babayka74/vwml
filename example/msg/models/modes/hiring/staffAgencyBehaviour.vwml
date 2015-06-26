@@ -2,6 +2,9 @@ module StaffAgencyHiringBehaviour {
 	MagicWorld ias (
 		HiringAgency ias (
 			Agent ias (
+				StaffRequestsQ ias ();
+				(ProcessingRq StaffRequestsQ) ias false;
+
 				StaffHiringBehaviour ias (
 					(Command starthiring) ias (
 						// get cost and check if player has enough resources
@@ -13,7 +16,18 @@ module StaffAgencyHiringBehaviour {
 					(Command cancelhiring) ias (
 						(CancelHiringRequest.RqId RequestId~)^
 						(CancelHiringRequest.NCmd cancelhiring)^
+						(CancelHiringRequest.Q StaffRequestsQ)^
 						CancelHiringRequest~ Exe
+					);
+					(Command instanthiring) ias (
+						(InstantHiringRequest.RqId RequestId~)^
+						(InstantHiringRequest.NCmd instanthiring)^
+						InstantHiringRequest~ Exe
+					);
+					(Command instanthiringall) ias (
+						(InstantAllRequests.NCmd instantall)^
+						(InstantAllRequests.Q StaffRequestsQ)^
+						InstantAllRequests~ Exe
 					);
 					(Command staffpaymentresult) ias (
 						(payment confirmed) ias (
@@ -21,6 +35,7 @@ module StaffAgencyHiringBehaviour {
 							(ActuallyStartHiringRequest.AC staff)^
 							(ActuallyStartHiringRequest.ConfRq (Request~ 1) Get)^
 							(ActuallyStartHiringRequest.TimeToHireInfo nil)^
+							(ActuallyStartHiringRequest.Q StaffRequestsQ)^
 							ActuallyStartHiringRequest~ Exe
 						);
 						(payment declined) ias (
@@ -35,7 +50,7 @@ module StaffAgencyHiringBehaviour {
 							(GetKindOfUnit.UnitProps (OrigRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 							GetKindOfUnit~ Exe
                                                         (UnitId (CharacterIdInfo~ 1) Get)^
-							(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
+							(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ (Request~ 2) Get) Ew.OutChannel~) Do
 #endif
 						);
 						(payment (Request~ 0) Get)~ Exe

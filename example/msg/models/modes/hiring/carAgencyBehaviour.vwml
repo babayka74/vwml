@@ -2,6 +2,9 @@ module CarAgencyHiringBehaviour {
 	MagicWorld ias (
 		HiringAgency ias (
 			Agent ias (
+				CarRequestsQ ias ();
+				(ProcessingRq CarRequestsQ) ias false;
+
 				CarsHiringBehaviour ias (
 					GetCarReservationPlaces ias (
 						Rq ias nil;
@@ -31,11 +34,24 @@ module CarAgencyHiringBehaviour {
 
 					);
 					(Command cancelcarlooking) ias (
-						(CancelCarReservationPlace.Rq (Request~ 1) Get)^
-						CancelCarReservationPlace~ Exe
-						(CancelHiringRequest.RqId RequestId~)^
-						(CancelHiringRequest.NCmd cancelcarlooking)^
-						CancelHiringRequest~ Exe
+						// in-process request id
+						IRqId ias nil;
+						(Rq true) ias doNothing;
+						(Rq false) ias (
+							(CancelCarReservationPlace.Rq (IRqId~~ 0) Get)^
+							CancelCarReservationPlace~ Exe
+							(CancelHiringRequest.RqId IRqId~)^
+							(CancelHiringRequest.Q CarRequestsQ)^
+							(CancelHiringRequest.NCmd cancelcarlooking)^
+							CancelHiringRequest~ Exe
+						);
+						(IRqId (CarRequestsQ~ RequestId~) Find)^
+						(Rq (IRqId~ nil) Ident)~ Exe
+					);
+					(Command instantcarlooking) ias (
+						(InstantHiringRequest.RqId RequestId~)^
+						(InstantHiringRequest.NCmd instantcarlooking)^
+						InstantHiringRequest~ Exe
 					);
 					(Command reservegarageresult) ias (
 						(reservation confirmed) ias (
@@ -64,6 +80,7 @@ module CarAgencyHiringBehaviour {
 							(ActuallyStartHiringRequest.AC garage)^
 							(ActuallyStartHiringRequest.ConfRq (Request~ 1) Get)^
 							(ActuallyStartHiringRequest.TimeToHireInfo nil)^
+							(ActuallyStartHiringRequest.Q CarRequestsQ)^
 							ActuallyStartHiringRequest~ Exe
 						);
 						(payment declined) ias (
@@ -82,7 +99,7 @@ module CarAgencyHiringBehaviour {
 							(GetKindOfUnit.UnitProps (OR~ CmdFormat.RqCharacterInfoIndex~) Get)^
 							GetKindOfUnit~ Exe
                                                         (UnitId (CharacterIdInfo~ 1) Get)^
-							(((hiring startcarlooking failed noResources resource) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~) Ew.OutChannel~) Do
+							(((hiring startcarlooking failed noResources resource) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ (Request~ 2) Get) Ew.OutChannel~) Do
 #endif
 						);
 						(payment (Request~ 0) Get)~ Exe

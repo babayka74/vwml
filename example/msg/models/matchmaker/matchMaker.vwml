@@ -23,7 +23,7 @@ module MatchMaker {
 					DefCost ias nil;
 					AttCost ias nil;
 					// active commands
-					CommandSet ias (addtodeflist removefromdeflist cleardeflist preparetoattack attackstarted updateconf);
+					CommandSet ias (addinfo removeinfo cleardeflist preparetoattack attackstarted updateconf);
 
 					AddToDefList ias (
 						(PId (Params~ 0) Get)^
@@ -35,6 +35,9 @@ module MatchMaker {
 #endif
 #if (verbose)
 						((Adding player PId~ with defence cost DefCost~ to defence list) Ew.Output~) Do						
+#endif
+#if (release)
+						(((deflist addinfo ok) Params~) Ew.OutChannel~) Do
 #endif
 					);
 
@@ -48,6 +51,9 @@ module MatchMaker {
 #endif
 #if (verbose)
 						((Removing player PId~ with defence cost DefCost~ from defence list) Ew.Output~) Do						
+#endif
+#if (release)
+						(((deflist removeinfo ok) Params~) Ew.OutChannel~) Do
 #endif
 					);
 
@@ -71,9 +77,9 @@ module MatchMaker {
 
 					(RightCommand true) ias (
 						// adds player to defence list
-						(Cmd addtodeflist) ias AddToDefList~ Exe;
+						(Cmd addinfo) ias AddToDefList~ Exe;
 						// reAmove player from defence list
-						(Cmd removefromdeflist) ias RemoveFromDefList~ Exe;
+						(Cmd removeinfo) ias RemoveFromDefList~ Exe;
 						(Cmd cleardeflist) ias ClearDefList~ Exe;
 						// prepares player for attack
 						(Cmd preparetoattack) ias PrepareToAttack~ Exe;

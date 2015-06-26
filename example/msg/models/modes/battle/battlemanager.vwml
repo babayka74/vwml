@@ -6,6 +6,7 @@ module BattleManager {
 				To ias nil;
 				CommandParams ias nil;
 				BFId ias nil;
+#if (realbattleimpl)
 				// battlefield is created upon player's request
 				CreateBattleField ias (
 					(Q (CommandParams~ 0) Get)^
@@ -57,49 +58,43 @@ module BattleManager {
 					// sent to requested with player's identifier and current battle status
 					((Player RPId~) Tx (RPIdMode~ responsebattlestatusbf RPId~ (Id~ (BattleField Resources.SelectedBattle~)->BattleStatus~))) Gate
 				);
+#else
+				CreateBattleField ias (
+#if (verbose)
+					((Player Id~ created fake battlefield) Ew.Output~) Do 
+#endif
+				);
+				DestroyBattleField ias (
+					((Player PlayerId~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate
+				);
+				ResetBattleField ias (
+					((Player PlayerId~) Tx (ModeInfo.ModeMain~ partclosed Id~ (battlefield))) Gate
+				);
+#endif // realbattleimpl
 				PrepareAttackZones ias (
-					AttackZones ias nil;
+					AttackZonesReady ias false;
 					// in case if battle wasn't started in 'StartIn' time we have to return all players to deflist
 					ClearBZones ias (
-						Clear ias (
-							AZN ias nil;
-							(NAZN true) ias doNothing;
-							(NAZN false) ias (
-#if (verbose)                                   	
-								((Player Id~ returns AZN~~ to deflist) Ew.Output~) Do
+						IgnorePlayer ias nil;
+#if (release)
+	#if (zonebinderfringe)
+						((Id~ IgnorePlayer~) Ew.ResetPrepareToAttack~) Do						
+	#endif
 #endif
-								((MatchMakerManager 0) Tx (nil addtodeflist nil AZN~~)) Gate
-								(AZN~ nil)^
-
-							);
-							(AZN (Resources.BattleZones.Zones~ ($~ 0) Get) Find)^
-							(NAZN (AZN~ nil) Ident)~ Exe
-						);
-						(AttackZones~ Clear~) ForEach
+#if (verbose)
+						((Player Id~ resets attacked zones and ignored player is IgnorePlayer~) Ew.Output~) Do
+#endif
 					);
 					// associates attack zones
 					AssociateBZones ias (
-						Associate ias (
-							AZN ias nil;
-							(NAZN true) ias doNothing;
-							(NAZN false) ias (
-								(AZN~ ($~ 1) Get)^
-#if (verbose)                                   	
-								((Player Id~ has attack zone AZN~ and associated attacked player AZN~~) Ew.Output~) Do
-#endif
-							);
-							(AZN (Resources.BattleZones.Zones~ ($~ 0) Get) Find)^
-							(NAZN (AZN~ nil) Ident)~ Exe
-						);
-						(AttackZones~ Associate~) ForEach
 						// start timer which waits for 'StartIn~' time for attack message
 #if (verbose)                                   	
 						((Player Id~ zones will be cleared in Ew.MatchMakerConf.Attack.StartIn~ ms) Ew.Output~) Do
 #endif
 						(Ew.MatchMakerConf.Attack.StartIn~ (ClearBZones Id~) ClearBZones~) Recall
 					);
-					(NAZ true) ias doNothing;
-					(NAZ false) ias AssociateBZones~ Exe;
+					(AttackZonesReady false) ias doNothing;
+					(AttackZonesReady true) ias AssociateBZones~ Exe;
 
 #if (verbose)
 					((Player Id~ is being prepared for attack with attack cost (CommandParams~ 0) Get) Ew.Output~) Do						
@@ -107,22 +102,29 @@ module BattleManager {
 #if (release)
 	#if (zonebinderfringe)
 					// (CommandParams~ 1) Get => AttackCost
-					(AttackZones (((Id~ (CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do)^
+					(AttackZonesReady (((Id~ (CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do)^
 	#else
-					// (<zone_id> (<associated player id> <player's defcost>))
-					(AttackZones (((BZ (0 888) 0) (1 1000)) ((BZ (0 888) 1) (2 2000)) ((BZ (0 888) 2) (3 3000))))^
+					(AttackZonesReady true)^
 	#endif
 #endif
 #if (verbose)
 					((Player Id~ prepared attacking zones AttackZones~) Ew.Output~) Do						
 #endif
-					(NAZ (AttackZones~ nil) Ident)~ Exe
+					(AttackZonesReady AttackZonesReady~)~ Exe
+#if (release)
+					(((battle prepareattackzonesbf ok) (player Id~)) Ew.OutChannel~) Do
+#endif
 				);
 
 				AttackZonesStarted ias (
 					(-1 (ClearBZones Id~) PrepareAttackZones.ClearBZones~) Recall
+					(PrepareAttackZones.ClearBZones.IgnorePlayer (CommandParams~ 0) Get)^
+					PrepareAttackZones.ClearBZones~ Exe
 #if (verbose)
 					((Player Id~ cancelled battle timer) Ew.Output~) Do						
+#endif
+#if (release)
+					(((battle attackstarted ok) (player Id~)) Ew.OutChannel~) Do
 #endif
 				);
 

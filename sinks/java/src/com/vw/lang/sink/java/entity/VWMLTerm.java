@@ -20,6 +20,13 @@ public class VWMLTerm extends VWMLEntity {
 		super(hashId, id, readableId);
 	}
 
+	@Override
+	public void restore(Object hashId, Object id) {
+		super.restore(hashId, id);
+		associatedEntity = null;
+		originalAssociatedEntity = null;
+	}
+	
 	public boolean isTerm() {
 		return true;
 	}

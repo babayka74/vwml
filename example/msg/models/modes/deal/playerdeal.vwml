@@ -89,7 +89,7 @@ module PlayerDeal {
 				);
 				(Handle dealpayment) ias (
 					(Result true) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (confirmed))) Gate;
-					(Result false) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (declined))) Gate;
+					(Result false) ias ((Quartal QuartalId~) Tx (Id~ paymentresult (declined (prc Resources.Account.Withdraw.PRC~)))) Gate;
 					(QuartalId (CommandParams~ 0) Get)^
 					(Resources.Account.Value CommandParams~)^
 					Resources.Account.Withdraw~ Exe
@@ -99,7 +99,7 @@ module PlayerDeal {
 					RespCmd ias nil;
 					OrigRequest ias nil;
 					(Result true) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (confirmed OrigRequest~))) Gate;
-					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (declined OrigRequest~))) Gate;
+					(Result false) ias ((Player Id~) Tx (ModeInfo.ModeHiring~ RespCmd~ Id~ (declined OrigRequest~ (prc Resources.Account.Withdraw.PRC~)))) Gate;
 					(OrigRequest (CommandParams~ 0) Get)^
 					(RespCmd (CommandParams~ 3) Get)^
 					(Resources.Account.Value CommandParams~)^
@@ -127,6 +127,8 @@ module PlayerDeal {
 					// updates business factor by recalculated quantum
 					(Resources.Business.Value (QuartalId~ (CommandParams~ 1) Get Resources.Business.RQ~))^
 					Resources.Business.IncreaseBF~ Exe
+					// recalc player's instant rating
+					((Player Id~) Tx (ModeInfo.ModeMain~ rqrating 0 ())) Gate
 					// sends quantum to quartal for updaiting contribution value
 					((Quartal QuartalId~) Tx (QuartalId~ rspcalcquantum (Resources.Business.RQ~))) Gate
 				);

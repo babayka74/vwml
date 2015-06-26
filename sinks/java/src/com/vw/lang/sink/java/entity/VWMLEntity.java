@@ -78,6 +78,51 @@ public class VWMLEntity extends VWMLObject {
 		super(hashId, id, readableId);
 	}
 
+	public boolean isEntityPooled() {
+		String ids[] = {s_NilEntityId, s_NullEntityId, s_EmptyEntityId, s_doNothingEntityId, s_doNothingEntityId2, s_doNothingEntityId3, s_trueEntityId, s_falseEntityId};
+		for(String s : ids) {
+			if (getId().equals(s)) {
+				return false;
+			}
+			String rid = getReadableId();
+			if (rid != null && rid.equals(s)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public void restore(Object hashId, Object id) {
+		super.restore(hashId, id);
+		isCreature = false;
+		context = null;
+		originalInterpreting = null;
+		interpreting = null;
+		interpretationHistory.clear();
+		associatedOperations.clear();
+		isLifeTerm = false;
+		isLifeTermAsSource = false;
+		isMarkedAsComplexEntity = false;
+		isMarkedAsArtificalTerm = false;
+		isOperatesByExe = false;
+		isOriginal = false;
+		isSynthetic = false;
+		isDynamicAddressedInRunTime = false;
+		asArgPair = null;
+		interpretationHistorySize = 0;
+		clonedFrom = null;
+		resolvedInRuntime = null;
+		specialLinkedEntity = null;
+		isPartOfDynamicContext = false;
+		activated = false;
+		removed = false;
+	}
+	
+	public void resetRemovedFlag() {
+		removed = false;
+	}
+	
 	/**
 	 * New entity was born
 	 * @param proto
@@ -151,7 +196,7 @@ public class VWMLEntity extends VWMLObject {
 		// check if entity is in cloned context
 		if (!firstIteration) {
 			if ((!VWMLContext.isContextChildOf(initialContext.getContext(), getContext().getContext())) ||
-				(this.getContext() == VWMLContextsRepository.instance().getDefaultContext())) {
+				(this.getContext() == VWMLContextsRepository.instance().getDefaultContext()) || isSynthetic()) {
 				return this; // no need to clone entity which doesn't belong to cloned context
 			}
 		}
@@ -161,9 +206,6 @@ public class VWMLEntity extends VWMLObject {
 				return cloned;
 			}
 		}
-		// entity declared on another context, so it should be changed on new
-		context = createEntityContextBasedOnNewEntityName(context, oldId, newId);
-		VWMLEntity termAssociatedEntity = null;
 		// proto is active for first iteration only
 		VWMLObjectBuilder.VWMLObjectType type = null;
 		if (proto == null) {
@@ -172,9 +214,15 @@ public class VWMLEntity extends VWMLObject {
 		else {
 			type = deductEntityTypeByProto(proto);			
 		}
+		VWMLEntity termAssociatedEntity = null;
 		if (type == VWMLObjectBuilder.VWMLObjectType.TERM) {
 			termAssociatedEntity = ((VWMLTerm)this).getOriginalAssociatedEntity();
-		}		
+			if (termAssociatedEntity != null && termAssociatedEntity.isSynthetic()) {
+				return this;
+			}
+		}
+		// entity declared on another context, so it should be changed on new
+		context = createEntityContextBasedOnNewEntityName(context, oldId, newId);
 		if (termAssociatedEntity != null) {
 			termAssociatedEntity = termAssociatedEntity.clone(null,
 															  oldId,
@@ -259,7 +307,7 @@ public class VWMLEntity extends VWMLObject {
 		cloned.setLifeTermAsSource(isLifeTermAsSource());
 		cloned.setClonedFrom(this);
 		if (termAssociatedEntity != null) {
-			cloned.setAssociatedOperations(getAssociatedOperations());
+			cloned.copyAssociatedOperations(getAssociatedOperations());
 			((VWMLTerm)cloned).setAssociatedEntity(termAssociatedEntity);
 		}
 		cloned.setInterpreting(interpretingEntity);
@@ -285,29 +333,31 @@ public class VWMLEntity extends VWMLObject {
 		return cloned;
 	}
 	
-	public void release() {
-		if (getClonedFrom() == null || removed) {
+	public void release(VWMLContext c) {
+		if (getClonedFrom() == null || removed || isSynthetic()) {
+			return;
+		}
+		if ((!VWMLContext.isContextChildOf(c.getContext(), getContext().getContext())) ||
+			(this.getContext() == VWMLContextsRepository.instance().getDefaultContext())) {
 			return;
 		}
 		removed = true;
 		if (getOriginalInterpreting() != null) {
 			if (!getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
 //				System.out.println("interpreting release '" + getOriginalInterpreting().buildReadableId() + "'");
-				getOriginalInterpreting().release();
+				getOriginalInterpreting().release(c);
 			}
 		}
 		VWMLObjectBuilder.VWMLObjectType type = deductEntityTypeByProto(this);
 		if (type == VWMLObjectBuilder.VWMLObjectType.TERM) {
 			VWMLEntity et = ((VWMLTerm)this).getAssociatedEntity();
 			if (et != null) {
-				et.release();
+				et.release(c);
 				((VWMLTerm)this).setAssociatedEntity(null);
 			}
 		}
 		for(VWMLObject e : getLink().getLinkedObjects()) {
-			((VWMLEntity)e).release();
-			e.getLink().getLinkedObjects().clear();
-			e.getLink().setParent(null);
+			((VWMLEntity)e).release(c);
 		}
 /*		
 		if (buildReadableId() != null) {
@@ -319,6 +369,7 @@ public class VWMLEntity extends VWMLObject {
 		//setId("__removed__");
 		getLink().getLinkedObjects().clear();
 		getLink().setParent(null);
+		VWMLObjectBuilder.returnToPool(this);
 	}
 	
 	@Override
@@ -582,6 +633,22 @@ public class VWMLEntity extends VWMLObject {
 		this.resolvedInRuntime = resolvedInRuntime;
 	}
 
+	public VWMLObjectBuilder.VWMLObjectType deductEntityType() {
+		return deductEntityTypeByProto(this);
+	}
+	
+	public VWMLObjectBuilder.VWMLObjectType deductEntityTypeByProto(VWMLEntity proto) {
+		VWMLObjectBuilder.VWMLObjectType type = VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY;
+		if (proto.isTerm()) {
+			type = VWMLObjectBuilder.VWMLObjectType.TERM;
+		}
+		else
+		if (proto.isMarkedAsComplexEntity()) {
+			type = VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY;
+		}
+		return type;
+	}
+	
 	@Override
 	public String toString() {
 		return "VWMLEntity [interpreting=" + interpreting + ", getLink()="
@@ -626,6 +693,9 @@ public class VWMLEntity extends VWMLObject {
 		this.associatedOperations = associatedOperations;
 	}
 	
+	protected void copyAssociatedOperations(VWMLOperations associatedOperations) {
+		getAssociatedOperations().copyFrom(associatedOperations);
+	}
 	
 	protected VWMLContext createEntityContextBasedOnNewEntityName(VWMLContext defaultContext, String lookupId, String newId) throws Exception {
 		boolean found = false;
@@ -645,18 +715,6 @@ public class VWMLEntity extends VWMLObject {
 			context = VWMLContextsRepository.instance().createFromContextPath(path);
 		}
 		return context;
-	}
-	
-	protected VWMLObjectBuilder.VWMLObjectType deductEntityTypeByProto(VWMLEntity proto) {
-		VWMLObjectBuilder.VWMLObjectType type = VWMLObjectBuilder.VWMLObjectType.SIMPLE_ENTITY;
-		if (proto.isTerm()) {
-			type = VWMLObjectBuilder.VWMLObjectType.TERM;
-		}
-		else
-		if (proto.isMarkedAsComplexEntity()) {
-			type = VWMLObjectBuilder.VWMLObjectType.COMPLEX_ENTITY;
-		}
-		return type;
 	}
 	
 	protected boolean isRecursiveInterpretationOn(VWMLEntity e, boolean onOriginal) {

@@ -4,7 +4,7 @@ module PlayerResources {
 			Resources ias (
 				InitSteps ias ();
 				InitDone ias (
-					(InitSteps () InitDone~) FinishInterception
+					(InitSteps ()) FinishInterception
 #if (verbose)
 					((Player Id~ initialized) Ew.Output~) Do
 #endif

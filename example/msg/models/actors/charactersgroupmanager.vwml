@@ -6,10 +6,10 @@ module CharactersGroupManager {
 				// called when Joined became '()'
 				DisjoinCbk ias nil;
 				InitDisjoinAllUnitsInterceptor ias (
-					(Joined () DisjoinCbk~) StartInterception
+					(Joined ()) StartInterception
 				);
 				DoneDisjoinAllUnitsInterceptor ias (
-					(Joined () DisjoinCbk~) FinishInterception
+					(Joined ()) FinishInterception
 				);
 				DisjoinUnit ias (
 					Action ias nil;

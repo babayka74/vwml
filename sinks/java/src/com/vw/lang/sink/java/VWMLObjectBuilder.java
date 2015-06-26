@@ -2,6 +2,8 @@ package com.vw.lang.sink.java;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.vw.lang.sink.java.beyond.fringe.creature.VWMLCreature;
 import com.vw.lang.sink.java.entity.VWMLComplexEntity;
@@ -51,6 +53,28 @@ public class VWMLObjectBuilder {
 			return OBJECT;
 		}
 		
+	}
+
+	public static class Pool {
+		private Map<VWMLObjectType, ConcurrentLinkedQueue<VWMLObject>> entityPool = new ConcurrentHashMap<VWMLObjectBuilder.VWMLObjectType, ConcurrentLinkedQueue<VWMLObject>>();
+		
+		public VWMLObject get(VWMLObjectType type) {
+			VWMLObject o = null;
+			ConcurrentLinkedQueue<VWMLObject> s = entityPool.get(type);
+			if (s != null) {
+				o = s.poll();
+			}
+			return o;
+		}
+		
+		public void put(VWMLObjectType type, VWMLObject o) {
+			ConcurrentLinkedQueue<VWMLObject> s = entityPool.get(type);
+			if (s == null) {
+				s = new ConcurrentLinkedQueue<VWMLObject>();
+				entityPool.put(type, s);
+			}
+			s.offer(o);
+		}
 	}
 	
 	public static abstract class Builder {
@@ -151,6 +175,8 @@ public class VWMLObjectBuilder {
 		}
 	};
 	
+	private static Pool s_pool = new Pool();
+	
 	/**
 	 * Builds builder according to its type; the visitor is used for debug purposes only - when
 	 * we need to visualize object's structure
@@ -162,6 +188,26 @@ public class VWMLObjectBuilder {
 	 * @return
 	 */
 	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
-		return s_builders.get(builderType).objectBuilder(hashId, id, context, entityHistorySize, visitor);
+		VWMLObject obj = s_pool.get(builderType);
+		if (obj == null) {
+			obj = s_builders.get(builderType).objectBuilder(hashId, id, context, entityHistorySize, visitor);
+		}
+		else {
+			// reinitialize
+			obj.restore(hashId, id);
+			((VWMLEntity)obj).setContext(context);
+			((VWMLEntity)obj).setInterpretationHistorySize(entityHistorySize);
+			if (visitor != null) {
+				obj.getLink().setLinkOperationVisitor(visitor);
+			}
+		}
+		return obj;
+	}
+	
+	public static void returnToPool(VWMLEntity o) {
+		if (o.isEntityPooled()) {
+			o.restore("__removed__", "__removed__");
+			s_pool.put(o.deductEntityType(), o);
+		}
 	}
 }
