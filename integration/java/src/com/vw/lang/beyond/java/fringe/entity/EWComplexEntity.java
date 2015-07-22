@@ -20,4 +20,15 @@ public class EWComplexEntity extends EWEntity {
 	public void markAsComplexEntity() {
 		this.isMarkedAsComplexEntity = true;
 	}
+	
+	@Override
+	public void release() {
+		synchronized(this) {
+			for(int i = 0; i < getLink().getLinkedObjectsOnThisTime(); i++) {
+				((EWEntity)(getLink().getConcreteLinkedEntity(i))).release();
+			}
+			getLink().clear();
+		}
+		EWEntityBuilder.returnToPool(this);
+	}
 }

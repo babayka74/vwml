@@ -40,6 +40,10 @@ public class EWLink {
 		this.parent = parent;
 	}
 
+	public void clear() {
+		linkedObjects.clear();
+	}
+	
 	/**
 	 * Returns 'true' in case if objects have been linked
 	 * @param obj

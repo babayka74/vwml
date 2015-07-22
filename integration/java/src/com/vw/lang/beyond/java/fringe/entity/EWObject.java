@@ -48,6 +48,12 @@ public class EWObject implements Cloneable, Comparable<EWObject> {
 		return true;
 	}
 
+	public void restore(Object id, String readableId) {
+		this.setId(id);
+		this.setReadableId(readableId);
+		getLink().clear();
+	}
+	
 	public Object getId() {
 		return id;
 	}

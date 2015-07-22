@@ -63,6 +63,7 @@ public class VWMLObjectBuilder {
 			ConcurrentLinkedQueue<VWMLObject> s = entityPool.get(type);
 			if (s != null) {
 				o = s.poll();
+//				System.out.println("Pool of '" + type + "' has elements '" + s.size() + "'");
 			}
 			return o;
 		}
@@ -74,6 +75,7 @@ public class VWMLObjectBuilder {
 				entityPool.put(type, s);
 			}
 			s.offer(o);
+//			System.out.println("Pool of '" + type + "' has elements '" + s.size() + "'");
 		}
 	}
 	
@@ -207,6 +209,7 @@ public class VWMLObjectBuilder {
 	public static void returnToPool(VWMLEntity o) {
 		if (o.isEntityPooled()) {
 			o.restore("__removed__", "__removed__");
+			o.setReadableId("__removed__");
 			s_pool.put(o.deductEntityType(), o);
 		}
 	}

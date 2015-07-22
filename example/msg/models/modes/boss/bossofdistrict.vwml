@@ -42,15 +42,16 @@ module BossOfDistrict {
 				(Negotiated false)^
 				(Initialized false)^
 				(DesiredBribe BBR~ Random)^
-				(Player.Resources.Quartals.Construct (Construct Id~) defer) Born
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->F QNIds~)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->N Quartals~)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->CB Finished~)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
-				(Player)->(Resources)->(Quartals)->(Construct Id~)~ Exe
+				((Player Owner~)->(Resources)->(Quartals)->(ConstructBuilder)->B Id~)^
+				(Player Owner~)->(Resources)->(Quartals)->ConstructBuilder~ Exe
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->F QNIds~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->N Quartals~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->CB Finished~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
+				(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)~ Exe
 			);
 			Done ias (
 				Finished ias (
@@ -63,7 +64,7 @@ module BossOfDistrict {
 				);
 				(CQs () Finished~) StartInterception
 				Deactivate~ Exe
-				((Player)->(Resources)->(Quartals)->(Construct Id~)) Release
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)) Release
 			);
 			Deactivate ias (
 				(N false) ias (
@@ -94,14 +95,14 @@ module BossOfDistrict {
 #endif
 				);
 				PQConf ias nil;
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->F nil)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->N 0)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->CB CB~)^
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
-				(Player)->(Resources)->(Quartals)->(Construct Id~)~ Exe
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->F nil)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->N 0)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->CB CB~)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
+				(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)~ Exe
 			);
 			PublishQuartals ias (
 				PQ ias (
@@ -199,9 +200,9 @@ module BossOfDistrict {
 				ChangeBBR~ Exe
 			);
 			(Handle qinitialized) ias (
-				((Player)->(Resources)->(Quartals)->(Construct Id~)->BQN (((Player)->(Resources)->(Quartals)->(Construct Id~)->BQN~) Ew.DecValue~) Do)^
+				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN (((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~) Ew.DecValue~) Do)^
 #if (verbose)
-				(((Player)->(Resources)->(Quartals)->(Construct Id~)->BQN~ left quartals to initialize boss Id~) Ew.Output~) Do
+				(((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~ left quartals to initialize boss Id~) Ew.Output~) Do
 #endif
 			);
 			(Handle releasedquartal) ias (

@@ -90,7 +90,9 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 			if (ewResponseEntity != null) {
 				answerFromEW = VWMLCreature.transformToVWML(resContext, ewResponseEntity, VWMLCreature.s_transformAsIs);
 				answerFromEW.setContext(resContext);
+				ewResponseEntity.release();
 			}
+			msg.releaseByRefCounter(resContext);
 		}
 		else {
 			throw new Exception("couldn't find fringe '" + onFringe.getId() + "'; check VWML code");

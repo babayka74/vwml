@@ -13,27 +13,27 @@ module PlayerResourceQuartals {
 					Visible ias ();
 					/* number of active quartals, including quartals of bosses */
 					NumOfActiveQuartals ias 0;
+					// builds Construct entity on behalf of boss
+					ConstructBuilder ias (
+						B ias nil;
+						(Construct (Construct B~) defer) Born
+					);
 					// prepares entities which are used by quartal during exit operation
 					OnExitC ias (
-						PoolRQ ias ();
-						PoolBQ ias ();
 						QId ias nil;
 						Requester ias nil;
 						
-						(PoolRQ false) ias (
+						(Requester Player),(Requester nil) ias (
 							// release regular quartal
 							((ReleaseRQ QId~) (ModeInfo.ModeDeal~ releasedquartal QId~ (QId~)))^
 							((ReleaseRQ QId~) OnExitC true) Context
 						);
-						(PoolRQ true) ias doNothing;
-						(PoolBQ false) ias (
+						(Requester Boss) ias (
 							// release boss quartal
 							((ReleaseBQ QId~) (ModeInfo.ModeBossOfDistrict~ releasedquartal (Requester~ 1) Get (QId~)))^
 							((ReleaseBQ QId~) OnExitC true) Context
 						);
-						(PoolBQ true) ias doNothing;
-						(PoolRQ (PoolRQ~ ((ReleaseRQ QId~))) In)~ Exe
-						(PoolBQ (PoolBQ~ ((ReleaseBQ QId~))) In)~ Exe
+						(Requester (Requester~ 0) Get)~ Exe
 					);
 					/* constructs set of quartals */
 					Construct ias (
@@ -102,7 +102,7 @@ module PlayerResourceQuartals {
 							// quartal's activation
 							(QReady true) ias (
 								(OnExitC.QId QId~)^
-								(OnExitC.Requester Requester~)^
+								(OnExitC.Requester R~)^
 								OnExitC~ Exe								
 								((Quartal QId~)->Id QId~)^
 								((Quartal QId~)->Owner PId~)^

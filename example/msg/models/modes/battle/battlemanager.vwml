@@ -78,7 +78,8 @@ module BattleManager {
 						IgnorePlayer ias nil;
 #if (release)
 	#if (zonebinderfringe)
-						((Id~ IgnorePlayer~) Ew.ResetPrepareToAttack~) Do						
+						// old code((Id~ IgnorePlayer~) Ew.ResetPrepareToAttack~) Do
+						(((battle resetpreparetoattack ok)(player Id~)(IgnorePlayer~)) Ew.ResetPrepareToAttack~) Do						
 	#endif
 #endif
 #if (verbose)
@@ -102,7 +103,9 @@ module BattleManager {
 #if (release)
 	#if (zonebinderfringe)
 					// (CommandParams~ 1) Get => AttackCost
-					(AttackZonesReady (((Id~ (CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do)^
+				// old code	(AttackZonesReady (((Id~ (CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do)^
+					(((battle zoneslist ok)(player Id~)((CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do
+					(AttackZonesReady true)^
 	#else
 					(AttackZonesReady true)^
 	#endif

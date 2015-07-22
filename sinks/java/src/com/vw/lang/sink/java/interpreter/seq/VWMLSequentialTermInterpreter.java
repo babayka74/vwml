@@ -171,7 +171,7 @@ public class VWMLSequentialTermInterpreter extends VWMLInterpreterImpl {
 		if (getStatus() != finishedEntityProcessing) {
 			// working with lifeterm's context
 			if (lastInterpretedEntity.getContext() == null) {
-				throw new Exception("entity '" + lastInterpretedTerm + "' doesn't belong to any context !");
+				throw new Exception("entity '" + lastInterpretedEntity.buildReadableId() + "/" + lastInterpretedEntity.getOldReadableId() + "' doesn't belong to any context !");
 			}
 			boolean pushEmptyMark = false;
 			if (!lastInterpretedEntity.isTerm() && lastInterpretedEntity.isMarkedAsComplexEntity()) {

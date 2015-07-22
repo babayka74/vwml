@@ -66,9 +66,12 @@ public class VWMLOperationRepeatHandler extends VWMLOperationHandler {
 			for(int i = 0; i < c; i++) {
 				String id = String.valueOf(i);
 				VWMLEntity e = (VWMLEntity)VWMLObjectBuilder.build(VWMLObjectType.SIMPLE_ENTITY, id, id, context, 0, null);
+				e.incrementRefCounter();
 				if (!forEach(interpreter, e, term)) {
+					e.decrementRefCounter();
 					break;
 				}
+				e.decrementRefCounter();
 			}
 		}
 	}

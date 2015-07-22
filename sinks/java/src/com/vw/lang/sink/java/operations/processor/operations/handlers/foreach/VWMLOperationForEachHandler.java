@@ -64,9 +64,12 @@ public class VWMLOperationForEachHandler extends VWMLOperationHandler {
 			if (it != null) {
 				for(; it.isCorrect(); it.next()) {
 					VWMLEntity e = (VWMLEntity)((VWMLComplexEntity)args).getLink().getConcreteLinkedEntity(it.getIt());
+					e.incrementRefCounter();
 					if (!forEach(interpreter, e, term)) {
+						e.decrementRefCounter();
 						break;
 					}
+					e.decrementRefCounter();
 				}
 			}
 		}

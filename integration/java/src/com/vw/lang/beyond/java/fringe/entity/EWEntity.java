@@ -53,4 +53,8 @@ public class EWEntity extends EWObject {
 	public void setContext(String context) {
 		this.context = context;
 	}
+	
+	public void release() {
+		EWEntityBuilder.returnToPool(this);
+	}
 }

@@ -69,6 +69,9 @@ public class VWMLEntity extends VWMLObject {
 	private boolean activated = false;
 	// sets during release operation in order to mark entity as removed from context and related storage
 	private boolean removed = false;
+	// for debug purposes
+	private Object oldId = null;
+	private String oldReadableId = null;
 	
 	public VWMLEntity(Object hashId) {
 		super(hashId);
@@ -94,6 +97,8 @@ public class VWMLEntity extends VWMLObject {
 	
 	@Override
 	public void restore(Object hashId, Object id) {
+		oldId = id;
+		oldReadableId = getReadableId();
 		super.restore(hashId, id);
 		isCreature = false;
 		context = null;
@@ -372,6 +377,20 @@ public class VWMLEntity extends VWMLObject {
 		VWMLObjectBuilder.returnToPool(this);
 	}
 	
+	public void releaseByRefCounter(VWMLContext c) {
+		if (removed || getRefCounter() != 0 || isSynthetic() || getClonedFrom() != null || getInterpreting() != null || getContext() == VWMLContextsRepository.instance().getDefaultContext()) {
+			return;
+		}
+		removed = true;
+		for(VWMLObject e : getLink().getLinkedObjects()) {
+			((VWMLEntity)e).releaseByRefCounter(c);
+		}
+		VWMLObjectsRepository.instance().removeWithoutContextCleaning(this);
+		getLink().getLinkedObjects().clear();
+		getLink().setParent(null);
+		VWMLObjectBuilder.returnToPool(this);
+	}
+	
 	@Override
 	public String buildReadableId() {
 		if (getReadableId() == null) {
@@ -452,6 +471,20 @@ public class VWMLEntity extends VWMLObject {
 	}
 
 	public void setInterpreting(VWMLEntity interpreting) {
+		if (interpreting == null) {
+			return;
+		}
+		if (this.interpreting != null) {
+			if (interpreting.getId().equals(VWMLEntity.s_NilEntityId) || interpreting.getId().equals(VWMLEntity.s_NullEntityId)) {
+				this.interpreting.setRefCounter(0);
+			}
+			else {
+				this.interpreting.decrementRefCounter();
+			}
+		}
+		if (!interpreting.getId().equals(VWMLEntity.s_NilEntityId) && !interpreting.getId().equals(VWMLEntity.s_NullEntityId)) {
+			interpreting.incrementRefCounter();
+		}
 		this.interpreting = interpreting;
 		if (interpreting != null) {
 			interpretationHistory.store(interpreting);
@@ -631,6 +664,14 @@ public class VWMLEntity extends VWMLObject {
 
 	public void setResolvedInRuntime(VWMLEntity resolvedInRuntime) {
 		this.resolvedInRuntime = resolvedInRuntime;
+	}
+
+	public Object getOldId() {
+		return oldId;
+	}
+
+	public String getOldReadableId() {
+		return oldReadableId;
 	}
 
 	public VWMLObjectBuilder.VWMLObjectType deductEntityType() {
