@@ -68,20 +68,32 @@ public class VWMLOperationUtils {
 			}
 			if (addIfUnknown) {
 				VWMLEntity e = null;
+				boolean returnToPool = false;
 				if (origEffectiveContext.equals(context)) {
 					// lookups for entity by its id (builds id and searches in repository); 
 					// if entity found then it is returned, otherwise 'newComplexEntity' is returned
 					e = lookupAndRelinkEntityOnContext(origEffectiveContext, newComplexEntity);
 					// if found entity and newComplexEntity are the same then we add it to repository and return null value
-					addToRepositoryIfTheSame(e, newComplexEntity, origEffectiveContext);
+					if (!addToRepositoryIfTheSame(e, newComplexEntity, origEffectiveContext)) {
+						returnToPool = true;
+					}
 				}
 				else {
 					e = lookupAndRelinkEntityOnContext(origEffectiveContext, newComplexEntity);
 					if (e == newComplexEntity) { // not found on 'origEffectiveContext'
 						e = lookupAndRelinkEntityOnContext(context, newComplexEntity);
-						addToRepositoryIfTheSame(e, newComplexEntity, context);
+						if (!addToRepositoryIfTheSame(e, newComplexEntity, context)) {
+							returnToPool = true;
+						}
 					}
 				}
+/*				
+				if (returnToPool) {
+					newComplexEntity.getLink().getLinkedObjects().clear();
+					newComplexEntity.getLink().setParent(null);
+					VWMLObjectBuilder.returnToPool(newComplexEntity);
+				}
+*/				
 				newComplexEntity = e;
 			}
 			else {

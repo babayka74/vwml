@@ -374,6 +374,7 @@ module Characters {
 						((The unit Id~ stopped) Ew.Output~) Do
 #endif
 					);
+					CommandDispatcher.Dispatch~ Recycle
 					(Stop StopUnit~)~ Exe
 				);
 

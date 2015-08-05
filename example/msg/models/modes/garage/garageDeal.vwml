@@ -21,6 +21,7 @@ module PlayerGarage {
 					TID ias nil;
 					// timer value
 					TV ias nil;
+					V ias nil;
 					// save current transaction; need to save in order to rollback in case of 'cancelinvest' command is received
 					(CT TID~)^
 #if (verbose)
@@ -28,21 +29,25 @@ module PlayerGarage {
 #endif
 					(TV~ (GInv Id~) SetGarageClass~ nil CT~) Recall
 #if (release)
-					(((garage invest inProgress) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+					(V (CT~ 0) Get)^
+					(((garage invest inProgress) (player Id~) garage (V~) (CT~)) Ew.OutChannel~) Do
 #endif
 				);
 
 				InstantInvestTimer ias (
+					V ias nil;
 
 					(T true) ias (
 #if (release)
-						(((garage instantinvest failed) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+						(V (CT~ 0) Get)^
+						(((garage instantinvest failed) (player Id~) garage (V~) (CT~)) Ew.OutChannel~) Do
 #endif
 					);
 					(T false) ias (
 						(-2 (GInv Id~) SetGarageClass~ nil CT~) Recall
 #if (release)
-						(((garage instantinvest done) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+						(V (CT~ 0) Get)^
+						(((garage instantinvest done) (player Id~) garage (V~) (CT~)) Ew.OutChannel~) Do
 #endif
 					);
 					(T (((GInv Id~)) TState nil) Ident)~ Exe
@@ -69,10 +74,12 @@ module PlayerGarage {
 				);
 
 				SetGarageClass ias (
+					V ias nil;
 					(Resources.Garage.SetClass.C ($~ 0) Get)^
 					Resources.Garage.SetClass~ Exe
 #if (release)
-					(((garage invest done) (player Id~) garage ((CT~ 0) Get)) Ew.OutChannel~) Do
+					(V (CT~ 0) Get)^
+					(((garage invest done) (player Id~) garage (V~)) Ew.OutChannel~) Do
 #endif
 					(CT nil)^
 
@@ -122,11 +129,13 @@ module PlayerGarage {
 					(IA (Resources.Garage.InvestV~ IV~) In)~ Exe
 				);
 				ProcessCancelInvest ias (
+					V ias nil;
 					(-1 (GInv Id~) SetGarageClass~) Recall
 					(Resources.Account.Value (CT~ 1) Get)^
 					Resources.Account.Recharge~ Exe
 #if (release)
-					(((garage cancelinvest done) (player Id~) garage ((CT~ 0) Get) (CT~)) Ew.OutChannel~) Do
+					(V (CT~ 0) Get)^
+					(((garage cancelinvest done) (player Id~) garage (V~) (CT~)) Ew.OutChannel~) Do
 #endif
 					(CT nil)^
 				);
@@ -194,6 +203,8 @@ module PlayerGarage {
 				);
 				// redirecting processing to resource manager
 				(Handle upgradecar) ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ upgradeunit Id~ CommandParams~)) Gate;
+				(Handle instantupgradecar) ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ instantupgradeunit Id~ CommandParams~)) Gate;
+				(Handle cancelupgradecar) ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ cancelupgradeunit Id~ CommandParams~)) Gate;
 				(Handle back) ias (
 					(Player.Mode main)^
 #if (verbose)

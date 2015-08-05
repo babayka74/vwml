@@ -294,13 +294,15 @@ module Quartal {
 					);
 
 					FailedPaymentForInvestment ias (
+						T ias nil;
 						RStateAfterInvest~ Exe
 						(LInvestQuantum nil)^
 #if (verbose)
 						((The investment for quartal Id~ failed for player Owner~ with result not enough resources) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (invest notEnoughResources) (prc (Sherif.IntentionParams~ 1) Get)) Ew.OutChannel~) Do
+						(T (Sherif.IntentionParams~ 1) Get)^
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (invest notEnoughResources) (prc T~)) Ew.OutChannel~) Do
 #endif
 					);
 
@@ -315,12 +317,14 @@ module Quartal {
 #endif
 					);
 					FailedPaymentForOpenInfo ias (
+						T ias nil;
 						(State cnp)^
 #if (verbose)
 						((The sherif of quartal Id~ did not provide information to player Owner~ since payment was failed) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (open notEnoughResources) (prc (Sherif.IntentionParams~ 1) Get)) Ew.OutChannel~) Do
+						(T (Sherif.IntentionParams~ 1) Get)^
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (open notEnoughResources) (prc T~)) Ew.OutChannel~) Do
 #endif
 
 					);
@@ -355,12 +359,14 @@ module Quartal {
 						(State op)^
 					);
 					FailedPaymentForBribeRequest ias (
+						T ias nil;
 						(State onp)^
 #if (verbose)
 						((The sherif of quartal Id~ did not get bribe payment from player Owner~ since payment was failed) Ew.Output~) Do
 #endif
 #if (release)
-						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay notEnoughResources) (prc (Sherif.IntentionParams~ 1) Get)) Ew.OutChannel~) Do
+						(T (Sherif.IntentionParams~ 1) Get)^
+						(((deal setintention failed) (player Owner~) (quartal Id~) State~ (pay notEnoughResources) (prc T~)) Ew.OutChannel~) Do
 #endif
 					);
 					/* payment */
@@ -639,6 +645,7 @@ module Quartal {
 					((The sherif of quartal Id~ reports about exiting) Ew.Output~) Do
 #endif
 				);
+				CommandDispatcher.Dispatch~ Recycle
 				(ready (((Quartal Id~) Ready) Gate true) Ident StopQuartal~)~ Exe
 			);
 			lifeterm = (

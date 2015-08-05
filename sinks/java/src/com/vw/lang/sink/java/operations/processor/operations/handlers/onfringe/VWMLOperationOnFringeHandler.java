@@ -92,7 +92,7 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 				answerFromEW.setContext(resContext);
 				ewResponseEntity.release();
 			}
-			msg.releaseByRefCounter(resContext);
+			// msg.releaseByRefCounter(resContext);
 		}
 		else {
 			throw new Exception("couldn't find fringe '" + onFringe.getId() + "'; check VWML code");

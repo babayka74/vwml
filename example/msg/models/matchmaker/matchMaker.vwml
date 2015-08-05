@@ -117,6 +117,7 @@ module MatchMaker {
 					(CommandDispatcher.Dispatch ((MatchMakerManager Id~) Rx) Gate)^
 					CommandDispatcher~ Exe
 				);
+				CommandDispatcher.Dispatch~ Recycle
 				(ready (((MatchMakerManager Id~) Ready) Gate true) Ident)~ Exe
 			);
 #if (verbose)

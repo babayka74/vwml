@@ -29,55 +29,71 @@ module PlayerResourceAccount {
 					);
 					Report ias (
 						AccountReport ias (
+							V ias nil;
+							(V ($~ 0) Get)^
 #if (verbose)
-							((Player Id~ has resource (($~ 0) Get (Rt ($~ 0) Get)~)) Ew.Output~) Do
+							((Player Id~ has resource (V~ (Rt V~)~)) Ew.Output~) Do
 #endif
 #if (release)
-							(((banking balance done)(player Id~)(($~ 0) Get (Rt ($~ 0) Get)~)) Ew.OutChannel~) Do
+							(((banking balance done)(player Id~)(V~ (Rt V~)~)) Ew.OutChannel~) Do
 #endif
 						);
 						(Ew.PlayerAccountConf.ResourceTypes~ AccountReport~) ForEach
 					);
 					Set ias (
+						V ias nil;
+						T ias nil;
 						(ByRtType (Rt (Value~ 1) Get))^
 						(ByRtType~ (Value~ 2) Get)^
 						(Result true)^
+
+						(V (Value~ 2) Get)^
 #if (verbose)
-						((Player Id~ set account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
+						((Player Id~ set account ByRtType~ on V~ balance is ByRtType~~) Ew.Output~) Do
 #endif
 #if (release)
-						(((banking set done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+						(T (ByRtType~ 1) Get)^
+						(((banking set done)(player Id~)(T~ V~ ByRtType~~)) Ew.OutChannel~) Do
 #endif
 					);
 					Recharge ias (
+						V ias nil;
+						T ias nil;
 						(ByRtType (Rt (Value~ 1) Get))^
 						(ByRtType~ ((ByRtType~~ (Value~ 2) Get) Ew.SumF~) Do)^
 						(Result true)^
+						
+						(V (Value~ 2) Get)^
+						(T (ByRtType~ 1) Get)^
 #if (verbose)
-						((Player Id~ recharged account ByRtType~ on (Value~ 2) Get balance is ByRtType~~) Ew.Output~) Do
+						((Player Id~ recharged account ByRtType~ on V~ balance is ByRtType~~) Ew.Output~) Do
 #endif
 #if (release)
-						(((banking recharge done)(player Id~)((ByRtType~ 1) Get (Value~ 2) Get ByRtType~~)) Ew.OutChannel~) Do
+						(((banking recharge done)(player Id~)(T~ V~ ByRtType~~)) Ew.OutChannel~) Do
 #endif
 					);
 					WithdrawUnconditional ias (
 						ByR ias nil;
 						V ias nil;
+						T ias nil;
 
 						(ByR~ ((ByR~~ V~) Ew.SubF~) Do)^
 #if (verbose)
 						((Player Id~ withdrawed V~ balance is ByR~~ for account ByR~) Ew.Output~) Do
 #endif
 #if (release)
-						(((banking withdraw done)(player Id~)((ByR~ 1) Get V~ ByR~~)) Ew.OutChannel~) Do
+						(T (ByR~ 1) Get)^
+						(((banking withdraw done)(player Id~)(T~ V~ ByR~~)) Ew.OutChannel~) Do
 #endif
 					);
 					WithdrawResource ias (
 						R ias nil;
+						T ias nil;
 						(Allow -1) ias (
 							(Result false)^
 #if (verbose)
-							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required (R~ 2) Get) Ew.Output~) Do
+							(T (R~ 2) Get)^
+							((Player Id~ does not have enougth resources ByRtType~~ on account ByRtType~ required T~) Ew.Output~) Do
 #endif
 						);
 						(Allow 0),(Allow 1) ias (

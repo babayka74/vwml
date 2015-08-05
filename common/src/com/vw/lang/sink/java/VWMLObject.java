@@ -1,6 +1,7 @@
 package com.vw.lang.sink.java;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vw.lang.sink.java.link.VWMLLink;
 
@@ -23,7 +24,7 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	// entity can be linked with another entity or command
 	private VWMLLink link = new VWMLLink(this);
 	// simple ref. counter
-	private int refCounter = 0;
+	private AtomicInteger refCounter = new AtomicInteger(0);
 	
 	public VWMLObject(Object hashId) {
 		super();
@@ -46,7 +47,7 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 		compoundName = false;
 		superviser = null;
 		link.clear();
-		refCounter = 0;
+		refCounter.set(0);
 	}
 	
 	@Override
@@ -159,23 +160,22 @@ public class VWMLObject implements Cloneable, Comparable<VWMLObject> {
 	 * @return
 	 */
 	public int getRefCounter() {
-		return refCounter;
+		return refCounter.get();
 	}
 
 	public void setRefCounter(int refCounter) {
-		this.refCounter = refCounter;
+		this.refCounter.set(refCounter);
 	}
 	
 	public int incrementRefCounter() {
-		this.refCounter++;
-		return getRefCounter();
+		return this.refCounter.incrementAndGet();
 	}
 	
 	public int decrementRefCounter() {
-		if (refCounter > 0) {
-			refCounter--;
+		if (refCounter.get() > 0) {
+			return refCounter.decrementAndGet();
 		}
-		return getRefCounter();
+		return 0;
 	}
 	
 	/**

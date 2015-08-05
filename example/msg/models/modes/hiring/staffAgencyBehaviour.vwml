@@ -39,8 +39,10 @@ module StaffAgencyHiringBehaviour {
 							ActuallyStartHiringRequest~ Exe
 						);
 						(payment declined) ias (
+							R ias nil;
 #if (verbose)
-							((Not enough resources for request (Request~ 1) Get) Ew.Output~) Do
+							(R (Request~ 1) Get)^
+							((Not enough resources for request R~) Ew.Output~) Do
 #endif
 #if (release)
 							// fetching original request from deal's response
@@ -50,7 +52,8 @@ module StaffAgencyHiringBehaviour {
 							(GetKindOfUnit.UnitProps (OrigRq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 							GetKindOfUnit~ Exe
                                                         (UnitId (CharacterIdInfo~ 1) Get)^
-							(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ (Request~ 2) Get) Ew.OutChannel~) Do
+							(R (Request~ 2) Get)^
+							(((hiring starthiring failed noResources) (Player Owner~) (unit UnitId~) GetKindOfUnit.Kind~ R~) Ew.OutChannel~) Do
 #endif
 						);
 						(payment (Request~ 0) Get)~ Exe

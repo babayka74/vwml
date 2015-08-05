@@ -131,13 +131,15 @@ module HiringAgency {
 					Q ias nil;
 					(P true) ias ((ProcessingRq Q~) false)^;
 					(P false) ias (
+						T ias nil;
 						(TimeToHireInfo ((NewRequestId~~ 1) Get 2) Get)^
 						// NewRequestId~ => (ConfRq~ (AC~ NCmd~ TimeToHireInfo~))
 						// (HiringInfo~ 1) Get => time needed to hire specified unit
 						((TimeToHireInfo~ 1) Get (Hiring Id~ NewRequestId~) ProcessRequest~ nil (NewRequestId~ (NewRequestId~~ 0) Get Q~ true)) Recall
 						// player may use GlobalHiringRequestId~ in order to cancel hiring operation
 #if (verbose)
-						((The hiring agent Id~ started hiring request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
+						(T (TimeToHireInfo~ 1) Get)^
+						((The hiring agent Id~ started hiring request NewRequestId~ for player Owner~ ready in T~ ms) Ew.Output~) Do
 #endif
 #if (release)
 						(RequestConfirmation.NCmd ((NewRequestId~~ 1) Get 1) Get)^
@@ -159,8 +161,10 @@ module HiringAgency {
 					(T false) ias doNothing;
 					(T true) ias (TimeToHireInfo ((ConfRq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqHTimePropIndex~) Get)^;
 					(ProcessingRq true) ias (
+						T ias nil;
 #if (verbose)
-						((The hiring agent Id~ postponed request NewRequestId~ for player Owner~ ready in (TimeToHireInfo~ 1) Get ms) Ew.Output~) Do
+						(T (TimeToHireInfo~ 1) Get)^
+						((The hiring agent Id~ postponed request NewRequestId~ for player Owner~ ready in T~ ms) Ew.Output~) Do
 #endif
 					);
 					(ProcessingRq false) ias (
@@ -434,6 +438,7 @@ module HiringAgency {
 					((The hiring agency Id~ of player Owner~ reports about exiting) Ew.Output~) Do
 #endif
 				);
+				CommandDispatcher.Dispatch~ Recycle
 				(ready (((HiringAgency Id~) Ready) Gate true) Ident StopAgency~)~ Exe
 			);
 			lifeterm = (

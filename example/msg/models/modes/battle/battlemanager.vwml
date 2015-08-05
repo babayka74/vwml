@@ -98,13 +98,15 @@ module BattleManager {
 					(AttackZonesReady true) ias AssociateBZones~ Exe;
 
 #if (verbose)
-					((Player Id~ is being prepared for attack with attack cost (CommandParams~ 0) Get) Ew.Output~) Do						
+					(AttackCost (CommandParams~ 0) Get)^
+					((Player Id~ is being prepared for attack with attack cost AttackCost~) Ew.Output~) Do						
 #endif
 #if (release)
 	#if (zonebinderfringe)
 					// (CommandParams~ 1) Get => AttackCost
 				// old code	(AttackZonesReady (((Id~ (CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do)^
-					(((battle zoneslist ok)(player Id~)((CommandParams~ 0) Get Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do
+					(T (CommandParams~ 0) Get)^
+					(((battle zoneslist ok)(player Id~)(T~ Resources.BattleZones.Zones~ (Resources.BattleZones.Zones~) Size Ew.QuartalsConf.BNZ~)) Ew.PrepareToAttack~) Do
 					(AttackZonesReady true)^
 	#else
 					(AttackZonesReady true)^

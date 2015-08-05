@@ -87,6 +87,7 @@ public class VWMLCreature extends VWMLEntity {
 														   context,
 														   0,
 														   null);
+		e.incrementRefCounter();
 		if (parent != null) {
 			parent.getLink().link(e);
 		}
@@ -100,6 +101,7 @@ public class VWMLCreature extends VWMLEntity {
 														   context,
 														   0,
 														   null);
+		e.incrementRefCounter();
 		for(EWObject ewo : ewEntity.getLink().getLinkedObjects()) {
 			EWEntity ewe = (EWEntity)ewo;
 			if (!ewe.isMarkedAsComplexEntity()) {

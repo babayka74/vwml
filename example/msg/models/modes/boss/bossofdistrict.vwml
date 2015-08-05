@@ -138,11 +138,12 @@ module BossOfDistrict {
 				);
 				// different resources
 				(CRT false) ias (
+					(B (DesiredBribe~ 0) Get)^
 #if (verbose)
-					((Invalid resource type BribeRT~ requested (DesiredBribe~ 0) Get) Ew.Output~) Do				
+					((Invalid resource type BribeRT~ requested B~) Ew.Output~) Do				
 #endif
 #if (release)
-					(((bossofdistrict paybribe failed invaildResource) (player Owner~) (boss Id~) (BribeRT~ (DesiredBribe~ 0) Get)) Ew.OutChannel~) Do
+					(((bossofdistrict paybribe failed invaildResource) (player Owner~) (boss Id~) (BribeRT~ B~)) Ew.OutChannel~) Do
 #endif
 				);
 				// same resources

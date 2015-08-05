@@ -57,6 +57,7 @@ tokens {
     OPEXISTSI_S='EI';
     OPLTT='LTT';
     OPTSTATE='TState';
+    OPRECYCLE='Recycle';
     // languages
     JAVA='__java__';
     C='__c__';
@@ -1405,6 +1406,7 @@ opclist
     | OPEXISTSI_S
     | OPLTT
     | OPTSTATE
+    | OPRECYCLE
     ;
 
 termLanguages

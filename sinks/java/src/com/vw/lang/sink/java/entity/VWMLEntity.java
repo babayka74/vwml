@@ -1,5 +1,7 @@
 package com.vw.lang.sink.java.entity;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.vw.lang.sink.OperationInfo;
 import com.vw.lang.sink.java.VWMLCloneAuxCache;
 import com.vw.lang.sink.java.VWMLContextsRepository;
@@ -68,7 +70,7 @@ public class VWMLEntity extends VWMLObject {
 	// setup on 'Activate' operation in case if entity is not life or source lifeterm
 	private boolean activated = false;
 	// sets during release operation in order to mark entity as removed from context and related storage
-	private boolean removed = false;
+	private AtomicBoolean removed = new AtomicBoolean(false);
 	// for debug purposes
 	private Object oldId = null;
 	private String oldReadableId = null;
@@ -121,11 +123,11 @@ public class VWMLEntity extends VWMLObject {
 		specialLinkedEntity = null;
 		isPartOfDynamicContext = false;
 		activated = false;
-		removed = false;
+		removed.getAndSet(false);
 	}
 	
 	public void resetRemovedFlag() {
-		removed = false;
+		removed.getAndSet(false);
 	}
 	
 	/**
@@ -339,14 +341,14 @@ public class VWMLEntity extends VWMLObject {
 	}
 	
 	public void release(VWMLContext c) {
-		if (getClonedFrom() == null || removed || isSynthetic()) {
+		if (getClonedFrom() == null || removed.get() || isSynthetic()) {
 			return;
 		}
 		if ((!VWMLContext.isContextChildOf(c.getContext(), getContext().getContext())) ||
 			(this.getContext() == VWMLContextsRepository.instance().getDefaultContext())) {
 			return;
 		}
-		removed = true;
+		removed.getAndSet(true);
 		if (getOriginalInterpreting() != null) {
 			if (!getOriginalInterpreting().isRecursiveInterpretationOnOriginal()) {
 //				System.out.println("interpreting release '" + getOriginalInterpreting().buildReadableId() + "'");
@@ -377,18 +379,20 @@ public class VWMLEntity extends VWMLObject {
 		VWMLObjectBuilder.returnToPool(this);
 	}
 	
-	public void releaseByRefCounter(VWMLContext c) {
-		if (removed || getRefCounter() != 0 || isSynthetic() || getClonedFrom() != null || getInterpreting() != null || getContext() == VWMLContextsRepository.instance().getDefaultContext()) {
-			return;
+	public boolean releaseByRefCounter(VWMLContext c) {
+		if (removed.get() || getRefCounter() != 0 || isSynthetic() || getClonedFrom() != null || getInterpreting() != null || getContext() == VWMLContextsRepository.instance().getDefaultContext()) {
+			return false;
 		}
-		removed = true;
+		removed.getAndSet(true);
 		for(VWMLObject e : getLink().getLinkedObjects()) {
 			((VWMLEntity)e).releaseByRefCounter(c);
 		}
 		VWMLObjectsRepository.instance().removeWithoutContextCleaning(this);
+		System.out.println(">>>>>>>>>> '" + buildReadableId() + "'");
 		getLink().getLinkedObjects().clear();
 		getLink().setParent(null);
 		VWMLObjectBuilder.returnToPool(this);
+		return true;
 	}
 	
 	@Override
@@ -474,24 +478,25 @@ public class VWMLEntity extends VWMLObject {
 		if (interpreting == null) {
 			return;
 		}
-		if (this.interpreting != null) {
-			if (interpreting.getId().equals(VWMLEntity.s_NilEntityId) || interpreting.getId().equals(VWMLEntity.s_NullEntityId)) {
-				this.interpreting.setRefCounter(0);
+		if (!interpreting.getId().equals(VWMLEntity.s_NullEntityId)) {
+			if (interpreting.getId().equals(VWMLEntity.s_NilEntityId)) {
+				this.decrementRefCounter();
+				if (this.interpreting != null) {
+					this.interpreting.decrementRefCounter();
+				}
 			}
 			else {
+				interpreting.incrementRefCounter();
+				this.incrementRefCounter();
+			}
+		}
+		else {
+			if (this.interpreting != null) {
 				this.interpreting.decrementRefCounter();
 			}
-		}
-		if (!interpreting.getId().equals(VWMLEntity.s_NilEntityId) && !interpreting.getId().equals(VWMLEntity.s_NullEntityId)) {
-			interpreting.incrementRefCounter();
+			interpreting = null;
 		}
 		this.interpreting = interpreting;
-		if (interpreting != null) {
-			interpretationHistory.store(interpreting);
-			if (interpreting.equals(VWMLObjectsRepository.instance().getNullEntity())) {
-				interpreting = null;
-			}
-		}
 		if (originalInterpreting == null) {
 			originalInterpreting = interpreting;
 		}

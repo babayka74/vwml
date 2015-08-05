@@ -55,6 +55,7 @@ public enum VWMLOperationsCode {
     OPEXISTSI_S("EI"),
     OPLTT("LTT"),
     OPTSTATE("TState"),
+    OPRECYCLE("Recycle"),
     // special implicit operations
     OPIMPLICITASSEMBLE("__assemble__");    
     

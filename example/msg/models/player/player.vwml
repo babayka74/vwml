@@ -32,13 +32,13 @@ module Player {
 			ModeBossOfDistrict ias bossofdistrict;
 			ModeMatchMakermanagerBroker ias mmbroker;
 			AvailableModes ias (ModeMain~ ModeBattle~ ModeDeal~ ModeGarage~ ModeResourceMgr~ ModeHiring~ ModeAttack~ ModeBanking~ ModeStateManagerBroker~ ModeBossOfDistrict~ ModeMatchMakermanagerBroker~);
-			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit upgradeunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
+			AvailablePlayerCommandsOnResourceManager ias (hireunit dismissunit takeunit returnunit releaseunit saleunit upgradeunit instantupgradeunit cancelupgradeunit unitstopped getunits joinunits ackjoinunits rejectjoinunits disjoinunits ackdisjoinunits rejectdisjoinunits exit);
 			AvailablePlayerCommandsOnModeHiring  ias (startcarlooking instantcarlooking cancelcarlooking carpaymentresult instanthiring instanthiringall starthiring cancelhiring staffpaymentresult reservegarageresult cancel check reset exit report collectstate);
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf prepareattackzonesbf attackzonesbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf rqrating);
 			AvailablePlayerCommandsOnModeStateManagerBroker ias (collectstate restorestate rqcsquartals rqcsunits rspquartalstate rspunitstate rspcsha rqgarage rqbusiness rqha rqrsquartals rqrsunits rqrgarage rqrbusiness rqrha rsprquartalstate rsprunitstate rsprsha);
 			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal updatebzones releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
-			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest instantinvest updategarageconf upgradecar back);
+			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest instantinvest updategarageconf upgradecar instantupgradecar cancelupgradecar back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge creditwithdraw back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMatchMakerManagerBroker ias (addinfo removeinfo cleardeflist preparetoattack attackstarted updateconf);
@@ -220,6 +220,7 @@ module Player {
 					(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
 					CommandDispatcher~ Exe
 				);
+				CommandDispatcher.Dispatch~ Recycle
 				(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (

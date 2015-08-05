@@ -456,6 +456,8 @@ module PlayerResourceManager {
 							(((resourcemanager upgradeunit inProgress) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
 #endif
  							(TV~ (U Id~ UId~) DefUpgradeRequest~ nil Params~) Recall
+							((U Id~ UId~) Params~)^
+							((U Id~ UId~) ResourceManager true) Context
 						);
 						(NUT true) ias (
 							(UpgradeRequest.F Params~)^
@@ -481,6 +483,35 @@ module PlayerResourceManager {
 					(Resources.Account.Value (Credentials~ 0) Get)^
 					Resources.Account.Withdraw~ Exe
 					(R Resources.Account.Result~)~ Exe
+				);
+
+				InstantUpgradeUnit ias (
+					Params ias nil;
+					UId ias nil;
+					(UT true) ias (
+#if (verbose)
+						((Player Id~ does not have unit (Player Id~)->(ResourceManager)->(U Id~ UId~) under upgrade) Ew.Output~) Do
+#endif
+					);
+					(UT false) ias (
+						(-2 (U Id~ UId~) UpgradeUnit.DefUpgradeRequest~ nil (Player Id~)->(ResourceManager)->(U Id~ UId~)~) Recall
+#if (release)
+						(((resourcemanager instantupgradeunit done) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+#endif
+					);
+					(UId (Params~ 0) Get)^
+					(UT (((Player Id~)->(ResourceManager)->(U Id~ UId~)) TState nil) Ident)~ Exe
+				);
+
+				CancelUpgradeUnit ias (
+					Params ias nil;
+					UId ias nil;
+
+					(UId (Params~ 0) Get)^
+#if (release)
+					(((resourcemanager cancelupgradeunit done) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+#endif
+ 					(-1 (U Id~ UId~) DefUpgradeRequest~) Recall
 				);
 
 				// unit has been hired and must be associated with player
@@ -519,6 +550,15 @@ module PlayerResourceManager {
 				(Handle upgradeunit) ias (
 					(UpgradeUnit.Params CommandParams~)^
 					UpgradeUnit~ Exe
+				);
+				(Handle instantupgradeunit) ias (
+					(InstantUpgradeUnit.Params CommandParams~)^
+					InstantUpgradeUnit~ Exe
+				);
+				// cancel upgrade operation
+				(Handle cancelupgradeunit) ias (
+					(CancelUpgradeUnit.Params CommandParams~)^
+					CancelUpgradeUnit~ Exe
 				);
 				// get list of hired units
 				(Handle getunits) ias (

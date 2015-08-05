@@ -174,14 +174,16 @@ module PlayerResourceBusiness {
 
 						UpdateCashier ias (
 							F ias nil;
+							X ias nil;
 							(Ignore true) ias doNothing;
 							(Ignore false) ias (
 								(Cashier.Setup.Conf (F~ 1) Get)^
 								Cashier.Setup~ Exe
 							);
 							(Ignore (F~ nil) Ident)~ Exe
-#if (verbose)                           	
-							((Player Id~ has cashier conf (F~ 1) Get) Ew.Output~) Do 
+#if (verbose)                       
+							(X (F~ 1) Get)^
+							((Player Id~ has cashier conf X~) Ew.Output~) Do 
 #endif
 						);
 						
@@ -392,6 +394,7 @@ module PlayerResourceBusiness {
 					);
 
 					DecreaseBF ias (
+						T ias nil;
 						(Allow -1) ias (
 							(Result false)^
 #if (verbose)
@@ -405,17 +408,21 @@ module PlayerResourceBusiness {
 							((Player Id~ decreased business dev factor (Value~ 2) Get balance is ByBdfType~~ for ByBdfType~) Ew.Output~) Do
 #endif
 #if (release)
-							(((business factor done)(player Id~)((ByBdfType~ 1) Get (Value~ 2) Get ByBdfType~~)) Ew.OutChannel~) Do
+							(T (ByBdfType~ 1) Get)^
+							(((business factor done)(player Id~)(T~ (Value~ 2) Get ByBdfType~~)) Ew.OutChannel~) Do
 #endif
 						);
 						(ByBdfType (Bdf (Value~ 1) Get))^
 						(Allow ((ByBdfType~~ (Value~ 2) Get) Ew.CompareF~) Do)~ Exe
 					);
 					RecalcRQuantum ias (
+						K ias nil;
+						(K (Value~ 1) Get)^
 						// (Id~ Resource.Type~ Resource.Quantum~ LInvestQuantum~)
-						(RQ (( (Value~ 2) Get (Value~ 3) Get (Kdf (Value~ 1) Get)~) Ew.RecalcQuantum~) Do)^
+						(RQ (( (Value~ 2) Get (Value~ 3) Get (Kdf K~)~) Ew.RecalcQuantum~) Do)^
 #if (verbose)
-						((Player Id~ new contribution quantum for (Value~ 1) Get is RQ~) Ew.Output~) Do
+						(K (Value~ 1) Get)^
+						((Player Id~ new contribution quantum for K~ is RQ~) Ew.Output~) Do
 #endif
 					);
 					// Calculates rating of the gang

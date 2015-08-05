@@ -153,12 +153,14 @@ module PlayerModeMain {
 #endif
 				);
 				(Handle rqrating) ias (
+					T ias nil;
 					Resources.Business.CalcDevGangFactor~ Exe
 #if (verbose)
 					((Player Id~ has gang development factor Resources.Business.CalcDevGangFactor.D~) Ew.Output~) Do
 #endif
 #if (release)
-					(((main rqrating done) (player Id~) (dev Resources.Business.CalcDevGangFactor.D~ (Resources.Business.DevGang~ 2) Get)) Ew.OutChannel~) Do
+					(T (Resources.Business.DevGang~ 2) Get)^
+					(((main rqrating done) (player Id~) (dev Resources.Business.CalcDevGangFactor.D~ T~)) Ew.OutChannel~) Do
 #endif					
 				);
 				(Handle CommandId~)~ Exe
