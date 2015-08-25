@@ -32,13 +32,9 @@ public class VWMLOperationRecycleHandler extends VWMLOperationHandler {
 		else {
 			throw new Exception("Invalid number of arguments > 1");
 		}
-		if (entity.isMarkedAsComplexEntity()) {
-			int h = 0;
-			h++;
-		}
 		entity.decrementRefCounter();
-		System.out.println("---> " + entity.buildReadableId() + "' " + entity.getRefCounter());
-		// entity.releaseByRefCounter(null);
+		// System.out.println("---> " + entity.buildReadableId() + "' " + entity.getRefCounter() + " '" + entity.getOldReadableId() + "'");
+		entity.releaseByRefCounter(null);
 		inspector.clear();
 		entities.clear();
 	}

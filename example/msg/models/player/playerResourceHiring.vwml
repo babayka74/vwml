@@ -4,10 +4,10 @@ module PlayerResourceHiring {
 			Resources ias (
 				Hiring ias (
 					Init ias (
-						((HiringAgency Id~)->Id Id~)^
-						((HiringAgency Id~)->Owner Id~)^
-						(HiringAgency Id~)->Init~ Exe
-						((HiringAgency Id~)) Activate
+						((MagicWorld)->(HiringAgency Id~)->Id Id~)^
+						((MagicWorld)->(HiringAgency Id~)->Owner Id~)^
+						(MagicWorld)->(HiringAgency Id~)->Init~ Exe
+						((MagicWorld)->(HiringAgency Id~)) Activate
 					);
 					Done ias (
 						(HiringBroker.CommandId exit)^

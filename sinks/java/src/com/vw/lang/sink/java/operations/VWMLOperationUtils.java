@@ -87,13 +87,14 @@ public class VWMLOperationUtils {
 						}
 					}
 				}
-/*				
 				if (returnToPool) {
 					newComplexEntity.getLink().getLinkedObjects().clear();
 					newComplexEntity.getLink().setParent(null);
 					VWMLObjectBuilder.returnToPool(newComplexEntity);
 				}
-*/				
+				else {
+					e.setGeneratedFromStack(true);
+				}
 				newComplexEntity = e;
 			}
 			else {

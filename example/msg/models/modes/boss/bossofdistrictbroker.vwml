@@ -30,27 +30,27 @@ module BossOfDistrictBroker {
 					Resources.Bosses.AddBoss~ Exe
 				);
 				(Handle activatequartal),(Handle addquartal),(Handle linkquartal),(Handle changebbr),(Handle releasedquartal),(Handle resettedquartal),(Handle paybribe),(Handle quartalsinfo),(Handle qinitialized),(Handle exit),(Handle reset) ias (
-					((BossOfDistrict To~)->CommandId CommandId~)^
-					((BossOfDistrict To~)->CommandParams CommandParams~)^
+					((MagicWorld)->(BossOfDistrict To~)->CommandId CommandId~)^
+					((MagicWorld)->(BossOfDistrict To~)->CommandParams CommandParams~)^
 					(BossOfDistrict To~)~ Exe
 				);
 				(Handle bossinitialized) ias (
 					(I runtime) ias doNothing;
 					(I oninit) ias (
-						(Player Id~)->(Resources)->(Bosses)->(AddInitialSet)->BossInitialized~ Exe
+						(MagicWorld)->(Player Id~)->(Resources)->(Bosses)->(AddInitialSet)->BossInitialized~ Exe
 					);
-					(I (BossOfDistrict To~)->InitAs~)~ Exe
+					(I (MagicWorld)->(BossOfDistrict To~)->InitAs~)~ Exe
 				);
 				(Handle bossuninitialized) ias (
 					// negotiated
 					(R true) ias (
-						(Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->RemoveBoss~ Exe
+						(MagicWorld)->(Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->RemoveBoss~ Exe
 					);
 					// simple closed
 					(R false),(R nil) ias (
-						(Player Id~)->(Resources)->(Bosses)->BossUnInitialized~ Exe
+						(MagicWorld)->(Player Id~)->(Resources)->(Bosses)->BossUnInitialized~ Exe
 					);
-					((Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->B To~)^
+					((MagicWorld)->(Player Id~)->(Resources)->(Bosses)->(BossUnInitialized)->B To~)^
 					(R (CommandParams~ 0) Get)~ Exe
 					((BossOfDistrict To~)) Release
 				);

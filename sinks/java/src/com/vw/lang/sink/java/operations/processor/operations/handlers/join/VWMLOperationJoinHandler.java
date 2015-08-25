@@ -115,6 +115,7 @@ public class VWMLOperationJoinHandler extends VWMLOperationHandler {
 	}
 	
 	private VWMLEntity join(VWMLEntity result, VWMLEntity e) {
+		e.incrementRefCounter();
 		result.getLink().link(e);
 		return result;
 	}

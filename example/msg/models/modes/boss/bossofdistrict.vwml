@@ -39,19 +39,22 @@ module BossOfDistrict {
 #endif
 					((Player Owner~) Tx (ModeInfo.ModeBossOfDistrict~ bossinitialized Id~ ())) Gate
 				);
+#if (verbose)
+				((Boss Id~ initialization started) Ew.Output~) Do
+#endif
 				(Negotiated false)^
 				(Initialized false)^
 				(DesiredBribe BBR~ Random)^
-				((Player Owner~)->(Resources)->(Quartals)->(ConstructBuilder)->B Id~)^
-				(Player Owner~)->(Resources)->(Quartals)->ConstructBuilder~ Exe
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->F QNIds~)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->N Quartals~)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->CB Finished~)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
-				(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)~ Exe
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(ConstructBuilder)->B Id~)^
+				(MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->ConstructBuilder~ Exe
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->F QNIds~)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->N Quartals~)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->CB Finished~)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
+				(MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)~ Exe
 			);
 			Done ias (
 				Finished ias (
@@ -64,7 +67,7 @@ module BossOfDistrict {
 				);
 				(CQs () Finished~) StartInterception
 				Deactivate~ Exe
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)) Release
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)) Release
 			);
 			Deactivate ias (
 				(N false) ias (
@@ -95,14 +98,14 @@ module BossOfDistrict {
 #endif
 				);
 				PQConf ias nil;
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->F nil)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->N 0)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->CB CB~)^
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
-				(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)~ Exe
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->R (Boss Id~))^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PId Owner~)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->M boss)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->F nil)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->N 0)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->CB CB~)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->PQConf PQConf~)^
+				(MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)~ Exe
 			);
 			PublishQuartals ias (
 				PQ ias (
@@ -129,12 +132,12 @@ module BossOfDistrict {
 					);
 					(Result false) ias (
 #if (release)
-						(((bossofdistrict paybribe failed noResources) (player Owner~) (boss Id~) (B~) (prc (Player Owner~)->(Resources)->(Account)->(Withdraw)->PRC~)) Ew.OutChannel~) Do
+						(((bossofdistrict paybribe failed noResources) (player Owner~) (boss Id~) (B~) (prc (MagicWorld)->(Player Owner~)->(Resources)->(Account)->(Withdraw)->PRC~)) Ew.OutChannel~) Do
 #endif
 					);
-					((Player Owner~)->(Resources)->(Account)->Value B~)^
-					(Player Owner~)->(Resources)->(Account)->Withdraw~ Exe
-					(Result (Player Owner~)->(Resources)->(Account)->Result~)~ Exe
+					((MagicWorld)->(Player Owner~)->(Resources)->(Account)->Value B~)^
+					(MagicWorld)->(Player Owner~)->(Resources)->(Account)->Withdraw~ Exe
+					(Result (MagicWorld)->(Player Owner~)->(Resources)->(Account)->Result~)~ Exe
 				);
 				// different resources
 				(CRT false) ias (
@@ -168,7 +171,7 @@ module BossOfDistrict {
 			);
 			PublishQInfo ias (
 				I ias ();
-				P ias (I (I~ (($~ (Quartal $~)->QInfo~))) Join)^;
+				P ias (I (I~ (($~ (MagicWorld)->(Quartal $~)->QInfo~))) Join)^;
 				(I ())^
 				(CQs~ P~) ForEach
 #if (release)
@@ -201,9 +204,11 @@ module BossOfDistrict {
 				ChangeBBR~ Exe
 			);
 			(Handle qinitialized) ias (
-				((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN (((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~) Ew.DecValue~) Do)^
+				// increment reference counter
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~ 0)^
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN (((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~) Ew.DecValue~) Do)^
 #if (verbose)
-				(((Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~ left quartals to initialize boss Id~) Ew.Output~) Do
+				(((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(Construct Id~)->BQN~ left quartals to initialize boss Id~) Ew.Output~) Do
 #endif
 			);
 			(Handle releasedquartal) ias (
@@ -211,6 +216,7 @@ module BossOfDistrict {
 #if (verbose)
 				((Quartal Q~ released of boss Id~ left quartals CQs~) Ew.Output~) Do
 #endif
+				((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->All ((MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->All~ (Q~)) Substruct)^
 				(CQs (CQs~ (Q~)) Substruct)^
 			);
 			(Handle exit),(Handle reset) ias Done~ Exe; 

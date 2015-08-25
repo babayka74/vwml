@@ -21,11 +21,14 @@ module PlayerResourceManager {
 				// send exit signal to unit to stop its activity
 				ExitUnit ias (
 					U ias nil;
+					C ias nil;
 #if (unitalive)
-					((Characters)->(Unit U~) Tx (nil exit U~ ())) Gate
+					((MagicWorld)->(Characters)->(Unit U~) Tx (nil exit U~ ())) Gate
 #else
-					((Characters)->(Unit U~)) Release
-					((Player Id~) Tx (ModeInfo.ModeResourceMgr~ unitstopped U~ (U~))) Gate
+					(StopRM false) ias ((Player Id~) Tx (ModeInfo.ModeResourceMgr~ unitstopped U~ (U~))) Gate;
+					(StopRM true) ias doNothing;
+					((MagicWorld)->(Characters)->(Unit U~)) Release
+					(StopRM StopRM~)~ Exe
 #if (verbose)
 					((Unit U~ released) Ew.Output~) Do
 #endif
@@ -39,7 +42,7 @@ module PlayerResourceManager {
 					// assembles integrated GDevelop
 					Resources.Business.AssembleGDevelop~ Exe
 					// update rating based on new factors
-					((Player Id~) Tx (ModeInfo.ModeMain~ rqrating 0 ())) Gate
+					(MagicWorld)->(Player Id~)->(Main)->RecalcRating~ Exe
 				);
 				// notifies battlefield about returning all remained units to base
 				NotifyAboutFBComplete ias (
@@ -70,6 +73,10 @@ module PlayerResourceManager {
 						(Resources.Units.Hired~ StopUnit~) ForEach
 					);
 					(NoHired (Resources.Units.Hired~ ()) Ident)~ Exe
+#if (unitalive)
+#esle
+					(Resources.Units.Hired ())^
+#endif
 				);
 
 				ComplexDisjoin ias (
@@ -97,13 +104,13 @@ module PlayerResourceManager {
 								// taking into consideration that units are disjoined in async way,
 								// so we have to store unit id and send 'exit' when all units joined with it have been disjoined
 								(RTUnits (RTUnits~ (U~)) Join)^
-								((Characters)->(Unit U~)->DisjoinCbk NotifyWhenDJFinished~)^
-								(Characters)->(Unit U~)->InitDisjoinAllUnitsInterceptor~ Exe
+								((MagicWorld)->(Characters)->(Unit U~)->DisjoinCbk NotifyWhenDJFinished~)^
+								(MagicWorld)->(Characters)->(Unit U~)->InitDisjoinAllUnitsInterceptor~ Exe
 							);
 							(ADJ ActionOnDisjoin~)~ Exe
-							((Characters)->(Unit U~)->Joined~ DJU~) ForEach
+							((MagicWorld)->(Characters)->(Unit U~)->Joined~ DJU~) ForEach
 						);
-						(NDJ ((Characters)->(Unit U~)->Joined~ ()) Ident)~ Exe
+						(NDJ ((MagicWorld)->(Characters)->(Unit U~)->Joined~ ()) Ident)~ Exe
 					);
 					(NJ false) ias (
 						(DisjoinUnits.U U~)^
@@ -112,22 +119,22 @@ module PlayerResourceManager {
 					);
 					(IsGarageUnit false) ias doNothing;
 					(IsGarageUnit true) ias (
-						(Resources.Garage.CancelReserve.Place (Resources)->(Garage)->(P Kind~ Class~)~)^
+						(Resources.Garage.CancelReserve.Place (MagicWorld)->(Player Id~)->(Resources)->(Garage)->(P Kind~ Class~)~)^
 						Resources.Garage.CancelReserve~ Exe
 					); 
-					(Kind (Characters)->(Unit U~)->Kind~)^
-					(Class (Characters)->(Unit U~)->Class~)^
+					(Kind (MagicWorld)->(Characters)->(Unit U~)->Kind~)^
+					(Class (MagicWorld)->(Characters)->(Unit U~)->Class~)^
 					// free place to garage in case if unit is car
-					(IsGarageUnit ((Characters)->(Unit U~)->Container~ garage) Ident)~ Exe
+					(IsGarageUnit ((MagicWorld)->(Characters)->(Unit U~)->Container~ garage) Ident)~ Exe
 					// dismiss unit, taking into consideration that unit may be joined with others
-					(NJ ((Characters)->(Unit U~)->JoinedWith~ nil) Ident)~ Exe
+					(NJ ((MagicWorld)->(Characters)->(Unit U~)->JoinedWith~ none) Ident)~ Exe
 				);
 
 				DismissUnit ias (
 					U ias nil;
 					NotifyWhenDJFinished ias (
 						FE ias (
-							(Characters)->(Unit $~)->DoneDisjoinAllUnitsInterceptor~ Exe
+							(MagicWorld)->(Characters)->(Unit $~)->DoneDisjoinAllUnitsInterceptor~ Exe
 							(ExitUnit.U $~)^
 							ExitUnit~ Exe
 						);
@@ -141,10 +148,10 @@ module PlayerResourceManager {
 					);
 					(CorrectUnit true) ias (
 #if (business)
-						(Kind (Characters)->(Unit U~)->Kind~)^
-						(Class (Characters)->(Unit U~)->Class~)^
-						(Cost (Characters)->(Unit U~)->Cost~)^
-						(Contain (Characters)->(Unit U~)->Contain~)^
+						(Kind (MagicWorld)->(Characters)->(Unit U~)->Kind~)^
+						(Class (MagicWorld)->(Characters)->(Unit U~)->Class~)^
+						(Cost (MagicWorld)->(Characters)->(Unit U~)->Cost~)^
+						(Contain (MagicWorld)->(Characters)->(Unit U~)->Contain~)^
 #endif
 						(ComplexDisjoin.U U~)^
 						(ComplexDisjoin.ActionOnDisjoin exit)^
@@ -160,7 +167,7 @@ module PlayerResourceManager {
 						(RecalcFactors.Op Ew.SubF~)^
 						RecalcFactors~ Exe
 #if (verbose)
-						((clazz (Resources)->(Business)->(Q Kind~ Class~)~ ctf (Resources)->(Business)->(Ctf RT~)~ part dev (Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
+						((clazz (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Q Kind~ Class~)~ ctf (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Ctf RT~)~ part dev (Resources)->(Business)->(Gdf RT~)~ for player Id~) Ew.Output~) Do
 #endif
 #endif // business
 
@@ -185,9 +192,9 @@ module PlayerResourceManager {
 					K ias nil;
 					// unit's id
 					(U (CommandParams~ 0) Get)^
-					(K (Characters)->(Unit U~)->Kind~)^
+					(K (MagicWorld)->(Characters)->(Unit U~)->Kind~)^
 					// fetch unit's cost
-					(Resources.Account.Value (Characters)->(Unit U~)->Cost~)^
+					(Resources.Account.Value (MagicWorld)->(Characters)->(Unit U~)->Cost~)^
 					// perform bank transaction
 					Resources.Account.Recharge~ Exe
 					// unit is marked as free and released (stopped and deactivated)
@@ -233,7 +240,7 @@ module PlayerResourceManager {
 					((Player Id~ added unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-					(((resourcemanager hireunit done) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
+					(((resourcemanager hireunit done) (player Id~) (unit HiredUnitId~) (MagicWorld)->(Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 				);
 				
@@ -254,13 +261,13 @@ module PlayerResourceManager {
 					// user data; used when some data should be passed through all processing chain
 					UD ias nil;
 #if (unitalive)
-					((Characters)->(Unit U~) Tx (Id~ disjoin 0 ((U~ cancel UD~)))) Gate
+					((MagicWorld)->(Characters)->(Unit U~) Tx (Id~ disjoin 0 ((U~ cancel UD~)))) Gate
 #if (verbose)
 					((Unit U~ initiated disjoin of player Id~) Ew.Output~) Do
 #endif
 #else // unitalive
-					((Characters)->(Unit U~)->(DisjoinUnit)->Actions ((U~ cancel UD~)))^
-					(Characters)->(Unit U~)->DisjoinUnit~ Exe
+					((MagicWorld)->(Characters)->(Unit U~)->(DisjoinUnit)->Actions ((U~ cancel UD~)))^
+					(MagicWorld)->(Characters)->(Unit U~)->DisjoinUnit~ Exe
 #endif // unitalive
 				);
 
@@ -316,13 +323,13 @@ module PlayerResourceManager {
 						// 3. Sends remained to U2~
 						// 4. U2~ performs the same steps, but processes 'ack' (sets JoinedWith)
 						// 5. Sends 'ackjoin' to player's resourcemanager to commit 'transaction'
-						((Characters)->(Unit U2~) Tx (Id~ join 0 ((U1~ invite)(U1~ ack U2~)(Id~ U1~ U2~ ackjoinunits)))) Gate
+						((MagicWorld)->(Characters)->(Unit U2~) Tx (Id~ join 0 ((U1~ invite)(U1~ ack U2~)(Id~ U1~ U2~ ackjoinunits)))) Gate
 #if (verbose)
 						((Unit U1~ initiated join with U2~ of player Id~) Ew.Output~) Do
 #endif
 #else // unitalive
-						((Characters)->(Unit U2~)->(JoinUnit)->Actions ((U1~ invite)(U1~ ack U2~)(Id~ U1~ U2~ ackjoinunits)))^
-						(Characters)->(Unit U2~)->JoinUnit~ Exe
+						((MagicWorld)->(Characters)->(Unit U2~)->(JoinUnit)->Actions ((U1~ invite)(U1~ ack U2~)(Id~ U1~ U2~ ackjoinunits)))^
+						(MagicWorld)->(Characters)->(Unit U2~)->JoinUnit~ Exe
 #if (verbose)
 						((Unit U1~ joined to U2~ of player Id~) Ew.Output~) Do
 #endif
@@ -330,7 +337,7 @@ module PlayerResourceManager {
 					);
 					(U1 (CommandParams~ 0) Get)^
 					(U2 (CommandParams~ 1) Get)^
-					(NJ ((Characters)->(Unit U2~)->Capacity~ 0) Ident)~ Exe
+					(NJ ((MagicWorld)->(Characters)->(Unit U2~)->Capacity~ 0) Ident)~ Exe
 				);
 
 				AckJoinUnitsCallback ias (
@@ -358,17 +365,17 @@ module PlayerResourceManager {
 						(UnitInAction false) ias (
 							(FirstUnit true) ias (UnitsInAction 0 NotifyAboutFBComplete~) StartInterception;
 							(FirstUnit false) ias doNothing;
-							((Characters)->(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
-							(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
-							((Characters)->(Unit HiredUnitId~)->InAction true)^
+							((MagicWorld)->(Characters)->(Unit HiredUnitId~)->Type (CommandParams~ 1) Get)^
+							(MagicWorld)->(Characters)->(Unit HiredUnitId~)->CreateConcreteUnitByType~ Exe
+							((MagicWorld)->(Characters)->(Unit HiredUnitId~)->InAction true)^
 							(UnitsInAction ((UnitsInAction~) Ew.IncValue~) Do)^
 							((Player Id~) Tx ((CommandParams~ 2) Get recruitedunit HiredUnitId~ ())) Gate
 #if (release)
-							(((resourcemanager recruitunit done inAction) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
+							(((resourcemanager recruitunit done inAction) (player Id~) (unit HiredUnitId~) (MagicWorld)->(Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 							(FirstUnit (UnitsInAction~ 1) Ident)~ Exe
 						);
-						(UnitInAction (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
+						(UnitInAction (MagicWorld)->(Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
@@ -383,17 +390,17 @@ module PlayerResourceManager {
 					(CorrectUnit true) ias (
 						(IA false) ias doNothing;
 						(IA true) ias (
-							((Characters)->(Unit HiredUnitId~)->InAction false)^
-							(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
+							((MagicWorld)->(Characters)->(Unit HiredUnitId~)->InAction false)^
+							(MagicWorld)->(Characters)->(Unit HiredUnitId~)->ReleaseConcreteUnit~ Exe
 							(UnitsInAction ((UnitsInAction~) Ew.DecValue~) Do)^
 #if (verbose)
 							((Player Id~ returned unit HiredUnitId~ available units Resources.Units.Hired~) Ew.Output~) Do
 #endif
 #if (release)
-							(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~) (Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
+							(((resourcemanager returnunit done free) (player Id~) (unit HiredUnitId~) (MagicWorld)->(Characters)->(Unit HiredUnitId~)->Kind~) Ew.OutChannel~) Do
 #endif
 						);
-						(IA (Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
+						(IA (MagicWorld)->(Characters)->(Unit HiredUnitId~)->InAction~)~ Exe
 					);
 					(HiredUnitId (CommandParams~ 0) Get)^
 					(CorrectUnit (Resources.Units.Hired~ HiredUnitId~) In)~ Exe
@@ -417,17 +424,17 @@ module PlayerResourceManager {
 						(U ((C~ 2) Get 1) Get)^
 						// (UnitId kind class cost contain)
 						(UpdateFactorsFromParams.Params (U~
-										   (Characters)->(Unit U~)->Kind~
-										   (Characters)->(Unit U~)->Class~
-										   (Characters)->(Unit U~)->Cost~
-										   (Characters)->(Unit U~)->Contain~)
+										   (MagicWorld)->(Characters)->(Unit U~)->Kind~
+										   (MagicWorld)->(Characters)->(Unit U~)->Class~
+										   (MagicWorld)->(Characters)->(Unit U~)->Cost~
+										   (MagicWorld)->(Characters)->(Unit U~)->Contain~)
 										)^
 						(UpdateFactorsFromParams.Op minus)^
 						UpdateFactorsFromParams~ Exe
 #if (unitalive)                                 	
 						((Unit U~) Tx (Id~ setprops 0 (P~))) Gate
 #else
-						(P~ (Characters)->(Unit U~)->PropertySetOperation~) ForEach
+						(P~ (MagicWorld)->(Characters)->(Unit U~)->PropertySetOperation~) ForEach
 #endif // unitalive
 						// sends command to itself to reclaculate factors
 						// (UnitId kind class cost contain)
@@ -438,9 +445,9 @@ module PlayerResourceManager {
 						(((resourcemanager upgradeunit done)
 							(player Id~)
 							(unit U~)
-							(Characters)->(Unit U~)->Kind~
-							(clazz (Characters)->(Unit U~)->Class~)
-							(capacity (Characters)->(Unit U~)->Capacity~)
+							(MagicWorld)->(Characters)->(Unit U~)->Kind~
+							(clazz (MagicWorld)->(Characters)->(Unit U~)->Class~)
+							(capacity (MagicWorld)->(Characters)->(Unit U~)->Capacity~)
 							)
 						Ew.OutChannel~) Do
 #endif
@@ -453,7 +460,7 @@ module PlayerResourceManager {
 					(R true) ias (
 						(NUT false) ias (
 #if (release)
-							(((resourcemanager upgradeunit inProgress) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+							(((resourcemanager upgradeunit inProgress) (player Id~) (unit UId~) (MagicWorld)->(Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
 #endif
  							(TV~ (U Id~ UId~) DefUpgradeRequest~ nil Params~) Recall
 							((U Id~ UId~) Params~)^
@@ -470,7 +477,7 @@ module PlayerResourceManager {
 					(R false) ias (
 						// fail - no resources
 #if (release)
-						(((resourcemanager upgradeunit failed noResources) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+						(((resourcemanager upgradeunit failed noResources) (player Id~) (unit UId~) (MagicWorld)->(Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
 #endif
 					);
 
@@ -490,17 +497,17 @@ module PlayerResourceManager {
 					UId ias nil;
 					(UT true) ias (
 #if (verbose)
-						((Player Id~ does not have unit (Player Id~)->(ResourceManager)->(U Id~ UId~) under upgrade) Ew.Output~) Do
+						((Player Id~ does not have unit (MagicWorld)->(Player Id~)->(ResourceManager)->(U Id~ UId~) under upgrade) Ew.Output~) Do
 #endif
 					);
 					(UT false) ias (
-						(-2 (U Id~ UId~) UpgradeUnit.DefUpgradeRequest~ nil (Player Id~)->(ResourceManager)->(U Id~ UId~)~) Recall
+						(-2 (U Id~ UId~) UpgradeUnit.DefUpgradeRequest~ nil (MagicWorld)->(Player Id~)->(ResourceManager)->(U Id~ UId~)~) Recall
 #if (release)
-						(((resourcemanager instantupgradeunit done) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+						(((resourcemanager instantupgradeunit done) (player Id~) (unit UId~) (MagicWorld)->(Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
 #endif
 					);
 					(UId (Params~ 0) Get)^
-					(UT (((Player Id~)->(ResourceManager)->(U Id~ UId~)) TState nil) Ident)~ Exe
+					(UT (((MagicWorld)->(Player Id~)->(ResourceManager)->(U Id~ UId~)) TState nil) Ident)~ Exe
 				);
 
 				CancelUpgradeUnit ias (
@@ -509,7 +516,7 @@ module PlayerResourceManager {
 
 					(UId (Params~ 0) Get)^
 #if (release)
-					(((resourcemanager cancelupgradeunit done) (player Id~) (unit UId~) (Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
+					(((resourcemanager cancelupgradeunit done) (player Id~) (unit UId~) (MagicWorld)->(Characters)->(Unit UId~)->Kind~) Ew.OutChannel~) Do
 #endif
  					(-1 (U Id~ UId~) DefUpgradeRequest~) Recall
 				);
@@ -564,10 +571,10 @@ module PlayerResourceManager {
 				(Handle getunits) ias (
 					Report ias (
 #if (verbose)
-						((Player Id~ has unit (unit $~) and its kind is (Characters)->(Unit $~)->Kind~) Ew.Output~) Do
+						((Player Id~ has unit (unit $~) and its kind is (MagicWorld)->(Characters)->(Unit $~)->Kind~) Ew.Output~) Do
 #endif
 #if (release)
-						(((resourcemanager getunits done) (player Id~) (unit $~) (Characters)->(Unit $~)->Kind~) Ew.OutChannel~) Do
+						(((resourcemanager getunits done) (player Id~) (unit $~) (MagicWorld)->(Characters)->(Unit $~)->Kind~) Ew.OutChannel~) Do
 #endif
 					);
 					(Resources.Units.Hired~ Report~) ForEach

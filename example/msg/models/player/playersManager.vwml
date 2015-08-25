@@ -23,8 +23,8 @@ module PlayersManager {
 				ModeInfo~ Exe
 				Pool~ Exe
 				(GlobalBanker (GlobalBanker 0) defer) Born
-				(GlobalBanker 0)->Init~ Exe
-				((GlobalBanker 0)->Id 0)^
+				(MagicWorld)->(GlobalBanker 0)->Init~ Exe
+				((MagicWorld)->(GlobalBanker 0)->Id 0)^
 				((GlobalBanker 0)) Activate
 			);
 			CreatePlayer ias (
@@ -33,7 +33,10 @@ module PlayersManager {
 #if (verbose)
 				((Pool of players Players~) Ew.Output~) Do
 #endif                                  	
-				BuildQuartal ias (Quartal (Quartal (PId~ $~)) defer) Born;
+				BuildQuartal ias (
+					(Quartal (Quartal (PId~ $~)) defer) Born
+					((MagicWorld)->(Player PId~)->(Resources)->(Quartals)->All ((MagicWorld)->(Player PId~)->(Resources)->(Quartals)->All~ ((PId~ $~))) Join)^
+				);
 				// player's related components are created, but not activated
 				(Player (Player PId~) defer) Born
 				(HiringAgency (HiringAgency PId~) defer) Born
@@ -46,13 +49,13 @@ module PlayersManager {
 #if (verbose)
 					((Adding player PId~) Ew.Output~) Do
 #endif                                  	
-					((Player PId~)->Id PId~)^
-					((Player PId~)->Stop false)^
-					((Player PId~)) Activate
+					((MagicWorld)->(Player PId~)->Id PId~)^
+					((MagicWorld)->(Player PId~)->Stop false)^
+					((MagicWorld)->(Player PId~)) Activate
 				);
 				(State resetted) ias (
-					((Player PId~)->State active)^
-					(Player PId~)->(Resources)->LInit~ Exe
+					((MagicWorld)->(Player PId~)->State active)^
+					(MagicWorld)->(Player PId~)->(Resources)->LInit~ Exe
 #if (verbose)
 					((Player PId~ has reinitialized after reset) Ew.Output~) Do
 #endif                          
@@ -65,7 +68,7 @@ module PlayersManager {
                               		(((playermanagment playeradd ok alreadyActive) (Player PId~)) Ew.OutChannel~) Do
 #endif
 				);
-				(State (Player PId~)->State~)~ Exe
+				(State (MagicWorld)->(Player PId~)->State~)~ Exe
 			);
 			// propagating command to concrete player
 			PropagateCommand ias (

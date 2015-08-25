@@ -85,7 +85,6 @@ module StateStore {
 					(CommandDispatcher.Dispatch ((StateStoreManager Id~) Rx) Gate)^
 					CommandDispatcher~ Exe
 				);
-				CommandDispatcher.Dispatch~ Recycle
 				(ready (((StateStoreManager Id~) Ready) Gate true) Ident)~ Exe
 			);
 #if (verbose)

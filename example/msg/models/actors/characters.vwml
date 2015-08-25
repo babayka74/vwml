@@ -14,7 +14,7 @@ module Characters {
 				Capacity ias 0;
 				/* container for joined units */
 				Joined ias ();
-				JoinedWith ias nil;
+				JoinedWith ias none;
 				
 #if (business)
 				/* unit's class (0, 1, 2 ... N) */
@@ -58,7 +58,7 @@ module Characters {
 					(BattleFieldId nil)^
 					(InAction false)^
 					(Joined ())^
-					(JoinedWith nil)^
+					(JoinedWith none)^
 					(Container nil)^
 					((Unit Id~) Tx (PlayerId~ check Id~ ())) Gate
 				);
@@ -108,9 +108,9 @@ module Characters {
 				UnitAsAttacker ias (
 					Create ias (
 						(Attacker (Attacker Id~)) Born
-						((Attacker Id~)->Id Id~)^
-						((Attacker Id~)->PlayerId PlayerId~)^
-						(ConcreteUnit (Characters)->(Attacker Id~))^
+						((MagicWorld)->(Characters)->(Attacker Id~)->Id Id~)^
+						((MagicWorld)->(Characters)->(Attacker Id~)->PlayerId PlayerId~)^
+						(ConcreteUnit (MagicWorld)->(Characters)->(Attacker Id~))^
 #if (verbose)
 						((The attacker Id~ created) Ew.Output~) Do
 #endif
@@ -127,9 +127,9 @@ module Characters {
 				UnitAsDefender ias (
 					Create ias (
 						(Defender (Defender Id~)) Born
-						((Defender Id~)->Id Id~)^
-						((Defender Id~)->PlayerId PlayerId~)^
-						(ConcreteUnit (Characters)->(Defender Id~))^
+						((MagicWorld)->(Characters)->(Defender Id~)->Id Id~)^
+						((MagicWorld)->(Characters)->(Defender Id~)->PlayerId PlayerId~)^
+						(ConcreteUnit (MagicWorld)->(Characters)->(Defender Id~))^
 #if (verbose)
 						((The defender Id~ created) Ew.Output~) Do
 #endif
@@ -207,9 +207,9 @@ module Characters {
 					(RightProp (Properties~ Prop~) In)~ Exe 
 				);
 				GetCurrentPosition ias (
-					(CurrentPositionNil true) ias (CurrentPosition (ConcreteUnit~)->(ActivityStrategy)->(Movement)->PrevState~)^;
+					(CurrentPositionNil true) ias (CurrentPosition (MagicWorld)->(Characters)->(ConcreteUnit~)->(ActivityStrategy)->(Movement)->PrevState~)^;
 					(CurrentPositionNil false) ias doNothing;
-					(CurrentPosition (ConcreteUnit~)->(ActivityStrategy)->(Movement)->State~)^
+					(CurrentPosition (MagicWorld)->(Characters)->(ConcreteUnit~)->(ActivityStrategy)->(Movement)->State~)^
 					(CurrentPositionNil (CurrentPosition~ nil) Ident)~ Exe
 				);
 				AssociateWithBattleField ias (
@@ -217,7 +217,7 @@ module Characters {
 					(NotCreatedYet true) ias doNothing;
 					(NotCreatedYet false) ias (
 						(BattleFieldId BFId~)^
-						((ConcreteUnit~)->BattleFieldId BFId~)^
+						((MagicWorld)->(Characters)->(ConcreteUnit~)->BattleFieldId BFId~)^
 					);
 					(NotCreatedYet (ConcreteUnit~ nil) Ident)~ Exe
 				);
@@ -225,8 +225,8 @@ module Characters {
 					(Create attacker) ias UnitAsAttacker.Create~ Exe;
 					(Create defender) ias UnitAsDefender.Create~ Exe;
 					(Create Type~)~ Exe
-					((ConcreteUnit~)->BattleFieldId BattleFieldId~)^
-					(ConcreteUnit~)->Init~ Exe
+					((MagicWorld)->(Characters)->(ConcreteUnit~)->BattleFieldId BattleFieldId~)^
+					(MagicWorld)->(Characters)->(ConcreteUnit~)->Init~ Exe
 #if (verbose)
 					((The concrete unit ConcreteUnit~ created) Ew.Output~) Do
 #endif
@@ -234,9 +234,9 @@ module Characters {
 				ReleaseConcreteUnit ias (
 					(CU true) ias doNothing;
 					(CU false) ias (
-						((ConcreteUnit~)->BattleFieldId nil)^
-						(ConcreteUnit~)->Done~ Exe
-						(ConcreteUnit~) Release
+						((MagicWorld)->(Characters)->(ConcreteUnit~)->BattleFieldId nil)^
+						(MagicWorld)->(Characters)->(ConcreteUnit~)->Done~ Exe
+						(MagicWorld)->(Characters)->(ConcreteUnit~) Release
 						(ConcreteUnit nil)^
 #if (verbose)
 						((The concrete unit ConcreteUnit~ released) Ew.Output~) Do
@@ -325,13 +325,13 @@ module Characters {
 #endif
 						);
 						(Handle setprops) ias (UnitCommandParams~ PropertySetOperation~) ForEach;
-						(Handle kill) ias (ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe;
+						(Handle kill) ias (MagicWorld)->(Characters)->(ConcreteUnit~)->(ActivityStrategy)->Kill~ Exe;
 						(Handle go) ias (
-							(ConcreteUnit~)->(ActivityStrategy)->(Movement)->CheckAndStart~ Exe
+							(MagicWorld)->(Characters)->(ConcreteUnit~)->(ActivityStrategy)->(Movement)->CheckAndStart~ Exe
 							UnitLifeStep~ Exe
 						);
-						(Handle movetopos) ias (ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe;
-						(Handle startpos) ias (ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe;
+						(Handle movetopos) ias (MagicWorld)->(Characters)->(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetMoveToPos~ Exe;
+						(Handle startpos) ias (MagicWorld)->(Characters)->(ConcreteUnit~)->(ActivityStrategy)->(Movement)->SetStartPos~ Exe;
 						(Handle getpos) ias (
 							UpdateCurrentPosition~ Exe
 #if (verbose)
@@ -374,11 +374,12 @@ module Characters {
 						((The unit Id~ stopped) Ew.Output~) Do
 #endif
 					);
-					CommandDispatcher.Dispatch~ Recycle
 					(Stop StopUnit~)~ Exe
 				);
 
 				lifeterm = (
+					// increment reference counter
+					(Id~ 0)^
 #if (verbose)
 					((The unit Id~ was born) Ew.Output~) Do
 #endif

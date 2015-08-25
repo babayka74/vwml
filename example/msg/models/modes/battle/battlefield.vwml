@@ -89,7 +89,7 @@ module BattleField {
 			);
 			Done ias (
 				ReturnAllRemainedUnits~ Exe
-				((Player PlayerId~)->(Resources)->SelectedBattle nil)^
+				((MagicWorld)->(Player PlayerId~)->(Resources)->SelectedBattle nil)^
 				((BattleField Id~)) Release
 			);
 			Reset ias (
@@ -119,10 +119,10 @@ module BattleField {
 			AddUnitToBattleField ias (
 				(added attacker) ias (Participants.NumOfAttackers ((Participants.NumOfAttackers~) Ew.IncValue~) Do)^;
 				(added defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.IncValue~) Do)^;
-				((Characters)->(Unit Destination~)->(AssociateWithBattleField)->BFId Id~)^
-				(Characters)->(Unit Destination~)->AssociateWithBattleField~ Exe
+				((MagicWorld)->(Characters)->(Unit Destination~)->(AssociateWithBattleField)->BFId Id~)^
+				(MagicWorld)->(Characters)->(Unit Destination~)->AssociateWithBattleField~ Exe
 				(Participants.Units (Participants.Units~ (Destination~)) Join)^
-				(added (Characters)->(Unit Destination~)->Type~)~ Exe
+				(added (MagicWorld)->(Characters)->(Unit Destination~)->Type~)~ Exe
 #if (verbose)
 				((The battlefield Id~ has attackers Participants.NumOfAttackers~ and defenders Participants.NumOfDefenders~) Ew.Output~) Do
 #endif
@@ -140,9 +140,9 @@ module BattleField {
 				(CorrectUnit true) ias (
 					(removed attacker) ias (Participants.NumOfAttackers ((Participants.NumOfAttackers~) Ew.DecValue~) Do)^;
 					(removed defender) ias (Participants.NumOfDefenders ((Participants.NumOfDefenders~) Ew.DecValue~) Do)^;
-					((Characters)->(Unit U~)->(AssociateWithBattleField)->BFId nil)^
-					(Characters)->(Unit U~)->AssociateWithBattleField~ Exe
-					(removed (Characters)->(Unit U~)->Type~)~ Exe
+					((MagicWorld)->(Characters)->(Unit U~)->(AssociateWithBattleField)->BFId nil)^
+					(MagicWorld)->(Characters)->(Unit U~)->AssociateWithBattleField~ Exe
+					(removed (MagicWorld)->(Characters)->(Unit U~)->Type~)~ Exe
 #if (verbose)
 					((Unit U~ of player PId~ returned to resource manager as RetAs~) Ew.Output~) Do
 #endif
@@ -183,7 +183,7 @@ module BattleField {
 			);
 			// sends command to concrete unit
 			PropagateCommandToUnit ias (
-				(BattleStarted true) ias ((Characters)->(Unit Destination~) Tx (Quartal~ CommandId~ Destination~ CommandParams~)) Gate;
+				(BattleStarted true) ias ((MagicWorld)->(Characters)->(Unit Destination~) Tx (Quartal~ CommandId~ Destination~ CommandParams~)) Gate;
 				(BattleStarted false) ias (
 #if (verbose)
 					((The command can not be propagated to unit Destination~ player PlayerId~ since battle was not started) Ew.Output~) Do
@@ -195,7 +195,7 @@ module BattleField {
 			ReturnUnit ias (
 				U ias nil;
 				PId ias nil;
-				(PId (Characters)->(Unit U~)->PlayerId~)^
+				(PId (MagicWorld)->(Characters)->(Unit U~)->PlayerId~)^
 				(RemoveFromBattleField.U U~)^
 				(RemoveFromBattleField.PId PId~)^
 				(RemoveFromBattleField.RetAs returnunit)^
@@ -345,7 +345,7 @@ module BattleField {
 					);
 					(Handle unitkilled) ias (
 						// unit is removed from player's resources
-						(PId (Characters)->(Unit Destination~)->PlayerId~)^
+						(PId (MagicWorld)->(Characters)->(Unit Destination~)->PlayerId~)^
 						(RemoveFromBattleField.U Destination~)^
 						(RemoveFromBattleField.PId PId~)^
 						(RemoveFromBattleField.RetAs releaseunit)^

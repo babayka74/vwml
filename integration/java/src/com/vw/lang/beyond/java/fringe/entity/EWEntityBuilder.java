@@ -120,6 +120,19 @@ public class EWEntityBuilder {
 	}
 	
 	private static Pool s_pool = new Pool();
+
+	/**
+	 * Builds simple external world entity
+	 * @param eId
+	 * @param context
+	 * @param regeneratable
+	 * @return
+	 */
+	public static EWEntity buildSimpleEntity(Object eId, String context, boolean regeneratable) {
+		EWEntity e = buildSimpleEntity(eId, context);
+		e.setRegeneratable(regeneratable);
+		return e;
+	}
 	
 	/**
 	 * Builds simple external world entity
@@ -157,6 +170,19 @@ public class EWEntityBuilder {
 		return e;
 	}
 
+	/**
+	 * Builds complex external world entity
+	 * @param eId
+	 * @param context
+	 * @param regeneratable
+	 * @return
+	 */
+	public static EWComplexEntity buildComplexEntity(Object eId, String context, boolean regeneratable) {
+		EWComplexEntity e = buildComplexEntity(eId, context);
+		e.setRegeneratable(regeneratable);
+		return e;
+	}	
+	
 	public static void returnToPool(EWEntity e) {
 		s_pool.put(e.isMarkedAsComplexEntity() ? EWObjectType.EW_COMPLEX : EWObjectType.EW_SIMPLE, e);
 	}

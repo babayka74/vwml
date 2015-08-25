@@ -17,6 +17,7 @@ public class EWEntity extends EWObject {
 	
 	private String context;
 	protected boolean isMarkedAsComplexEntity = false;
+	protected boolean regeneratable = false;
 
 	public static boolean isNilEntity(EWEntity e) {
 		return e.getId().equals(s_NilEntityId);
@@ -56,5 +57,13 @@ public class EWEntity extends EWObject {
 	
 	public void release() {
 		EWEntityBuilder.returnToPool(this);
+	}
+
+	public boolean isRegeneratable() {
+		return regeneratable;
+	}
+
+	public void setRegeneratable(boolean regeneratable) {
+		this.regeneratable = regeneratable;
 	}
 }

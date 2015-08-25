@@ -115,6 +115,9 @@ public class VWMLContext extends VWMLObject {
 	 * @return
 	 */
 	public static String constructContextNameFromParts(String contextPrefix, String contextSuffix) {
+		if (contextPrefix == null) {
+			return contextSuffix;
+		}
 		return contextPrefix + "." + contextSuffix;
 	}
 	
@@ -143,6 +146,17 @@ public class VWMLContext extends VWMLObject {
 		entityDynamicProperties = null;
 		lifeTermContext = false;
 		unwinding = false;
+	}
+	
+	/**
+	 * Clones context's content
+	 */
+	public void cloneContextContent(VWMLContext relContext, VWMLContext onContext, boolean bornMode) throws Exception {
+		if (associatedEntities != null) {
+			for(VWMLEntity e : associatedEntities) {
+				e.clone(relContext, onContext, bornMode);
+			}
+		}
 	}
 	
 	/**
@@ -249,6 +263,19 @@ public class VWMLContext extends VWMLObject {
 		this.currentCodeStackFrame = currentCodeStackFrame;
 	}
 
+	public VWMLEntity findEntityByPrototype(VWMLEntity proto) {
+		VWMLEntity e = null;
+		if (getAssociatedEntities() != null && getAssociatedEntities().contains(proto)) {
+			for(VWMLEntity i : getAssociatedEntities()) {
+				if (i.equals(proto)) {
+					e = i;
+					break;
+				}
+			}
+		}
+		return e;
+	}
+	
 	/**
 	 * Returns dynamic properties associated with given entity
 	 * @param entity

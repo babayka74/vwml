@@ -29,6 +29,17 @@ module PlayerModeMain {
 					(Activities ()) FinishInterception
 					((Player Id~) Tx (ModeInfo.ModeMain~ playerworldresetted Id~ ())) Gate
 				);
+				RecalcRating ias (
+					T ias nil;
+					Resources.Business.CalcDevGangFactor~ Exe
+#if (verbose)
+					((Player Id~ has gang development factor Resources.Business.CalcDevGangFactor.D~) Ew.Output~) Do
+#endif
+#if (release)
+					(T (Resources.Business.DevGang~ 2) Get)^
+					(((main rqrating done) (player Id~) (dev Resources.Business.CalcDevGangFactor.D~ T~)) Ew.OutChannel~) Do
+#endif					
+				);
 				(Handle setmode) ias (
 					(RightMode false) ias doNothing;
 					(RightMode true) ias (
@@ -62,6 +73,8 @@ module PlayerModeMain {
 					Resources.Reset~ Exe
 				);
 				(Handle qinitialized) ias (
+					// increment reference counter
+					(Resources.Quartals.Construct.RQN~ 0)^
 					(Resources.Quartals.Construct.RQN ((Resources.Quartals.Construct.RQN~) Ew.DecValue~) Do)^
 #if (verbose)
 					((Resources.Quartals.Construct.RQN~ left quartals to initialize player Id~) Ew.Output~) Do
@@ -152,17 +165,7 @@ module PlayerModeMain {
 					(((main updatecashierconf ok) (player PlayerId~)) Ew.OutChannel~) Do
 #endif
 				);
-				(Handle rqrating) ias (
-					T ias nil;
-					Resources.Business.CalcDevGangFactor~ Exe
-#if (verbose)
-					((Player Id~ has gang development factor Resources.Business.CalcDevGangFactor.D~) Ew.Output~) Do
-#endif
-#if (release)
-					(T (Resources.Business.DevGang~ 2) Get)^
-					(((main rqrating done) (player Id~) (dev Resources.Business.CalcDevGangFactor.D~ T~)) Ew.OutChannel~) Do
-#endif					
-				);
+				(Handle rqrating) ias RecalcRating~ Exe;
 				(Handle CommandId~)~ Exe
 			);
 		);

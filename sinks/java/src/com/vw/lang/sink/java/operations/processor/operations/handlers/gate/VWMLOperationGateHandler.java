@@ -99,6 +99,7 @@ public class VWMLOperationGateHandler extends VWMLOperationHandler {
 			handlerDestTermArg = (VWMLEntity)entity.getLink().getConcreteLinkedEntity(4);
 		}
 		if (mode.getId().equals(modeTx)) {
+			transportedEntity.incrementRefCounter();
 			VWMLResourceHostManagerFactory.hostManagerInstance().activateGate(getGate(ringDestTerm), getGate(ringDestTerm).getRing(), ringDestTerm, transportedEntity, handlerDestTerm);
 		}
 		else

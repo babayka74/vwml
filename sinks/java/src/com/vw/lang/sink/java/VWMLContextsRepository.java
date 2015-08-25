@@ -46,12 +46,16 @@ public class VWMLContextsRepository extends VWMLRepository {
 	 * @param bornMode
 	 * @return
 	 */
-	public static synchronized VWMLContext clone(Object newContextId, VWMLContext context, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
+	public static synchronized VWMLContext clone(Object newContextId, VWMLContext context, boolean bornMode) throws Exception {
 		context = VWMLContextsRepository.instance().get(VWMLContextsRepository.instance().normalizeContext(context.getContext()));
 		String[] clonedContextFullPath = context.getContextPath().clone();
 		clonedContextFullPath[context.getContextPath().length - 1] = (String)newContextId;
 		VWMLContext newContext = VWMLContextsRepository.instance().createFromContextPath(clonedContextFullPath);
-		VWMLContextsRepository.instance().copyFrom(context.getContextName(), newContext.getContextName(), context, newContext, context, auxCache, bornMode);
+		// parent context
+		// System.out.println("Cloning '" + context.getContext() + "' -> '" + newContext.getContext() + "'");
+		context.cloneContextContent(context, newContext, bornMode);
+		// children cloning
+		VWMLContextsRepository.instance().cloneImpl(context, newContext, context, newContext, bornMode);
 		return newContext;
 	}
 	
@@ -231,7 +235,7 @@ public class VWMLContextsRepository extends VWMLRepository {
 			parent = (VWMLContext)next;
 		}
 		if (created) {
-			lookup.add(actualContext);
+		//	lookup.add(actualContext);
 		}
 		return parent;
 	}
@@ -275,26 +279,20 @@ public class VWMLContextsRepository extends VWMLRepository {
 		}
 		return s_default_context + "." + context; 
 	}
-	
-	protected void copyFrom(String initialEntityId, String newEntityId, VWMLContext contextFrom, VWMLContext contextTo, VWMLContext initial, VWMLCloneAuxCache auxCache, boolean bornMode) throws Exception {
-		if (initialEntityId != null && newEntityId != null) {
-			for(VWMLEntity e : contextFrom.getAssociatedEntities()) {
-				if (!e.isOriginal()) {
-					continue; // passing entities which were created in runtime
-				}
-				//System.out.println("Copy '" + e.buildReadableId() + "' from '" + contextFrom + "' to '" + contextTo + "'");
-				e.clone(null, initialEntityId, newEntityId, contextTo, initial, auxCache, false, bornMode);
-			}
-		}
-		VWMLLinkIncrementalIterator it = contextFrom.getLink().acquireLinkedObjectsIterator();
+
+	protected void cloneImpl(VWMLContext relContext, VWMLContext changeTo, VWMLContext contextOrig, VWMLContext newContext, boolean bornMode) throws Exception {
+		VWMLLinkIncrementalIterator it = contextOrig.getLink().acquireLinkedObjectsIterator();
 		if (it != null) {
 			for(; it.isCorrect(); it.next()) {
-				VWMLContext c = (VWMLContext)contextFrom.getLink().getConcreteLinkedEntity(it.getIt());
-				VWMLContext n = instance().createContextIfNotExists(contextTo.getContext() + "." + c.getId());
-				copyFrom(initialEntityId, newEntityId, c, n, initial, auxCache, bornMode);
+				VWMLContext c = (VWMLContext)contextOrig.getLink().getConcreteLinkedEntity(it.getIt());
+				VWMLContext n = instance().createContextIfNotExists(newContext.getContext() + "." + c.getId());
+				// System.out.println("Cloning '" + c.getContext() + "' -> '" + n.getContext() + "'");
+				c.cloneContextContent(relContext, changeTo, bornMode);
+				cloneImpl(relContext, changeTo, c, n, bornMode);
 			}
 		}
 	}
+	
 
 	protected void releaseClonedImpl(VWMLContext context) {
 		release(context, context);
@@ -302,8 +300,9 @@ public class VWMLContextsRepository extends VWMLRepository {
 			context.getLink().getParent().getLink().getLinkedObjects().remove(context);
 			context.getLink().setParent(null);
 		}
+		lookup.remove(context);
 	}
-	
+
 	protected void release(VWMLContext initialContext, VWMLContext context) {
 		//System.out.println("release context '" + context.getContext() + "'");
 		VWMLLinkIncrementalIterator it = context.getLink().acquireLinkedObjectsIterator();

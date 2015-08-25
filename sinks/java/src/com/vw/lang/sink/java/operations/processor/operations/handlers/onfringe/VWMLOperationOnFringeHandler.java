@@ -25,6 +25,8 @@ import com.vw.lang.sink.java.operations.processor.operations.handlers.applytoctx
 public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 
 	private static final int s_numberOfArgs = 2;
+	private static final int s_numberOfArgs_Context = 3;
+	private static final int s_numberOfArgs_PurgeMsg = 4;
 	
 	@Override
 	public void handle(VWMLInterpreterImpl interpreter, VWMLLinkage linkage, VWMLContext context, VWMLOperation operation) throws Exception {
@@ -38,31 +40,51 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 		if (entities.size() == 0) {
 			throw new Exception("operation 'Do' requires at least 2 arguments; check code");
 		}
-		int offset = -1;
+		int offset = -2;
+		boolean purgeMsg = false;
 		VWMLContext applyToContext = originalContext;
 		if (entities.size() == 1) {
 			if (entities.get(0).getLink().getLinkedObjectsOnThisTime() >= s_numberOfArgs) {
-				if (entities.get(0).getLink().getLinkedObjectsOnThisTime() > s_numberOfArgs) {
+				if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == s_numberOfArgs_Context) {
 					VWMLContext ctx = getContextFromEntity((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0));
 					if (ctx != null) {
 						applyToContext = ctx;
 					}
+					offset = -1;
+				}
+				else
+				if (entities.get(0).getLink().getLinkedObjectsOnThisTime() == s_numberOfArgs_PurgeMsg) {
+					VWMLContext ctx = getContextFromEntity((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1));
+					if (ctx != null) {
+						applyToContext = ctx;
+					}
+					purgeMsg = ((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(0)).getId().equals(VWMLEntity.s_trueEntityId);
 					offset = 0;
 				}
-				answerFromEW = sendMsgToExternalWorld((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(2 + offset),
-													  (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(1 + offset),
-													  applyToContext);
+				answerFromEW = sendMsgToExternalWorld((VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(3 + offset),
+													  (VWMLEntity)entities.get(0).getLink().getConcreteLinkedEntity(2 + offset),
+													  applyToContext,
+													  purgeMsg);
 			}
 		}
 		else {
-			if (entities.size() > 2) {
+			if (entities.size() == s_numberOfArgs_Context) {
 				VWMLContext ctx = getContextFromEntity(entities.get(0));
 				if (ctx != null) {
 					applyToContext = ctx;
 				}
+				offset = -1;
+			}
+			else
+			if (entities.size() == s_numberOfArgs_PurgeMsg) {
+				VWMLContext ctx = getContextFromEntity(entities.get(1));
+				if (ctx != null) {
+					applyToContext = ctx;
+				}
+				purgeMsg = entities.get(0).getId().equals(VWMLEntity.s_trueEntityId);
 				offset = 0;
 			}
-			answerFromEW = sendMsgToExternalWorld(entities.get(1 + offset), entities.get(2 + offset), applyToContext);
+			answerFromEW = sendMsgToExternalWorld(entities.get(2 + offset), entities.get(3 + offset), applyToContext, purgeMsg);
 		}
 		inspector.clear();
 		entities.clear();
@@ -72,6 +94,9 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 	}
 
 	protected VWMLContext getContextFromEntity(VWMLEntity e) {
+		if (e.equals(VWMLEntity.s_NullEntityId)) {
+			return null;
+		}
 		String c = VWMLOperationApplyToContextHandler.buildAbsoluteContext(e);
 		return VWMLContextsRepository.instance().get(c);
 	}
@@ -81,7 +106,7 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 		return VWMLFringesRepository.getGateByFringeName(fringeContextName);
 	}
 	
-	protected VWMLEntity sendMsgToExternalWorld(VWMLEntity onFringe, VWMLEntity msg, VWMLContext resContext) throws Exception {
+	protected VWMLEntity sendMsgToExternalWorld(VWMLEntity onFringe, VWMLEntity msg, VWMLContext resContext, boolean purgeMsg) throws Exception {
 		VWMLEntity answerFromEW = null;
 		IVWMLGate fringeGate = findGate(onFringe);
 		if (fringeGate != null) {
@@ -92,7 +117,12 @@ public class VWMLOperationOnFringeHandler extends VWMLOperationHandler {
 				answerFromEW.setContext(resContext);
 				ewResponseEntity.release();
 			}
-			// msg.releaseByRefCounter(resContext);
+			msg.releaseProtocolEntity();
+/*			
+			if (purgeMsg) {
+				msg.releaseYourselfOnly();
+			}
+*/			
 		}
 		else {
 			throw new Exception("couldn't find fringe '" + onFringe.getId() + "'; check VWML code");

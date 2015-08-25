@@ -56,6 +56,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 		if (e.isPartOfDynamicContext()) {
 			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
 			e.setPartOfDynamicContext(false);
+			VWMLObjectsRepository.instance().remove(e);
 			reversedStack.remove(dynamicAddressedEntity);
 			return true;
 		}
@@ -78,6 +79,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			inspectMustReturn = true;
 			dynContext = VWMLContext.constructContextNameInRunTime(dynContext, e);
 			e.setPartOfDynamicContext(false);
+			VWMLObjectsRepository.instance().remove(e);
 			reversedStack.remove(dynamicAddressedEntity);
 			f = true;
 		}
@@ -127,7 +129,9 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			if (VWMLContext.isDynamicContextPointsToSelf(dynContext) && operationalContext != null) {
 				dynContext = VWMLContext.changeSelfAddressedDynamicContextNameTo(dynContext, operationalContext.getContext());					
 			}
+			boolean removeDAE = false;
 			if (assemblyEntity && collector.size() > 1) {
+				removeDAE = true;
 				VWMLContext c = VWMLContextsRepository.instance().get(dynContext);
 				if (c == null) {
 					throw new Exception("coudln't find context '" + dynContext + "'");
@@ -144,6 +148,7 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 					reversedStack.remove(entity);
 				}
 				collector.clear();
+				// System.out.println("DAE -> " + dynamicAddressedEntity.buildReadableId());
 			}
 			e = (VWMLEntity)VWMLObjectsRepository.findObject(dynContext, dynamicAddressedEntity.buildReadableId());
 			if (e == null) {
@@ -155,6 +160,9 @@ public class VWMLOperationStackInspector extends VWMLStack.VWMLStackInspector {
 			}
 			e.setDynamicAddressedInRunTime(true);
 			pushEntityToReversedStack(e);
+			if (removeDAE && dynamicAddressedEntity != null && dynamicAddressedEntity.equals(VWMLObjectsRepository.instance().getEmptyEntity())) {
+				VWMLObjectsRepository.instance().remove(dynamicAddressedEntity);
+			}
 			dynContext = null;
 		}
 	}

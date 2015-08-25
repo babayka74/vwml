@@ -44,7 +44,7 @@ module PlayerBanking {
 				);
 				(Handle creditwithdraw) ias (
 					PrepareAccountValue~ Exe
-					(Resources.Account.WithdrawUnconditional.ByR (Player Id~)->(Resources)->(Account)->(Rt ((CommandParams~ 4) Get 1) Get))^ 
+					(Resources.Account.WithdrawUnconditional.ByR (MagicWorld)->(Player Id~)->(Resources)->(Account)->(Rt ((CommandParams~ 4) Get 1) Get))^ 
 					(Resources.Account.WithdrawUnconditional.V ((CommandParams~ 4) Get 2) Get)^
 					Resources.Account.WithdrawUnconditional~ Exe
 					PrepareAccountValue.(Result true)~ Exe

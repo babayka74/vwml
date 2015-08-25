@@ -50,6 +50,9 @@ public class VWMLComplexEntity extends VWMLEntity {
 		if (!e.isMarkedAsComplexEntity()) {
 			return false;
 		}
+		if (e.getId().equals(getId())) {
+			return true;
+		}
 		int linkedObjsOnCurrent = getLink().getLinkedObjectsOnThisTime();
 		int linkedObjsOnForeign = ((VWMLComplexEntity)e).getLink().getLinkedObjectsOnThisTime();
 		if (linkedObjsOnCurrent != linkedObjsOnForeign) {

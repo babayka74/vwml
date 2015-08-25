@@ -20,18 +20,20 @@ module PlayerResourceBosses {
 						// predefined quartals configuration
 						PQConf ias nil;
 
+						// increment reference counter
+						(BId~ 0)^
 						(BossOfDistrict (BossOfDistrict BId~) defer) Born
-						((BossOfDistrict BId~)->Owner Id~)^
-						((BossOfDistrict BId~)->Quartals Quartals~)^
-						((BossOfDistrict BId~)->QNIds QNIds~)^
-						((BossOfDistrict BId~)->BBR BBR~)^
-						((BossOfDistrict BId~)->InitAs InitAs~)^
-						((BossOfDistrict BId~)->Id BId~)^
-						((BossOfDistrict BId~)->PQConf PQConf~)^
+						((MagicWorld)->(BossOfDistrict BId~)->Owner Id~)^
+						((MagicWorld)->(BossOfDistrict BId~)->Quartals Quartals~)^
+						((MagicWorld)->(BossOfDistrict BId~)->QNIds QNIds~)^
+						((MagicWorld)->(BossOfDistrict BId~)->BBR BBR~)^
+						((MagicWorld)->(BossOfDistrict BId~)->InitAs InitAs~)^
+						((MagicWorld)->(BossOfDistrict BId~)->Id BId~)^
+						((MagicWorld)->(BossOfDistrict BId~)->PQConf PQConf~)^
 #if (verbose)
-						((Creating boss (BossOfDistrict BId~)) Ew.Output~) Do
+						((Creating boss (Boss BId~)) Ew.Output~) Do
 #endif
-						(BossOfDistrict BId~)->Init~ Exe
+						(MagicWorld)->(BossOfDistrict BId~)->Init~ Exe
 						(BossesList (BossesList~ (BId~)) Join)^
 					);
 					BossUnInitialized ias (
@@ -91,6 +93,8 @@ module PlayerResourceBosses {
 							(InitSteps (InitSteps~ (bosses)) Substruct)^
 						);
 						BossInitialized ias (
+							// increment reference counter
+							(InitBossesNum~ 0)^
 							(InitBossesNum ((InitBossesNum~) Ew.DecValue~) Do)^
 #if (verbose)
 							((Player Id~ InitBossesNum~ left bosses) Ew.Output~) Do							

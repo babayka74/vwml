@@ -27,7 +27,7 @@ public class Math implements IVWMLGate {
 				EWEntity e = (EWEntity)o;
 				i += Math.convertString2Int((String)e.getId());
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -47,7 +47,7 @@ public class Math implements IVWMLGate {
 				}
 				i -= Math.convertString2Int((String)e.getId());
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -61,7 +61,7 @@ public class Math implements IVWMLGate {
 				EWEntity e = (EWEntity)o;
 				i += Math.convertString2Float((String)e.getId());
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -81,7 +81,7 @@ public class Math implements IVWMLGate {
 				}
 				i -= Math.convertString2Float((String)e.getId());
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -95,7 +95,7 @@ public class Math implements IVWMLGate {
 				EWEntity e = (EWEntity)o;
 				i *= Math.convertString2Int((String)e.getId());
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -109,7 +109,7 @@ public class Math implements IVWMLGate {
 				EWEntity e = (EWEntity)o;
 				i *= Math.convertString2Float((String)e.getId());
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -132,7 +132,7 @@ public class Math implements IVWMLGate {
 					i /= d;
 				}
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -155,7 +155,7 @@ public class Math implements IVWMLGate {
 					i /= d;
 				}
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 	}
 
@@ -174,7 +174,7 @@ public class Math implements IVWMLGate {
 			if (e != null) {
 				i = Math.convertString2Int((String)e.getId()) + 1;
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 		
 	}
@@ -194,7 +194,7 @@ public class Math implements IVWMLGate {
 			if (e != null) {
 				i = Math.convertString2Int((String)e.getId()) - 1;
 			}
-			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null);
+			return EWEntityBuilder.buildSimpleEntity(String.valueOf(i), null, true);
 		}
 	}
 	
@@ -209,15 +209,15 @@ public class Math implements IVWMLGate {
 				int ie1 = Math.convertString2Int((String)e1.getId());
 				int ie2 = Math.convertString2Int((String)e2.getId());
 				if (ie1 > ie2) {
-					e = EWEntityBuilder.buildSimpleEntity("1", null);
+					e = EWEntityBuilder.buildSimpleEntity("1", null, true);
 				}
 				else
 				if (ie1 < ie2) {
-					e = EWEntityBuilder.buildSimpleEntity("-1", null);
+					e = EWEntityBuilder.buildSimpleEntity("-1", null, true);
 				}
 				else
 				if (ie1 == ie2) {
-					e = EWEntityBuilder.buildSimpleEntity("0", null);
+					e = EWEntityBuilder.buildSimpleEntity("0", null, true);
 				}
 			}
 			return e;
@@ -235,15 +235,15 @@ public class Math implements IVWMLGate {
 				float ie1 = Math.convertString2Float((String)e1.getId());
 				float ie2 = Math.convertString2Float((String)e2.getId());
 				if (ie1 > ie2) {
-					e = EWEntityBuilder.buildSimpleEntity("1", null);
+					e = EWEntityBuilder.buildSimpleEntity("1", null, true);
 				}
 				else
 				if (ie1 < ie2) {
-					e = EWEntityBuilder.buildSimpleEntity("-1", null);
+					e = EWEntityBuilder.buildSimpleEntity("-1", null, true);
 				}
 				else
 				if (ie1 == ie2) {
-					e = EWEntityBuilder.buildSimpleEntity("0", null);
+					e = EWEntityBuilder.buildSimpleEntity("0", null, true);
 				}
 			}
 			return e;
@@ -258,7 +258,7 @@ public class Math implements IVWMLGate {
 			if (commandArgs.isMarkedAsComplexEntity() && commandArgs.getLink().getLinkedObjectsOnThisTime() == 1) {
 				EWEntity e1 = (EWEntity)commandArgs.getLink().getConcreteLinkedEntity(0);
 				float ie1 = Math.convertString2Float((String)e1.getId());
-				e = EWEntityBuilder.buildSimpleEntity(String.valueOf(java.lang.Math.ceil(ie1)), null);
+				e = EWEntityBuilder.buildSimpleEntity(String.valueOf(java.lang.Math.ceil(ie1)), null, true);
 			}
 			return e;
 		}		
@@ -344,7 +344,7 @@ public class Math implements IVWMLGate {
 								break;
 							}
 						}
-						EWEntity v = EWEntityBuilder.buildSimpleEntity(String.valueOf(v1 + v2), null);
+						EWEntity v = EWEntityBuilder.buildSimpleEntity(String.valueOf(v1 + v2), null, true);
 						added = true;
 						e.link(v);
 					}
@@ -354,6 +354,7 @@ public class Math implements IVWMLGate {
 				try {
 					added = true;
 					e = EWEntityBuilder.buildFromString("(-1 -1)");
+					e.setRegeneratable(true);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}

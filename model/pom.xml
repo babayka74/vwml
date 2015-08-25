@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.vw.model.lang</groupId>
 		<artifactId>VWML</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -12,7 +12,7 @@
 	<groupId>com.vw.model.lang</groupId>
 	<artifactId>VWMLProcessor</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>VWMLProcessor (Compiler)</name>
 
 	<properties>
@@ -22,12 +22,12 @@
 		<dependency>
 			<groupId>com.vw.model.lang</groupId>
 			<artifactId>VWMLCommon</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vw.model.lang</groupId>
 			<artifactId>VWMLSink-Java</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>

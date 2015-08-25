@@ -74,6 +74,7 @@ public class VWMLOperationGetHandler extends VWMLOperationHandler {
 			return nilEntity;
 		}
 		VWMLEntity result = (VWMLEntity)((VWMLComplexEntity)e).getLink().getConcreteLinkedEntity(index);
+		result.incrementRefCounter();
 		return result;
 	}
 }

@@ -182,6 +182,7 @@ module HiringAgency {
 					Q ias nil;
 					// getting hiring info (time to hire unit)
 					(T (TimeToHireInfo~ nil) Ident)~ Exe
+					(GlobalHiringRequestId~ 0)^
 					(GlobalHiringRequestId ((GlobalHiringRequestId~) Ew.IncValue~) Do)^
 					// generate new request id
 					(NewRequestId (Id~ GlobalHiringRequestId~))^
@@ -283,9 +284,11 @@ module HiringAgency {
 					(Rq ($~ 1) Get)^
 					(Q ($~ 2) Get)^
 					(QR ($~ 3) Get)~ Exe
+
 #if (verbose)
 					((The hiring agent player Owner~ remained units in Q~ are Q~~) Ew.Output~) Do
 #endif
+
 					(CharacterIdInfo ((Rq~ CmdFormat.RqHiringInfoIndex~) Get CmdFormat.RqIdPropIndex~) Get)^
 					(CharacterProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 #if (business)
@@ -297,27 +300,28 @@ module HiringAgency {
 					((The hiring agent reports about processing request RqId~ for player Owner~ and sets props CharacterProps~ for unit UnitId~) Ew.Output~) Do
 #endif
 					(Characters.Unit (Unit UnitId~) defer) Born
-					((Characters)->(Unit UnitId~)->PlayerId Owner~)^
-					((Characters)->(Unit UnitId~)->Id UnitId~)^
-					((Characters)->(Unit UnitId~)->CId RqId~)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->PlayerId Owner~)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->Id UnitId~)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->CId RqId~)^
 #if (business)
-					((Characters)->(Unit UnitId~)->Cost CostInfo~)^
-					((Characters)->(Unit UnitId~)->Contain 0)^
-					((Characters)->(Unit UnitId~)->Class 1)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->Cost CostInfo~)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->Contain 0)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->Class 1)^
 #endif
-					((Characters)->(Unit UnitId~)->Capacity 0)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->Capacity 0)^
 					(AI (RqId~~ 1) Get)^
 					// notification that is sent to external world
-					((Characters)->(Unit UnitId~)->UnitReadyNotify (AI~ 1) Get)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->UnitReadyNotify (AI~ 1) Get)^
 					// unit's associated container
-					((Characters)->(Unit UnitId~)->Container (AI~ 0) Get)^
+					((MagicWorld)->(Characters)->(Unit UnitId~)->Container (AI~ 0) Get)^
 					// concrete mechanism of properties setting
-					(CharacterProps~ (Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
+					(CharacterProps~ (MagicWorld)->(Characters)->(Unit UnitId~)->PropertySetOperation~) ForEach
 #if (unitalive)
-					((Characters)->(Unit UnitId~)) Activate
+					((MagicWorld)->(Characters)->(Unit UnitId~)) Activate
 #else
-					(Characters)->(Unit UnitId~)->NotifyOwner~ Exe
-#endif
+					(MagicWorld)->(Characters)->(Unit UnitId~)->NotifyOwner~ Exe
+#endif                                  // increment reference counter
+					((schedulehiringrq nil (Q~)) 0)^
 					((HiringAgency Id~) Tx (schedulehiringrq nil (Q~))) Gate
 				);
 				PrepareReport ias (
@@ -438,7 +442,6 @@ module HiringAgency {
 					((The hiring agency Id~ of player Owner~ reports about exiting) Ew.Output~) Do
 #endif
 				);
-				CommandDispatcher.Dispatch~ Recycle
 				(ready (((HiringAgency Id~) Ready) Gate true) Ident StopAgency~)~ Exe
 			);
 			lifeterm = (

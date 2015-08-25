@@ -63,7 +63,7 @@ public class VWMLObjectBuilder {
 			ConcurrentLinkedQueue<VWMLObject> s = entityPool.get(type);
 			if (s != null) {
 				o = s.poll();
-				System.out.println("Pool of '" + type + "' has elements '" + s.size() + " '");
+				//System.out.println("Pool of '" + type + "' has elements '" + s.size() + " '");
 			}
 			return o;
 		}
@@ -190,8 +190,6 @@ public class VWMLObjectBuilder {
 	 * @return
 	 */
 	public static VWMLObject build(VWMLObjectBuilder.VWMLObjectType builderType, Object hashId, Object id, VWMLContext context, Integer entityHistorySize, AbstractVWMLLinkVisitor visitor) {
-		VWMLObject obj = s_builders.get(builderType).objectBuilder(hashId, id, context, entityHistorySize, visitor);
-/*		
 		VWMLObject obj = s_pool.get(builderType);
 		if (obj == null) {
 			obj = s_builders.get(builderType).objectBuilder(hashId, id, context, entityHistorySize, visitor);
@@ -205,8 +203,6 @@ public class VWMLObjectBuilder {
 				obj.getLink().setLinkOperationVisitor(visitor);
 			}
 		}
-		return obj;
-*/
 		return obj;
 	}
 	

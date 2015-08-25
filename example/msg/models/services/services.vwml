@@ -6,7 +6,7 @@ module Services {
 				To ias nil;
 				CommandId ias nil;
 				CommandParams ias nil;
-				((Characters)->(Unit To~) Tx (PlayerId~ CommandId~ To~ CommandParams~)) Gate
+				((MagicWorld)->(Characters)->(Unit To~) Tx (PlayerId~ CommandId~ To~ CommandParams~)) Gate
 			);
 			PositionChecker ias (
 				Init ias doNothing;

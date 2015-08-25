@@ -1,4 +1,13 @@
 /*
+    ========= INJECT QUARTAL ============
+ 				(pm 0 playermanagment playeradd 0 nil)
+				(manager 0 nil delay 0 (2500))
+				(player 0 deal injectquartal 0 ((((0 888) ((vodka 200 360000 60 3600000 150 3) 300))) ))
+
+
+*/
+
+/*
      ======= JUGGLING =========
 				(pm 0 playermanagment playeradd 0 nil)
 				(manager 0 nil delay 0 (2500))

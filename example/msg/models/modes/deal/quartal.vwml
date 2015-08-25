@@ -95,8 +95,8 @@ module Quartal {
 					(R (Requester~ 0) Get)~ Exe
 				);
 				Unlink ias (
-					(R Player),(R nil) ias ((Player Owner~) Tx (Player Owner~)->(Resources)->(Quartals)->(OnExitC)->(ReleaseRQ Id~)~) Gate;
-					(R Boss) ias ((Player Owner~) Tx (Player Owner~)->(Resources)->(Quartals)->(OnExitC)->(ReleaseBQ Id~)~) Gate;
+					(R Player),(R nil) ias ((Player Owner~) Tx (MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(OnExitC)->(ReleaseRQ Id~)~) Gate;
+					(R Boss) ias ((Player Owner~) Tx (MagicWorld)->(Player Owner~)->(Resources)->(Quartals)->(OnExitC)->(ReleaseBQ Id~)~) Gate;
 					(R (Requester~ 0) Get)~ Exe
 				);
 				Reset ias (
@@ -645,7 +645,6 @@ module Quartal {
 					((The sherif of quartal Id~ reports about exiting) Ew.Output~) Do
 #endif
 				);
-				CommandDispatcher.Dispatch~ Recycle
 				(ready (((Quartal Id~) Ready) Gate true) Ident StopQuartal~)~ Exe
 			);
 			lifeterm = (

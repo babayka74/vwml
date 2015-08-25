@@ -340,16 +340,16 @@ module PlayerResourceBusiness {
 							UK ias nil;
 							UnitsStoreCreate ias (
 								// quantity of units of specified kind and class
-							 	(UnitsStore (UnitsStore~ (((Q UK~ $~) (Player Id~)->(Resources)->(Business)->(Q UK~ $~)~))) Join)^
+							 	(UnitsStore (UnitsStore~ (((Q UK~ $~) (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Q UK~ $~)~))) Join)^
 							);
 							(UK $~)^
-							((Player Id~)->(Resources)->(Business)->(U C UK~)~ UnitsStoreCreate~) ForEach
+							((MagicWorld)->(Player Id~)->(Resources)->(Business)->(U C UK~)~ UnitsStoreCreate~) ForEach
 						);
 						FactorsOverRt ias (
-							(RAccountsStore (RAccountsStore~ (((Rt $~) (Player Id~)->(Resources)->(Account)->(Rt $~)~))) Join)^
-							(GDevFStore (GDevFStore~ (((Gdf $~) (Player Id~)->(Resources)->(Business)->(Gdf $~)~))) Join)^
-							(BDevFStore (BDevFStore~ (((Bdf $~) (Player Id~)->(Resources)->(Business)->(Bdf $~)~))) Join)^
-							(CtDevFStore (CtDevFStore~ (((Ctf $~) (Player Id~)->(Resources)->(Business)->(Ctf $~)~))) Join)^
+							(RAccountsStore (RAccountsStore~ (((Rt $~) (MagicWorld)->(Player Id~)->(Resources)->(Account)->(Rt $~)~))) Join)^
+							(GDevFStore (GDevFStore~ (((Gdf $~) (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Gdf $~)~))) Join)^
+							(BDevFStore (BDevFStore~ (((Bdf $~) (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Bdf $~)~))) Join)^
+							(CtDevFStore (CtDevFStore~ (((Ctf $~) (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Ctf $~)~))) Join)^
 						);
 						(UnitsStore ())^
 						(GDevFStore ())^

@@ -28,6 +28,9 @@ public class VWMLInterceptor {
 	}
 
 	public static VWMLInterceptor instance(VWMLEntity intercept, VWMLEntity trigger, VWMLEntity term) {
+		intercept.incrementRefCounter();
+		trigger.incrementRefCounter();
+		term.incrementRefCounter();
 		return new VWMLInterceptor(intercept, trigger, term);
 	}
 

@@ -28,22 +28,22 @@ module CharactersGroupManager {
 						// disjoin allowed
 						(NAJ false) ias (
 #if (unitalive)
-							((Characters)->(Unit JoinedWith~) Tx (Id~ disjoin 0 ((Id~ remove UD~)))) Gate
+							((MagicWorld)->(Characters)->(Unit JoinedWith~) Tx (Id~ disjoin 0 ((Id~ remove UD~)))) Gate
 #if (verbose)
 							((Unit Id~ disjoined from JoinedWith~ of player PlayerId~) Ew.Output~) Do
 #endif
-							(JoinedWith nil)^
+							(JoinedWith none)^
 #else // unitalive
-							((Characters)->(Unit JoinedWith~)->Joined ((Characters)->(Unit JoinedWith~)->Joined~ (Id~)) Substruct)^
+							((MagicWorld)->(Characters)->(Unit JoinedWith~)->Joined ((MagicWorld)->(Characters)->(Unit JoinedWith~)->Joined~ (Id~)) Substruct)^
 #if (verbose)
 							((Unit Id~ disjoined from JoinedWith~ of player PlayerId~) Ew.Output~) Do
 #endif							
 							((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ ackdisjoinunits PlayerId~ ((PlayerId~ Id~ JoinedWith~ UD~)))) Gate
-							(JoinedWith nil)^
+							(JoinedWith none)^
 							
 #endif // unitalive
 						);
-						(NAJ (JoinedWith~ nil) Ident)~ Exe
+						(NAJ (JoinedWith~ none) Ident)~ Exe
 					);
 					(Cmd remove) ias (
 						(Joined (Joined~ (U~)) Substruct)^
@@ -91,15 +91,17 @@ module CharactersGroupManager {
 								(Action (Actions~ 0) Get)^
 								// next unit
 								(U (Action~ 0) Get)^
-								((Characters)->(Unit U~) Tx (Id~ join 0 Actions~)) Gate
+								((MagicWorld)->(Characters)->(Unit U~) Tx (Id~ join 0 Actions~)) Gate
 
 #if (verbose)
 								((Unit Id~ joined with U~ and units are Joined~ of player PlayerId~ and actions Actions~ sent to unit U~) Ew.Output~) Do
 #endif
 #else // unitalive
-								((Characters)->(Unit U~)->JoinedWith Id~)^
+								((MagicWorld)->(Characters)->(Unit U~)->JoinedWith Id~)^
 								GetLastAction~ Exe
 								GetLastAction~ Exe
+								// increment reference counter
+								(Action~ 0)^
 								((Player PlayerId~) Tx (ModeInfo.ModeResourceMgr~ (Action~ 3) Get (Action~ 0) Get Actions~)) Gate
 #endif // unitalive
 							);

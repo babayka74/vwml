@@ -15,7 +15,7 @@ module CarAgencyHiringBehaviour {
 						GetKindOfUnit~ Exe
 						(GetClazzOfUnit.UnitProps (Rq~ CmdFormat.RqCharacterInfoIndex~) Get)^
 						GetClazzOfUnit~ Exe
-						(OA (Player Owner~)->(Resources)->(Garage)->(P GetKindOfUnit.Kind~ GetClazzOfUnit.Clazz~)~)^
+						(OA (MagicWorld)->(Player Owner~)->(Resources)->(Garage)->(P GetKindOfUnit.Kind~ GetClazzOfUnit.Clazz~)~)^
 #if (verbose)
 						((Car GetKindOfUnit.Kind~ of clazz GetClazzOfUnit.Clazz~ occupies garage area OA~) Ew.Output~) Do
 #endif

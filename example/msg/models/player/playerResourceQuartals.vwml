@@ -5,6 +5,7 @@ module PlayerResourceQuartals {
 				ActiveQuartals ias 0;
 				/* controlled/own/visible quartals */
 				Quartals ias (
+					All ias ();
 					/* player is owner, at least, of one quartal */
 					Own ias ();
 					/* set of quartals controlled by player */
@@ -65,6 +66,8 @@ module PlayerResourceQuartals {
 						(M nil),(M regular) ias (
 							(EQN RQN)^
 							(RQN N~)^
+							// increment reference counter
+							(RQN~ 0)^
 #if (verbose)
 							((Initialized regular RQN~ quartals for player PId~) Ew.Output~) Do
 #endif
@@ -74,6 +77,8 @@ module PlayerResourceQuartals {
 						(M boss) ias (
 							(EQN BQN)^
 							(BQN N~)^
+							// increment reference counter
+							(BQN~ 0)^
 #if (verbose)
 							((Initialized BQN~ quartals for boss for player PId~) Ew.Output~) Do
 #endif
@@ -81,19 +86,21 @@ module PlayerResourceQuartals {
 							(BQN 0 ICB~) StartInterception
 						);
 						ActivateQuartal ias (
+							QReady ias false;
 							QId ias nil;
 							QConf ias nil;
 							// sets predefined quartal's conf
 							SetQConf ias (
 								(QConf true) ias doNothing;
 								(QConf false) ias (
-									((Quartal QId~)->(Resource)->(Update)->QConf (QConf~ 0) Get)^
-									((Quartal QId~)->(Resource)->(Update)->BribeR (QConf~ 1) Get)^
+									((MagicWorld)->(Quartal QId~)->(Resource)->(Update)->QConf (QConf~ 0) Get)^
+									((MagicWorld)->(Quartal QId~)->(Resource)->(Update)->BribeR (QConf~ 1) Get)^
 								);
 								(QConf (QConf~ nil) Ident)~ Exe
 							);
 							(QReady false) ias (
 								(Quartal (Quartal QId~) defer) Born
+								(All (All~ (QId~)) Join)^
 #if (verbose)
 								((R~ PId~ created quartal (Quartal QId~) by request) Ew.Output~) Do
 #endif
@@ -104,14 +111,14 @@ module PlayerResourceQuartals {
 								(OnExitC.QId QId~)^
 								(OnExitC.Requester R~)^
 								OnExitC~ Exe								
-								((Quartal QId~)->Id QId~)^
-								((Quartal QId~)->Owner PId~)^
-								((Quartal QId~)->(Resource)->Requester R~)^
+								((MagicWorld)->(Quartal QId~)->Id QId~)^
+								((MagicWorld)->(Quartal QId~)->Owner PId~)^
+								((MagicWorld)->(Quartal QId~)->(Resource)->Requester R~)^
 								SetQConf~ Exe
 								((Quartal QId~)) Activate
 							);
 							// checks if quartal has already been created
-							(QReady (Quartal QId~) EI)~ Exe
+							(QReady (All~ QId~) In)~ Exe
 						);
 						(N true) ias (
 							SQ ias (
@@ -174,6 +181,7 @@ module PlayerResourceQuartals {
 						LInit~ Exe
 					);
 					LInit ias (
+						(All ())^
 						(ActiveQuartals NumOfActiveQuartals~)^
 					);
 					Deactivate ias (

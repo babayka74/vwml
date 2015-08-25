@@ -43,16 +43,16 @@ module PlayerResourceGarage {
 								C ias nil;
 								(C ($~ 0) Get)^
 								// quantity of cars of specified type and class
-							 	(GCarsStore (GCarsStore~ (((Q CT~ C~) (Player Id~)->(Resources)->(Business)->(Q CT~ C~)~))) Join)^
+							 	(GCarsStore (GCarsStore~ (((Q CT~ C~) (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Q CT~ C~)~))) Join)^
 							);
 							(CT $~)^
-							((Player Id~)->(Resources)->(Business)->(C CT~)~ GCarsStoreCreate~) ForEach
+							((MagicWorld)->(Player Id~)->(Resources)->(Business)->(C CT~)~ GCarsStoreCreate~) ForEach
 						);
 						(InvestState ())^
 						(GCarsStore ())^
 						(GCT~ OverCarType~) ForEach
-						(Player Id~)->(GarageDeal)->GetInvestTimerState~ Exe
-						(GarageState (Id~ Class~ Capacity~ Free~ (Player Id~)->(GarageDeal)->(GetInvestTimerState)->State~ GCarsStore~))^
+						(MagicWorld)->(Player Id~)->(GarageDeal)->GetInvestTimerState~ Exe
+						(GarageState (Id~ Class~ Capacity~ Free~ (MagicWorld)->(Player Id~)->(GarageDeal)->(GetInvestTimerState)->State~ GCarsStore~))^
 					);
 					RestoreState ias (
 						S ias nil;
@@ -206,7 +206,7 @@ module PlayerResourceGarage {
 											((P CarType~ Clazz~) ($~ 1) Get)^
 											((P CarType~ Clazz~) Garage true) Context
 #if (verbose)                           	
-											((Inside garage quantity of (Q CarType~ Clazz~) (Q CarType~ Clazz~)~ and places (P CarType~ Clazz~) (P CarType~ Clazz~)~) Ew.Output~) Do
+											((Inside garage quantity of (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Q CarType~ Clazz~) (MagicWorld)->(Player Id~)->(Resources)->(Business)->(Q CarType~ Clazz~)~ and places (P CarType~ Clazz~) (P CarType~ Clazz~)~) Ew.Output~) Do
 #endif                                  	
 										);
 										// getting car type

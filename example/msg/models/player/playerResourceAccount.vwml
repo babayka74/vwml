@@ -35,7 +35,7 @@ module PlayerResourceAccount {
 							((Player Id~ has resource (V~ (Rt V~)~)) Ew.Output~) Do
 #endif
 #if (release)
-							(((banking balance done)(player Id~)(V~ (Rt V~)~)) Ew.OutChannel~) Do
+							(((banking balance done)(player Id~)(V~ (Rt V~)~)) Ew.OutChannel~ null false) Do
 #endif
 						);
 						(Ew.PlayerAccountConf.ResourceTypes~ AccountReport~) ForEach
@@ -52,8 +52,7 @@ module PlayerResourceAccount {
 						((Player Id~ set account ByRtType~ on V~ balance is ByRtType~~) Ew.Output~) Do
 #endif
 #if (release)
-						(T (ByRtType~ 1) Get)^
-						(((banking set done)(player Id~)(T~ V~ ByRtType~~)) Ew.OutChannel~) Do
+						(((banking set done)(player Id~)((ByRtType~ 1) Get V~ ByRtType~~)) Ew.OutChannel~ null false) Do
 #endif
 					);
 					Recharge ias (
@@ -82,8 +81,7 @@ module PlayerResourceAccount {
 						((Player Id~ withdrawed V~ balance is ByR~~ for account ByR~) Ew.Output~) Do
 #endif
 #if (release)
-						(T (ByR~ 1) Get)^
-						(((banking withdraw done)(player Id~)(T~ V~ ByR~~)) Ew.OutChannel~) Do
+						(((banking withdraw done)(player Id~)((ByR~ 1) Get V~ ByR~~)) Ew.OutChannel~ null false) Do
 #endif
 					);
 					WithdrawResource ias (
@@ -137,7 +135,7 @@ module PlayerResourceAccount {
 								((Player Id~ resource need to buy RNB~) Ew.Output~) Do
 #endif
 								// convert it to premium resource
-								(PRC ((RNB~ (Resources)->(Business)->(CR (Value~ 1) Get Resources.Business.PremiumCurrency~)~) Ew.DivF~) Do)^
+								(PRC ((RNB~ (MagicWorld)->(Player Id~)->(Resources)->(Business)->(CR (Value~ 1) Get Resources.Business.PremiumCurrency~)~) Ew.DivF~) Do)^
 								// round it up to integer value
 								(PRC ((PRC~) Ew.RoundF~) Do)^
 								(WithdrawResource.R (cost Resources.Business.PremiumCurrency~ PRC~))^

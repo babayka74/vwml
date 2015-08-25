@@ -5,14 +5,32 @@ module PlayerDeal {
 				CommandId ias nil;
 				CommandParams ias nil;
 				QuartalId ias nil;
+
+				InjectQ ias (
+					CB ias (
+#if (release)
+						(((deal injectquartal done) (player Id~)) Ew.OutChannel~) Do
+#endif
+					);
+					PQConf ias nil;
+					(Resources.Quartals.Construct.R (Player Id~))^
+					(Resources.Quartals.Construct.PId Id~)^
+					(Resources.Quartals.Construct.M regular)^
+					(Resources.Quartals.Construct.F nil)^
+					(Resources.Quartals.Construct.N 0)^
+					(Resources.Quartals.Construct.CB CB~)^
+					(Resources.Quartals.Construct.PQConf PQConf~)^
+					Resources.Quartals.Construct~ Exe
+				);
 				UnlinkQ ias (
 					(MyEconomicQ true) ias (
 						(Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Substruct)^
-						(Resources.BattleZones.DetachZones.Z (Quartal QuartalId~)->(Sherif)->BattleZones~)^
+						(Resources.Quartals.All (Resources.Quartals.All~ (QuartalId~)) Substruct)^
+						(Resources.BattleZones.DetachZones.Z (MagicWorld)->(Quartal QuartalId~)->(Sherif)->BattleZones~)^
 						Resources.BattleZones.DetachZones~ Exe
 					);
 					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Substruct)^;
-					((Quartal QuartalId~)->Linked false)^
+					((MagicWorld)->(Quartal QuartalId~)->Linked false)^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
 					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
 #if (verbose)
@@ -26,13 +44,13 @@ module PlayerDeal {
 					(MyEconomicQ true) ias (
 						(Resources.Quartals.Own (Resources.Quartals.Own~ (QuartalId~)) Join)^
 						(Resources.Quartals.NumOfActiveQuartals (Resources.Quartals.Own~) Size)^
-						(Resources.BattleZones.AttachZones.Z (Quartal QuartalId~)->(Sherif)->BattleZones~)^
+						(Resources.BattleZones.AttachZones.Z (MagicWorld)->(Quartal QuartalId~)->(Sherif)->BattleZones~)^
 						Resources.BattleZones.AttachZones~ Exe
 					);
 					(MyEconomicQ false) ias (Resources.Quartals.Visible (Resources.Quartals.Visible~ (QuartalId~)) Join)^;
-					((Quartal QuartalId~)->Linked true)^
-					((Quartal QuartalId~)->Owner Id~)^
-					((Quartal QuartalId~)->(Resource)->Requester (Player Id~))^
+					((MagicWorld)->(Quartal QuartalId~)->Linked true)^
+					((MagicWorld)->(Quartal QuartalId~)->Owner Id~)^
+					((MagicWorld)->(Quartal QuartalId~)->(Resource)->Requester (Player Id~))^
 					// if quartal belongs to the player then quartal is considered as player's economic and should be considered separately
 					(MyEconomicQ (Id~ (QuartalId~ 0) Get) Ident)~ Exe
 #if (verbose)
@@ -143,6 +161,10 @@ module PlayerDeal {
 #if (verbose)
 					((The player Id~ returned to main mode) Ew.Output~) Do
 #endif
+				);
+				(Handle injectquartal) ias (
+					(InjectQ.PQConf (CommandParams~ 0) Get)^
+					InjectQ~ Exe
 				);
 				(Handle CommandId~)~ Exe
 			);

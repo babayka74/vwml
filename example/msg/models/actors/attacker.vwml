@@ -28,8 +28,8 @@ module Attacker {
 						(DpfSearchMkAParallelEx (DpfSearchMkAParallelEx Id~)) Born
 					);
 					Done ias (
-						((Services)->(PositionChecker Id~)) Release
-						((Services)->(SignalUnit Id~)) Release
+						((MagicWorld)->(Services)->(PositionChecker Id~)) Release
+						((MagicWorld)->(Services)->(SignalUnit Id~)) Release
 						((DpfSearchMkAParallelEx Id~)) Release
 					);
 					Actions ias (
@@ -52,8 +52,8 @@ module Attacker {
 									);
 									(DefenderKilled yes) ias (
 										((The attacker Id~ killed defender AttackedDefender~ and continues movement) Ew.Output~) Do
-										((Unit AttackedDefender~)->MarkedAsKilled true)^
-										(Unit AttackedDefender~)->Stay~ Exe
+										((MagicWorld)->(Characters)->(Unit AttackedDefender~)->MarkedAsKilled true)^
+										(MagicWorld)->(Characters)->(Unit AttackedDefender~)->Stay~ Exe
 										ChangePosition~ Exe
 										// sends signal to defender that it was killed
 										(Services.(SignalUnit Id~)->PlayerId PlayerId~)^
@@ -64,8 +64,8 @@ module Attacker {
 									);
 									(AttackedDefender OnFire~ Random)^
 									((The attacker Id~ found defenders OnFire~ which can be attacked and selected AttackedDefender~) Ew.Output~) Do
-									(AttackPower (Characters)->(Unit Id~)->(Power)->Attack~)^
-									(DefencePower (Characters)->(Unit AttackedDefender~)->(Power)->Defence~)^
+									(AttackPower (MagicWorld)->(Characters)->(Unit Id~)->(Power)->Attack~)^
+									(DefencePower (MagicWorld)->(Characters)->(Unit AttackedDefender~)->(Power)->Defence~)^
 									((The attacker Id~ attacks with AttackPower~ and attacked defender AttackedDefender~ defends with DefencePower~) Ew.Output~) Do
 									(AttackResult (AttackPower~ DefencePower~) Join Random)^
 									(DefenderKilled AttackResult~)~ Exe
@@ -82,12 +82,12 @@ module Attacker {
 											(OnFire (OnFire~ ($~)) Join)^
 											((The defender $~ can be attacked by attacker Id~) Ew.Output~) Do
 										);
-										(Unit $~)->GetCurrentPosition~ Exe
-										(OnFire (Position~~ (Unit $~)->CurrentPosition~) In)~ Exe
+										(MagicWorld)->(Characters)->(Unit $~)->GetCurrentPosition~ Exe
+										(OnFire (Position~~ (MagicWorld)->(Characters)->(Unit $~)->CurrentPosition~) In)~ Exe
 									);
-									(Killed (Unit $~)->MarkedAsKilled~)~ Exe
+									(Killed (MagicWorld)->(Characters)->(Unit $~)->MarkedAsKilled~)~ Exe
 								);
-								(Unit (Unit $~)->Type~)~ Exe
+								(Unit (MagicWorld)->(Characters)->(Unit $~)->Type~)~ Exe
 							);
 							((The unit Id~ is on attacking position Position~ and looking for enemies in Position~~) Ew.Output~) Do
 							(OnFire ())^
@@ -98,7 +98,7 @@ module Attacker {
 						ChangePosition ias (
 							((The unit Id~ moved from Movement.PrevState~ to Movement.State~ time 300) Ew.Output~) Do
 							300 Relax
-							((Unit Id~)->CurrentPosition Movement.State~)^
+							((MagicWorld)->(Characters)->(Unit Id~)->CurrentPosition Movement.State~)^
 							(Movement.PrevState Movement.State~)^
                                 			(Movement.Iteration ((Movement.Iteration~) Ew.IncValue~) Do)^
 							(Movement.State (Movement.RequestedSteps~ Movement.Iteration~) Get)^
@@ -108,7 +108,7 @@ module Attacker {
 					/* unit was killed */
 					Kill ias (
 						((The attacker Id~ was killed) Ew.Output~) Do
-						(Characters)->(Unit Id~)->(UnitAsAttacker)->Destroy~ Exe
+						(MagicWorld)->(Characters)->(Unit Id~)->(UnitAsAttacker)->Destroy~ Exe
 					);
 					/* movement's parameters */
 					Movement ias (
@@ -154,11 +154,11 @@ module Attacker {
 							(Movement.NoSteps false)^
 							(Movement.PrevState Movement.State~)^
 							(Movement.NumOfRequestedSteps Ew.ConfiguredNumOfRequestedSteps~)^
-							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
+							((The unit Id~ goals Movement.Goals~ initialized movement procedure with shared stateset (MagicWorld)->(Player PlayerId~)->(Resources)->(Units)->UnitsStateSet~ and steps Movement.NumOfRequestedSteps~ and state Movement.State~) Ew.Output~) Do
 							((Movement.Goals
 								Ew.TargetsToBeDestroyed
 								Movement.State
-								(Player PlayerId~)->(Resources)->(Units)->UnitsStateSet   /* units' shared path */
+								(MagicWorld)->(Player PlayerId~)->(Resources)->(Units)->UnitsStateSet   /* units' shared path */
 								Movement.SeqStates
 								Movement.Result
 								Movement.TargetDestroyed
@@ -172,7 +172,7 @@ module Attacker {
 							((Calculated steps Movement.RequestedSteps~ unit Id~) Ew.Output~) Do
 						);
 						CheckAndStart ias (
-							(PathPassed true true) ias ((Unit Id~)->(CommandDispatcher)->UnitCommandId stop)^;
+							(PathPassed true true) ias ((MagicWorld)->(Characters)->->(Unit Id~)->(CommandDispatcher)->UnitCommandId stop)^;
 							(PathPassed false false),(PathPassed false true),(PathPassed true false) ias Movement.Go~ Exe;
 							(PathPassed Movement.PathPassed~ Selected~)~ Exe 
 						);
@@ -195,11 +195,11 @@ module Attacker {
 								(GoalReached false true), (GoalReached true true) ias (
 									((The unit Id~ reached all goals) Ew.Output~) Do
 									(Movement.AllGoalsReached false)^
-									((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+									((Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 								);
 								(AllTargetsDestroyed true) ias (
 									((The unit Id~ detected that all shared targets destroyed) Ew.Output~) Do
-                                                			((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+                                                			((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 								);
 								(AllTargetsDestroyed false) ias doNothing;
 								(PathPassed true)^
@@ -218,12 +218,12 @@ module Attacker {
 							(Services.(PositionChecker Id~)->(CheckPosition)->PosToBeCheckedCtx (BattleField BattleFieldId~)->(Fields)->(Main)->Nodes)^
                                         	        Services.(PositionChecker Id~)->CheckPosition~ Exe
 							((The unit Id~ has start position Movement.State~) Ew.Output~) Do
-							((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+							((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 						);
 						SetMoveToPos ias (
 							(Walking true) ias (
 								(Movement.Init true)^
-								((Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
+								((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
 							);
 							(Walking false) ias (
 								// goal reached and new goal set, no need to wait for go command
@@ -231,10 +231,10 @@ module Attacker {
 									(Movement.Init true)^
 									(Movement.PathPassed false)^
 									(Movement.GoalReached false)^
-									((Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
+									((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
 								);
 								(NewMovement false) ias (
-									((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+									((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 								);
 								(NewMovement Movement.PathPassed~)~ Exe
 							);
@@ -244,10 +244,10 @@ module Attacker {
 							);
 							(MovementGoalCorrect false) ias (
 								(FollowingCommandGo true) ias (
-									((Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
+									((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId go)^
 								);
 								(FollowingCommandGo false) ias (
-									((Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
+									((MagicWorld)->(Characters)->(Unit Id~)->(CommandDispatcher)->UnitCommandId stay)^
 								);
 								(FollowingCommandGo Movement.Walking~)~ Exe
 							);

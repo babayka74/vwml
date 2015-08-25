@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.vw.lang.sink.java.VWMLCloneFactory;
 import com.vw.lang.sink.java.VWMLContextsRepository;
-import com.vw.lang.sink.java.VWMLObjectsRepository;
 import com.vw.lang.sink.java.entity.VWMLEntity;
 import com.vw.lang.sink.java.interpreter.VWMLInterpreterImpl;
 import com.vw.lang.sink.java.interpreter.datastructure.VWMLContext;
@@ -63,9 +62,25 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 	}
 
 	public VWMLEntity clone(VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
-		return VWMLCloneFactory.cloneContext(origEntity, clonedObject, clonedObject.getId(), false);
+		// origEntity points to context which is going to be cloned
+		// clonedObject points to new name of cloned context
+		VWMLContext newContext = VWMLCloneFactory.cloneContext(origEntity, clonedObject.getId(), false);
+		return postClone(newContext, origEntity, clonedObject);
 	}
 
+	protected VWMLEntity postClone(VWMLContext onContext, VWMLEntity origEntity, VWMLEntity clonedObject) throws Exception {
+		VWMLEntity ie = onContext.findEntityByPrototype(origEntity.getInterpreting());
+		if (ie == null) {
+			ie = origEntity.getInterpreting().clone(onContext, onContext);
+		}
+		VWMLContext ctxForCloned = (VWMLContext)origEntity.getContext();
+		clonedObject.setContext(ctxForCloned);
+		clonedObject.setInterpreting(ie);
+		clonedObject.setClonedFrom(origEntity);
+		clonedObject.setOriginal(origEntity.isOriginal());
+		return clonedObject;
+	}
+	
 	protected void handleCloneOperation(VWMLInterpreterImpl interpreter, VWMLEntity origEntity, VWMLEntity clonedObject, VWMLEntity deferExecution) throws Exception {
 		if (VWMLContextsRepository.instance().get(VWMLContext.constructContextNameFromParts(origEntity.getContext().getContext(), (String)clonedObject.getId())) != null) {
 			throw new Exception("the context '" + clonedObject.getId() + "' has already been cloned");
@@ -74,7 +89,6 @@ public class VWMLOperationCloneHandler extends VWMLOperationHandler {
 		if (cloned.getReadableId() == null) {
 			cloned.buildReadableId();
 		}
-		VWMLObjectsRepository.instance().remove(clonedObject);
 		if (cloned.getInterpreting() != null && interpreter.getRing() != null && deferExecution == null) {
 			VWMLEntity clonedSourceLft = cloned.getInterpreting().getContext().findSourceLifeTerm();
 			if (clonedSourceLft != null) {

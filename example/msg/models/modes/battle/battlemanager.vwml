@@ -11,15 +11,15 @@ module BattleManager {
 				CreateBattleField ias (
 					(Q (CommandParams~ 0) Get)^
 					(BattleField (BattleField (Id~ Q~))) Born
-					((BattleField (Id~ Q~))->Id (Id~ Q~))^
-					((BattleField (Id~ Q~))->PlayerId Id~)^
-					((BattleField (Id~ Q~))->Quartal Q~)^
-					(BattleField (Id~ Q~))->Init~ Exe
-					(Resources.Battles (Resources.Battles~ ((BattleField (Id~ Q~))->Id~)) Join)^
+					((MagicWorld)->(BattleField (Id~ Q~))->Id (Id~ Q~))^
+					((MagicWorld)->(BattleField (Id~ Q~))->PlayerId Id~)^
+					((MagicWorld)->(BattleField (Id~ Q~))->Quartal Q~)^
+					(MagicWorld)->(BattleField (Id~ Q~))->Init~ Exe
+					(Resources.Battles (Resources.Battles~ ((MagicWorld)->(BattleField (Id~ Q~))->Id~)) Join)^
 					// default: here defence will be built
-					(Resources.SelectedBattle (BattleField (Id~ Q~))->Id~)^
+					(Resources.SelectedBattle (MagicWorld)->(BattleField (Id~ Q~))->Id~)^
 #if (verbose)
-					((Player Id~ created battlefield (BattleField (BattleField (Id~ Q~))->Id~)) Ew.Output~) Do 
+					((Player Id~ created battlefield (BattleField (MagicWorld)->(BattleField (Id~ Q~))->Id~)) Ew.Output~) Do 
 #endif
 				);
 				// battlefield is destroyed upon player's request
@@ -56,7 +56,7 @@ module BattleManager {
 					// its mode where response is sent
 					(RPIdMode (CommandParams~ 1) Get)^
 					// sent to requested with player's identifier and current battle status
-					((Player RPId~) Tx (RPIdMode~ responsebattlestatusbf RPId~ (Id~ (BattleField Resources.SelectedBattle~)->BattleStatus~))) Gate
+					((Player RPId~) Tx (RPIdMode~ responsebattlestatusbf RPId~ (Id~ (MagicWorld)->(BattleField Resources.SelectedBattle~)->BattleStatus~))) Gate
 				);
 #else
 				CreateBattleField ias (
@@ -147,9 +147,9 @@ module BattleManager {
 				(DelegateToBF true) ias (
 					// delegating command to BF
 					(NotSelectedBF false) ias (
-						((BattleField Resources.SelectedBattle~)->CommandId CommandId~)^
-						((BattleField Resources.SelectedBattle~)->Destination To~)^
-						((BattleField Resources.SelectedBattle~)->CommandParams CommandParams~)^
+						((MagicWorld)->(BattleField Resources.SelectedBattle~)->CommandId CommandId~)^
+						((MagicWorld)->(BattleField Resources.SelectedBattle~)->Destination To~)^
+						((MagicWorld)->(BattleField Resources.SelectedBattle~)->CommandParams CommandParams~)^
 #if (verbose)
 						((Player Id~ battlemanager delegates command CommandId~ to battlefield (BattleField Resources.SelectedBattle~)) Ew.Output~) Do
 #endif

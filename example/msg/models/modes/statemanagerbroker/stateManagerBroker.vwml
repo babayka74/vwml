@@ -106,12 +106,12 @@ module StateManagerBroker {
 #endif
 							(Characters.Unit (Unit UId~) defer) Born
 #if (unitalive)
-							((Characters)->(Unit UId~)) Activate
+							((MagicWorld)->(Characters)->(Unit UId~)) Activate
 							((Unit UId~) Tx (Id~ restorestate $~)) Gate
 #else
-							((Characters)->(Unit UId~)->(RestoreState)->UnitCommandParams $~)^
-							(Characters)->(Unit UId~)->RestoreState~ Exe
-							(Characters)->(Unit UId~)->NotifyOwner~ Exe
+							((MagicWorld)->(Characters)->(Unit UId~)->(RestoreState)->UnitCommandParams $~)^
+							(MagicWorld)->(Characters)->(Unit UId~)->RestoreState~ Exe
+							(MagicWorld)->(Characters)->(Unit UId~)->NotifyOwner~ Exe
 #endif // unitalive
 						);
 						(Units 0 UStateRestored~) StartInterception
@@ -120,8 +120,8 @@ module StateManagerBroker {
 					);
 					// garage restore state
 					GRestoreState ias (
-						((Player Id~)->(Resources)->(Garage)->(RestoreState)->S CommandParams~)^
-						(Player Id~)->(Resources)->(Garage)->RestoreState~ Exe
+						((MagicWorld)->(Player Id~)->(Resources)->(Garage)->(RestoreState)->S CommandParams~)^
+						(MagicWorld)->(Player Id~)->(Resources)->(Garage)->RestoreState~ Exe
 						GRestoredState~ Exe
 #if (verbose)
 						((State of garage restored of player Id~) Ew.Output~) Do						
@@ -129,8 +129,8 @@ module StateManagerBroker {
 					);
 					// player's business restore state
 					BRestoreState ias (
-						((Player Id~)->(Resources)->(RestoreState)->S CommandParams~)^
-						(Player Id~)->(Resources)->RestoreState~ Exe
+						((MagicWorld)->(Player Id~)->(Resources)->(RestoreState)->S CommandParams~)^
+						(MagicWorld)->(Player Id~)->(Resources)->RestoreState~ Exe
 						BRestoredState~ Exe
 #if (verbose)
 						((State of business restored for player PId~) Ew.Output~) Do						
@@ -236,7 +236,7 @@ module StateManagerBroker {
 #if (unitalive)                                 	
 							((Unit $~) Tx (Id~ collectstate ())) Gate
 #else
-							(Characters)->(Unit $~)->CollectState~ Exe
+							(MagicWorld)->(Characters)->(Unit $~)->CollectState~ Exe
 #endif // unitalive
 						);
 						(ACUState ())^

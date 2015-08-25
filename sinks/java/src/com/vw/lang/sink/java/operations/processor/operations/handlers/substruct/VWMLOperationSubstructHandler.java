@@ -131,7 +131,14 @@ public class VWMLOperationSubstructHandler extends VWMLOperationHandler {
 				}
 			}
 			if (add) {
+				if (pe1.getRefCounter() == 0) {
+					// correct ref counter in case if operating on static entity. Means entity which not created using Join op
+					pe1.incrementRefCounter();
+				}
 				result.getLink().link(pe1);
+			}
+			else {
+				pe1.decrementRefCounter();
 			}
 			itE2.setIt(0);
 		}

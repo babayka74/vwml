@@ -50,7 +50,19 @@ public class VWMLInterceptorsRepository {
 	 */
 	public void removeInterceptor(VWMLInterceptor interceptor) {
 		if (interceptor != null && repo != null) {
-			repo.remove(interceptor.key());
+			VWMLInterceptor i = repo.get(interceptor.key());
+			if (i != null) {
+				if (i.getIntercept() != null) {
+					i.getIntercept().decrementRefCounter();
+				}
+				if (i.getTerm() != null) {
+					i.getTerm().decrementRefCounter();
+				}
+				if (i.getTrigger() != null) {
+					i.getTrigger().decrementRefCounter();
+				}
+				repo.remove(interceptor.key());
+			}
 		}
 	}
 	

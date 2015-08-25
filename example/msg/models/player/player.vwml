@@ -37,7 +37,7 @@ module Player {
 			AvailablePlayerCommandsOnModeBattle  ias (createbf destroybf resetbf selectbf prepareattackzonesbf attackzonesbf requestbattlestatusbf responsebattlestatusbf);
 			AvailablePlayerCommandsOnModeMain    ias (setmode back requeststopplayerworld partclosed playerworldstopped playerworldresetted resettoinitialstate updateaccount updatebusinessconf getbalance qinitialized hainitialized extbattleresult updatecashierconf rqrating);
 			AvailablePlayerCommandsOnModeStateManagerBroker ias (collectstate restorestate rqcsquartals rqcsunits rspquartalstate rspunitstate rspcsha rqgarage rqbusiness rqha rqrsquartals rqrsunits rqrgarage rqrbusiness rqrha rsprquartalstate rsprunitstate rsprsha);
-			AvailablePlayerCommandsOnModeDeal    ias (setintention linkquartal unlinkquartal updatebzones releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
+			AvailablePlayerCommandsOnModeDeal    ias (setintention injectquartal linkquartal unlinkquartal updatebzones releasequartal releasedquartal resetquartal resettedquartal quartalreport payforunit dealpayment contribution returnpayment rqcalcquantum bdfchange reservegarageplace cancelreservationgarageplace back);
 			AvailablePlayerCommandsOnModeGarageDeal ias (reservegarageplace cancelreservationgarageplace invest cancelinvest instantinvest updategarageconf upgradecar instantupgradecar cancelupgradecar back);
 			AvailablePlayerCommandsOnModeBanking ias (withdraw recharge creditwithdraw back);
 			AvailablePlayerCommandsOnModeAttack  ias (requestbattlestatusbf responsebattlestatusbf);
@@ -220,7 +220,6 @@ module Player {
 					(CommandDispatcher.Dispatch ((Player Id~) Rx) Gate)^
 					CommandDispatcher~ Exe
 				);
-				CommandDispatcher.Dispatch~ Recycle
 				(ready (((Player Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
@@ -229,6 +228,8 @@ module Player {
 				(Stop false)^
 				(State active)^
 				(Activities (resourcemanager quartals battlefield hiringagency))^
+				// increment reference counter
+				(Id~ 0)^
 #if (verbose)
 				((The player Id~ added and active) Ew.Output~) Do
 #endif
@@ -240,7 +241,7 @@ module Player {
 				Resources.Init~ Exe
 				(Services.SignalUnit (SignalUnit Player Id~)) Born
 				PlayerLifeStep~ Exe
-				((Services)->(SignalUnit Player Id~)) Release
+				((MagicWorld)->(Services)->(SignalUnit Player Id~)) Release
 				((AttackManager Id~)) Release
 				((Player Id~) Unregister) Gate
 				(State nonactive)^

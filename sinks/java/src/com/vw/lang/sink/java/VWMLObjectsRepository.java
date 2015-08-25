@@ -171,11 +171,8 @@ public class VWMLObjectsRepository extends VWMLRepository {
 			return; // temporary entity
 		}
 		String key = buildAssociatingKeyOnContext(obj);
-		if (!repo.containsKey(key)) {
-			repo.put(key, obj);
-			// associates acquired entity with context
-			obj.getContext().associateEntity((VWMLEntity)obj);
-		}
+		repo.put(key, obj);
+		obj.getContext().associateEntity(obj);
 	}
 	
 	public void remove(VWMLEntity obj) {

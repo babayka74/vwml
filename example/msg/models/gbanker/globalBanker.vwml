@@ -161,7 +161,6 @@ module GlobalBanker {
 					(CommandDispatcher.Dispatch ((GlobalBanker Id~) Rx) Gate)^
 					CommandDispatcher~ Exe
 				);
-				CommandDispatcher.Dispatch~ Recycle
 				(ready (((GlobalBanker Id~) Ready) Gate true) Ident)~ Exe
 			);
 			lifeterm = (
